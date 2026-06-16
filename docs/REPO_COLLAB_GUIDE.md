@@ -35,7 +35,7 @@ This document defines the default collaboration model for an agent-first reposit
 
 - This template does not ship built-in CI/CD, avoiding unmaintained placeholder automation.
 - After the real stack arrives, add the smallest real test, build, scan, and release path.
-- When adding pipelines, update `docs/CICD.md` and the relevant script entry points in the same change.
+- When adding pipelines, document the commands, artifacts, and release behavior in the relevant repo docs in the same change.
 
 ## Configuration Hygiene
 
