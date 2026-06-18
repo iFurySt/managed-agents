@@ -9,6 +9,8 @@ billing account IDs, public VM IPs, SSH keys, or one-off project IDs here.
 ## Known Working Shape
 
 - Cloud: Google Cloud Compute Engine.
+- Current reusable harness project: `fc-harness-20260617` with display name
+  `firecracker-harness`.
 - VM family: Intel-based N2.
 - Tested machine type: `n2-standard-4`.
 - Tested guest image: Debian 12.
@@ -16,6 +18,7 @@ billing account IDs, public VM IPs, SSH keys, or one-off project IDs here.
 - Tested microVM guest: Ubuntu 24.04 rootfs from Firecracker CI artifacts.
 - Required VM option: `--enable-nested-virtualization`.
 - Required CPU platform for N2: `Intel Cascade Lake` or newer.
+- Current reusable harness VM: `fc-kvm-test-1` in `us-east1-b`.
 
 Avoid these machine families for this harness:
 
@@ -43,6 +46,43 @@ gcloud services enable compute.googleapis.com --project="$PROJECT_ID"
 
 Keep the active `gcloud` project unchanged unless the task explicitly needs it.
 Pass `--project="$PROJECT_ID"` on every command.
+
+## Reuse The Existing Harness
+
+The reusable project is intentionally small and should be stopped when idle.
+Use these values unless a task explicitly creates a new disposable project:
+
+```bash
+PROJECT_ID="fc-harness-20260617"
+ZONE="us-east1-b"
+VM_NAME="fc-kvm-test-1"
+```
+
+The known VM shape is:
+
+- `n2-standard-4`;
+- Debian 12;
+- 30 GB `pd-balanced` boot disk;
+- `--enable-nested-virtualization`;
+- `--min-cpu-platform="Intel Cascade Lake"`.
+
+The VM may be `TERMINATED` when idle. Start it only when the task needs remote
+KVM or Firecracker validation:
+
+```bash
+gcloud compute instances start "$VM_NAME" \
+  --project="$PROJECT_ID" \
+  --zone="$ZONE"
+```
+
+Stop it again before pausing work:
+
+```bash
+gcloud compute instances stop "$VM_NAME" \
+  --project="$PROJECT_ID" \
+  --zone="$ZONE" \
+  --quiet
+```
 
 ## Create A Nested-Virtualization VM
 
@@ -99,6 +139,64 @@ Expected signals:
 The current SSH user may need a fresh login before non-root access to `/dev/kvm`
 works after being added to the `kvm` group. Running Firecracker with `sudo` is
 acceptable for a smoke test.
+
+## Sync Local Development To The Harness
+
+Use `--tunnel-through-iap` for repeatable agent-driven SSH and copy commands.
+The VM may receive an ephemeral public IP while running, but IAP avoids relying
+on that address and matches the stopped/started lifecycle. Keep the project and
+zone explicit:
+
+```bash
+PROJECT_ID="fc-harness-20260617"
+ZONE="us-east1-b"
+VM_NAME="fc-kvm-test-1"
+
+gcloud compute ssh "$VM_NAME" \
+  --project="$PROJECT_ID" \
+  --zone="$ZONE" \
+  --tunnel-through-iap
+```
+
+For one-shot syncs, use `gcloud compute scp`:
+
+```bash
+gcloud compute scp --recurse \
+  apps/sandboxd \
+  go.mod go.sum \
+  "$VM_NAME:~/managed-agents/" \
+  --project="$PROJECT_ID" \
+  --zone="$ZONE" \
+  --tunnel-through-iap
+```
+
+For a compiled sandboxd smoke binary, compress locally and copy the smaller
+archive through IAP:
+
+```bash
+GOOS=linux GOARCH=amd64 go build -o /tmp/managed-agents-sandboxd ./apps/sandboxd
+gzip -c /tmp/managed-agents-sandboxd > /tmp/managed-agents-sandboxd.gz
+
+gcloud compute scp /tmp/managed-agents-sandboxd.gz \
+  "$VM_NAME:/tmp/sandboxd.gz" \
+  --project="$PROJECT_ID" \
+  --zone="$ZONE" \
+  --tunnel-through-iap
+
+gcloud compute ssh "$VM_NAME" \
+  --project="$PROJECT_ID" \
+  --zone="$ZONE" \
+  --tunnel-through-iap \
+  --command='set -euo pipefail
+gzip -dc /tmp/sandboxd.gz > /tmp/sandboxd
+chmod +x /tmp/sandboxd
+sudo mkdir -p /opt/managed-agents/bin /opt/managed-agents/firecracker
+sudo mv /tmp/sandboxd /opt/managed-agents/bin/sandboxd
+sudo chown -R "$USER:$USER" /opt/managed-agents'
+```
+
+If local dirty changes belong to another workstream, create a clean git
+worktree and sync from that worktree rather than from the primary checkout.
 
 ## Firecracker Smoke Test
 

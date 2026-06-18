@@ -26,6 +26,16 @@ DATABASE_URL=postgres://managed_agents:managed_agents@localhost:5432/managed_age
 APISERVER_ADDR=:8080
 ```
 
+Run the host-plane Firecracker smoke test on a Linux host with KVM:
+
+```sh
+go run ./apps/sandboxd doctor
+go run ./apps/sandboxd smoke --work-dir /opt/managed-agents/firecracker --sudo
+```
+
+For the reusable GCP N2 nested-virtualization harness and sync commands, see
+[`docs/references/gcp-firecracker-kvm.md`](docs/references/gcp-firecracker-kvm.md).
+
 ## Template Usage
 
 Use GitHub's template flow from the top right of this repository:
