@@ -9,3 +9,9 @@ Good candidates:
 - Short summaries of external standards or partner integrations.
 
 Avoid dumping large vendor manuals here. Keep references curated and scoped.
+
+## Current References
+
+- [GCP Firecracker KVM Harness](gcp-firecracker-kvm.md): how to create a
+  disposable Intel N2 Compute Engine VM with nested virtualization and run a real
+  Firecracker microVM smoke test.

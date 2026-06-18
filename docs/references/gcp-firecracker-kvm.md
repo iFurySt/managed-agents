@@ -1,0 +1,226 @@
+# GCP Firecracker KVM Harness
+
+Use this reference when an agent needs a disposable Google Cloud VM that can run
+Firecracker microVMs through KVM.
+
+This document is intentionally redacted. Do not record personal Google accounts,
+billing account IDs, public VM IPs, SSH keys, or one-off project IDs here.
+
+## Known Working Shape
+
+- Cloud: Google Cloud Compute Engine.
+- VM family: Intel-based N2.
+- Tested machine type: `n2-standard-4`.
+- Tested guest image: Debian 12.
+- Tested Firecracker release: `v1.16.0`.
+- Tested microVM guest: Ubuntu 24.04 rootfs from Firecracker CI artifacts.
+- Required VM option: `--enable-nested-virtualization`.
+- Required CPU platform for N2: `Intel Cascade Lake` or newer.
+
+Avoid these machine families for this harness:
+
+- `e2-*`
+- AMD families such as `n2d-*`, `t2d-*`, and AMD compute-optimized variants
+- Arm families
+- memory-optimized families
+
+Google Cloud nested virtualization exposes Intel VT-x to the L1 VM. Firecracker
+then uses Linux KVM through `/dev/kvm` inside that VM.
+
+## Create A Disposable Project
+
+Use an isolated project so test instances, disks, firewall rules, and API enablement
+do not leak into a shared project.
+
+```bash
+PROJECT_ID="fc-harness-YYYYMMDD"
+BILLING_ACCOUNT="REDACTED_BILLING_ACCOUNT_ID"
+
+gcloud projects create "$PROJECT_ID" --name="firecracker-harness"
+gcloud billing projects link "$PROJECT_ID" --billing-account="$BILLING_ACCOUNT"
+gcloud services enable compute.googleapis.com --project="$PROJECT_ID"
+```
+
+Keep the active `gcloud` project unchanged unless the task explicitly needs it.
+Pass `--project="$PROJECT_ID"` on every command.
+
+## Create A Nested-Virtualization VM
+
+Start with `n2-standard-4`. It is more comfortable than a tiny highcpu shape for
+kernel/rootfs downloads and smoke testing, while still being cheap enough for
+short-lived harness work.
+
+```bash
+PROJECT_ID="fc-harness-YYYYMMDD"
+ZONE="us-east1-b"
+VM_NAME="fc-kvm-test-1"
+
+gcloud compute instances create "$VM_NAME" \
+  --project="$PROJECT_ID" \
+  --zone="$ZONE" \
+  --machine-type=n2-standard-4 \
+  --image-family=debian-12 \
+  --image-project=debian-cloud \
+  --boot-disk-size=30GB \
+  --boot-disk-type=pd-balanced \
+  --enable-nested-virtualization \
+  --min-cpu-platform="Intel Cascade Lake"
+```
+
+Zone capacity for `n2-standard-4` can be temporarily unavailable. If creation
+fails with `ZONE_RESOURCE_POOL_EXHAUSTED`, retry another zone before changing
+the machine family. During the initial validation, `us-central1-*` had temporary
+capacity failures and an East Coast zone succeeded.
+
+## Verify KVM
+
+```bash
+gcloud compute ssh "$VM_NAME" \
+  --project="$PROJECT_ID" \
+  --zone="$ZONE" \
+  --command='set -eu
+printf "kernel="; uname -r
+printf "vmx_count="; grep -Ec "(^| )vmx( |$)" /proc/cpuinfo
+printf "kvm_device="; ls -l /dev/kvm
+printf "kvm_modules=\n"; lsmod | grep "^kvm" || true
+printf "sudo_kvm_access="; sudo sh -c "test -r /dev/kvm && test -w /dev/kvm" && echo ok || echo fail
+printf "cpu_model="; lscpu | sed -n "s/^Model name:[[:space:]]*//p" | head -1
+sudo usermod -aG kvm "$USER" || true
+'
+```
+
+Expected signals:
+
+- `vmx_count` is greater than zero.
+- `/dev/kvm` exists.
+- `kvm_intel` and `kvm` modules are loaded.
+- `sudo_kvm_access=ok`.
+
+The current SSH user may need a fresh login before non-root access to `/dev/kvm`
+works after being added to the `kvm` group. Running Firecracker with `sudo` is
+acceptable for a smoke test.
+
+## Firecracker Smoke Test
+
+Run this from inside the VM. It downloads the latest Firecracker release, pulls
+the latest x86_64 Firecracker CI kernel/rootfs artifacts, converts the rootfs to
+ext4, starts a 1 vCPU / 256 MiB microVM, and checks that the guest reaches the
+serial console.
+
+```bash
+set -euo pipefail
+
+WORK=/opt/firecracker-smoke
+sudo mkdir -p "$WORK"
+sudo chown "$USER:$USER" "$WORK"
+cd "$WORK"
+
+sudo apt-get update -y
+sudo apt-get install -y curl wget squashfs-tools e2fsprogs
+
+ARCH="$(uname -m)"
+S3="https://s3.amazonaws.com/spec.ccfc.min"
+CI_ARTIFACTS_PREFIX=$(curl -fsSL "$S3?list-type=2&prefix=firecracker-ci/&delimiter=/" \
+  | grep -oP "(?<=<Prefix>)firecracker-ci/[0-9]{8}-[^/]+/(?=</Prefix>)" \
+  | sort \
+  | tail -1)
+
+latest_kernel_key=$(curl -fsSL "$S3?list-type=2&prefix=${CI_ARTIFACTS_PREFIX}${ARCH}/vmlinux-" \
+  | grep -oP "(?<=<Key>)(${CI_ARTIFACTS_PREFIX}${ARCH}/vmlinux-[0-9]+\.[0-9]+\.[0-9]{1,3})(?=</Key>)" \
+  | sort -V \
+  | tail -1)
+
+latest_ubuntu_key=$(curl -fsSL "$S3?list-type=2&prefix=${CI_ARTIFACTS_PREFIX}${ARCH}/ubuntu-" \
+  | grep -oP "(?<=<Key>)(${CI_ARTIFACTS_PREFIX}${ARCH}/ubuntu-[0-9]+\.[0-9]+\.squashfs)(?=</Key>)" \
+  | sort -V \
+  | tail -1)
+
+KERNEL="$(basename "$latest_kernel_key")"
+ROOTFS_SQUASH="$(basename "$latest_ubuntu_key")"
+ROOTFS_EXT4="${ROOTFS_SQUASH%.squashfs}.ext4"
+
+[ -f "$KERNEL" ] || wget -q "$S3/$latest_kernel_key"
+[ -f "$ROOTFS_SQUASH" ] || wget -q "$S3/$latest_ubuntu_key"
+
+rm -rf squashfs-root
+unsquashfs -q "$ROOTFS_SQUASH"
+sudo chown -R root:root squashfs-root
+rm -f "$ROOTFS_EXT4"
+truncate -s 1G "$ROOTFS_EXT4"
+sudo mkfs.ext4 -q -d squashfs-root -F "$ROOTFS_EXT4"
+sudo chown "$USER:$USER" "$ROOTFS_EXT4"
+
+release_url="https://github.com/firecracker-microvm/firecracker/releases"
+latest=$(basename "$(curl -fsSLI -o /dev/null -w "%{url_effective}" "$release_url/latest")")
+curl -fsSL "$release_url/download/$latest/firecracker-$latest-$ARCH.tgz" | tar -xz
+mv "release-$latest-$ARCH/firecracker-$latest-$ARCH" ./firecracker
+chmod +x ./firecracker
+
+API_SOCKET=/tmp/firecracker-smoke.socket
+sudo rm -f "$API_SOCKET"
+sudo ./firecracker --api-sock "$API_SOCKET" > firecracker.console.log 2>&1 &
+FC_PID=$!
+
+for _ in $(seq 1 50); do
+  [ -S "$API_SOCKET" ] && break
+  sleep 0.1
+done
+[ -S "$API_SOCKET" ]
+
+sudo curl -fsS -X PUT --unix-socket "$API_SOCKET" \
+  --data '{"log_path":"/opt/firecracker-smoke/firecracker.log","level":"Info","show_level":true,"show_log_origin":true}' \
+  http://localhost/logger >/dev/null
+
+sudo curl -fsS -X PUT --unix-socket "$API_SOCKET" \
+  --data "{\"kernel_image_path\":\"$WORK/$KERNEL\",\"boot_args\":\"console=ttyS0 reboot=k panic=1 pci=off\"}" \
+  http://localhost/boot-source >/dev/null
+
+sudo curl -fsS -X PUT --unix-socket "$API_SOCKET" \
+  --data "{\"drive_id\":\"rootfs\",\"path_on_host\":\"$WORK/$ROOTFS_EXT4\",\"is_root_device\":true,\"is_read_only\":false}" \
+  http://localhost/drives/rootfs >/dev/null
+
+sudo curl -fsS -X PUT --unix-socket "$API_SOCKET" \
+  --data '{"vcpu_count":1,"mem_size_mib":256}' \
+  http://localhost/machine-config >/dev/null
+
+sudo curl -fsS -X PUT --unix-socket "$API_SOCKET" \
+  --data '{"action_type":"InstanceStart"}' \
+  http://localhost/actions >/dev/null
+
+sleep 5
+ps -p "$FC_PID" >/dev/null
+tail -80 firecracker.console.log
+
+sudo kill "$FC_PID" 2>/dev/null || true
+sudo rm -f "$API_SOCKET"
+```
+
+Expected smoke-test signals:
+
+- Firecracker API calls return successfully.
+- The Firecracker process remains running after `InstanceStart`.
+- `firecracker.console.log` shows the guest Linux boot.
+- A successful guest reaches an Ubuntu login prompt or root shell prompt.
+
+## Stop Or Delete
+
+Stop the VM when pausing work:
+
+```bash
+gcloud compute instances stop "$VM_NAME" \
+  --project="$PROJECT_ID" \
+  --zone="$ZONE" \
+  --quiet
+```
+
+Delete the whole project when the harness is no longer needed:
+
+```bash
+gcloud projects delete "$PROJECT_ID"
+```
+
+## References
+
+- Google Cloud nested virtualization: https://cloud.google.com/compute/docs/instances/nested-virtualization/overview
+- Google Cloud nested VM creation: https://cloud.google.com/compute/docs/instances/nested-virtualization/creating-nested-vms
+- Firecracker getting started: https://github.com/firecracker-microvm/firecracker/blob/main/docs/getting-started.md
