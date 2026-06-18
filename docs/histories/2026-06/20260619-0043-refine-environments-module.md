@@ -31,3 +31,10 @@ Keep the environment persistence model unchanged while improving the console fid
 - Updated the Environments table to match the 968px reference width with 40/216/296/100/120/140/56px columns for selection, ID, Name, Status, Type, Updated at, and actions.
 - Added an environment-specific short ID formatter so rows render like `env_...ZjUARMh` while preserving copy behavior for the full ID.
 - Revalidated the local list with OBU: headers, cells, and rows now render at the same 968px width with 45px rows; the local create dialog remains close to the captured 510px reference dialog.
+
+### Follow-up: Environment Detail Display Geometry
+
+- Rechecked the Claude Platform environment detail display and edit states with OBU.
+- Aligned the local display content column to the observed 800px detail width at the same x-offset used by the reference sections.
+- Added an environment-specific detail section heading helper so this page keeps Claude's 16px/24px section titles without changing deployment detail sections.
+- Tightened the Packages and Metadata value blocks to the captured shallow filled style: 800px wide, 6px radius, compact padding, and 36/38px local heights against the 35/37px reference.

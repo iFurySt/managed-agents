@@ -1178,28 +1178,32 @@ function EnvironmentDetailPage() {
           </section>
         </div>
       ) : (
-        <div className="grid max-w-[820px] gap-8">
+        <div className="ml-3 grid max-w-[800px] gap-4">
           <p className="text-sm leading-6 text-[#3f3a35]">{environment.description || "No description"}</p>
-          <DetailSection title="Networking">
-            <p className="mb-4 text-sm text-muted">Configure network access policies for this environment.</p>
+          <EnvironmentDetailSection title="Networking">
+            <p className="mb-3 text-sm text-muted">Configure network access policies for this environment.</p>
             <div className="grid max-w-[360px] grid-cols-[120px_minmax(0,1fr)] gap-3 text-sm">
               <span className="font-semibold">Type</span>
               <span>{environment.networkingType || "Unrestricted"}</span>
             </div>
-          </DetailSection>
-          <DetailSection title="Packages">
-            <p className="mb-4 text-sm text-muted">Specify packages and their versions available in this environment. Separate multiple values with spaces.</p>
-            <div className="flex items-start justify-between gap-4 rounded-cds border border-line bg-white p-3">
-              <pre className="whitespace-pre-wrap font-mono text-sm leading-6">{environment.packageManager || "apt"}: {environment.packages || "No packages"}</pre>
-              <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label="Copy" onClick={() => copyText(`${environment.packageManager || "apt"}: ${environment.packages || ""}`.trim())}>
+          </EnvironmentDetailSection>
+          <EnvironmentDetailSection title="Packages">
+            <p className="mb-3 text-sm text-muted">Specify packages and their versions available in this environment. Separate multiple values with spaces.</p>
+            <div className="flex min-h-[35px] items-center justify-between gap-4 rounded-md border border-line bg-fill px-3 py-[6px]">
+              <pre className="whitespace-pre-wrap font-mono text-sm leading-[21px]">{environment.packageManager || "apt"}: {environment.packages || "No packages"}</pre>
+              <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0 text-muted" aria-label="Copy" onClick={() => copyText(`${environment.packageManager || "apt"}: ${environment.packages || ""}`.trim())}>
                 <Copy className="h-3.5 w-3.5" />
               </Button>
             </div>
-          </DetailSection>
-          <DetailSection title="Metadata">
-            <p className="mb-4 text-sm text-muted">Add custom key-value pairs to tag and organize this environment. Keys must be lowercase.</p>
-            {environment.metadata ? <pre className="rounded-cds border border-line bg-white p-3 font-mono text-sm">{environment.metadata}</pre> : <div className="text-sm text-muted">No metadata</div>}
-          </DetailSection>
+          </EnvironmentDetailSection>
+          <EnvironmentDetailSection title="Metadata">
+            <p className="mb-3 text-sm text-muted">Add custom key-value pairs to tag and organize this environment. Keys must be lowercase.</p>
+            {environment.metadata ? (
+              <pre className="min-h-[37px] rounded-md border border-line bg-fill px-3 py-2 font-mono text-sm leading-5">{environment.metadata}</pre>
+            ) : (
+              <div className="min-h-[37px] rounded-md border border-line bg-canvas px-3 py-2 text-sm text-muted">No metadata</div>
+            )}
+          </EnvironmentDetailSection>
         </div>
       )}
     </section>
@@ -3612,6 +3616,15 @@ function DetailSection({ title, children }: { title: string; children: React.Rea
   return (
     <section>
       <h2 className="mb-1.5 text-sm font-semibold leading-5">{title}</h2>
+      {children}
+    </section>
+  );
+}
+
+function EnvironmentDetailSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section>
+      <h2 className="mb-3 text-base font-semibold leading-6">{title}</h2>
       {children}
     </section>
   );
