@@ -1273,7 +1273,7 @@ function VaultsPage() {
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
           <TextInput className="pl-9" aria-label="Search by name or exact ID" placeholder="Search by name or exact ID" value={search} onChange={(event) => setSearch(event.target.value)} />
         </div>
-        <FieldSelect label="Status" value={status} options={["All", "Active", "Archived"]} onValueChange={setStatus} triggerClassName="w-[104px]" />
+        <FieldSelect label="Status" value={status} options={["All", "Active", "Archived"]} onValueChange={setStatus} triggerClassName="w-[98px]" />
       </div>
       <DataTable
         rows={vaults}

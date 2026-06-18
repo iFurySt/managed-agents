@@ -30,3 +30,9 @@ Keep vaults as an `apiserver` control-plane module while tightening console fide
 - Re-captured the Claude Platform credential vaults list and create vault dialog with OBU.
 - Aligned the vault list filter and table geometry to the observed Claude surface: 320px search input, compact status filter, and 216/304/200/200/48 table columns.
 - Tightened the create vault first step against the observed dialog: 510px shell, 22px title, and the amber workspace-sharing warning banner.
+
+### Follow-up: Vaults List Filter Geometry
+
+- Re-captured the Claude Platform credential vaults list with OBU at a 1272px viewport.
+- Updated the local Status filter to the current Claude 98px width at x=608 while preserving the 320px search field.
+- Verified the local `/vaults` page with OBU after the change; filter, table, row, and actions button x/width/height values match the Claude reference, while global shell vertical positioning remains a separate follow-up.
