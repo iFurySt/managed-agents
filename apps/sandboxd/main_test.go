@@ -122,3 +122,40 @@ func TestProcessNetworkForSandbox(t *testing.T) {
 		t.Fatalf("unexpected guest MAC: %q", network.guestMAC)
 	}
 }
+
+func TestParseEnv(t *testing.T) {
+	env := parseEnv([]string{"A=1", "B=two=parts", "missing", "=empty"})
+	if env["A"] != "1" {
+		t.Fatalf("A = %q", env["A"])
+	}
+	if env["B"] != "two=parts" {
+		t.Fatalf("B = %q", env["B"])
+	}
+	if _, ok := env["missing"]; ok {
+		t.Fatalf("invalid env item was included: %#v", env)
+	}
+	if _, ok := env[""]; ok {
+		t.Fatalf("empty env key was included: %#v", env)
+	}
+}
+
+func TestProcessAPIURL(t *testing.T) {
+	tcp := sandboxState{
+		ProcessAPI:       true,
+		ProcessTransport: "tcp",
+		GuestIP:          "172.16.1.2",
+		ProcessTCPPort:   8080,
+	}
+	if got := processAPIURL(tcp, "/exec"); got != "http://172.16.1.2:8080/exec" {
+		t.Fatalf("tcp URL = %q", got)
+	}
+	vsock := sandboxState{
+		ProcessAPI:       true,
+		ProcessTransport: "vsock",
+		VsockPath:        "/tmp/process-api.vsock",
+		ProcessPort:      1024,
+	}
+	if got := processAPIURL(vsock, "/healthz"); got != "http://process-api/healthz" {
+		t.Fatalf("vsock URL = %q", got)
+	}
+}

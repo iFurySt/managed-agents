@@ -3,6 +3,7 @@ package main
 import (
 	"archive/tar"
 	"bufio"
+	"bytes"
 	"compress/gzip"
 	"context"
 	"encoding/json"
@@ -43,6 +44,9 @@ type options struct {
 	processAPITransport string
 	processAPIPort      uint32
 	processAPITCPPort   uint32
+	execCwd             string
+	execEnv             []string
+	execTimeout         time.Duration
 	vsockCID            uint32
 }
 
@@ -110,6 +114,25 @@ type processAPIHealth struct {
 	Arch      string `json:"arch"`
 	PID       int    `json:"pid"`
 	Timestamp string `json:"timestamp"`
+}
+
+type processAPIExecRequest struct {
+	Argv          []string          `json:"argv"`
+	Cwd           string            `json:"cwd,omitempty"`
+	Env           map[string]string `json:"env,omitempty"`
+	TimeoutMillis int64             `json:"timeout_millis,omitempty"`
+}
+
+type processAPIExecResponse struct {
+	OK             bool     `json:"ok"`
+	Argv           []string `json:"argv"`
+	Cwd            string   `json:"cwd"`
+	ExitCode       int      `json:"exit_code"`
+	Stdout         string   `json:"stdout"`
+	Stderr         string   `json:"stderr"`
+	Error          string   `json:"error,omitempty"`
+	TimedOut       bool     `json:"timed_out"`
+	DurationMillis int64    `json:"duration_millis"`
 }
 
 type processNetwork struct {
@@ -231,7 +254,7 @@ func main() {
 	})
 	sandbox.AddCommand(&cobra.Command{
 		Use:   "ping <sandbox-id>",
-		Short: "Query guest process-api health over Firecracker vsock",
+		Short: "Query guest process-api health",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			state, err := readSandboxState(opt, args[0])
@@ -246,6 +269,44 @@ func main() {
 			return nil
 		},
 	})
+	execCmd := &cobra.Command{
+		Use:          "exec <sandbox-id> -- <command> [args...]",
+		Short:        "Run a command inside the guest through process-api",
+		Args:         cobra.MinimumNArgs(2),
+		SilenceUsage: true,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			state, err := readSandboxState(opt, args[0])
+			if err != nil {
+				return err
+			}
+			resp, err := execProcessAPI(cmd.Context(), state, processAPIExecRequest{
+				Argv:          args[1:],
+				Cwd:           opt.execCwd,
+				Env:           parseEnv(opt.execEnv),
+				TimeoutMillis: opt.execTimeout.Milliseconds(),
+			})
+			if err != nil {
+				return err
+			}
+			fmt.Print(resp.Stdout)
+			if resp.Stderr != "" {
+				_, _ = fmt.Fprint(os.Stderr, resp.Stderr)
+			}
+			fmt.Printf("exit_code=%d\n", resp.ExitCode)
+			fmt.Printf("duration_ms=%d\n", resp.DurationMillis)
+			if resp.TimedOut {
+				return errors.New("guest command timed out")
+			}
+			if !resp.OK {
+				return fmt.Errorf("guest command failed: %s", resp.Error)
+			}
+			return nil
+		},
+	}
+	execCmd.Flags().StringVar(&opt.execCwd, "cwd", "/", "guest working directory")
+	execCmd.Flags().StringArrayVar(&opt.execEnv, "env", nil, "guest environment override as KEY=VALUE; repeatable")
+	execCmd.Flags().DurationVar(&opt.execTimeout, "timeout", 30*time.Second, "guest command timeout")
+	sandbox.AddCommand(execCmd)
 	sandbox.AddCommand(&cobra.Command{
 		Use:   "stop <sandbox-id>",
 		Short: "Stop a running Firecracker sandbox",
@@ -893,6 +954,21 @@ func validateProcessAPIOptions(opt options) error {
 	return nil
 }
 
+func parseEnv(items []string) map[string]string {
+	if len(items) == 0 {
+		return nil
+	}
+	env := make(map[string]string, len(items))
+	for _, item := range items {
+		key, value, ok := strings.Cut(item, "=")
+		if !ok || key == "" {
+			continue
+		}
+		env[key] = value
+	}
+	return env
+}
+
 func firecrackerArch() (string, error) {
 	switch runtime.GOARCH {
 	case "amd64":
@@ -1146,23 +1222,11 @@ func waitForProcessAPI(ctx context.Context, state sandboxState, timeout time.Dur
 }
 
 func getProcessAPIHealth(ctx context.Context, state sandboxState) (processAPIHealth, error) {
-	if !state.ProcessAPI {
-		return processAPIHealth{}, fmt.Errorf("sandbox %s was not started with process-api", state.ID)
-	}
-	switch state.ProcessTransport {
-	case "tcp":
-		if state.GuestIP == "" || state.ProcessTCPPort == 0 {
-			return processAPIHealth{}, fmt.Errorf("sandbox %s is missing process-api TCP metadata", state.ID)
-		}
-	case "vsock":
-		if state.VsockPath == "" || state.ProcessPort == 0 {
-			return processAPIHealth{}, fmt.Errorf("sandbox %s is missing process-api vsock metadata", state.ID)
-		}
-	default:
-		return processAPIHealth{}, fmt.Errorf("sandbox %s has unsupported process-api transport %q", state.ID, state.ProcessTransport)
+	if err := validateProcessAPIState(state); err != nil {
+		return processAPIHealth{}, err
 	}
 	client := processAPIClient(state)
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, processAPIHealthURL(state), nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, processAPIURL(state, "/healthz"), nil)
 	if err != nil {
 		return processAPIHealth{}, err
 	}
@@ -1185,6 +1249,61 @@ func getProcessAPIHealth(ctx context.Context, state sandboxState) (processAPIHea
 	return health, nil
 }
 
+func execProcessAPI(ctx context.Context, state sandboxState, request processAPIExecRequest) (processAPIExecResponse, error) {
+	if err := validateProcessAPIState(state); err != nil {
+		return processAPIExecResponse{}, err
+	}
+	if len(request.Argv) == 0 {
+		return processAPIExecResponse{}, errors.New("guest command is required")
+	}
+	if request.Cwd == "" {
+		request.Cwd = "/"
+	}
+	var body bytes.Buffer
+	if err := json.NewEncoder(&body).Encode(request); err != nil {
+		return processAPIExecResponse{}, err
+	}
+	client := processAPIClient(state)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, processAPIURL(state, "/exec"), &body)
+	if err != nil {
+		return processAPIExecResponse{}, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := client.Do(req)
+	if err != nil {
+		return processAPIExecResponse{}, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		data, _ := io.ReadAll(resp.Body)
+		return processAPIExecResponse{}, fmt.Errorf("process-api exec failed: %s %s", resp.Status, strings.TrimSpace(string(data)))
+	}
+	var result processAPIExecResponse
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return processAPIExecResponse{}, err
+	}
+	return result, nil
+}
+
+func validateProcessAPIState(state sandboxState) error {
+	if !state.ProcessAPI {
+		return fmt.Errorf("sandbox %s was not started with process-api", state.ID)
+	}
+	switch state.ProcessTransport {
+	case "tcp":
+		if state.GuestIP == "" || state.ProcessTCPPort == 0 {
+			return fmt.Errorf("sandbox %s is missing process-api TCP metadata", state.ID)
+		}
+	case "vsock":
+		if state.VsockPath == "" || state.ProcessPort == 0 {
+			return fmt.Errorf("sandbox %s is missing process-api vsock metadata", state.ID)
+		}
+	default:
+		return fmt.Errorf("sandbox %s has unsupported process-api transport %q", state.ID, state.ProcessTransport)
+	}
+	return nil
+}
+
 func processAPIClient(state sandboxState) *http.Client {
 	if state.ProcessTransport == "tcp" {
 		return &http.Client{
@@ -1203,11 +1322,11 @@ func processAPIClient(state sandboxState) *http.Client {
 	}
 }
 
-func processAPIHealthURL(state sandboxState) string {
+func processAPIURL(state sandboxState, path string) string {
 	if state.ProcessTransport == "tcp" {
-		return fmt.Sprintf("http://%s:%d/healthz", state.GuestIP, state.ProcessTCPPort)
+		return fmt.Sprintf("http://%s:%d%s", state.GuestIP, state.ProcessTCPPort, path)
 	}
-	return "http://process-api/healthz"
+	return "http://process-api" + path
 }
 
 func dialFirecrackerVsock(ctx context.Context, udsPath string, port uint32) (net.Conn, error) {

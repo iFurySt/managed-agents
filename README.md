@@ -36,6 +36,7 @@ go run ./apps/sandboxd doctor
 go run ./apps/sandboxd pull --work-dir /opt/managed-agents/firecracker --sudo
 go run ./apps/sandboxd sandbox start sbx-dev --work-dir /opt/managed-agents/firecracker --sudo --process-api
 go run ./apps/sandboxd sandbox ping sbx-dev --work-dir /opt/managed-agents/firecracker
+go run ./apps/sandboxd sandbox exec sbx-dev --work-dir /opt/managed-agents/firecracker -- /bin/uname -m
 go run ./apps/sandboxd sandbox status sbx-dev --work-dir /opt/managed-agents/firecracker
 go run ./apps/sandboxd sandbox stop sbx-dev --work-dir /opt/managed-agents/firecracker
 ```

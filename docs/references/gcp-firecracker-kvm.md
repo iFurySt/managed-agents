@@ -270,6 +270,16 @@ SANDBOX_ID=sbx-process-api
 /opt/managed-agents/bin/sandboxd sandbox ping "$SANDBOX_ID" \
   --work-dir "$WORK_DIR"
 
+/opt/managed-agents/bin/sandboxd sandbox exec "$SANDBOX_ID" \
+  --work-dir "$WORK_DIR" \
+  -- /bin/uname -m
+
+/opt/managed-agents/bin/sandboxd sandbox exec "$SANDBOX_ID" \
+  --work-dir "$WORK_DIR" \
+  --cwd /tmp \
+  --env MA_EXEC_TEST=ok \
+  -- /bin/sh -c 'printf cwd=; pwd; printf env=; printf "$MA_EXEC_TEST"'
+
 /opt/managed-agents/bin/sandboxd sandbox stop "$SANDBOX_ID" \
   --work-dir "$WORK_DIR"
 ```
@@ -278,6 +288,8 @@ Expected process-api signals:
 
 - `sandbox start` reports `process_api=ready`.
 - `sandbox ping` reports `service=process-api`, `os=linux`, and `arch=amd64`.
+- `sandbox exec` returns guest command stdout plus `exit_code=0`.
+- A failing guest command returns its stderr and non-zero `exit_code`.
 - `state.json` records `process_transport=tcp`, a tap name, host IP, guest IP,
   and guest MAC.
 - The console log contains `process_api_ready`.
