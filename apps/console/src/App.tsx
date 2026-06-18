@@ -15,6 +15,7 @@ import {
   Info,
   KeyRound,
   MessageSquare,
+  Play,
   Plus,
   Search,
   Settings,
@@ -24,12 +25,24 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate, Route, Routes, useParams } from "react-router-dom";
-import { cancelSession, createAgent, createSession, getAgent, getSession, listAgents, listCollection, listSessions } from "./api";
+import {
+  cancelSession,
+  createAgent,
+  createDeployment,
+  createSession,
+  getAgent,
+  getDeployment,
+  getSession,
+  listAgents,
+  listCollection,
+  listDeployments,
+  listSessions,
+  runDeployment
+} from "./api";
 import { Badge, Button, CdsTabs, ConsoleDialog, DataTable, FieldSelect, SidebarItem, TextInput } from "./components/cds";
-import type { Agent, CollectionName, Resource, Session } from "./types";
+import type { Agent, CollectionName, Deployment, Resource, Session } from "./types";
 
 const managedRoutes: { path: CollectionName; title: string; description: string; action: string }[] = [
-  { path: "deployments", title: "Deployments", description: "Manage previews and promoted artifacts.", action: "Create deployment" },
   { path: "environments", title: "Environments", description: "Configure sandbox runtimes and policies.", action: "Create environment" },
   { path: "vaults", title: "Credential vaults", description: "Manage scoped credentials and secret bindings.", action: "Create vault" },
   { path: "memory-stores", title: "Memory stores", description: "Manage reusable agent knowledge stores.", action: "Create memory store" },
@@ -51,6 +64,8 @@ export default function App() {
               <Route path="/agents/:id" element={<AgentDetailPage />} />
               <Route path="/sessions" element={<SessionsPage />} />
               <Route path="/sessions/:id" element={<SessionDetailPage />} />
+              <Route path="/deployments" element={<DeploymentsPage />} />
+              <Route path="/deployments/:id" element={<DeploymentDetailPage />} />
               {managedRoutes.map((route) => (
                 <Route key={route.path} path={`/${route.path}`} element={<CollectionPage route={route} />} />
               ))}
@@ -514,6 +529,252 @@ function SessionDetailPage() {
   );
 }
 
+function DeploymentsPage() {
+  const [deployments, setDeployments] = useState<Deployment[]>([]);
+  const [agent, setAgent] = useState("All");
+  const [status, setStatus] = useState("All");
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  useEffect(() => {
+    listDeployments().then(setDeployments).catch(() => setDeployments([]));
+  }, []);
+
+  return (
+    <section className="flex flex-col gap-4">
+      <PageHeader
+        title="Deployment"
+        description="A deployment binds an agent to credentials, an environment, and a schedule so it can run on its own."
+        action={
+          <Button onClick={() => setDialogOpen(true)}>
+            <Plus className="h-4 w-4" />
+            Create deployment
+          </Button>
+        }
+      />
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="relative w-[272px]">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+          <TextInput className="pl-9" aria-label="Search by name or exact ID" placeholder="Search by name or exact ID" />
+        </div>
+        <FieldSelect label="Agent" value={agent} options={["All", "World Cup Daily Digest", "Managed SSH Reverse Tunnel Bootstrapper"]} onValueChange={setAgent} />
+        <FieldSelect label="Status" value={status} options={["All", "Paused", "Active", "Failed"]} onValueChange={setStatus} />
+      </div>
+      <DataTable
+        rows={deployments}
+        getKey={(deployment) => deployment.id}
+        columns={[
+          {
+            key: "id",
+            header: "ID",
+            width: "190px",
+            render: (deployment) => (
+              <div className="flex items-center gap-2">
+                <span className="font-mono font-semibold">{shortId(deployment.id)}</span>
+                <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${deployment.id}`}>
+                  <Copy className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            )
+          },
+          {
+            key: "name",
+            header: "Name",
+            width: "240px",
+            render: (deployment) => (
+              <Link className="font-medium hover:underline" to={`/deployments/${deployment.id}`}>
+                {deployment.name}
+              </Link>
+            )
+          },
+          { key: "status", header: "Status", width: "120px", render: (deployment) => <Badge tone={deploymentTone(deployment.status)}>{deployment.status}</Badge> },
+          {
+            key: "agent",
+            header: "Agent",
+            width: "240px",
+            render: (deployment) => (
+              <Button variant="ghost" className="h-[25px] justify-start px-2">
+                <Braces className="h-4 w-4 text-muted" />
+                <span>{deployment.agentName}</span>
+                <span className="text-muted">{deployment.agentVersion}</span>
+              </Button>
+            )
+          },
+          { key: "trigger", header: "Trigger", width: "220px", render: (deployment) => <span>{deployment.trigger === "Schedule" ? "Daily at 1:00 AM GMT+8" : deployment.trigger}</span> },
+          { key: "created", header: "Created", width: "140px", render: (deployment) => <span className="text-muted">{deployment.createdLabel}</span> }
+        ]}
+      />
+      <div className="flex gap-2">
+        <Button variant="secondary" className="h-8 w-8 px-0" disabled>
+          ‹
+        </Button>
+        <Button variant="secondary" className="h-8 w-8 px-0" disabled>
+          ›
+        </Button>
+      </div>
+      <CreateDeploymentDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        onCreated={(deployment) => setDeployments((items) => [deployment, ...items])}
+      />
+    </section>
+  );
+}
+
+function DeploymentDetailPage() {
+  const { id } = useParams();
+  const [deployment, setDeployment] = useState<Deployment | null>(null);
+  const [trigger, setTrigger] = useState("All");
+  const [result, setResult] = useState("All");
+
+  useEffect(() => {
+    if (id) getDeployment(id).then(setDeployment).catch(() => setDeployment(null));
+  }, [id]);
+
+  async function runNow() {
+    if (!deployment) return;
+    const run = await runDeployment(deployment.id);
+    setDeployment({ ...deployment, lastRunLabel: "just now", runs: [run, ...(deployment.runs ?? [])] });
+  }
+
+  if (!deployment) return <EmptyState title="Deployment not found" description="The selected deployment could not be loaded." />;
+
+  return (
+    <section className="flex flex-col gap-4">
+      <div className="flex h-[52px] items-center justify-between">
+        <nav className="flex items-center gap-2 text-sm text-muted">
+          <Link className="rounded-control px-3 py-1.5 hover:bg-fill" to="/deployments">
+            Deployment
+          </Link>
+          <span>/</span>
+          <span className="text-ink">{deployment.name}</span>
+        </nav>
+      </div>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <div className="mb-1 flex items-center gap-3">
+            <h1 className="text-2xl font-medium tracking-[-0.01em]">{deployment.name}</h1>
+            <Badge tone={deploymentTone(deployment.status)}>{deployment.status}</Badge>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-muted">
+            <span className="font-mono">{shortId(deployment.id)}</span>
+            <span>·</span>
+            <span>Created {deployment.createdLabel === "Jun 16" ? "Jun 16, 2026" : deployment.createdLabel}</span>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <Button onClick={runNow}>
+            <Play className="h-4 w-4" />
+            Run now
+          </Button>
+          <Button variant="icon" aria-label="More actions">
+            ⋯
+          </Button>
+        </div>
+      </div>
+
+      <CdsTabs.Root defaultValue="configuration" className="flex flex-col gap-4">
+        <CdsTabs.List data-cds="NavigationTabs" className="flex border-b border-line">
+          {["Configuration", "Runs"].map((tab) => (
+            <CdsTabs.Trigger
+              key={tab}
+              value={tab.toLowerCase()}
+              className="h-9 border-b-2 border-transparent px-3 text-sm font-medium text-muted data-[state=active]:border-ink data-[state=active]:text-ink"
+            >
+              {tab}
+            </CdsTabs.Trigger>
+          ))}
+        </CdsTabs.List>
+        <CdsTabs.Content value="configuration" className="grid max-w-[800px] gap-8">
+          <div className="grid grid-cols-2 gap-4">
+            <DetailSection title="Agent">
+              <Button variant="ghost" className="h-[25px] px-2">
+                <Braces className="h-4 w-4" />
+                {deployment.agentName}
+                <span className="text-muted">{deployment.agentVersion}</span>
+              </Button>
+            </DetailSection>
+            <DetailSection title="Environment">
+              <Button variant="ghost" className="h-[25px] px-2">
+                <Database className="h-4 w-4" />
+                {deployment.environmentName}
+              </Button>
+            </DetailSection>
+          </div>
+          <DetailSection title="Credential vault">
+            <Button variant="ghost" className="h-[25px] px-2">
+              <KeyRound className="h-4 w-4" />
+              {deployment.vaults || "No credential vault"}
+            </Button>
+          </DetailSection>
+          <DetailSection title="Memory store">
+            <Button variant="ghost" className="h-[25px] px-2">
+              <Database className="h-4 w-4" />
+              {deployment.memoryStores || "No memory store"}
+            </Button>
+          </DetailSection>
+          <DetailSection title="Schedule">
+            <div className="rounded-cds border border-line bg-white p-3">
+              <div className="flex items-center justify-between">
+                <pre className="font-mono text-sm">{deployment.schedule}</pre>
+                <Button variant="ghost" className="h-[22px] w-[22px] px-0" aria-label="Copy schedule">
+                  <Copy className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+              <div className="mt-2 text-sm text-muted">Timezone: {deployment.timezone}</div>
+            </div>
+            <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-muted">
+              <span>Next (when resumed):</span>
+              {deployment.nextRuns.split(", ").map((run) => (
+                <Badge key={run}>{run}</Badge>
+              ))}
+              <span className="ml-4">Last scheduled run: {deployment.lastRunLabel}</span>
+            </div>
+          </DetailSection>
+          <DetailSection title="Initial message">
+            <div className="rounded-cds border border-line bg-white p-3">
+              <div className="flex items-start justify-between gap-4">
+                <pre className="whitespace-pre-wrap text-sm leading-6 text-[#3f3a35]">{deployment.initialMessage}</pre>
+                <Button variant="ghost" className="h-[22px] w-[22px] px-0" aria-label="Copy initial message">
+                  <Copy className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            </div>
+          </DetailSection>
+        </CdsTabs.Content>
+        <CdsTabs.Content value="runs" className="flex flex-col gap-4">
+          <div className="flex gap-2">
+            <FieldSelect label="Trigger" value={trigger} options={["All", "Manual", "Schedule"]} onValueChange={setTrigger} />
+            <FieldSelect label="Result" value={result} options={["All", "Success", "Failed"]} onValueChange={setResult} />
+          </div>
+          <DataTable
+            rows={deployment.runs ?? []}
+            getKey={(run) => run.id}
+            columns={[
+              { key: "id", header: "ID", width: "190px", render: (run) => <span className="font-mono font-semibold">{shortId(run.id)}</span> },
+              {
+                key: "started",
+                header: "Started at (GMT+8)",
+                width: "220px",
+                render: (run) => (
+                  <div>
+                    <div>{run.startedAt}</div>
+                    <div className="text-xs text-muted">{run.startedLabel}</div>
+                  </div>
+                )
+              },
+              { key: "trigger", header: "Trigger", width: "130px", render: (run) => <span>{run.trigger}</span> },
+              { key: "status", header: "Status", width: "120px", render: (run) => <Badge tone="green">{run.result}</Badge> },
+              { key: "version", header: "Agent version", width: "150px", render: (run) => <span>{run.agentVersion}</span> },
+              { key: "session", header: "Session", width: "210px", render: (run) => <Link className="font-mono hover:underline" to={`/sessions/${run.sessionId}`}>{shortId(run.sessionId)}</Link> },
+              { key: "sessionStatus", header: "Session status", width: "150px", render: (run) => <Badge tone={sessionTone(run.sessionStatus)}>{run.sessionStatus}</Badge> }
+            ]}
+          />
+        </CdsTabs.Content>
+      </CdsTabs.Root>
+    </section>
+  );
+}
+
 function AgentDetailPage() {
   const { id } = useParams();
   const [agent, setAgent] = useState<Agent | null>(null);
@@ -756,6 +1017,119 @@ function CreateSessionDialog({
   );
 }
 
+function CreateDeploymentDialog({
+  open,
+  onOpenChange,
+  onCreated
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onCreated: (deployment: Deployment) => void;
+}) {
+  const [name, setName] = useState("");
+  const [agentId, setAgentId] = useState("");
+  const [initialMessage, setInitialMessage] = useState("");
+  const [environmentId, setEnvironmentId] = useState("");
+  const [vault, setVault] = useState("");
+  const [memoryStore, setMemoryStore] = useState("");
+  const [trigger, setTrigger] = useState("");
+
+  const canCreate = name && agentId && initialMessage && environmentId && trigger;
+
+  async function submit() {
+    if (!canCreate) return;
+    const deployment = await createDeployment({
+      name,
+      agentId,
+      initialMessage,
+      environmentId,
+      vaults: vault ? [vault] : [],
+      memoryStores: memoryStore ? [memoryStore] : [],
+      trigger,
+      schedule: trigger === "Schedule" ? "0 1 * * *" : "Manual",
+      timezone: "Asia/Shanghai"
+    });
+    onCreated(deployment);
+    onOpenChange(false);
+    setName("");
+    setInitialMessage("");
+  }
+
+  return (
+    <ConsoleDialog title="Create deployment" description="Deploy an agent with a trigger, environment, and credentials." open={open} onOpenChange={onOpenChange}>
+      <div className="max-h-[calc(86vh-92px)] overflow-y-auto px-6 pb-0 pt-5">
+        <div className="grid gap-5">
+          <label className="grid gap-2 text-sm font-medium">
+            Name
+            <TextInput placeholder="Nightly inbox triage" value={name} onChange={(event) => setName(event.target.value)} />
+          </label>
+          <div className="grid gap-2">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium">Agent</label>
+              <Button variant="ghost" size="sm">Manage agents</Button>
+            </div>
+            <FieldSelect
+              label=""
+              value={agentId || "Select an agent"}
+              options={["Select an agent", "agent_017k8CPYuCFRD9AmupUeXd2Z", "agent_013mi1SmR2hJ6Hk6wNTeJvF9", "agent_01AVRPTGyYareCeoUasn66q5"]}
+              onValueChange={(value) => setAgentId(value === "Select an agent" ? "" : value)}
+            />
+          </div>
+          <label className="grid gap-2 text-sm font-medium">
+            Initial message
+            <span className="text-sm font-normal text-muted">Sent to the agent at the start of every run.</span>
+            <textarea
+              className="cds-focus min-h-14 resize-none rounded-control border border-line bg-white px-3 py-2 text-sm"
+              placeholder="Summarize today's support tickets and post to #digest"
+              value={initialMessage}
+              onChange={(event) => setInitialMessage(event.target.value)}
+            />
+          </label>
+          <div className="grid gap-2">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium">Environment</label>
+              <Button variant="ghost" size="sm">Manage environments</Button>
+            </div>
+            <FieldSelect
+              label=""
+              value={environmentId || "Select an environment"}
+              options={["Select an environment", "env_01WorldCupDigest", "env_01ManagedDebug", "env_01PythonBrowser"]}
+              onValueChange={(value) => setEnvironmentId(value === "Select an environment" ? "" : value)}
+            />
+          </div>
+          <div className="grid gap-2">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium">Credential vault (optional)</label>
+              <Button variant="ghost" size="sm">Manage credential vault</Button>
+            </div>
+            <FieldSelect label="" value={vault || "Add vault"} options={["Add vault", "test_secret", "vault_01GitHub"]} onValueChange={(value) => setVault(value === "Add vault" ? "" : value)} />
+          </div>
+          <div className="grid gap-2">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium">Memory store (optional)</label>
+              <Button variant="ghost" size="sm">Manage memory store</Button>
+            </div>
+            <FieldSelect label="" value={memoryStore || "Add memory store"} options={["Add memory store", "world cup", "Operations memory"]} onValueChange={(value) => setMemoryStore(value === "Add memory store" ? "" : value)} />
+          </div>
+          <div className="grid gap-2">
+            <label className="text-sm font-medium">Trigger</label>
+            <FieldSelect label="" value={trigger || "Select a trigger"} options={["Select a trigger", "Manual", "Schedule"]} onValueChange={(value) => setTrigger(value === "Select a trigger" ? "" : value)} />
+            <div className="rounded-cds border border-line bg-fill p-3 text-sm text-muted">
+              <div className="font-semibold text-ink">Manual</div>
+              <div>Run on demand from the dashboard or API</div>
+              <div className="mt-2 font-semibold text-ink">Schedule</div>
+              <div>Run automatically on a cron schedule</div>
+            </div>
+          </div>
+        </div>
+        <div className="sticky bottom-0 -mx-6 mt-6 flex justify-end bg-white px-6 py-5">
+          <Button onClick={submit} disabled={!canCreate}>Create</Button>
+        </div>
+      </div>
+    </ConsoleDialog>
+  );
+}
+
 function CodeYaml({ source }: { source: string }) {
   return (
     <>
@@ -777,6 +1151,13 @@ function sessionTone(status: string): "neutral" | "green" | "blue" | "red" {
   if (status === "Failed" || status === "Error" || status === "Cancelled") return "red";
   if (status === "Running" || status === "Active") return "green";
   if (status === "Queued" || status === "Created") return "blue";
+  return "neutral";
+}
+
+function deploymentTone(status: string): "neutral" | "green" | "blue" | "red" {
+  if (status === "Failed") return "red";
+  if (status === "Active" || status === "Running") return "green";
+  if (status === "Queued" || status === "Ready") return "blue";
   return "neutral";
 }
 

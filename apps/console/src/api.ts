@@ -1,4 +1,4 @@
-import type { Agent, CollectionName, CreateSessionInput, Resource, Session } from "./types";
+import type { Agent, CollectionName, CreateDeploymentInput, CreateSessionInput, Deployment, DeploymentRun, Resource, Session } from "./types";
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "";
 
@@ -50,6 +50,23 @@ export async function createSession(input: CreateSessionInput): Promise<Session>
 
 export async function cancelSession(id: string): Promise<Session> {
   return postJSON<Session>(`/api/sessions/${id}/cancel`, {});
+}
+
+export async function listDeployments(): Promise<Deployment[]> {
+  const data = await getJSON<{ items: Deployment[] }>("/api/deployments");
+  return data.items;
+}
+
+export async function getDeployment(id: string): Promise<Deployment> {
+  return getJSON<Deployment>(`/api/deployments/${id}`);
+}
+
+export async function createDeployment(input: CreateDeploymentInput): Promise<Deployment> {
+  return postJSON<Deployment>("/api/deployments", input);
+}
+
+export async function runDeployment(id: string): Promise<DeploymentRun> {
+  return postJSON<DeploymentRun>(`/api/deployments/${id}/run`, {});
 }
 
 export async function listCollection(collection: CollectionName): Promise<Resource[]> {
