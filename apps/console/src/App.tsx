@@ -27,7 +27,7 @@ import {
   Wrench
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { Link, Navigate, Route, Routes, useNavigate, useParams } from "react-router-dom";
+import { Link, Navigate, Route, Routes, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   cancelSession,
   archiveAgent,
@@ -38,6 +38,7 @@ import {
   createMemory,
   createMemoryStore,
   createSession,
+  createSessionMessage,
   createSkill,
   archiveEnvironment,
   archiveMemoryStore,
@@ -73,7 +74,7 @@ import {
   updateEnvironment
 } from "./api";
 import { Badge, Button, CdsDropdownMenu, CdsTabs, ConsoleDialog, DataTable, FieldSelect, SidebarItem, TextInput } from "./components/cds";
-import type { Agent, CollectionName, Deployment, Environment, MemoryRecord, MemoryStore, Resource, Session, SkillPackage, SkillVersion, Vault, VaultCredential, WorkspaceFile } from "./types";
+import type { Agent, CollectionName, Deployment, Environment, MemoryRecord, MemoryStore, Resource, Session, SessionEvent, SkillPackage, SkillVersion, Vault, VaultCredential, WorkspaceFile } from "./types";
 
 const managedRoutes: { path: CollectionName; title: string; description: string; action: string }[] = [];
 
@@ -309,16 +310,23 @@ function AgentsPage() {
 }
 
 function SessionsPage() {
+  const [searchParams] = useSearchParams();
   const [sessions, setSessions] = useState<Session[]>([]);
+  const [search, setSearch] = useState("");
   const [created, setCreated] = useState("All time");
-  const [agent, setAgent] = useState("All");
-  const [deployment, setDeployment] = useState("All");
-  const [status, setStatus] = useState("Active");
+  const [agent, setAgent] = useState(searchParams.get("agentId") ?? "All");
+  const [deployment, setDeployment] = useState(searchParams.get("deploymentId") ?? "All");
+  const [status, setStatus] = useState(searchParams.get("status") ?? "Active");
   const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
-    listSessions().then(setSessions).catch(() => setSessions([]));
-  }, []);
+    listSessions({ q: search, status, agentId: agent, deploymentId: deployment }).then(setSessions).catch(() => setSessions([]));
+  }, [agent, deployment, search, status]);
+
+  async function cancelCurrent(session: Session) {
+    const updated = await cancelSession(session.id);
+    setSessions((items) => items.map((item) => (item.id === updated.id ? updated : item)));
+  }
 
   return (
     <section className="flex flex-col gap-4">
@@ -335,11 +343,11 @@ function SessionsPage() {
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative w-[276px]">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-          <TextInput className="pl-9" aria-label="Search by session ID" placeholder="Search by session ID" />
+          <TextInput className="pl-9" aria-label="Search by session ID" placeholder="Search by session ID" value={search} onChange={(event) => setSearch(event.target.value)} />
         </div>
         <FieldSelect label="Created" value={created} options={["All time", "Last 24 hours", "Last 7 days", "Last 30 days"]} onValueChange={setCreated} />
-        <FieldSelect label="Agent" value={agent} options={["All", "Managed SSH Reverse Tunnel Bootstrapper", "World Cup Daily Digest"]} onValueChange={setAgent} />
-        <FieldSelect label="Deployment" value={deployment} options={["All", "World Cup digest preview"]} onValueChange={setDeployment} />
+        <FieldSelect label="Agent" value={agent} options={["All", "agent_013mi1SmR2hJ6Hk6wNTeJvF9", "agent_017k8CPYuCFRD9AmupUeXd2Z"]} onValueChange={setAgent} />
+        <FieldSelect label="Deployment" value={deployment} options={["All", "depl_01ERmHnRJWQSLyxk7pVCMZXs"]} onValueChange={setDeployment} />
         <FieldSelect label="Status" value={status} options={["Active", "Idle", "Cancelled", "All"]} onValueChange={setStatus} />
       </div>
       <DataTable
@@ -353,7 +361,7 @@ function SessionsPage() {
             render: (session) => (
               <div className="flex items-center gap-2">
                 <span className="font-mono font-semibold">{shortId(session.id)}</span>
-                <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${session.id}`}>
+                <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${session.id}`} onClick={() => copyText(session.id)}>
                   <Copy className="h-3.5 w-3.5" />
                 </Button>
               </div>
@@ -383,6 +391,7 @@ function SessionsPage() {
           },
           { key: "created", header: "Created", width: "160px", render: (session) => <span className="text-muted">{session.createdLabel}</span> }
         ]}
+        renderActions={(session) => <SessionRowActions session={session} onCancel={() => cancelCurrent(session)} />}
       />
       <div className="flex gap-2">
         <Button variant="secondary" className="h-8 w-8 px-0" disabled>
@@ -405,7 +414,10 @@ function SessionDetailPage() {
   const { id } = useParams();
   const [session, setSession] = useState<Session | null>(null);
   const [eventFilter, setEventFilter] = useState("All events");
+  const [eventSearchOpen, setEventSearchOpen] = useState(false);
+  const [eventSearch, setEventSearch] = useState("");
   const [detailEvent, setDetailEvent] = useState<string | null>(null);
+  const [askOpen, setAskOpen] = useState(false);
 
   useEffect(() => {
     if (id) getSession(id).then(setSession).catch(() => setSession(null));
@@ -419,7 +431,9 @@ function SessionDetailPage() {
 
   if (!session) return <EmptyState title="Session not found" description="The selected session could not be loaded." />;
 
-  const selectedEvent = session.events?.find((event) => event.id === detailEvent) ?? session.events?.[0];
+  const filteredEvents = filterSessionEvents(session.events ?? [], eventFilter, eventSearch);
+  const selectedEvent = session.events?.find((event) => event.id === detailEvent) ?? filteredEvents[0] ?? session.events?.[0];
+  const transcriptText = (session.events ?? []).map((event) => `${event.offset} ${event.role} ${event.kind}: ${event.summary}`).join("\n");
 
   return (
     <section className="flex flex-col gap-4">
@@ -432,11 +446,12 @@ function SessionDetailPage() {
           <span className="font-mono text-ink">{shortId(session.id)}</span>
         </nav>
         <div className="flex gap-2">
-          <Button variant="secondary" onClick={cancelCurrentSession}>
-            Actions
-            <ChevronDown className="h-4 w-4" />
-          </Button>
-          <Button>
+          <SessionDetailActions
+            session={session}
+            transcriptText={transcriptText}
+            onCancel={cancelCurrentSession}
+          />
+          <Button onClick={() => setAskOpen(true)}>
             <MessageSquare className="h-4 w-4" />
             Ask Claude
           </Button>
@@ -487,18 +502,21 @@ function SessionDetailPage() {
               ))}
             </CdsTabs.List>
             <FieldSelect label="" value={eventFilter} options={["All events", "User", "Agent", "Tool", "System"]} onValueChange={setEventFilter} />
-            <Button variant="icon" aria-label="Open search filter">
+            <Button variant="icon" aria-label="Open search filter" onClick={() => setEventSearchOpen((open) => !open)}>
               <Search className="h-4 w-4" />
             </Button>
+            {eventSearchOpen ? (
+              <TextInput className="w-[220px]" aria-label="Filter events" placeholder="Filter events" value={eventSearch} onChange={(event) => setEventSearch(event.target.value)} />
+            ) : null}
           </div>
           <div className="flex gap-2">
             <Button variant="icon" aria-label="Keyboard shortcuts">
               <Terminal className="h-4 w-4" />
             </Button>
-            <Button variant="icon" aria-label="Copy all">
+            <Button variant="icon" aria-label="Copy all" onClick={() => copyText(transcriptText)}>
               <Copy className="h-4 w-4" />
             </Button>
-            <Button variant="icon" aria-label="Download">
+            <Button variant="icon" aria-label="Download" onClick={() => downloadText(`${session.id}-transcript.txt`, transcriptText)}>
               <Download className="h-4 w-4" />
             </Button>
           </div>
@@ -507,7 +525,7 @@ function SessionDetailPage() {
           <div className="py-4">
             <div className="mb-3 text-xs font-semibold text-muted">30m 9s</div>
             <div className="flex flex-col">
-              {(session.events ?? []).map((event) => (
+              {filteredEvents.map((event) => (
                 <button
                   key={event.id}
                   className="grid h-9 grid-cols-[64px_minmax(0,1fr)_280px] items-center rounded-control px-8 text-left text-sm hover:bg-fill"
@@ -526,6 +544,7 @@ function SessionDetailPage() {
                   </span>
                 </button>
               ))}
+              {filteredEvents.length === 0 ? <EmptyState compact title="No matching events" description="" /> : null}
             </div>
           </div>
           <aside className="border-l border-line bg-white px-5 py-5">
@@ -538,8 +557,14 @@ function SessionDetailPage() {
             {selectedEvent ? (
               <div className="grid gap-4 text-sm">
                 <div>
-                  <div className="text-xs font-semibold text-muted">ID</div>
-                  <div className="mt-1 font-mono">{shortId(selectedEvent.id)}</div>
+                  <div className="text-xs font-semibold text-muted">Event</div>
+                  <div className="mt-1 flex items-center gap-2">
+                    <span className="font-mono">{shortId(selectedEvent.id)}</span>
+                    <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${selectedEvent.id}`} onClick={() => copyText(selectedEvent.id)}>
+                      <Copy className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                  <div className="mt-1 text-xs text-muted">{selectedEvent.offset}</div>
                 </div>
                 <div>
                   <div className="text-xs font-semibold text-muted">Type</div>
@@ -569,6 +594,15 @@ function SessionDetailPage() {
           </DetailSection>
         </CdsTabs.Content>
       </CdsTabs.Root>
+      <AskClaudeDialog
+        session={session}
+        open={askOpen}
+        onOpenChange={setAskOpen}
+        onUpdated={(updated) => {
+          setSession(updated);
+          setAskOpen(false);
+        }}
+      />
     </section>
   );
 }
@@ -2097,12 +2131,14 @@ function CreateSessionDialog({
   onCreated: (session: Session) => void;
 }) {
   const [title, setTitle] = useState("");
-  const [agentId, setAgentId] = useState("agent_013mi1SmR2hJ6Hk6wNTeJvF9");
-  const [environmentId, setEnvironmentId] = useState("env_01ManagedDebug");
-  const [vault, setVault] = useState("vault_01GitHub");
-  const [resource, setResource] = useState("session-output.tar.gz");
+  const [agentId, setAgentId] = useState("");
+  const [environmentId, setEnvironmentId] = useState("");
+  const [vault, setVault] = useState("");
+  const [resource, setResource] = useState("");
+  const canCreate = agentId !== "" && environmentId !== "";
 
   async function submit() {
+    if (!canCreate) return;
     const session = await createSession({
       title,
       agentId,
@@ -2113,6 +2149,10 @@ function CreateSessionDialog({
     onCreated(session);
     onOpenChange(false);
     setTitle("");
+    setAgentId("");
+    setEnvironmentId("");
+    setVault("");
+    setResource("");
   }
 
   return (
@@ -2130,9 +2170,9 @@ function CreateSessionDialog({
             </div>
             <FieldSelect
               label=""
-              value={agentId}
-              options={["agent_013mi1SmR2hJ6Hk6wNTeJvF9", "agent_017k8CPYuCFRD9AmupUeXd2Z", "agent_01AVRPTGyYareCeoUasn66q5"]}
-              onValueChange={setAgentId}
+              value={agentId || "Select an agent"}
+              options={["Select an agent", "agent_013mi1SmR2hJ6Hk6wNTeJvF9", "agent_017k8CPYuCFRD9AmupUeXd2Z", "agent_01AVRPTGyYareCeoUasn66q5"]}
+              onValueChange={(value) => setAgentId(value === "Select an agent" ? "" : value)}
             />
           </div>
           <div className="grid gap-2">
@@ -2140,23 +2180,28 @@ function CreateSessionDialog({
               <label className="text-sm font-medium">Environment</label>
               <Button variant="ghost" size="sm">Manage environments</Button>
             </div>
-            <FieldSelect label="" value={environmentId} options={["env_01ManagedDebug", "env_01UbuntuNode", "env_01PythonBrowser"]} onValueChange={setEnvironmentId} />
+            <FieldSelect
+              label=""
+              value={environmentId || "Select an environment"}
+              options={["Select an environment", "env_01ManagedDebug", "env_01UbuntuNode", "env_01PythonBrowser"]}
+              onValueChange={(value) => setEnvironmentId(value === "Select an environment" ? "" : value)}
+            />
           </div>
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
               <label className="text-sm font-medium">Credential vaults</label>
               <Button variant="ghost" size="sm">Manage credential vaults</Button>
             </div>
-            <FieldSelect label="" value={vault} options={["vault_01GitHub", "No vaults"]} onValueChange={setVault} />
+            <FieldSelect label="" value={vault || "Select one or more vaults"} options={["Select one or more vaults", "vault_01GitHub", "No vaults"]} onValueChange={(value) => setVault(value === "Select one or more vaults" || value === "No vaults" ? "" : value)} />
           </div>
           <div className="grid gap-2">
             <label className="text-sm font-medium">Resource</label>
             <p className="text-sm text-muted">Mount files, GitHub repositories, or memory stores into the session.</p>
-            <FieldSelect label="" value={resource} options={["session-output.tar.gz", "operations-memory", "No resources"]} onValueChange={setResource} />
+            <FieldSelect label="" value={resource || "Resource"} options={["Resource", "session-output.tar.gz", "operations-memory", "No resources"]} onValueChange={(value) => setResource(value === "Resource" || value === "No resources" ? "" : value)} />
           </div>
         </div>
         <div className="sticky bottom-0 -mx-6 mt-6 flex justify-end bg-white px-6 py-5">
-          <Button onClick={submit}>Create session</Button>
+          <Button onClick={submit} disabled={!canCreate}>Create session</Button>
         </div>
       </div>
     </ConsoleDialog>
@@ -2938,6 +2983,123 @@ function FileActions({ onDelete }: { onDelete: () => void }) {
   );
 }
 
+function SessionRowActions({ session, onCancel }: { session: Session; onCancel: () => void }) {
+  const navigate = useNavigate();
+  return (
+    <CdsDropdownMenu.Root>
+      <CdsDropdownMenu.Trigger asChild>
+        <Button variant="icon" aria-label="More actions">
+          <span className="text-lg leading-none">⋯</span>
+        </Button>
+      </CdsDropdownMenu.Trigger>
+      <CdsDropdownMenu.Portal>
+        <CdsDropdownMenu.Content className="z-50 min-w-[160px] rounded-cds border border-line bg-white p-1 shadow-lg" align="end">
+          <CdsDropdownMenu.Item className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill" onSelect={() => navigate(`/sessions/${session.id}`)}>
+            <MessageSquare className="h-4 w-4" />
+            Open session
+          </CdsDropdownMenu.Item>
+          <CdsDropdownMenu.Item className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill" onSelect={() => copyText(session.id)}>
+            <Copy className="h-4 w-4" />
+            Copy ID
+          </CdsDropdownMenu.Item>
+          <CdsDropdownMenu.Item
+            className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm text-[#a33a29] outline-none data-[highlighted]:bg-[#fff1ef]"
+            onSelect={onCancel}
+            disabled={session.status === "Cancelled"}
+          >
+            <Archive className="h-4 w-4" />
+            {session.status === "Cancelled" ? "Cancelled" : "Cancel"}
+          </CdsDropdownMenu.Item>
+        </CdsDropdownMenu.Content>
+      </CdsDropdownMenu.Portal>
+    </CdsDropdownMenu.Root>
+  );
+}
+
+function SessionDetailActions({
+  session,
+  transcriptText,
+  onCancel
+}: {
+  session: Session;
+  transcriptText: string;
+  onCancel: () => void;
+}) {
+  return (
+    <CdsDropdownMenu.Root>
+      <CdsDropdownMenu.Trigger asChild>
+        <Button variant="secondary">
+          Actions
+          <ChevronDown className="h-4 w-4" />
+        </Button>
+      </CdsDropdownMenu.Trigger>
+      <CdsDropdownMenu.Portal>
+        <CdsDropdownMenu.Content className="z-50 min-w-[180px] rounded-cds border border-line bg-white p-1 shadow-lg" align="end">
+          <CdsDropdownMenu.Item className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill" onSelect={() => copyText(session.id)}>
+            <Copy className="h-4 w-4" />
+            Copy session ID
+          </CdsDropdownMenu.Item>
+          <CdsDropdownMenu.Item className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill" onSelect={() => downloadText(`${session.id}-transcript.txt`, transcriptText)}>
+            <Download className="h-4 w-4" />
+            Download transcript
+          </CdsDropdownMenu.Item>
+          <CdsDropdownMenu.Separator className="my-1 h-px bg-line" />
+          <CdsDropdownMenu.Item
+            className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm text-[#a33a29] outline-none data-[highlighted]:bg-[#fff1ef]"
+            onSelect={onCancel}
+            disabled={session.status === "Cancelled"}
+          >
+            <Archive className="h-4 w-4" />
+            {session.status === "Cancelled" ? "Cancelled" : "Cancel session"}
+          </CdsDropdownMenu.Item>
+        </CdsDropdownMenu.Content>
+      </CdsDropdownMenu.Portal>
+    </CdsDropdownMenu.Root>
+  );
+}
+
+function AskClaudeDialog({
+  session,
+  open,
+  onOpenChange,
+  onUpdated
+}: {
+  session: Session;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onUpdated: (session: Session) => void;
+}) {
+  const [message, setMessage] = useState("");
+  const canSend = message.trim().length > 0;
+
+  async function submit() {
+    if (!canSend) return;
+    const updated = await createSessionMessage(session.id, message);
+    onUpdated(updated);
+    setMessage("");
+  }
+
+  return (
+    <ConsoleDialog title="Ask Claude" description="Send a follow-up message into this session." open={open} onOpenChange={onOpenChange}>
+      <div className="px-6 pb-0 pt-5">
+        <label className="grid gap-2 text-sm font-medium">
+          Message
+          <textarea
+            className="cds-focus min-h-[140px] resize-y rounded-cds border border-line bg-white px-3 py-3 text-sm leading-6"
+            placeholder="Continue debugging the environment and summarize the next step."
+            value={message}
+            onChange={(event) => setMessage(event.target.value)}
+          />
+        </label>
+        <div className="sticky bottom-0 -mx-6 mt-6 flex justify-end gap-2 bg-white px-6 py-5">
+          <Button variant="secondary" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button onClick={submit} disabled={!canSend}>Ask Claude</Button>
+        </div>
+      </div>
+    </ConsoleDialog>
+  );
+}
+
 function AgentRowActions({ agent, onArchive }: { agent: Agent; onArchive: () => void }) {
   const navigate = useNavigate();
   return (
@@ -3105,6 +3267,28 @@ function shortId(id: string) {
 
 function copyText(value: string) {
   void navigator.clipboard?.writeText(value);
+}
+
+function downloadText(filename: string, value: string) {
+  const url = URL.createObjectURL(new Blob([value], { type: "text/plain;charset=utf-8" }));
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function filterSessionEvents(events: SessionEvent[], roleFilter: string, search: string) {
+  const normalizedSearch = search.trim().toLowerCase();
+  return events.filter((event) => {
+    const matchesRole = roleFilter === "All events" || event.role === roleFilter;
+    if (!matchesRole) return false;
+    if (!normalizedSearch) return true;
+    return [event.id, event.role, event.kind, event.summary, event.status, event.tokens, event.cost, event.offset]
+      .join(" ")
+      .toLowerCase()
+      .includes(normalizedSearch);
+  });
 }
 
 function defaultAgentYaml(agent?: Agent) {

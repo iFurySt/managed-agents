@@ -246,6 +246,10 @@ type CreateSessionRequest struct {
 	Resources     []string `json:"resources"`
 }
 
+type CreateSessionMessageRequest struct {
+	Message string `json:"message"`
+}
+
 type CreateDeploymentRequest struct {
 	Name           string   `json:"name"`
 	AgentID        string   `json:"agentId"`
@@ -354,6 +358,7 @@ func run() error {
 	router.GET("/api/sessions/:id", getSession(db))
 	router.POST("/api/sessions", createSession(db))
 	router.POST("/api/sessions/:id/cancel", cancelSession(db))
+	router.POST("/api/sessions/:id/messages", createSessionMessage(db))
 	router.GET("/api/deployments", listDeployments(db))
 	router.GET("/api/deployments/:id", getDeployment(db))
 	router.POST("/api/deployments", createDeployment(db))
@@ -547,7 +552,11 @@ func listSessions(db *gorm.DB) gin.HandlerFunc {
 			query = query.Where("id ILIKE ? OR name ILIKE ?", "%"+search+"%", "%"+search+"%")
 		}
 		if status := strings.TrimSpace(c.Query("status")); status != "" && !strings.EqualFold(status, "all") {
-			query = query.Where("status = ?", status)
+			if strings.EqualFold(status, "active") {
+				query = query.Where("status IN ?", []string{"Active", "Idle", "Running", "Queued"})
+			} else {
+				query = query.Where("status = ?", status)
+			}
 		}
 		if agentID := strings.TrimSpace(c.Query("agentId")); agentID != "" {
 			query = query.Where("agent_id = ?", agentID)
@@ -650,6 +659,50 @@ func cancelSession(db *gorm.DB) gin.HandlerFunc {
 		}
 		event := sessionEvent(session.ID, fmt.Sprintf("sevt_%s%09d", now.Format("20060102150405"), now.Nanosecond()), "System", "Lifecycle", "Cancellation requested from the console.", "Cancelled", session.Tokens, session.Cost, session.Duration, now)
 		_ = db.Create(&event).Error
+		c.JSON(http.StatusOK, session)
+	}
+}
+
+func createSessionMessage(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var req CreateSessionMessageRequest
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		message := strings.TrimSpace(req.Message)
+		if message == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "message is required"})
+			return
+		}
+		var session Session
+		if err := db.First(&session, "id = ?", c.Param("id")).Error; err != nil {
+			status := http.StatusInternalServerError
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				status = http.StatusNotFound
+			}
+			c.JSON(status, gin.H{"error": err.Error()})
+			return
+		}
+		now := time.Now().UTC()
+		userEvent := sessionEvent(session.ID, fmt.Sprintf("sevt_user_%s%09d", now.Format("20060102150405"), now.Nanosecond()), "User", "Message", message, "", "", "", session.Duration, now)
+		replyEvent := sessionEvent(session.ID, fmt.Sprintf("sevt_agent_%s%09d", now.Format("20060102150405"), now.Nanosecond()), "Agent", "Message", "Received. The agent is queued to continue this session.", "", session.Tokens, "", session.Duration, now.Add(time.Second))
+		if err := db.Create(&[]SessionEvent{userEvent, replyEvent}).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		session.Status = "Idle"
+		session.UpdatedAt = now
+		if err := db.Save(&session).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		if err := db.Preload("Events", func(tx *gorm.DB) *gorm.DB {
+			return tx.Order("created_at asc")
+		}).First(&session, "id = ?", session.ID).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
 		c.JSON(http.StatusOK, session)
 	}
 }
