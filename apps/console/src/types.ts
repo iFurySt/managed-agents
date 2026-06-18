@@ -147,6 +147,38 @@ export type CreateWorkspaceFileInput = {
   description: string;
 };
 
+export type SkillVersion = {
+  id: string;
+  skillId: string;
+  version: string;
+  releasedAt: string;
+  latest: boolean;
+  description: string;
+  createdAt: string;
+};
+
+export type SkillPackage = {
+  id: string;
+  name: string;
+  status: string;
+  description: string;
+  slug: string;
+  owner: string;
+  version: string;
+  latestLabel: string;
+  createdLabel: string;
+  updatedLabel: string;
+  createdAt: string;
+  updatedAt: string;
+  versions?: SkillVersion[];
+};
+
+export type CreateSkillPackageInput = {
+  name: string;
+  description: string;
+  version: string;
+};
+
 export type SessionEvent = {
   id: string;
   sessionId: string;
@@ -236,5 +268,4 @@ export type CreateDeploymentInput = {
   timezone: string;
 };
 
-export type CollectionName =
-  | "skills";
+export type CollectionName = never;

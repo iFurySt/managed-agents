@@ -123,6 +123,32 @@ type WorkspaceFile struct {
 	UpdatedAt    time.Time `json:"updatedAt"`
 }
 
+type SkillPackage struct {
+	ID           string         `json:"id" gorm:"primaryKey"`
+	Name         string         `json:"name"`
+	Status       string         `json:"status" gorm:"index"`
+	Description  string         `json:"description" gorm:"type:text"`
+	Slug         string         `json:"slug" gorm:"index"`
+	Owner        string         `json:"owner" gorm:"index"`
+	Version      string         `json:"version"`
+	LatestLabel  string         `json:"latestLabel"`
+	CreatedLabel string         `json:"createdLabel"`
+	UpdatedLabel string         `json:"updatedLabel"`
+	CreatedAt    time.Time      `json:"createdAt"`
+	UpdatedAt    time.Time      `json:"updatedAt"`
+	Versions     []SkillVersion `json:"versions" gorm:"foreignKey:SkillID;references:ID"`
+}
+
+type SkillVersion struct {
+	ID          string    `json:"id" gorm:"primaryKey"`
+	SkillID     string    `json:"skillId" gorm:"index"`
+	Version     string    `json:"version"`
+	ReleasedAt  string    `json:"releasedAt"`
+	Latest      bool      `json:"latest"`
+	Description string    `json:"description" gorm:"type:text"`
+	CreatedAt   time.Time `json:"createdAt"`
+}
+
 type Session struct {
 	ID              string         `json:"id" gorm:"primaryKey"`
 	Name            string         `json:"name"`
@@ -261,9 +287,13 @@ type CreateWorkspaceFileRequest struct {
 	Description string `json:"description"`
 }
 
-var resourceKinds = map[string]string{
-	"skills": "skill",
+type CreateSkillPackageRequest struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	Version     string `json:"version"`
 }
+
+var resourceKinds = map[string]string{}
 
 func main() {
 	root := &cobra.Command{
@@ -283,7 +313,7 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	if err := db.AutoMigrate(&Agent{}, &Resource{}, &Environment{}, &Vault{}, &VaultCredential{}, &MemoryStore{}, &MemoryRecord{}, &WorkspaceFile{}, &Session{}, &SessionEvent{}, &Deployment{}, &DeploymentRun{}); err != nil {
+	if err := db.AutoMigrate(&Agent{}, &Resource{}, &Environment{}, &Vault{}, &VaultCredential{}, &MemoryStore{}, &MemoryRecord{}, &WorkspaceFile{}, &SkillPackage{}, &SkillVersion{}, &Session{}, &SessionEvent{}, &Deployment{}, &DeploymentRun{}); err != nil {
 		return err
 	}
 	if err := seed(db); err != nil {
@@ -337,6 +367,10 @@ func run() error {
 	router.GET("/api/files/:id", getWorkspaceFile(db))
 	router.POST("/api/files", createWorkspaceFile(db))
 	router.DELETE("/api/files/:id", deleteWorkspaceFile(db))
+	router.GET("/api/skills", listSkillPackages(db))
+	router.GET("/api/skills/:id", getSkillPackage(db))
+	router.POST("/api/skills", createSkillPackage(db))
+	router.DELETE("/api/skills/:id", deleteSkillPackage(db))
 	router.GET("/api/:collection", listResources(db))
 
 	addr := env("APISERVER_ADDR", ":8080")
@@ -1220,6 +1254,102 @@ func deleteWorkspaceFile(db *gorm.DB) gin.HandlerFunc {
 	}
 }
 
+func listSkillPackages(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var skills []SkillPackage
+		query := db.Order("CASE slug WHEN 'xlsx' THEN 1 WHEN 'pptx' THEN 2 WHEN 'pdf' THEN 3 WHEN 'docx' THEN 4 ELSE 100 END").Order("created_at asc")
+		if search := strings.TrimSpace(c.Query("q")); search != "" {
+			query = query.Where("id ILIKE ? OR name ILIKE ? OR slug ILIKE ?", "%"+search+"%", "%"+search+"%", "%"+search+"%")
+		}
+		if owner := strings.TrimSpace(c.Query("owner")); owner != "" && !strings.EqualFold(owner, "all") {
+			query = query.Where("owner = ?", owner)
+		}
+		if status := strings.TrimSpace(c.Query("status")); status != "" && !strings.EqualFold(status, "all") {
+			query = query.Where("status = ?", status)
+		}
+		if err := query.Find(&skills).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"items": skills})
+	}
+}
+
+func getSkillPackage(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var skill SkillPackage
+		if err := db.Preload("Versions", func(tx *gorm.DB) *gorm.DB {
+			return tx.Order("created_at asc")
+		}).First(&skill, "id = ?", c.Param("id")).Error; err != nil {
+			status := http.StatusInternalServerError
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				status = http.StatusNotFound
+			}
+			c.JSON(status, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, skill)
+	}
+}
+
+func createSkillPackage(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var req CreateSkillPackageRequest
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		name := strings.TrimSpace(req.Name)
+		if name == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "name is required"})
+			return
+		}
+		now := time.Now().UTC()
+		version := defaultString(req.Version, now.Format("20060102"))
+		id := fmt.Sprintf("skill_local_%s%09d", now.Format("20060102150405"), now.Nanosecond())
+		skill := SkillPackage{
+			ID:           id,
+			Name:         name,
+			Status:       "Active",
+			Description:  strings.TrimSpace(req.Description),
+			Slug:         slugify(name),
+			Owner:        "Default",
+			Version:      version,
+			LatestLabel:  "Latest",
+			CreatedLabel: "just now",
+			UpdatedLabel: "just now",
+			CreatedAt:    now,
+			UpdatedAt:    now,
+			Versions: []SkillVersion{
+				{
+					ID:          fmt.Sprintf("skv_local_%s%09d", now.Format("20060102150405"), now.Nanosecond()),
+					SkillID:     id,
+					Version:     version,
+					ReleasedAt:  "just now",
+					Latest:      true,
+					Description: "Initial local upload.",
+					CreatedAt:   now,
+				},
+			},
+		}
+		if err := db.Create(&skill).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusCreated, skill)
+	}
+}
+
+func deleteSkillPackage(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if err := db.Where("skill_id = ?", c.Param("id")).Delete(&SkillVersion{}).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		deleteByID[SkillPackage](c, db, "id = ?", c.Param("id"))
+	}
+}
+
 func listResources(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		kind, ok := resourceKinds[c.Param("collection")]
@@ -1301,6 +1431,19 @@ func seed(db *gorm.DB) error {
 		}
 	}
 
+	if err := db.Model(&SkillPackage{}).Count(&count).Error; err != nil {
+		return err
+	}
+	if count == 0 {
+		skills, versions := seedSkills(now)
+		if err := db.Create(&skills).Error; err != nil {
+			return err
+		}
+		if err := db.Create(&versions).Error; err != nil {
+			return err
+		}
+	}
+
 	if err := db.Model(&Deployment{}).Count(&count).Error; err != nil {
 		return err
 	}
@@ -1353,7 +1496,6 @@ func seedResources(ts time.Time) []Resource {
 		resource("vault", "vault_01GitHub", "GitHub source access", "Active", "3 bindings", "last used 2 days ago", ts),
 		resource("vault", "vault_01TestSecret", "test_secret", "Active", "1 binding", "last used 2 days ago", ts),
 		resource("file", "file_01Outputs", "session-output.tar.gz", "Available", "outputs", "2.4 MB", ts),
-		resource("skill", "skill_01ReverseTunnel", "reverse-tunnel-bootstrap", "Active", "v0.1.0", "read-only mount", ts),
 	}
 }
 
@@ -1466,6 +1608,55 @@ func memoryRecord(id, storeID, path, size, content, authorID, label string, ts t
 		UpdatedLabel:  label,
 		CreatedAt:     ts,
 		UpdatedAt:     ts,
+	}
+}
+
+func seedSkills(ts time.Time) ([]SkillPackage, []SkillVersion) {
+	skills := []SkillPackage{
+		skillPackage("skill_anthropic_xlsx", "xlsx", "**Excel Spreadsheet Handler**: Comprehensive Microsoft Excel (.xlsx) document creation, editing, and analysis with support for formulas, formatting, data analysis, and visualization - MANDATORY TRIGGERS: Excel, spreadsheet, .xlsx, data table, budget, financial model, chart, graph, tabular data, xls", "xlsx", "Anthropic", "20260203", "Oct 14, 2025", "Feb 3", ts),
+		skillPackage("skill_anthropic_pptx", "pptx", "Use this skill any time a .pptx file is involved in any way — as input, output, or both. This includes: creating slide decks, pitch decks, or presentations; reading, parsing, or extracting text from any .pptx file (even if the extracted content will be used elsewhere, like in an email or summary); editing, modifying, or updating existing presentations; combining or splitting slide files; working with templates, layouts, speaker notes, or comments. Trigger whenever the user mentions \"deck,\" \"slides,\" \"presentation,\" or references a .pptx filename, regardless of what they plan to do with the content afterward. If a .pptx file needs to be opened, created, or touched, use this skill.", "pptx", "Anthropic", "20260305", "Mar 5, 2026", "Mar 5", ts.Add(24*time.Hour)),
+		skillPackage("skill_anthropic_pdf", "pdf", "**PDF Processing**: Comprehensive PDF manipulation toolkit for extracting text and tables, creating new PDFs, merging/splitting documents, and handling forms. - MANDATORY TRIGGERS: PDF, .pdf, form, extract, merge, split", "pdf", "Anthropic", "20260203", "Feb 3, 2026", "Feb 3", ts),
+		skillPackage("skill_anthropic_docx", "docx", "Use this skill whenever the user wants to create, read, edit, or manipulate Word documents (.docx files). Triggers include: any mention of 'Word doc', 'word document', '.docx', or requests to produce professional documents with formatting like tables of contents, headings, page numbers, or letterheads. Also use when extracting or reorganizing content from .docx files, inserting or replacing images in documents, performing find-and-replace in Word files, working with tracked changes or comments, or converting content into a polished Word document. If the user asks for a 'report', 'memo', 'letter', 'template', or similar deliverable as a Word or .docx file, use this skill. Do NOT use for PDFs, spreadsheets, Google Docs, or general coding tasks unrelated to document generation.", "docx", "Anthropic", "20260305", "Mar 5, 2026", "Mar 5", ts.Add(24*time.Hour)),
+	}
+	versions := []SkillVersion{
+		skillVersion("skv_xlsx_20251013", "skill_anthropic_xlsx", "20251013", "Oct 15, 2025", false, ts.Add(-112*24*time.Hour)),
+		skillVersion("skv_xlsx_20260122", "skill_anthropic_xlsx", "20260122", "Jan 24", false, ts.Add(-41*24*time.Hour)),
+		skillVersion("skv_xlsx_20260127", "skill_anthropic_xlsx", "20260127", "Jan 27", false, ts.Add(-38*24*time.Hour)),
+		skillVersion("skv_xlsx_20260128", "skill_anthropic_xlsx", "20260128", "Jan 29", false, ts.Add(-37*24*time.Hour)),
+		skillVersion("skv_xlsx_20260203", "skill_anthropic_xlsx", "20260203", "Feb 3", true, ts),
+		skillVersion("skv_pptx_20260305", "skill_anthropic_pptx", "20260305", "Mar 5", true, ts.Add(24*time.Hour)),
+		skillVersion("skv_pdf_20260203", "skill_anthropic_pdf", "20260203", "Feb 3", true, ts),
+		skillVersion("skv_docx_20260305", "skill_anthropic_docx", "20260305", "Mar 5", true, ts.Add(24*time.Hour)),
+	}
+	return skills, versions
+}
+
+func skillPackage(id, name, description, slug, owner, version, createdLabel, updatedLabel string, ts time.Time) SkillPackage {
+	return SkillPackage{
+		ID:           id,
+		Name:         name,
+		Status:       "Active",
+		Description:  description,
+		Slug:         slug,
+		Owner:        owner,
+		Version:      version,
+		LatestLabel:  "Latest",
+		CreatedLabel: createdLabel,
+		UpdatedLabel: updatedLabel,
+		CreatedAt:    ts,
+		UpdatedAt:    ts,
+	}
+}
+
+func skillVersion(id, skillID, version, releasedAt string, latest bool, ts time.Time) SkillVersion {
+	return SkillVersion{
+		ID:          id,
+		SkillID:     skillID,
+		Version:     version,
+		ReleasedAt:  releasedAt,
+		Latest:      latest,
+		Description: "Published skill package.",
+		CreatedAt:   ts,
 	}
 }
 
@@ -1687,6 +1878,14 @@ func inferFileKind(name, mediaType string) string {
 func fileChecksum(content string) string {
 	sum := sha256.Sum256([]byte(content))
 	return fmt.Sprintf("sha256:%x", sum)
+}
+
+func slugify(value string) string {
+	parts := strings.Fields(strings.ToLower(value))
+	if len(parts) == 0 {
+		return "skill"
+	}
+	return strings.Join(parts, "-")
 }
 
 func env(key, fallback string) string {

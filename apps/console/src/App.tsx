@@ -23,6 +23,7 @@ import {
   Shield,
   Terminal,
   Trash2,
+  Upload,
   Wrench
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -36,6 +37,7 @@ import {
   createMemory,
   createMemoryStore,
   createSession,
+  createSkill,
   archiveEnvironment,
   archiveMemoryStore,
   archiveVault,
@@ -43,6 +45,7 @@ import {
   deleteMemory,
   deleteMemoryStore,
   deleteFile,
+  deleteSkill,
   createVault,
   createVaultCredential,
   deleteVault,
@@ -52,6 +55,7 @@ import {
   getEnvironment,
   getFile,
   getMemoryStore,
+  getSkill,
   getSession,
   getVault,
   listAgents,
@@ -60,17 +64,16 @@ import {
   listEnvironments,
   listFiles,
   listMemoryStores,
+  listSkills,
   listSessions,
   listVaults,
   runDeployment,
   updateEnvironment
 } from "./api";
 import { Badge, Button, CdsDropdownMenu, CdsTabs, ConsoleDialog, DataTable, FieldSelect, SidebarItem, TextInput } from "./components/cds";
-import type { Agent, CollectionName, Deployment, Environment, MemoryRecord, MemoryStore, Resource, Session, Vault, VaultCredential, WorkspaceFile } from "./types";
+import type { Agent, CollectionName, Deployment, Environment, MemoryRecord, MemoryStore, Resource, Session, SkillPackage, SkillVersion, Vault, VaultCredential, WorkspaceFile } from "./types";
 
-const managedRoutes: { path: CollectionName; title: string; description: string; action: string }[] = [
-  { path: "skills", title: "Skills", description: "Package and mount reusable agent capabilities.", action: "Create skill" }
-];
+const managedRoutes: { path: CollectionName; title: string; description: string; action: string }[] = [];
 
 export default function App() {
   return (
@@ -96,6 +99,7 @@ export default function App() {
               <Route path="/memory-stores/:id" element={<MemoryStoreDetailPage />} />
               <Route path="/files" element={<FilesPage />} />
               <Route path="/files/:id" element={<FileDetailPage />} />
+              <Route path="/skills" element={<SkillsPage />} />
               {managedRoutes.map((route) => (
                 <Route key={route.path} path={`/${route.path}`} element={<CollectionPage route={route} />} />
               ))}
@@ -1740,6 +1744,70 @@ function FileDetailPage() {
   );
 }
 
+function SkillsPage() {
+  const [skills, setSkills] = useState<SkillPackage[]>([]);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [versionSkillId, setVersionSkillId] = useState<string | null>(null);
+
+  useEffect(() => {
+    listSkills().then(setSkills).catch(() => setSkills([]));
+  }, []);
+
+  async function deleteCurrent(skill: SkillPackage) {
+    await deleteSkill(skill.id);
+    setSkills((items) => items.filter((item) => item.id !== skill.id));
+  }
+
+  return (
+    <section className="flex flex-col gap-4">
+      <PageHeader
+        title="Skills"
+        description="Skills are repeatable and customizable instructions that Claude API can follow. Only skills from the Default workspace are shown. To see other workspace's skills, select a workspace."
+        action={
+          <Button onClick={() => setDialogOpen(true)}>
+            <Plus className="h-4 w-4" />
+            Create skill
+          </Button>
+        }
+      />
+      <div className="flex max-w-[920px] flex-col gap-5">
+        {skills.map((skill) => (
+          <article key={skill.id} className="grid grid-cols-[minmax(0,1fr)_36px] gap-4 border-b border-line pb-5">
+            <div className="min-w-0">
+              <h2 className="mb-2 text-lg font-semibold">{skill.name}</h2>
+              <p className="max-w-[820px] whitespace-pre-wrap text-sm leading-6 text-[#3f3a35]">{skill.description}</p>
+              <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-muted">
+                <span className="font-mono text-ink">{skill.slug}</span>
+                <span>•</span>
+                <span>{skill.owner}</span>
+                <span>•</span>
+                <span>{skill.updatedLabel}</span>
+              </div>
+            </div>
+            <div className="flex flex-col items-end gap-2">
+              <Button variant="icon" aria-label={`View version history for ${skill.name}`} onClick={() => setVersionSkillId(skill.id)}>
+                <Clock className="h-4 w-4" />
+              </Button>
+              {skill.owner !== "Anthropic" ? <SkillActions onDelete={() => deleteCurrent(skill)} /> : null}
+            </div>
+          </article>
+        ))}
+      </div>
+      <CreateSkillDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        onCreated={(skill) => setSkills((items) => [...items, skill])}
+      />
+      <SkillVersionDialog
+        skillId={versionSkillId}
+        onOpenChange={(open) => {
+          if (!open) setVersionSkillId(null);
+        }}
+      />
+    </section>
+  );
+}
+
 function AgentDetailPage() {
   const { id } = useParams();
   const [agent, setAgent] = useState<Agent | null>(null);
@@ -2472,6 +2540,103 @@ function CreateFileDialog({
   );
 }
 
+function CreateSkillDialog({
+  open,
+  onOpenChange,
+  onCreated
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onCreated: (skill: SkillPackage) => void;
+}) {
+  const [selectedName, setSelectedName] = useState("");
+  const canContinue = selectedName.trim().length > 0;
+
+  async function submit() {
+    if (!canContinue) return;
+    const skill = await createSkill({
+      name: selectedName.replace(/\.(zip|skill)$/i, ""),
+      description: `Uploaded skill package ${selectedName}.`,
+      version: new Date().toISOString().slice(0, 10).replaceAll("-", "")
+    });
+    onCreated(skill);
+    onOpenChange(false);
+    setSelectedName("");
+  }
+
+  return (
+    <ConsoleDialog title="Create skill" open={open} onOpenChange={onOpenChange}>
+      <div className="px-6 pb-0 pt-5">
+        <div className="grid gap-5">
+          <label className="grid min-h-[180px] cursor-pointer place-items-center rounded-cds border border-dashed border-[#cfcac2] bg-fill px-6 py-8 text-center">
+            <input
+              className="hidden"
+              type="file"
+              accept=".zip,.skill"
+              onChange={(event) => setSelectedName(event.target.files?.[0]?.name ?? "")}
+            />
+            <div>
+              <div className="mx-auto mb-3 grid h-10 w-10 place-items-center rounded-cds border border-line bg-white">
+                <UploadIcon />
+              </div>
+              <p className="text-sm font-medium">Drag and drop a .zip, .skill file, or directory to upload</p>
+              <p className="mt-3 text-sm text-muted">Total file size limit: 8MB. <span className="font-medium text-ink">File format</span> · <span className="font-medium text-ink">download an example</span>.</p>
+              {selectedName ? <p className="mt-3 font-mono text-sm text-ink">{selectedName}</p> : null}
+            </div>
+          </label>
+        </div>
+        <div className="sticky bottom-0 -mx-6 mt-6 flex justify-end bg-white px-6 py-5">
+          <Button onClick={submit} disabled={!canContinue}>Continue</Button>
+        </div>
+      </div>
+    </ConsoleDialog>
+  );
+}
+
+function SkillVersionDialog({ skillId, onOpenChange }: { skillId: string | null; onOpenChange: (open: boolean) => void }) {
+  const [skill, setSkill] = useState<SkillPackage | null>(null);
+
+  useEffect(() => {
+    if (!skillId) {
+      setSkill(null);
+      return;
+    }
+    getSkill(skillId).then(setSkill).catch(() => setSkill(null));
+  }, [skillId]);
+
+  const open = Boolean(skillId);
+
+  return (
+    <ConsoleDialog title={skill?.name ?? "Skill"} open={open} onOpenChange={onOpenChange}>
+      <div className="px-6 pb-0 pt-2">
+        {skill ? (
+          <div className="grid gap-5">
+            <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
+              <span>{skill.owner}</span>
+              <span>•</span>
+              <span>{skill.createdLabel}</span>
+            </div>
+            <DetailSection title="Version history">
+              <div className="grid gap-1">
+                {(skill.versions ?? []).map((version) => (
+                  <div key={version.id} className="grid h-10 grid-cols-[1fr_120px_80px] items-center rounded-control px-2 text-sm hover:bg-fill">
+                    <span className="font-mono font-semibold">{version.version}</span>
+                    <span className="text-muted">{version.releasedAt}</span>
+                    <span>{version.latest ? <Badge>Latest</Badge> : null}</span>
+                  </div>
+                ))}
+              </div>
+            </DetailSection>
+          </div>
+        ) : (
+          <EmptyState compact title="Loading version history" description="" />
+        )}
+        <div className="sticky bottom-0 -mx-6 mt-6 h-5 bg-white" />
+      </div>
+    </ConsoleDialog>
+  );
+}
+
 function CodeYaml({ source }: { source: string }) {
   return (
     <>
@@ -2658,6 +2823,33 @@ function FileActions({ onDelete }: { onDelete: () => void }) {
       </CdsDropdownMenu.Portal>
     </CdsDropdownMenu.Root>
   );
+}
+
+function SkillActions({ onDelete }: { onDelete: () => void }) {
+  return (
+    <CdsDropdownMenu.Root>
+      <CdsDropdownMenu.Trigger asChild>
+        <Button variant="icon" aria-label="More actions">
+          ⋯
+        </Button>
+      </CdsDropdownMenu.Trigger>
+      <CdsDropdownMenu.Portal>
+        <CdsDropdownMenu.Content className="z-50 min-w-[130px] rounded-cds border border-line bg-white p-1 shadow-lg" align="end">
+          <CdsDropdownMenu.Item
+            className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm text-[#a33a29] outline-none data-[highlighted]:bg-[#fff1ef]"
+            onSelect={onDelete}
+          >
+            <Trash2 className="h-4 w-4" />
+            Delete
+          </CdsDropdownMenu.Item>
+        </CdsDropdownMenu.Content>
+      </CdsDropdownMenu.Portal>
+    </CdsDropdownMenu.Root>
+  );
+}
+
+function UploadIcon() {
+  return <Upload className="h-5 w-5 text-muted" />;
 }
 
 function splitValues(value: string) {

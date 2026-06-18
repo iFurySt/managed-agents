@@ -6,6 +6,7 @@ import type {
   CreateMemoryInput,
   CreateMemoryStoreInput,
   CreateSessionInput,
+  CreateSkillPackageInput,
   CreateVaultCredentialInput,
   CreateVaultInput,
   CreateWorkspaceFileInput,
@@ -16,6 +17,7 @@ import type {
   MemoryStore,
   Resource,
   Session,
+  SkillPackage,
   UpdateEnvironmentInput,
   Vault,
   VaultCredential,
@@ -209,6 +211,23 @@ export async function createFile(input: CreateWorkspaceFileInput): Promise<Works
 
 export async function deleteFile(id: string): Promise<{ deleted: boolean }> {
   return deleteJSON<{ deleted: boolean }>(`/api/files/${id}`);
+}
+
+export async function listSkills(): Promise<SkillPackage[]> {
+  const data = await getJSON<{ items: SkillPackage[] }>("/api/skills");
+  return data.items;
+}
+
+export async function getSkill(id: string): Promise<SkillPackage> {
+  return getJSON<SkillPackage>(`/api/skills/${id}`);
+}
+
+export async function createSkill(input: CreateSkillPackageInput): Promise<SkillPackage> {
+  return postJSON<SkillPackage>("/api/skills", input);
+}
+
+export async function deleteSkill(id: string): Promise<{ deleted: boolean }> {
+  return deleteJSON<{ deleted: boolean }>(`/api/skills/${id}`);
 }
 
 export async function listCollection(collection: CollectionName): Promise<Resource[]> {
