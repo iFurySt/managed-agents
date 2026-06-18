@@ -1747,15 +1747,8 @@ function FilesPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
-    listFiles().then(setFiles).catch(() => setFiles([]));
-  }, []);
-
-  const visibleFiles = files.filter((file) => {
-    const matchesQuery = !query || file.name.toLowerCase().includes(query.toLowerCase()) || file.id.toLowerCase() === query.toLowerCase();
-    const matchesKind = kind === "All" || file.kind === kind;
-    const matchesStatus = status === "All" || file.status === status;
-    return matchesQuery && matchesKind && matchesStatus;
-  });
+    listFiles({ q: query, kind, status }).then(setFiles).catch(() => setFiles([]));
+  }, [kind, query, status]);
 
   async function deleteCurrent(file: WorkspaceFile) {
     await deleteFile(file.id);
@@ -1793,14 +1786,21 @@ function FilesPage() {
             <FieldSelect label="Status" value={status} options={["All", "Available", "Quarantined", "Deleted"]} onValueChange={setStatus} />
           </div>
           <DataTable
-            rows={visibleFiles}
+            rows={files}
             getKey={(file) => file.id}
             columns={[
               {
                 key: "id",
                 header: "ID",
                 width: "210px",
-                render: (file) => <span className="font-mono font-semibold">{shortId(file.id)}</span>
+                render: (file) => (
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono font-semibold">{shortId(file.id)}</span>
+                    <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${file.id}`} onClick={() => copyText(file.id)}>
+                      <Copy className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                )
               },
               {
                 key: "name",
@@ -1817,7 +1817,7 @@ function FilesPage() {
               { key: "size", header: "Size", width: "120px", render: (file) => <span className="text-muted">{file.size}</span> },
               { key: "created", header: "Created", width: "150px", render: (file) => <span className="text-muted">{file.createdLabel}</span> }
             ]}
-            renderActions={(file) => <FileActions onDelete={() => deleteCurrent(file)} />}
+            renderActions={(file) => <FileActions file={file} onDelete={() => deleteCurrent(file)} />}
           />
         </>
       ) : (
@@ -1846,7 +1846,7 @@ function FilesEmptyState({ language, onLanguageChange }: { language: string; onL
               <span className="text-muted">↗</span>
             </a>
           </div>
-          <Button variant="ghost" size="sm" aria-label="Copy code">
+          <Button variant="ghost" size="sm" aria-label="Copy code" onClick={() => copyText(code)}>
             <Copy className="h-4 w-4" />
           </Button>
         </div>
@@ -1899,6 +1899,9 @@ function FileDetailPage() {
           </div>
           <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
             <span className="font-mono">{shortId(file.id)}</span>
+            <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${file.id}`} onClick={() => copyText(file.id)}>
+              <Copy className="h-3.5 w-3.5" />
+            </Button>
             <span>·</span>
             <span>{file.kind}</span>
             <span>·</span>
@@ -1907,7 +1910,7 @@ function FileDetailPage() {
             <span>Created {file.createdLabel}</span>
           </div>
         </div>
-        <FileActions onDelete={deleteCurrent} />
+        <FileActions file={file} onDelete={deleteCurrent} />
       </div>
       <div className="grid max-w-[820px] gap-8">
         <DetailSection title="File metadata">
@@ -3176,16 +3179,26 @@ function MemoryRecordActions({ record, onDelete }: { record: MemoryRecord; onDel
   );
 }
 
-function FileActions({ onDelete }: { onDelete: () => void }) {
+function FileActions({ file, onDelete }: { file: WorkspaceFile; onDelete: () => void }) {
+  const navigate = useNavigate();
   return (
     <CdsDropdownMenu.Root>
       <CdsDropdownMenu.Trigger asChild>
         <Button variant="icon" aria-label="More actions">
-          ⋯
+          <span className="text-lg leading-none">⋯</span>
         </Button>
       </CdsDropdownMenu.Trigger>
       <CdsDropdownMenu.Portal>
-        <CdsDropdownMenu.Content className="z-50 min-w-[130px] rounded-cds border border-line bg-white p-1 shadow-lg" align="end">
+        <CdsDropdownMenu.Content className="z-50 min-w-[150px] rounded-cds border border-line bg-white p-1 shadow-lg" align="end">
+          <CdsDropdownMenu.Item className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill" onSelect={() => navigate(`/files/${file.id}`)}>
+            <FileText className="h-4 w-4" />
+            Open file
+          </CdsDropdownMenu.Item>
+          <CdsDropdownMenu.Item className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill" onSelect={() => copyText(file.id)}>
+            <Copy className="h-4 w-4" />
+            Copy ID
+          </CdsDropdownMenu.Item>
+          <CdsDropdownMenu.Separator className="my-1 h-px bg-line" />
           <CdsDropdownMenu.Item
             className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm text-[#a33a29] outline-none data-[highlighted]:bg-[#fff1ef]"
             onSelect={onDelete}

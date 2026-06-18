@@ -245,8 +245,13 @@ export async function deleteMemory(storeId: string, memoryId: string): Promise<{
   return deleteJSON<{ deleted: boolean }>(`/api/memory-stores/${storeId}/memories/${memoryId}`);
 }
 
-export async function listFiles(): Promise<WorkspaceFile[]> {
-  const data = await getJSON<{ items: WorkspaceFile[] }>("/api/files");
+export async function listFiles(params: { q?: string; kind?: string; status?: string } = {}): Promise<WorkspaceFile[]> {
+  const search = new URLSearchParams();
+  if (params.q) search.set("q", params.q);
+  if (params.kind && params.kind !== "All") search.set("kind", params.kind);
+  if (params.status && params.status !== "All") search.set("status", params.status);
+  const query = search.toString();
+  const data = await getJSON<{ items: WorkspaceFile[] }>(`/api/files${query ? `?${query}` : ""}`);
   return data.items;
 }
 
