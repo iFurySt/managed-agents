@@ -38,3 +38,10 @@ Keep the environment persistence model unchanged while improving the console fid
 - Aligned the local display content column to the observed 800px detail width at the same x-offset used by the reference sections.
 - Added an environment-specific detail section heading helper so this page keeps Claude's 16px/24px section titles without changing deployment detail sections.
 - Tightened the Packages and Metadata value blocks to the captured shallow filled style: 800px wide, 6px radius, compact padding, and 36/38px local heights against the 35/37px reference.
+
+### Follow-up: Environments List Filter Geometry
+
+- Re-captured the Claude Platform Environments list with OBU at a 1272px viewport.
+- Updated the local filter row to the current Claude geometry: 320px search field and 98px Status select at x=608.
+- Nudged the Environments row actions trigger 4px to match the captured action button position inside the 56px actions column.
+- Verified the local `/environments` page with OBU after the change; filter, table, row, and actions button x/width/height values match the Claude reference, while global shell vertical positioning remains a separate follow-up.
