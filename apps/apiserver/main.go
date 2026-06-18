@@ -1095,8 +1095,7 @@ func createVault(db *gorm.DB) gin.HandlerFunc {
 		now := time.Now().UTC()
 		name := strings.TrimSpace(req.Name)
 		if name == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "name is required"})
-			return
+			name = "Untitled vault"
 		}
 		if len(name) > 50 {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "name must be 50 characters or fewer"})

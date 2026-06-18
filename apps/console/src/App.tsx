@@ -2497,7 +2497,7 @@ function CreateVaultDialog({
   const [step, setStep] = useState<"vault" | "credential">("vault");
   const [vault, setVault] = useState<Vault | null>(null);
   const [name, setName] = useState("");
-  const canContinue = name.trim().length > 0 && name.trim().length <= 50;
+  const canContinue = name.trim().length <= 50;
 
   async function continueToCredential() {
     if (!canContinue) return;
@@ -2517,20 +2517,30 @@ function CreateVaultDialog({
   }
 
   return (
-    <ConsoleDialog title={step === "vault" ? "Create vault" : "Add a credential"} open={open} onOpenChange={closeDialog}>
+    <ConsoleDialog
+      title={step === "vault" ? "Create vault" : "Add a credential"}
+      open={open}
+      onOpenChange={closeDialog}
+      contentClassName={step === "vault" ? "w-[510px] max-w-[calc(100vw-32px)]" : undefined}
+      titleClassName={step === "vault" ? "text-lg font-semibold text-ink" : undefined}
+      closeLabel={step === "vault" ? "Close" : undefined}
+    >
       {step === "vault" ? (
-        <div className="px-6 pb-0 pt-5">
-          <div className="mb-5 rounded-cds border border-line bg-fill p-3 text-sm leading-6 text-[#3f3a35]">
-            Vaults are shared across this workspace. Credentials added to this vault will be usable by anyone with API key access.{" "}
-            <span className="font-medium text-ink">Learn more here</span>
-            <span className="text-muted"> (opens in new tab).</span>
+        <div className="px-6 pb-0 pt-3">
+          <div className="mb-3 flex gap-2 rounded-cds border border-line bg-fill p-2.5 text-sm leading-5 text-[#3f3a35]">
+            <Info className="mt-0.5 h-4 w-4 shrink-0 text-muted" />
+            <p>
+              Vaults are shared across this workspace. Credentials added to this vault will be usable by anyone with API key access.{" "}
+              <span className="font-medium text-ink">Learn more here</span>
+              <span className="text-muted"> (opens in new tab).</span>
+            </p>
           </div>
-          <label className="grid gap-2 text-sm font-medium">
+          <label className="grid gap-1 text-sm font-medium">
             Name
             <TextInput placeholder="Production vault" value={name} maxLength={50} onChange={(event) => setName(event.target.value)} />
             <span className="text-sm font-normal text-muted">50 characters or fewer.</span>
           </label>
-          <div className="sticky bottom-0 -mx-6 mt-6 flex justify-end bg-white px-6 py-5">
+          <div className="sticky bottom-0 -mx-6 mt-3 flex justify-end bg-white px-6 py-2.5">
             <Button onClick={continueToCredential} disabled={!canContinue}>Continue</Button>
           </div>
         </div>
