@@ -13,8 +13,8 @@ Track quality by product area and architectural layer so agents can prioritize t
 
 | Area | Score | Why | Next Step |
 | --- | --- | --- | --- |
-| Product surface | D | Not yet defined. | Define the first user journey and acceptance criteria. |
-| Architecture docs | C | Base scaffold exists but needs project-specific content. | Fill in `docs/ARCHITECTURE.md`. |
+| Product surface | C | Managed agents objects, lifecycle states, and first UI areas are defined, but user journeys and acceptance criteria are not yet executable. | Specify the first session creation and diagnosis workflow. |
+| Architecture docs | B | Top-level architecture and a focused design doc now define control, host, guest, object, and runtime boundaries. | Convert the MVP cut into an execution plan once implementation starts. |
 | Testing | D | No stack-specific tests yet. | Add a minimal smoke path with one real command. |
-| Observability | D | No local stack or conventions yet. | Document logs, metrics, traces, local access, and future pipeline access. |
-| Security | C | Defaults are documented, implementation is pending. | Add real auth, secret, and dependency rules. |
+| Observability | C | Session event and runtime telemetry expectations are documented, but no implementation exists. | Add a local event/log schema and smoke verifier with the first runtime. |
+| Security | C | Managed agents security defaults are documented, implementation is pending. | Add real auth, vault, sandbox, secret, and dependency rules as code lands. |
