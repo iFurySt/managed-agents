@@ -2687,6 +2687,7 @@ function CreateMemoryStoreDialog({
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const canCreate = name.trim().length > 0;
+  const fieldLabelClass = "text-sm font-medium leading-none";
 
   async function submit() {
     if (!canCreate) return;
@@ -2698,27 +2699,32 @@ function CreateMemoryStoreDialog({
   }
 
   return (
-    <ConsoleDialog title="Create memory store" open={open} onOpenChange={onOpenChange}>
-      <div className="px-6 pb-0 pt-5">
-        <div className="grid gap-5">
-          <label className="grid gap-2 text-sm font-medium">
+    <ConsoleDialog
+      title="Create memory store"
+      open={open}
+      onOpenChange={onOpenChange}
+      contentClassName="w-[510px] max-w-[calc(100vw-32px)]"
+      titleClassName="text-lg font-semibold text-ink"
+      closeLabel="Close"
+    >
+      <div className="px-6 pb-0 pt-1">
+        <div className="grid gap-4">
+          <label className={`grid gap-2 ${fieldLabelClass}`}>
             Name
             <TextInput placeholder="My memory store" value={name} onChange={(event) => setName(event.target.value)} />
           </label>
-          <label className="grid gap-2 text-sm font-medium">
-            <span>
-              Description <span className="font-normal text-muted">(optional)</span>
-            </span>
+          <label className={`grid gap-2 ${fieldLabelClass}`}>
+            Description (optional)
             <textarea
-              className="cds-focus min-h-[108px] resize-none rounded-cds border border-line bg-white px-3 py-3 text-sm leading-6"
+              className="cds-focus min-h-[74px] resize-none rounded-control border border-line bg-white px-3 py-2 text-sm leading-5"
               placeholder="What this store contains and how agents should use it"
               value={description}
               onChange={(event) => setDescription(event.target.value)}
             />
           </label>
-          <p className="text-sm text-muted">Name and description are rendered in the agent system prompt when this store is attached.</p>
+          <p className="text-[13px] leading-[18px] text-muted">Name and description are rendered in the agent system prompt when this store is attached.</p>
         </div>
-        <div className="sticky bottom-0 -mx-6 mt-6 flex justify-end bg-white px-6 py-5">
+        <div className="sticky bottom-0 -mx-6 mt-2 flex justify-end bg-white px-6 pb-[21px] pt-0">
           <Button onClick={submit} disabled={!canCreate}>Create</Button>
         </div>
       </div>
