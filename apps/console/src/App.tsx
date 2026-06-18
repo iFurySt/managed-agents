@@ -229,13 +229,14 @@ function Banner() {
 
 function AgentsPage() {
   const [agents, setAgents] = useState<Agent[]>([]);
+  const [search, setSearch] = useState("");
   const [created, setCreated] = useState("All time");
   const [status, setStatus] = useState("Active");
   const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
-    listAgents({ status }).then(setAgents).catch(() => setAgents([]));
-  }, [status]);
+    listAgents({ q: search, status, created }).then(setAgents).catch(() => setAgents([]));
+  }, [created, search, status]);
 
   async function archiveCurrent(agent: Agent) {
     const updated = await archiveAgent(agent.id);
@@ -257,7 +258,12 @@ function AgentsPage() {
       <div className="flex items-center gap-2">
         <div className="relative w-[486px]">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-          <TextInput className="pl-9" placeholder="Search by name or exact ID" />
+          <TextInput
+            className="pl-9"
+            placeholder="Search by name or exact ID"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+          />
         </div>
         <FieldSelect label="Created" value={created} options={["All time", "Last 24 hours", "Last 7 days", "Last 30 days"]} onValueChange={setCreated} />
         <FieldSelect label="Status" value={status} options={["Active", "Archived", "All"]} onValueChange={setStatus} />
@@ -296,14 +302,6 @@ function AgentsPage() {
         ]}
         renderActions={(agent) => <AgentRowActions agent={agent} onArchive={() => archiveCurrent(agent)} />}
       />
-      <div className="flex gap-2">
-        <Button variant="secondary" className="h-8 w-8 px-0">
-          ‹
-        </Button>
-        <Button variant="secondary" className="h-8 w-8 px-0">
-          ›
-        </Button>
-      </div>
       <CreateAgentDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}

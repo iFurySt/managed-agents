@@ -416,6 +416,9 @@ func listAgents(db *gorm.DB) gin.HandlerFunc {
 		if status := strings.TrimSpace(c.Query("status")); status != "" && !strings.EqualFold(status, "all") {
 			query = query.Where("status = ?", status)
 		}
+		if cutoff, ok := createdCutoff(c.Query("created"), time.Now().UTC()); ok {
+			query = query.Where("created_at >= ?", cutoff)
+		}
 		if err := query.Find(&agents).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -2022,6 +2025,19 @@ func deleteByID[T any](c *gin.Context, db *gorm.DB, query string, args ...any) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"deleted": true})
+}
+
+func createdCutoff(value string, now time.Time) (time.Time, bool) {
+	switch strings.ToLower(strings.TrimSpace(value)) {
+	case "last 24 hours", "last_24_hours", "24h":
+		return now.Add(-24 * time.Hour), true
+	case "last 7 days", "last_7_days", "7d":
+		return now.Add(-7 * 24 * time.Hour), true
+	case "last 30 days", "last_30_days", "30d":
+		return now.Add(-30 * 24 * time.Hour), true
+	default:
+		return time.Time{}, false
+	}
 }
 
 func validCredentialType(value string) bool {

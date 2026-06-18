@@ -67,9 +67,13 @@ async function deleteJSON<T>(path: string): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-export async function listAgents(params: { status?: string } = {}): Promise<Agent[]> {
-  const query = params.status && params.status !== "All" ? `?status=${encodeURIComponent(params.status)}` : "";
-  const data = await getJSON<{ items: Agent[] }>(`/api/agents${query}`);
+export async function listAgents(params: { q?: string; status?: string; created?: string } = {}): Promise<Agent[]> {
+  const search = new URLSearchParams();
+  if (params.q) search.set("q", params.q);
+  if (params.status && params.status !== "All") search.set("status", params.status);
+  if (params.created && params.created !== "All time") search.set("created", params.created);
+  const query = search.toString();
+  const data = await getJSON<{ items: Agent[] }>(`/api/agents${query ? `?${query}` : ""}`);
   return data.items;
 }
 
