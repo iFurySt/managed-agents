@@ -54,6 +54,41 @@ export type UpdateEnvironmentInput = {
   metadata: string;
 };
 
+export type VaultCredential = {
+  id: string;
+  vaultId: string;
+  name: string;
+  authType: string;
+  target: string;
+  status: string;
+  lastUsed: string;
+  updatedLabel: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type Vault = {
+  id: string;
+  name: string;
+  status: string;
+  description: string;
+  createdLabel: string;
+  updatedLabel: string;
+  createdAt: string;
+  updatedAt: string;
+  credentials?: VaultCredential[];
+};
+
+export type CreateVaultInput = {
+  name: string;
+};
+
+export type CreateVaultCredentialInput = {
+  name: string;
+  authType: string;
+  target: string;
+};
+
 export type SessionEvent = {
   id: string;
   sessionId: string;
@@ -144,7 +179,6 @@ export type CreateDeploymentInput = {
 };
 
 export type CollectionName =
-  | "vaults"
   | "memory-stores"
   | "files"
   | "skills";

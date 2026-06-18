@@ -4,12 +4,16 @@ import type {
   CreateDeploymentInput,
   CreateEnvironmentInput,
   CreateSessionInput,
+  CreateVaultCredentialInput,
+  CreateVaultInput,
   Deployment,
   DeploymentRun,
   Environment,
   Resource,
   Session,
-  UpdateEnvironmentInput
+  UpdateEnvironmentInput,
+  Vault,
+  VaultCredential
 } from "./types";
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "";
@@ -40,6 +44,14 @@ async function patchJSON<T>(path: string, body: unknown): Promise<T> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body)
   });
+  if (!response.ok) {
+    throw new Error(`${response.status} ${response.statusText}`);
+  }
+  return response.json() as Promise<T>;
+}
+
+async function deleteJSON<T>(path: string): Promise<T> {
+  const response = await fetch(`${API_BASE}${path}`, { method: "DELETE" });
   if (!response.ok) {
     throw new Error(`${response.status} ${response.statusText}`);
   }
@@ -112,6 +124,39 @@ export async function updateEnvironment(id: string, input: UpdateEnvironmentInpu
 
 export async function archiveEnvironment(id: string): Promise<Environment> {
   return postJSON<Environment>(`/api/environments/${id}/archive`, {});
+}
+
+export async function listVaults(): Promise<Vault[]> {
+  const data = await getJSON<{ items: Vault[] }>("/api/vaults");
+  return data.items;
+}
+
+export async function getVault(id: string): Promise<Vault> {
+  return getJSON<Vault>(`/api/vaults/${id}`);
+}
+
+export async function createVault(input: CreateVaultInput): Promise<Vault> {
+  return postJSON<Vault>("/api/vaults", input);
+}
+
+export async function archiveVault(id: string): Promise<Vault> {
+  return postJSON<Vault>(`/api/vaults/${id}/archive`, {});
+}
+
+export async function deleteVault(id: string): Promise<{ deleted: boolean }> {
+  return deleteJSON<{ deleted: boolean }>(`/api/vaults/${id}`);
+}
+
+export async function createVaultCredential(id: string, input: CreateVaultCredentialInput): Promise<VaultCredential> {
+  return postJSON<VaultCredential>(`/api/vaults/${id}/credentials`, input);
+}
+
+export async function archiveVaultCredential(vaultId: string, credentialId: string): Promise<VaultCredential> {
+  return postJSON<VaultCredential>(`/api/vaults/${vaultId}/credentials/${credentialId}/archive`, {});
+}
+
+export async function deleteVaultCredential(vaultId: string, credentialId: string): Promise<{ deleted: boolean }> {
+  return deleteJSON<{ deleted: boolean }>(`/api/vaults/${vaultId}/credentials/${credentialId}`);
 }
 
 export async function listCollection(collection: CollectionName): Promise<Resource[]> {

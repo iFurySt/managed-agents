@@ -22,10 +22,11 @@ import {
   Settings,
   Shield,
   Terminal,
+  Trash2,
   Wrench
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { Link, Navigate, Route, Routes, useParams } from "react-router-dom";
+import { Link, Navigate, Route, Routes, useNavigate, useParams } from "react-router-dom";
 import {
   cancelSession,
   createAgent,
@@ -33,23 +34,30 @@ import {
   createEnvironment,
   createSession,
   archiveEnvironment,
+  archiveVault,
+  archiveVaultCredential,
+  createVault,
+  createVaultCredential,
+  deleteVault,
+  deleteVaultCredential,
   getAgent,
   getDeployment,
   getEnvironment,
   getSession,
+  getVault,
   listAgents,
   listCollection,
   listDeployments,
   listEnvironments,
   listSessions,
+  listVaults,
   runDeployment,
   updateEnvironment
 } from "./api";
 import { Badge, Button, CdsDropdownMenu, CdsTabs, ConsoleDialog, DataTable, FieldSelect, SidebarItem, TextInput } from "./components/cds";
-import type { Agent, CollectionName, Deployment, Environment, Resource, Session } from "./types";
+import type { Agent, CollectionName, Deployment, Environment, Resource, Session, Vault, VaultCredential } from "./types";
 
 const managedRoutes: { path: CollectionName; title: string; description: string; action: string }[] = [
-  { path: "vaults", title: "Credential vaults", description: "Manage scoped credentials and secret bindings.", action: "Create vault" },
   { path: "memory-stores", title: "Memory stores", description: "Manage reusable agent knowledge stores.", action: "Create memory store" },
   { path: "files", title: "Files", description: "Browse uploads, outputs, artifacts, and snapshots.", action: "Upload file" },
   { path: "skills", title: "Skills", description: "Package and mount reusable agent capabilities.", action: "Create skill" }
@@ -73,6 +81,8 @@ export default function App() {
               <Route path="/deployments/:id" element={<DeploymentDetailPage />} />
               <Route path="/environments" element={<EnvironmentsPage />} />
               <Route path="/environments/:id" element={<EnvironmentDetailPage />} />
+              <Route path="/vaults" element={<VaultsPage />} />
+              <Route path="/vaults/:id" element={<VaultDetailPage />} />
               {managedRoutes.map((route) => (
                 <Route key={route.path} path={`/${route.path}`} element={<CollectionPage route={route} />} />
               ))}
@@ -1050,6 +1060,207 @@ function EnvironmentDetailPage() {
   );
 }
 
+function VaultsPage() {
+  const [vaults, setVaults] = useState<Vault[]>([]);
+  const [status, setStatus] = useState("All");
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  useEffect(() => {
+    listVaults().then(setVaults).catch(() => setVaults([]));
+  }, []);
+
+  const visibleVaults = status === "All" ? vaults : vaults.filter((vault) => vault.status === status);
+
+  return (
+    <section className="flex flex-col gap-4">
+      <PageHeader
+        title="Credential vault"
+        description="Manage credential vaults that provide your agents with access to MCP servers and other tools."
+        action={
+          <Button onClick={() => setDialogOpen(true)}>
+            <Plus className="h-4 w-4" />
+            Create vault
+          </Button>
+        }
+      />
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="relative w-[486px]">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+          <TextInput className="pl-9" aria-label="Search by name or exact ID" placeholder="Search by name or exact ID" />
+        </div>
+        <FieldSelect label="Status" value={status} options={["All", "Active", "Archived"]} onValueChange={setStatus} />
+      </div>
+      <DataTable
+        rows={visibleVaults}
+        getKey={(vault) => vault.id}
+        columns={[
+          {
+            key: "id",
+            header: "ID",
+            width: "230px",
+            render: (vault) => (
+              <div className="flex items-center gap-2">
+                <span className="font-mono font-semibold">{shortId(vault.id)}</span>
+                <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${vault.id}`}>
+                  <Copy className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            )
+          },
+          {
+            key: "name",
+            header: "Name",
+            width: "460px",
+            render: (vault) => (
+              <Link className="font-medium hover:underline" to={`/vaults/${vault.id}`}>
+                {vault.name}
+              </Link>
+            )
+          },
+          { key: "status", header: "Status", width: "160px", render: (vault) => <Badge tone={vaultTone(vault.status)}>{vault.status}</Badge> },
+          { key: "created", header: "Created", width: "180px", render: (vault) => <span className="text-muted">{vault.createdLabel}</span> }
+        ]}
+      />
+      <div className="flex gap-2">
+        <Button variant="secondary" className="h-8 w-8 px-0" disabled>
+          ‹
+        </Button>
+        <Button variant="secondary" className="h-8 w-8 px-0" disabled>
+          ›
+        </Button>
+      </div>
+      <CreateVaultDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        onCreated={(vault) => setVaults((items) => [vault, ...items])}
+      />
+    </section>
+  );
+}
+
+function VaultDetailPage() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [vault, setVault] = useState<Vault | null>(null);
+  const [status, setStatus] = useState("All");
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  useEffect(() => {
+    if (id) getVault(id).then(setVault).catch(() => setVault(null));
+  }, [id]);
+
+  async function archiveCurrentVault() {
+    if (!vault) return;
+    const updated = await archiveVault(vault.id);
+    setVault({ ...vault, ...updated });
+  }
+
+  async function deleteCurrentVault() {
+    if (!vault) return;
+    await deleteVault(vault.id);
+    navigate("/vaults");
+  }
+
+  async function archiveCredential(credential: VaultCredential) {
+    if (!vault) return;
+    const updated = await archiveVaultCredential(vault.id, credential.id);
+    setVault({ ...vault, credentials: (vault.credentials ?? []).map((item) => item.id === credential.id ? updated : item) });
+  }
+
+  async function deleteCredential(credential: VaultCredential) {
+    if (!vault) return;
+    await deleteVaultCredential(vault.id, credential.id);
+    setVault({ ...vault, credentials: (vault.credentials ?? []).filter((item) => item.id !== credential.id) });
+  }
+
+  if (!vault) return <EmptyState title="Credential vault not found" description="The selected vault could not be loaded." />;
+
+  const visibleCredentials = status === "All" ? (vault.credentials ?? []) : (vault.credentials ?? []).filter((credential) => credential.status === status);
+
+  return (
+    <section className="flex flex-col gap-5">
+      <div className="flex h-[52px] items-center justify-between">
+        <nav className="flex items-center gap-2 text-sm text-muted">
+          <Link className="rounded-control px-3 py-1.5 hover:bg-fill" to="/vaults">
+            Credential vault
+          </Link>
+          <span>/</span>
+          <span className="text-ink">{vault.name}</span>
+        </nav>
+      </div>
+
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0 flex-1">
+          <div className="mb-2 flex items-center gap-3">
+            <h1 className="truncate text-2xl font-medium tracking-[-0.01em]">{vault.name}</h1>
+            <Badge tone={vaultTone(vault.status)}>{vault.status}</Badge>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
+            <span className="font-mono">{shortId(vault.id)}</span>
+            <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${vault.id}`}>
+              <Copy className="h-3.5 w-3.5" />
+            </Button>
+            <span>·</span>
+            <span>Created {vault.createdLabel}</span>
+            <span>·</span>
+            <span>Updated {vault.updatedLabel}</span>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <Button onClick={() => setDialogOpen(true)}>
+            <Plus className="h-4 w-4" />
+            Add credential
+          </Button>
+          <VaultActions onArchive={archiveCurrentVault} onDelete={deleteCurrentVault} />
+        </div>
+      </div>
+
+      <div className="flex gap-2">
+        <FieldSelect label="Status" value={status} options={["All", "Active", "Archived"]} onValueChange={setStatus} />
+      </div>
+      <DataTable
+        rows={visibleCredentials}
+        getKey={(credential) => credential.id}
+        columns={[
+          { key: "id", header: "ID", width: "220px", render: (credential) => <span className="font-mono font-semibold">{shortId(credential.id)}</span> },
+          { key: "name", header: "Name", width: "210px", render: (credential) => <span className="font-medium">{credential.name}</span> },
+          {
+            key: "auth",
+            header: "Auth",
+            width: "270px",
+            render: (credential) => (
+              <div>
+                <div>{credential.authType}</div>
+                <div className="truncate font-mono text-xs text-muted">{credential.target}</div>
+              </div>
+            )
+          },
+          { key: "status", header: "Status", width: "140px", render: (credential) => <Badge tone={vaultTone(credential.status)}>{credential.status}</Badge> },
+          { key: "lastUsed", header: "Last used", width: "150px", render: (credential) => <span className="text-muted">{credential.lastUsed}</span> },
+          { key: "updated", header: "Updated", width: "150px", render: (credential) => <span className="text-muted">{credential.updatedLabel}</span> }
+        ]}
+        renderActions={(credential) => <VaultActions onArchive={() => archiveCredential(credential)} onDelete={() => deleteCredential(credential)} />}
+      />
+      <div className="flex gap-2">
+        <Button variant="secondary" className="h-8 w-8 px-0" disabled>
+          ‹
+        </Button>
+        <Button variant="secondary" className="h-8 w-8 px-0" disabled>
+          ›
+        </Button>
+      </div>
+      <CreateCredentialDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        title="Add credential"
+        description="Add a credential to this vault for agents to use."
+        onCreated={(credential) => setVault({ ...vault, credentials: [credential, ...(vault.credentials ?? [])] })}
+        create={(input) => createVaultCredential(vault.id, input)}
+      />
+    </section>
+  );
+}
+
 function AgentDetailPage() {
   const { id } = useParams();
   const [agent, setAgent] = useState<Agent | null>(null);
@@ -1466,6 +1677,163 @@ function CreateEnvironmentDialog({
   );
 }
 
+function CreateVaultDialog({
+  open,
+  onOpenChange,
+  onCreated
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onCreated: (vault: Vault) => void;
+}) {
+  const [step, setStep] = useState<"vault" | "credential">("vault");
+  const [vault, setVault] = useState<Vault | null>(null);
+  const [name, setName] = useState("");
+  const canContinue = name.trim().length > 0 && name.trim().length <= 50;
+
+  async function continueToCredential() {
+    if (!canContinue) return;
+    const created = await createVault({ name });
+    setVault(created);
+    onCreated(created);
+    setStep("credential");
+  }
+
+  function closeDialog(nextOpen: boolean) {
+    onOpenChange(nextOpen);
+    if (!nextOpen) {
+      setStep("vault");
+      setVault(null);
+      setName("");
+    }
+  }
+
+  return (
+    <ConsoleDialog title={step === "vault" ? "Create vault" : "Add a credential"} open={open} onOpenChange={closeDialog}>
+      {step === "vault" ? (
+        <div className="px-6 pb-0 pt-5">
+          <div className="mb-5 rounded-cds border border-line bg-fill p-3 text-sm leading-6 text-[#3f3a35]">
+            Vaults are shared across this workspace. Credentials added to this vault will be usable by anyone with API key access.{" "}
+            <span className="font-medium text-ink">Learn more here</span>
+            <span className="text-muted"> (opens in new tab).</span>
+          </div>
+          <label className="grid gap-2 text-sm font-medium">
+            Name
+            <TextInput placeholder="Production vault" value={name} maxLength={50} onChange={(event) => setName(event.target.value)} />
+            <span className="text-sm font-normal text-muted">50 characters or fewer.</span>
+          </label>
+          <div className="sticky bottom-0 -mx-6 mt-6 flex justify-end bg-white px-6 py-5">
+            <Button onClick={continueToCredential} disabled={!canContinue}>Continue</Button>
+          </div>
+        </div>
+      ) : vault ? (
+        <CreateCredentialForm
+          title={`${vault.name} is ready. Add its first credential so agents can use it.`}
+          submitLabel="Connect"
+          secondaryLabel="Skip for now"
+          onSecondary={() => closeDialog(false)}
+          onSubmit={async (input) => {
+            await createVaultCredential(vault.id, input);
+            closeDialog(false);
+          }}
+        />
+      ) : null}
+    </ConsoleDialog>
+  );
+}
+
+function CreateCredentialDialog({
+  open,
+  onOpenChange,
+  title,
+  description,
+  onCreated,
+  create
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  title: string;
+  description: string;
+  onCreated: (credential: VaultCredential) => void;
+  create: (input: { name: string; authType: string; target: string }) => Promise<VaultCredential>;
+}) {
+  return (
+    <ConsoleDialog title={title} description={description} open={open} onOpenChange={onOpenChange}>
+      <CreateCredentialForm
+        submitLabel="Connect"
+        onSubmit={async (input) => {
+          const credential = await create(input);
+          onCreated(credential);
+          onOpenChange(false);
+        }}
+      />
+    </ConsoleDialog>
+  );
+}
+
+function CreateCredentialForm({
+  title,
+  submitLabel,
+  secondaryLabel,
+  onSecondary,
+  onSubmit
+}: {
+  title?: string;
+  submitLabel: string;
+  secondaryLabel?: string;
+  onSecondary?: () => void;
+  onSubmit: (input: { name: string; authType: string; target: string }) => Promise<void>;
+}) {
+  const [name, setName] = useState("");
+  const [authType, setAuthType] = useState("MCP OAuth");
+  const [target, setTarget] = useState("https://mcp.example.com");
+
+  useEffect(() => {
+    if (authType === "MCP OAuth") setTarget("https://mcp.example.com");
+    if (authType === "Bearer token") setTarget("https://api.example.com/");
+    if (authType === "Environment variable") setTarget("ENV_VAR_NAME");
+  }, [authType]);
+
+  async function submit() {
+    await onSubmit({ name, authType, target });
+    setName("");
+  }
+
+  const targetLabel = authType === "Environment variable" ? "Environment variable" : authType === "Bearer token" ? "Endpoint" : "MCP server";
+  const targetPlaceholder = authType === "Environment variable" ? "ENV_VAR_NAME" : authType === "Bearer token" ? "https://api.example.com/" : "https://mcp.example.com";
+
+  return (
+    <div className="px-6 pb-0 pt-5">
+      {title ? <p className="mb-5 text-sm leading-6 text-muted">{title}</p> : null}
+      <div className="grid gap-5">
+        <label className="grid gap-2 text-sm font-medium">
+          <span>
+            Name <span className="font-normal text-muted">Optional</span>
+          </span>
+          <TextInput placeholder="Example credential" value={name} onChange={(event) => setName(event.target.value)} />
+        </label>
+        <div className="grid gap-2">
+          <label className="text-sm font-medium">Type</label>
+          <FieldSelect label="" value={authType} options={["MCP OAuth", "Bearer token", "Environment variable"]} onValueChange={setAuthType} />
+          <div className="rounded-cds border border-line bg-fill p-3 text-sm leading-6 text-muted">
+            <div><span className="font-semibold text-ink">MCP OAuth</span> For MCP servers that support OAuth.</div>
+            <div><span className="font-semibold text-ink">Bearer token</span> For MCP servers that accept a long-lived API key or personal access token.</div>
+            <div><span className="font-semibold text-ink">Environment variable</span> For CLIs, SDKs, or direct API calls. The agent never sees the value.</div>
+          </div>
+        </div>
+        <label className="grid gap-2 text-sm font-medium">
+          {targetLabel}
+          <TextInput placeholder={targetPlaceholder} value={target} onChange={(event) => setTarget(event.target.value)} />
+        </label>
+      </div>
+      <div className="sticky bottom-0 -mx-6 mt-6 flex justify-end gap-2 bg-white px-6 py-5">
+        {secondaryLabel ? <Button variant="secondary" onClick={onSecondary}>{secondaryLabel}</Button> : null}
+        <Button onClick={submit}>{submitLabel}</Button>
+      </div>
+    </div>
+  );
+}
+
 function CodeYaml({ source }: { source: string }) {
   return (
     <>
@@ -1504,6 +1872,13 @@ function environmentTone(status: string): "neutral" | "green" | "blue" | "red" {
   return "blue";
 }
 
+function vaultTone(status: string): "neutral" | "green" | "blue" | "red" {
+  if (status === "Archived") return "neutral";
+  if (status === "Failed") return "red";
+  if (status === "Active") return "green";
+  return "blue";
+}
+
 function EnvironmentActions({ onArchive }: { onArchive: () => void }) {
   return (
     <CdsDropdownMenu.Root>
@@ -1520,6 +1895,36 @@ function EnvironmentActions({ onArchive }: { onArchive: () => void }) {
           >
             <Archive className="h-4 w-4 text-muted" />
             Archive
+          </CdsDropdownMenu.Item>
+        </CdsDropdownMenu.Content>
+      </CdsDropdownMenu.Portal>
+    </CdsDropdownMenu.Root>
+  );
+}
+
+function VaultActions({ onArchive, onDelete }: { onArchive: () => void; onDelete: () => void }) {
+  return (
+    <CdsDropdownMenu.Root>
+      <CdsDropdownMenu.Trigger asChild>
+        <Button variant="icon" aria-label="More actions">
+          ⋯
+        </Button>
+      </CdsDropdownMenu.Trigger>
+      <CdsDropdownMenu.Portal>
+        <CdsDropdownMenu.Content className="z-50 min-w-[150px] rounded-cds border border-line bg-white p-1 shadow-lg" align="end">
+          <CdsDropdownMenu.Item
+            className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill"
+            onSelect={onArchive}
+          >
+            <Archive className="h-4 w-4 text-muted" />
+            Archive
+          </CdsDropdownMenu.Item>
+          <CdsDropdownMenu.Item
+            className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm text-[#a33a29] outline-none data-[highlighted]:bg-[#fff1ef]"
+            onSelect={onDelete}
+          >
+            <Trash2 className="h-4 w-4" />
+            Delete
           </CdsDropdownMenu.Item>
         </CdsDropdownMenu.Content>
       </CdsDropdownMenu.Portal>

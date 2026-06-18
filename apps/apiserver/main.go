@@ -56,6 +56,31 @@ type Environment struct {
 	UpdatedAt      time.Time `json:"updatedAt"`
 }
 
+type Vault struct {
+	ID           string            `json:"id" gorm:"primaryKey"`
+	Name         string            `json:"name"`
+	Status       string            `json:"status" gorm:"index"`
+	Description  string            `json:"description" gorm:"type:text"`
+	CreatedLabel string            `json:"createdLabel"`
+	UpdatedLabel string            `json:"updatedLabel"`
+	CreatedAt    time.Time         `json:"createdAt"`
+	UpdatedAt    time.Time         `json:"updatedAt"`
+	Credentials  []VaultCredential `json:"credentials" gorm:"foreignKey:VaultID;references:ID"`
+}
+
+type VaultCredential struct {
+	ID           string    `json:"id" gorm:"primaryKey"`
+	VaultID      string    `json:"vaultId" gorm:"index"`
+	Name         string    `json:"name"`
+	AuthType     string    `json:"authType" gorm:"index"`
+	Target       string    `json:"target"`
+	Status       string    `json:"status" gorm:"index"`
+	LastUsed     string    `json:"lastUsed"`
+	UpdatedLabel string    `json:"updatedLabel"`
+	CreatedAt    time.Time `json:"createdAt"`
+	UpdatedAt    time.Time `json:"updatedAt"`
+}
+
 type Session struct {
 	ID              string         `json:"id" gorm:"primaryKey"`
 	Name            string         `json:"name"`
@@ -167,8 +192,17 @@ type UpdateEnvironmentRequest struct {
 	Metadata       string   `json:"metadata"`
 }
 
+type CreateVaultRequest struct {
+	Name string `json:"name"`
+}
+
+type CreateVaultCredentialRequest struct {
+	Name     string `json:"name"`
+	AuthType string `json:"authType"`
+	Target   string `json:"target"`
+}
+
 var resourceKinds = map[string]string{
-	"vaults":        "vault",
 	"memory-stores": "memory_store",
 	"files":         "file",
 	"skills":        "skill",
@@ -192,7 +226,7 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	if err := db.AutoMigrate(&Agent{}, &Resource{}, &Environment{}, &Session{}, &SessionEvent{}, &Deployment{}, &DeploymentRun{}); err != nil {
+	if err := db.AutoMigrate(&Agent{}, &Resource{}, &Environment{}, &Vault{}, &VaultCredential{}, &Session{}, &SessionEvent{}, &Deployment{}, &DeploymentRun{}); err != nil {
 		return err
 	}
 	if err := seed(db); err != nil {
@@ -227,6 +261,14 @@ func run() error {
 	router.POST("/api/environments", createEnvironment(db))
 	router.PATCH("/api/environments/:id", updateEnvironment(db))
 	router.POST("/api/environments/:id/archive", archiveEnvironment(db))
+	router.GET("/api/vaults", listVaults(db))
+	router.GET("/api/vaults/:id", getVault(db))
+	router.POST("/api/vaults", createVault(db))
+	router.POST("/api/vaults/:id/archive", archiveVault(db))
+	router.DELETE("/api/vaults/:id", deleteVault(db))
+	router.POST("/api/vaults/:id/credentials", createVaultCredential(db))
+	router.POST("/api/vaults/:id/credentials/:credentialID/archive", archiveVaultCredential(db))
+	router.DELETE("/api/vaults/:id/credentials/:credentialID", deleteVaultCredential(db))
 	router.GET("/api/:collection", listResources(db))
 
 	addr := env("APISERVER_ADDR", ":8080")
@@ -710,6 +752,178 @@ func archiveEnvironment(db *gorm.DB) gin.HandlerFunc {
 	}
 }
 
+func listVaults(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var vaults []Vault
+		query := db.Order("created_at desc")
+		if search := strings.TrimSpace(c.Query("q")); search != "" {
+			query = query.Where("id ILIKE ? OR name ILIKE ?", "%"+search+"%", "%"+search+"%")
+		}
+		if status := strings.TrimSpace(c.Query("status")); status != "" && !strings.EqualFold(status, "all") {
+			query = query.Where("status = ?", status)
+		}
+		if err := query.Find(&vaults).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"items": vaults})
+	}
+}
+
+func getVault(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var vault Vault
+		if err := db.Preload("Credentials", func(tx *gorm.DB) *gorm.DB {
+			return tx.Order("created_at desc")
+		}).First(&vault, "id = ?", c.Param("id")).Error; err != nil {
+			status := http.StatusInternalServerError
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				status = http.StatusNotFound
+			}
+			c.JSON(status, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, vault)
+	}
+}
+
+func createVault(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var req CreateVaultRequest
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		now := time.Now().UTC()
+		name := strings.TrimSpace(req.Name)
+		if name == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "name is required"})
+			return
+		}
+		if len(name) > 50 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "name must be 50 characters or fewer"})
+			return
+		}
+		vault := Vault{
+			ID:           fmt.Sprintf("vlt_local_%s%09d", now.Format("20060102150405"), now.Nanosecond()),
+			Name:         name,
+			Status:       "Active",
+			Description:  "Workspace-shared credential vault.",
+			CreatedLabel: "just now",
+			UpdatedLabel: "just now",
+			CreatedAt:    now,
+			UpdatedAt:    now,
+		}
+		if err := db.Create(&vault).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusCreated, vault)
+	}
+}
+
+func archiveVault(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var vault Vault
+		if err := db.First(&vault, "id = ?", c.Param("id")).Error; err != nil {
+			status := http.StatusInternalServerError
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				status = http.StatusNotFound
+			}
+			c.JSON(status, gin.H{"error": err.Error()})
+			return
+		}
+		vault.Status = "Archived"
+		vault.UpdatedLabel = "just now"
+		vault.UpdatedAt = time.Now().UTC()
+		if err := db.Save(&vault).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, vault)
+	}
+}
+
+func deleteVault(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if err := db.Where("vault_id = ?", c.Param("id")).Delete(&VaultCredential{}).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		deleteByID[Vault](c, db, "id = ?", c.Param("id"))
+	}
+}
+
+func createVaultCredential(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var vault Vault
+		if err := db.First(&vault, "id = ?", c.Param("id")).Error; err != nil {
+			status := http.StatusInternalServerError
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				status = http.StatusNotFound
+			}
+			c.JSON(status, gin.H{"error": err.Error()})
+			return
+		}
+		var req CreateVaultCredentialRequest
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		now := time.Now().UTC()
+		authType := defaultString(req.AuthType, "MCP OAuth")
+		if !validCredentialType(authType) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "authType must be MCP OAuth, Bearer token, or Environment variable"})
+			return
+		}
+		credential := VaultCredential{
+			ID:           fmt.Sprintf("vcrd_local_%s%09d", now.Format("20060102150405"), now.Nanosecond()),
+			VaultID:      vault.ID,
+			Name:         defaultString(req.Name, "Unnamed"),
+			AuthType:     authType,
+			Target:       defaultString(req.Target, defaultCredentialTarget(authType)),
+			Status:       "Active",
+			LastUsed:     "Never",
+			UpdatedLabel: "just now",
+			CreatedAt:    now,
+			UpdatedAt:    now,
+		}
+		if err := db.Create(&credential).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusCreated, credential)
+	}
+}
+
+func archiveVaultCredential(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var credential VaultCredential
+		if err := db.First(&credential, "id = ? AND vault_id = ?", c.Param("credentialID"), c.Param("id")).Error; err != nil {
+			status := http.StatusInternalServerError
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				status = http.StatusNotFound
+			}
+			c.JSON(status, gin.H{"error": err.Error()})
+			return
+		}
+		credential.Status = "Archived"
+		credential.UpdatedLabel = "just now"
+		credential.UpdatedAt = time.Now().UTC()
+		if err := db.Save(&credential).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, credential)
+	}
+}
+
+func deleteVaultCredential(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		deleteByID[VaultCredential](c, db, "id = ? AND vault_id = ?", c.Param("credentialID"), c.Param("id"))
+	}
+}
+
 func listResources(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		kind, ok := resourceKinds[c.Param("collection")]
@@ -761,6 +975,19 @@ func seed(db *gorm.DB) error {
 	if count == 0 {
 		environments := seedEnvironments(now)
 		if err := db.Create(&environments).Error; err != nil {
+			return err
+		}
+	}
+
+	if err := db.Model(&Vault{}).Count(&count).Error; err != nil {
+		return err
+	}
+	if count == 0 {
+		vaults, credentials := seedVaults(now)
+		if err := db.Create(&vaults).Error; err != nil {
+			return err
+		}
+		if err := db.Create(&credentials).Error; err != nil {
 			return err
 		}
 	}
@@ -847,6 +1074,49 @@ func environment(id, name, status, hostType, description, networkingType, packag
 		UpdatedLabel:   updatedLabel,
 		CreatedAt:      ts,
 		UpdatedAt:      ts,
+	}
+}
+
+func seedVaults(ts time.Time) ([]Vault, []VaultCredential) {
+	vaults := []Vault{
+		vault("vlt_011Cc6ULi3DaPNjN1LZLTenB", "test_secret", "Active", "Jun 16", ts),
+		vault("vault_01GitHub", "GitHub source access", "Active", "Jun 16", ts),
+	}
+	credentials := []VaultCredential{
+		vaultCredential("vcrd_01EnvVarOpsToken", "vlt_011Cc6ULi3DaPNjN1LZLTenB", "Unnamed", "Environment variable", "OPS_TOKEN", "Active", "Never", "Jun 16", ts),
+		vaultCredential("vcrd_01EnvVarApiKey", "vlt_011Cc6ULi3DaPNjN1LZLTenB", "Unnamed", "Environment variable", "API_TOKEN", "Active", "Never", "Jun 16", ts),
+		vaultCredential("vcrd_01BearerInternal", "vlt_011Cc6ULi3DaPNjN1LZLTenB", "bearertoken", "Bearer token", "https://api.example.com/", "Active", "Never", "Jun 16", ts),
+		vaultCredential("vcrd_01McpOAuthGmail", "vlt_011Cc6ULi3DaPNjN1LZLTenB", "mcpoauth", "MCP OAuth", "https://gmail.mcp.example.com/mcp", "Active", "Never", "Jun 16", ts),
+		vaultCredential("vcrd_01GithubToken", "vault_01GitHub", "github-token", "Bearer token", "https://api.github.com/", "Active", "2 days ago", "Jun 16", ts),
+	}
+	return vaults, credentials
+}
+
+func vault(id, name, status, label string, ts time.Time) Vault {
+	return Vault{
+		ID:           id,
+		Name:         name,
+		Status:       status,
+		Description:  "Workspace-shared credential vault.",
+		CreatedLabel: label,
+		UpdatedLabel: label,
+		CreatedAt:    ts,
+		UpdatedAt:    ts,
+	}
+}
+
+func vaultCredential(id, vaultID, name, authType, target, status, lastUsed, updatedLabel string, ts time.Time) VaultCredential {
+	return VaultCredential{
+		ID:           id,
+		VaultID:      vaultID,
+		Name:         name,
+		AuthType:     authType,
+		Target:       target,
+		Status:       status,
+		LastUsed:     lastUsed,
+		UpdatedLabel: updatedLabel,
+		CreatedAt:    ts,
+		UpdatedAt:    ts,
 	}
 }
 
@@ -982,6 +1252,38 @@ func lookupEnvironmentName(db *gorm.DB, id, fallback string) string {
 		return resource.Name
 	}
 	return fallback
+}
+
+func deleteByID[T any](c *gin.Context, db *gorm.DB, query string, args ...any) {
+	var row T
+	params := append([]any{query}, args...)
+	if err := db.First(&row, params...).Error; err != nil {
+		status := http.StatusInternalServerError
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			status = http.StatusNotFound
+		}
+		c.JSON(status, gin.H{"error": err.Error()})
+		return
+	}
+	if err := db.Delete(&row).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"deleted": true})
+}
+
+func validCredentialType(value string) bool {
+	return strings.EqualFold(value, "MCP OAuth") || strings.EqualFold(value, "Bearer token") || strings.EqualFold(value, "Environment variable")
+}
+
+func defaultCredentialTarget(authType string) string {
+	if strings.EqualFold(authType, "Bearer token") {
+		return "https://api.example.com/"
+	}
+	if strings.EqualFold(authType, "Environment variable") {
+		return "ENV_VAR_NAME"
+	}
+	return "https://mcp.example.com"
 }
 
 func titleHostType(value string) string {

@@ -109,11 +109,13 @@ export function FieldSelect({
 export function DataTable<T>({
   columns,
   rows,
-  getKey
+  getKey,
+  renderActions
 }: {
   columns: { key: string; header: string; render: (row: T) => ReactNode; width?: string }[];
   rows: T[];
   getKey: (row: T) => string;
+  renderActions?: (row: T) => ReactNode;
 }) {
   return (
     <div data-cds="DataTable" className="w-full overflow-hidden">
@@ -143,9 +145,13 @@ export function DataTable<T>({
                 </td>
               ))}
               <td className="py-3">
-                <Button variant="icon" aria-label="Open row actions">
-                  <span className="text-lg leading-none">⋯</span>
-                </Button>
+                {renderActions ? (
+                  renderActions(row)
+                ) : (
+                  <Button variant="icon" aria-label="Open row actions">
+                    <span className="text-lg leading-none">⋯</span>
+                  </Button>
+                )}
               </td>
             </tr>
           ))}
