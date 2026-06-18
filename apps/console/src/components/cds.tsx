@@ -20,7 +20,7 @@ export function Button({
     primary: "bg-ink text-white hover:bg-black",
     secondary: "border border-line bg-canvas text-ink hover:bg-fill",
     ghost: "text-ink hover:bg-fill",
-    icon: "border border-line bg-canvas text-muted hover:bg-fill"
+    icon: "text-ink hover:bg-fill"
   };
   const sizes = {
     md: "h-8 px-3 text-sm",
@@ -29,7 +29,7 @@ export function Button({
   return (
     <button
       data-cds="Button"
-      className={`cds-focus inline-flex shrink-0 items-center justify-center gap-2 rounded-control font-medium transition ${variants[variant]} ${sizes[size]} ${variant === "icon" ? "w-7 px-0" : ""} ${className}`}
+      className={`cds-focus inline-flex shrink-0 items-center justify-center gap-2 rounded-control font-medium transition ${variants[variant]} ${variant === "icon" ? "h-7 w-7 px-0" : sizes[size]} ${className}`}
       {...props}
     >
       {children}
@@ -127,34 +127,34 @@ export function DataTable<T>({
     <div data-cds="DataTable" className="w-full overflow-hidden">
       <table data-cds="Table" className="w-full border-collapse text-left text-sm">
         <thead>
-          <tr className="border-b border-line text-muted">
+          <tr className="h-8 border-b border-line text-[13px] font-medium leading-4 text-[#52514e]">
             {showSelection ? (
-              <th className="w-10 py-3">
+              <th className="w-10 py-0">
                 <span className="block h-4 w-4 rounded border border-[#cfcac2]" />
               </th>
             ) : null}
             {columns.map((column) => (
-              <th key={column.key} className="py-3 font-semibold" style={{ width: column.width }}>
+              <th key={column.key} className="px-3 py-0 font-medium" style={{ width: column.width }}>
                 {column.header}
               </th>
             ))}
-            <th className="w-12 py-3 font-semibold">{actionsHeader}</th>
+            <th className="w-12 px-3 py-0 font-medium">{actionsHeader}</th>
           </tr>
         </thead>
         <tbody>
           {rows.map((row) => (
-            <tr key={getKey(row)} className="border-b border-[#efede8] hover:bg-[#fbfaf7]">
+            <tr key={getKey(row)} className="h-[45px] border-b border-[#efede8] hover:bg-[#fbfaf7]">
               {showSelection ? (
-                <td className="py-3">
+                <td className="py-2">
                   <span className="block h-4 w-4 rounded border border-[#cfcac2]" />
                 </td>
               ) : null}
               {columns.map((column) => (
-                <td key={column.key} className="max-w-[260px] truncate py-3 pr-4 align-middle">
+                <td key={column.key} className="max-w-[260px] truncate px-3 py-2 align-middle">
                   {column.render(row)}
                 </td>
               ))}
-              <td className="py-3">
+              <td className="px-3 py-2">
                 {renderActions ? (
                   renderActions(row)
                 ) : (
