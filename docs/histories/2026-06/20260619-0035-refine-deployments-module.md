@@ -40,3 +40,11 @@ Keep deployment lifecycle behavior inside `apiserver` because it is part of the 
 - Tightened configuration detail sections to the observed 14px/20px headings, 792px content width, 16px section rhythm, unframed schedule/message blocks, and 111px local schedule height against the 114px reference.
 - Updated deployment runs to remove selection/actions columns, match the 1210px reference width, use 160/260/120/110/160/260/140px columns, and preserve 45px data rows.
 - Extended the shared CDS `DataTable` with optional `showActions` so non-action tables can match Claude without changing existing action tables.
+
+### Follow-up: Deployments List Filter Geometry
+
+- Re-captured the Claude Platform Deployments list with OBU at a 1272px viewport.
+- Aligned the Deployments filter row to the captured controls: 320px search field, 112px Agent select, and 98px Status select with the same x-position spacing as Claude.
+- Nudged the Deployments row actions trigger 4px to match the captured action button position inside the 56px Actions column.
+- Treated direct API `agentId=All` and `deploymentId=All` query values as unfiltered values so backend list endpoints match the console filter semantics.
+- Verified the local `/deployments` page with OBU after the change; filter, table, row, and actions button x/width/height values match the Claude reference, while global shell vertical positioning remains a separate follow-up.

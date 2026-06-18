@@ -565,10 +565,10 @@ func listSessions(db *gorm.DB) gin.HandlerFunc {
 				query = query.Where("status = ?", status)
 			}
 		}
-		if agentID := strings.TrimSpace(c.Query("agentId")); agentID != "" {
+		if agentID := strings.TrimSpace(c.Query("agentId")); agentID != "" && !strings.EqualFold(agentID, "all") {
 			query = query.Where("agent_id = ?", agentID)
 		}
-		if deploymentID := strings.TrimSpace(c.Query("deploymentId")); deploymentID != "" {
+		if deploymentID := strings.TrimSpace(c.Query("deploymentId")); deploymentID != "" && !strings.EqualFold(deploymentID, "all") {
 			query = query.Where("deployment_id = ?", deploymentID)
 		}
 		if cutoff, ok := createdCutoff(c.Query("created"), time.Now().UTC()); ok {
@@ -727,7 +727,7 @@ func listDeployments(db *gorm.DB) gin.HandlerFunc {
 		if status := strings.TrimSpace(c.Query("status")); status != "" && !strings.EqualFold(status, "all") {
 			query = query.Where("status = ?", status)
 		}
-		if agentID := strings.TrimSpace(c.Query("agentId")); agentID != "" {
+		if agentID := strings.TrimSpace(c.Query("agentId")); agentID != "" && !strings.EqualFold(agentID, "all") {
 			query = query.Where("agent_id = ?", agentID)
 		}
 		if err := query.Find(&deployments).Error; err != nil {

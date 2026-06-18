@@ -665,7 +665,7 @@ function DeploymentsPage() {
         }
       />
       <div className="flex flex-wrap items-center gap-2">
-        <div className="relative w-[272px]">
+        <div className="relative w-[320px]">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
           <TextInput className="pl-9" aria-label="Search by name or exact ID" placeholder="Search by name or exact ID" value={search} onChange={(event) => setSearch(event.target.value)} />
         </div>
@@ -681,7 +681,7 @@ function DeploymentsPage() {
           value={status}
           options={["All", "Paused", "Active", "Archived", "Failed"]}
           onValueChange={setStatus}
-          triggerClassName="w-[98px]"
+          triggerClassName="ml-2 w-[98px]"
         />
       </div>
       <DataTable
@@ -3354,7 +3354,7 @@ function DeploymentActions({
   return (
     <CdsDropdownMenu.Root>
       <CdsDropdownMenu.Trigger asChild>
-        <Button variant="icon" aria-label="More actions">
+        <Button variant="icon" className="ml-1" aria-label="More actions">
           <span className="text-lg leading-none">⋯</span>
         </Button>
       </CdsDropdownMenu.Trigger>
