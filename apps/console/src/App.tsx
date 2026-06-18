@@ -4,13 +4,17 @@ import {
   Boxes,
   Braces,
   ChevronDown,
+  Clock,
+  Copy,
   CircleDollarSign,
   Database,
+  Download,
   FileText,
   Gauge,
   Home,
   Info,
   KeyRound,
+  MessageSquare,
   Plus,
   Search,
   Settings,
@@ -20,12 +24,11 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate, Route, Routes, useParams } from "react-router-dom";
-import { createAgent, getAgent, listAgents, listCollection } from "./api";
+import { cancelSession, createAgent, createSession, getAgent, getSession, listAgents, listCollection, listSessions } from "./api";
 import { Badge, Button, CdsTabs, ConsoleDialog, DataTable, FieldSelect, SidebarItem, TextInput } from "./components/cds";
-import type { Agent, CollectionName, Resource } from "./types";
+import type { Agent, CollectionName, Resource, Session } from "./types";
 
 const managedRoutes: { path: CollectionName; title: string; description: string; action: string }[] = [
-  { path: "sessions", title: "Sessions", description: "View and inspect managed agent sessions.", action: "Create session" },
   { path: "deployments", title: "Deployments", description: "Manage previews and promoted artifacts.", action: "Create deployment" },
   { path: "environments", title: "Environments", description: "Configure sandbox runtimes and policies.", action: "Create environment" },
   { path: "vaults", title: "Credential vaults", description: "Manage scoped credentials and secret bindings.", action: "Create vault" },
@@ -46,6 +49,8 @@ export default function App() {
               <Route path="/" element={<Navigate to="/agents" replace />} />
               <Route path="/agents" element={<AgentsPage />} />
               <Route path="/agents/:id" element={<AgentDetailPage />} />
+              <Route path="/sessions" element={<SessionsPage />} />
+              <Route path="/sessions/:id" element={<SessionDetailPage />} />
               {managedRoutes.map((route) => (
                 <Route key={route.path} path={`/${route.path}`} element={<CollectionPage route={route} />} />
               ))}
@@ -244,6 +249,271 @@ function AgentsPage() {
   );
 }
 
+function SessionsPage() {
+  const [sessions, setSessions] = useState<Session[]>([]);
+  const [created, setCreated] = useState("All time");
+  const [agent, setAgent] = useState("All");
+  const [deployment, setDeployment] = useState("All");
+  const [status, setStatus] = useState("Active");
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  useEffect(() => {
+    listSessions().then(setSessions).catch(() => setSessions([]));
+  }, []);
+
+  return (
+    <section className="flex flex-col gap-4">
+      <PageHeader
+        title="Sessions"
+        description="Trace and debug Claude Managed Agents sessions."
+        action={
+          <Button onClick={() => setDialogOpen(true)}>
+            <Plus className="h-4 w-4" />
+            Create session
+          </Button>
+        }
+      />
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="relative w-[276px]">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+          <TextInput className="pl-9" aria-label="Search by session ID" placeholder="Search by session ID" />
+        </div>
+        <FieldSelect label="Created" value={created} options={["All time", "Last 24 hours", "Last 7 days", "Last 30 days"]} onValueChange={setCreated} />
+        <FieldSelect label="Agent" value={agent} options={["All", "Managed SSH Reverse Tunnel Bootstrapper", "World Cup Daily Digest"]} onValueChange={setAgent} />
+        <FieldSelect label="Deployment" value={deployment} options={["All", "World Cup digest preview"]} onValueChange={setDeployment} />
+        <FieldSelect label="Status" value={status} options={["Active", "Idle", "Cancelled", "All"]} onValueChange={setStatus} />
+      </div>
+      <DataTable
+        rows={sessions}
+        getKey={(session) => session.id}
+        columns={[
+          {
+            key: "id",
+            header: "ID",
+            width: "210px",
+            render: (session) => (
+              <div className="flex items-center gap-2">
+                <span className="font-mono font-semibold">{shortId(session.id)}</span>
+                <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${session.id}`}>
+                  <Copy className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            )
+          },
+          {
+            key: "name",
+            header: "Name",
+            width: "360px",
+            render: (session) => (
+              <Link className="font-medium hover:underline" to={`/sessions/${session.id}`}>
+                {session.name}
+              </Link>
+            )
+          },
+          { key: "status", header: "Status", width: "140px", render: (session) => <Badge tone={sessionTone(session.status)}>{session.status}</Badge> },
+          {
+            key: "agent",
+            header: "Agent",
+            width: "320px",
+            render: (session) => (
+              <Button variant="ghost" className="h-[25px] justify-start px-2">
+                <Braces className="h-4 w-4 text-muted" />
+                {session.agentName}
+              </Button>
+            )
+          },
+          { key: "created", header: "Created", width: "160px", render: (session) => <span className="text-muted">{session.createdLabel}</span> }
+        ]}
+      />
+      <div className="flex gap-2">
+        <Button variant="secondary" className="h-8 w-8 px-0" disabled>
+          ‹
+        </Button>
+        <Button variant="secondary" className="h-8 w-8 px-0" disabled>
+          ›
+        </Button>
+      </div>
+      <CreateSessionDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        onCreated={(session) => setSessions((items) => [session, ...items])}
+      />
+    </section>
+  );
+}
+
+function SessionDetailPage() {
+  const { id } = useParams();
+  const [session, setSession] = useState<Session | null>(null);
+  const [eventFilter, setEventFilter] = useState("All events");
+  const [detailEvent, setDetailEvent] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (id) getSession(id).then(setSession).catch(() => setSession(null));
+  }, [id]);
+
+  async function cancelCurrentSession() {
+    if (!session) return;
+    const updated = await cancelSession(session.id);
+    setSession({ ...session, ...updated });
+  }
+
+  if (!session) return <EmptyState title="Session not found" description="The selected session could not be loaded." />;
+
+  const selectedEvent = session.events?.find((event) => event.id === detailEvent) ?? session.events?.[0];
+
+  return (
+    <section className="flex flex-col gap-4">
+      <div className="flex h-[52px] items-center justify-between">
+        <nav className="flex items-center gap-2 text-sm text-muted">
+          <Link className="rounded-control px-3 py-1.5 hover:bg-fill" to="/sessions">
+            Sessions
+          </Link>
+          <span>/</span>
+          <span className="font-mono text-ink">{shortId(session.id)}</span>
+        </nav>
+        <div className="flex gap-2">
+          <Button variant="secondary" onClick={cancelCurrentSession}>
+            Actions
+            <ChevronDown className="h-4 w-4" />
+          </Button>
+          <Button>
+            <MessageSquare className="h-4 w-4" />
+            Ask Claude
+          </Button>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-3 border-b border-line pb-4">
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl font-medium tracking-[-0.01em]">{session.name}</h1>
+          <Badge tone={sessionTone(session.status)}>{session.status}</Badge>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
+          <Button variant="ghost" className="h-[25px] px-2">
+            <Braces className="h-4 w-4" />
+            {session.agentName}
+          </Button>
+          <span>·</span>
+          <Button variant="ghost" className="h-[25px] px-2">
+            <Database className="h-4 w-4" />
+            {session.environmentName}
+          </Button>
+          <span>·</span>
+          <span className="inline-flex items-center gap-1">
+            <Clock className="h-4 w-4" />
+            {session.duration}
+          </span>
+          <span>·</span>
+          <span>{session.tokens}</span>
+          <span>·</span>
+          <span>{session.cost}</span>
+          <span>·</span>
+          <span>{session.createdLabel}</span>
+        </div>
+      </div>
+
+      <CdsTabs.Root defaultValue="transcript" className="flex min-h-[620px] flex-col">
+        <div className="flex h-[52px] items-center justify-between border-b border-line">
+          <div className="flex items-center gap-6">
+            <CdsTabs.List className="flex h-7 rounded-control bg-fill p-0.5" data-cds="SegmentedControl">
+              {["Transcript", "Debug"].map((tab) => (
+                <CdsTabs.Trigger
+                  key={tab}
+                  value={tab.toLowerCase()}
+                  className="h-6 rounded-[6px] px-3 text-sm font-medium text-muted data-[state=active]:bg-white data-[state=active]:text-ink data-[state=active]:shadow-sm"
+                >
+                  {tab}
+                </CdsTabs.Trigger>
+              ))}
+            </CdsTabs.List>
+            <FieldSelect label="" value={eventFilter} options={["All events", "User", "Agent", "Tool", "System"]} onValueChange={setEventFilter} />
+            <Button variant="icon" aria-label="Open search filter">
+              <Search className="h-4 w-4" />
+            </Button>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="icon" aria-label="Keyboard shortcuts">
+              <Terminal className="h-4 w-4" />
+            </Button>
+            <Button variant="icon" aria-label="Copy all">
+              <Copy className="h-4 w-4" />
+            </Button>
+            <Button variant="icon" aria-label="Download">
+              <Download className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+        <CdsTabs.Content value="transcript" className="grid flex-1 grid-cols-[minmax(0,1fr)_320px]">
+          <div className="py-4">
+            <div className="mb-3 text-xs font-semibold text-muted">30m 9s</div>
+            <div className="flex flex-col">
+              {(session.events ?? []).map((event) => (
+                <button
+                  key={event.id}
+                  className="grid h-9 grid-cols-[64px_minmax(0,1fr)_280px] items-center rounded-control px-8 text-left text-sm hover:bg-fill"
+                  onClick={() => setDetailEvent(event.id)}
+                >
+                  <span className="font-semibold text-muted">{event.role}</span>
+                  <span className="truncate">
+                    <span className="font-medium">{event.kind}</span>
+                    <span className="ml-2 text-muted">{event.summary}</span>
+                  </span>
+                  <span className="flex items-center justify-end gap-4 text-xs text-muted">
+                    {event.status ? <Badge tone={event.status === "Error" ? "red" : sessionTone(event.status)}>{event.status}</Badge> : null}
+                    {event.tokens ? <span>{event.tokens}</span> : null}
+                    {event.cost ? <span>{event.cost}</span> : null}
+                    <span>{event.offset}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+          <aside className="border-l border-line bg-white px-5 py-5">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-sm font-semibold">Event detail</h2>
+              <Button variant="ghost" className="h-7 w-7 px-0" aria-label="Close detail panel" onClick={() => setDetailEvent(null)}>
+                ×
+              </Button>
+            </div>
+            {selectedEvent ? (
+              <div className="grid gap-4 text-sm">
+                <div>
+                  <div className="text-xs font-semibold text-muted">ID</div>
+                  <div className="mt-1 font-mono">{shortId(selectedEvent.id)}</div>
+                </div>
+                <div>
+                  <div className="text-xs font-semibold text-muted">Type</div>
+                  <div className="mt-1">{selectedEvent.role} · {selectedEvent.kind}</div>
+                </div>
+                <div>
+                  <div className="text-xs font-semibold text-muted">Summary</div>
+                  <p className="mt-1 leading-6 text-[#3f3a35]">{selectedEvent.summary}</p>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <div className="text-xs font-semibold text-muted">Tokens</div>
+                    <div className="mt-1">{selectedEvent.tokens || "–"}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs font-semibold text-muted">Cost</div>
+                    <div className="mt-1">{selectedEvent.cost || "–"}</div>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+          </aside>
+        </CdsTabs.Content>
+        <CdsTabs.Content value="debug" className="py-8">
+          <DetailSection title="Mounted resources">
+            <pre className="whitespace-pre-wrap rounded-cds border border-line bg-white p-4 font-mono text-sm text-[#3f3a35]">{session.resources || "No resources mounted."}</pre>
+          </DetailSection>
+        </CdsTabs.Content>
+      </CdsTabs.Root>
+    </section>
+  );
+}
+
 function AgentDetailPage() {
   const { id } = useParams();
   const [agent, setAgent] = useState<Agent | null>(null);
@@ -410,6 +680,82 @@ skills: []`,
   );
 }
 
+function CreateSessionDialog({
+  open,
+  onOpenChange,
+  onCreated
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onCreated: (session: Session) => void;
+}) {
+  const [title, setTitle] = useState("");
+  const [agentId, setAgentId] = useState("agent_013mi1SmR2hJ6Hk6wNTeJvF9");
+  const [environmentId, setEnvironmentId] = useState("env_01ManagedDebug");
+  const [vault, setVault] = useState("vault_01GitHub");
+  const [resource, setResource] = useState("session-output.tar.gz");
+
+  async function submit() {
+    const session = await createSession({
+      title,
+      agentId,
+      environmentId,
+      vaults: vault ? [vault] : [],
+      resources: resource ? [resource] : []
+    });
+    onCreated(session);
+    onOpenChange(false);
+    setTitle("");
+  }
+
+  return (
+    <ConsoleDialog title="Create session" description="Set up an instance of your agent in its environment." open={open} onOpenChange={onOpenChange}>
+      <div className="px-6 pb-0 pt-5">
+        <div className="grid gap-5">
+          <label className="grid gap-2 text-sm font-medium">
+            Title
+            <TextInput placeholder="Optional - name this run" value={title} onChange={(event) => setTitle(event.target.value)} />
+          </label>
+          <div className="grid gap-2">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium">Agent</label>
+              <Button variant="ghost" size="sm">Manage agents</Button>
+            </div>
+            <FieldSelect
+              label=""
+              value={agentId}
+              options={["agent_013mi1SmR2hJ6Hk6wNTeJvF9", "agent_017k8CPYuCFRD9AmupUeXd2Z", "agent_01AVRPTGyYareCeoUasn66q5"]}
+              onValueChange={setAgentId}
+            />
+          </div>
+          <div className="grid gap-2">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium">Environment</label>
+              <Button variant="ghost" size="sm">Manage environments</Button>
+            </div>
+            <FieldSelect label="" value={environmentId} options={["env_01ManagedDebug", "env_01UbuntuNode", "env_01PythonBrowser"]} onValueChange={setEnvironmentId} />
+          </div>
+          <div className="grid gap-2">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium">Credential vaults</label>
+              <Button variant="ghost" size="sm">Manage credential vaults</Button>
+            </div>
+            <FieldSelect label="" value={vault} options={["vault_01GitHub", "No vaults"]} onValueChange={setVault} />
+          </div>
+          <div className="grid gap-2">
+            <label className="text-sm font-medium">Resource</label>
+            <p className="text-sm text-muted">Mount files, GitHub repositories, or memory stores into the session.</p>
+            <FieldSelect label="" value={resource} options={["session-output.tar.gz", "operations-memory", "No resources"]} onValueChange={setResource} />
+          </div>
+        </div>
+        <div className="sticky bottom-0 -mx-6 mt-6 flex justify-end bg-white px-6 py-5">
+          <Button onClick={submit}>Create session</Button>
+        </div>
+      </div>
+    </ConsoleDialog>
+  );
+}
+
 function CodeYaml({ source }: { source: string }) {
   return (
     <>
@@ -425,6 +771,13 @@ function CodeYaml({ source }: { source: string }) {
       })}
     </>
   );
+}
+
+function sessionTone(status: string): "neutral" | "green" | "blue" | "red" {
+  if (status === "Failed" || status === "Error" || status === "Cancelled") return "red";
+  if (status === "Running" || status === "Active") return "green";
+  if (status === "Queued" || status === "Created") return "blue";
+  return "neutral";
 }
 
 function CollectionPage({ route }: { route: { path: CollectionName; title: string; description: string; action: string } }) {
