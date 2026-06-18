@@ -1,4 +1,5 @@
 import {
+  Archive,
   Bot,
   Box,
   Boxes,
@@ -29,21 +30,25 @@ import {
   cancelSession,
   createAgent,
   createDeployment,
+  createEnvironment,
   createSession,
+  archiveEnvironment,
   getAgent,
   getDeployment,
+  getEnvironment,
   getSession,
   listAgents,
   listCollection,
   listDeployments,
+  listEnvironments,
   listSessions,
-  runDeployment
+  runDeployment,
+  updateEnvironment
 } from "./api";
-import { Badge, Button, CdsTabs, ConsoleDialog, DataTable, FieldSelect, SidebarItem, TextInput } from "./components/cds";
-import type { Agent, CollectionName, Deployment, Resource, Session } from "./types";
+import { Badge, Button, CdsDropdownMenu, CdsTabs, ConsoleDialog, DataTable, FieldSelect, SidebarItem, TextInput } from "./components/cds";
+import type { Agent, CollectionName, Deployment, Environment, Resource, Session } from "./types";
 
 const managedRoutes: { path: CollectionName; title: string; description: string; action: string }[] = [
-  { path: "environments", title: "Environments", description: "Configure sandbox runtimes and policies.", action: "Create environment" },
   { path: "vaults", title: "Credential vaults", description: "Manage scoped credentials and secret bindings.", action: "Create vault" },
   { path: "memory-stores", title: "Memory stores", description: "Manage reusable agent knowledge stores.", action: "Create memory store" },
   { path: "files", title: "Files", description: "Browse uploads, outputs, artifacts, and snapshots.", action: "Upload file" },
@@ -66,6 +71,8 @@ export default function App() {
               <Route path="/sessions/:id" element={<SessionDetailPage />} />
               <Route path="/deployments" element={<DeploymentsPage />} />
               <Route path="/deployments/:id" element={<DeploymentDetailPage />} />
+              <Route path="/environments" element={<EnvironmentsPage />} />
+              <Route path="/environments/:id" element={<EnvironmentDetailPage />} />
               {managedRoutes.map((route) => (
                 <Route key={route.path} path={`/${route.path}`} element={<CollectionPage route={route} />} />
               ))}
@@ -775,6 +782,274 @@ function DeploymentDetailPage() {
   );
 }
 
+function EnvironmentsPage() {
+  const [environments, setEnvironments] = useState<Environment[]>([]);
+  const [status, setStatus] = useState("All");
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  useEffect(() => {
+    listEnvironments().then(setEnvironments).catch(() => setEnvironments([]));
+  }, []);
+
+  const visibleEnvironments = status === "All" ? environments : environments.filter((environment) => environment.status === status);
+
+  return (
+    <section className="flex flex-col gap-4">
+      <PageHeader
+        title="Environment"
+        description="Configuration template for containers, such as sessions or code execution."
+        action={
+          <Button onClick={() => setDialogOpen(true)}>
+            <Plus className="h-4 w-4" />
+            Create environment
+          </Button>
+        }
+      />
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="relative w-[486px]">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+          <TextInput className="pl-9" aria-label="Search by name or exact ID" placeholder="Search by name or exact ID" />
+        </div>
+        <FieldSelect label="Status" value={status} options={["All", "Active", "Archived"]} onValueChange={setStatus} />
+      </div>
+      <DataTable
+        rows={visibleEnvironments}
+        getKey={(environment) => environment.id}
+        columns={[
+          {
+            key: "id",
+            header: "ID",
+            width: "210px",
+            render: (environment) => (
+              <div className="flex items-center gap-2">
+                <span className="font-mono font-semibold">{shortId(environment.id)}</span>
+                <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${environment.id}`}>
+                  <Copy className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            )
+          },
+          {
+            key: "name",
+            header: "Name",
+            width: "360px",
+            render: (environment) => (
+              <Link className="font-medium hover:underline" to={`/environments/${environment.id}`}>
+                {environment.name}
+              </Link>
+            )
+          },
+          { key: "status", header: "Status", width: "150px", render: (environment) => <Badge tone={environmentTone(environment.status)}>{environment.status}</Badge> },
+          { key: "type", header: "Type", width: "160px", render: (environment) => <span>{environment.type}</span> },
+          { key: "updated", header: "Updated at", width: "180px", render: (environment) => <span className="text-muted">{environment.updatedLabel}</span> }
+        ]}
+      />
+      <div className="flex gap-2">
+        <Button variant="secondary" className="h-8 w-8 px-0" disabled>
+          ‹
+        </Button>
+        <Button variant="secondary" className="h-8 w-8 px-0" disabled>
+          ›
+        </Button>
+      </div>
+      <CreateEnvironmentDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        onCreated={(environment) => setEnvironments((items) => [environment, ...items])}
+      />
+    </section>
+  );
+}
+
+function EnvironmentDetailPage() {
+  const { id } = useParams();
+  const [environment, setEnvironment] = useState<Environment | null>(null);
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [networkingType, setNetworkingType] = useState("Unrestricted");
+  const [packageManager, setPackageManager] = useState("apt");
+  const [packages, setPackages] = useState<string[]>([]);
+  const [packageDraft, setPackageDraft] = useState("");
+  const [metadata, setMetadata] = useState("");
+
+  useEffect(() => {
+    if (id) getEnvironment(id).then(setEnvironment).catch(() => setEnvironment(null));
+  }, [id]);
+
+  function startEdit() {
+    if (!environment) return;
+    setName(environment.name);
+    setDescription(environment.description);
+    setNetworkingType(environment.networkingType || "Unrestricted");
+    setPackageManager(environment.packageManager || "apt");
+    setPackages(splitValues(environment.packages));
+    setPackageDraft("");
+    setMetadata(environment.metadata);
+    setEditing(true);
+  }
+
+  async function saveChanges() {
+    if (!environment) return;
+    const updated = await updateEnvironment(environment.id, {
+      name,
+      description,
+      networkingType,
+      packageManager,
+      packages,
+      metadata
+    });
+    setEnvironment(updated);
+    setEditing(false);
+  }
+
+  async function archiveCurrent() {
+    if (!environment) return;
+    const updated = await archiveEnvironment(environment.id);
+    setEnvironment(updated);
+  }
+
+  function addPackage() {
+    const next = packageDraft.trim();
+    if (!next) return;
+    setPackages((items) => [...items, next]);
+    setPackageDraft("");
+  }
+
+  if (!environment) return <EmptyState title="Environment not found" description="The selected environment could not be loaded." />;
+
+  return (
+    <section className="flex flex-col gap-5">
+      <div className="flex h-[52px] items-center justify-between">
+        <nav className="flex items-center gap-2 text-sm text-muted">
+          <Link className="rounded-control px-3 py-1.5 hover:bg-fill" to="/environments">
+            Environment
+          </Link>
+          <span>/</span>
+          <span className="text-ink">{environment.name}</span>
+        </nav>
+      </div>
+
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0 flex-1">
+          <div className="mb-2 flex items-center gap-3">
+            {editing ? (
+              <TextInput className="max-w-[420px] text-base font-semibold" placeholder="Environment name" value={name} maxLength={50} onChange={(event) => setName(event.target.value)} />
+            ) : (
+              <h1 className="truncate text-2xl font-medium tracking-[-0.01em]">{environment.name}</h1>
+            )}
+            <Badge tone="blue">{environment.type}</Badge>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
+            <span className="font-mono">{shortId(environment.id)}</span>
+            <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${environment.id}`}>
+              <Copy className="h-3.5 w-3.5" />
+            </Button>
+            <span>·</span>
+            <span>Last updated {environment.updatedLabel}</span>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          {editing ? (
+            <>
+              <Button onClick={saveChanges}>Save changes</Button>
+              <Button variant="secondary" onClick={() => setEditing(false)}>Cancel</Button>
+            </>
+          ) : (
+            <>
+              <Button variant="secondary" onClick={startEdit}>Edit</Button>
+              <EnvironmentActions onArchive={archiveCurrent} />
+            </>
+          )}
+        </div>
+      </div>
+
+      {editing ? (
+        <div className="grid max-w-[820px] gap-8">
+          <label className="grid gap-2 text-sm font-medium">
+            Description
+            <textarea
+              className="cds-focus min-h-[104px] resize-none rounded-cds border border-line bg-white px-3 py-3 text-sm leading-6"
+              placeholder="Add a description for this environment (optional)"
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
+            />
+          </label>
+          <DetailSection title="Networking">
+            <p className="mb-3 text-sm text-muted">Configure network access policies for this environment.</p>
+            <FieldSelect label="Type" value={networkingType} options={["Unrestricted", "No internet", "Allowlist"]} onValueChange={setNetworkingType} />
+          </DetailSection>
+          <DetailSection title="Packages">
+            <p className="mb-3 text-sm text-muted">Specify packages and their versions available in this environment. Separate multiple values with spaces.</p>
+            <div className="grid gap-3 rounded-cds border border-line bg-white p-3">
+              <FieldSelect label="Manager" value={packageManager} options={["apt", "pip", "npm"]} onValueChange={setPackageManager} />
+              <div className="flex min-h-10 flex-wrap items-center gap-2 rounded-control border border-line bg-fill px-2 py-2">
+                {packages.map((item) => (
+                  <span key={item} className="inline-flex h-7 items-center gap-2 rounded-md border border-line bg-white px-2 font-mono text-sm">
+                    {item}
+                    <button className="text-muted hover:text-ink" aria-label={`Remove ${item}`} onClick={() => setPackages((values) => values.filter((value) => value !== item))}>
+                      ×
+                    </button>
+                  </span>
+                ))}
+                <input
+                  className="min-w-[180px] flex-1 bg-transparent font-mono text-sm outline-none placeholder:text-muted"
+                  aria-label="package package==1.0.0"
+                  placeholder="package package==1.0.0"
+                  value={packageDraft}
+                  onChange={(event) => setPackageDraft(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      event.preventDefault();
+                      addPackage();
+                    }
+                  }}
+                />
+                <Button variant="icon" aria-label="Add package" onClick={addPackage}>
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </DetailSection>
+          <DetailSection title="Metadata">
+            <p className="mb-3 text-sm text-muted">Add custom key-value pairs to tag and organize this environment. Keys must be lowercase.</p>
+            <textarea
+              className="cds-focus min-h-[84px] w-full resize-none rounded-cds border border-line bg-white px-3 py-3 font-mono text-sm leading-6"
+              placeholder="client_key=Value"
+              value={metadata}
+              onChange={(event) => setMetadata(event.target.value)}
+            />
+          </DetailSection>
+        </div>
+      ) : (
+        <div className="grid max-w-[820px] gap-8">
+          <p className="text-sm leading-6 text-[#3f3a35]">{environment.description || "No description"}</p>
+          <DetailSection title="Networking">
+            <p className="mb-4 text-sm text-muted">Configure network access policies for this environment.</p>
+            <div className="grid max-w-[360px] grid-cols-[120px_minmax(0,1fr)] gap-3 text-sm">
+              <span className="font-semibold">Type</span>
+              <span>{environment.networkingType || "Unrestricted"}</span>
+            </div>
+          </DetailSection>
+          <DetailSection title="Packages">
+            <p className="mb-4 text-sm text-muted">Specify packages and their versions available in this environment. Separate multiple values with spaces.</p>
+            <div className="flex items-start justify-between gap-4 rounded-cds border border-line bg-white p-3">
+              <pre className="whitespace-pre-wrap font-mono text-sm leading-6">{environment.packageManager || "apt"}: {environment.packages || "No packages"}</pre>
+              <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label="Copy">
+                <Copy className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+          </DetailSection>
+          <DetailSection title="Metadata">
+            <p className="mb-4 text-sm text-muted">Add custom key-value pairs to tag and organize this environment. Keys must be lowercase.</p>
+            {environment.metadata ? <pre className="rounded-cds border border-line bg-white p-3 font-mono text-sm">{environment.metadata}</pre> : <div className="text-sm text-muted">No metadata</div>}
+          </DetailSection>
+        </div>
+      )}
+    </section>
+  );
+}
+
 function AgentDetailPage() {
   const { id } = useParams();
   const [agent, setAgent] = useState<Agent | null>(null);
@@ -1130,6 +1405,67 @@ function CreateDeploymentDialog({
   );
 }
 
+function CreateEnvironmentDialog({
+  open,
+  onOpenChange,
+  onCreated
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onCreated: (environment: Environment) => void;
+}) {
+  const [name, setName] = useState("");
+  const [hostingType, setHostingType] = useState("Cloud");
+  const [description, setDescription] = useState("");
+  const canCreate = name.trim().length > 0 && name.trim().length <= 50;
+
+  async function submit() {
+    if (!canCreate) return;
+    const environment = await createEnvironment({
+      name,
+      hostingType,
+      description
+    });
+    onCreated(environment);
+    onOpenChange(false);
+    setName("");
+    setHostingType("Cloud");
+    setDescription("");
+  }
+
+  return (
+    <ConsoleDialog title="Create environment" open={open} onOpenChange={onOpenChange}>
+      <div className="px-6 pb-0 pt-5">
+        <div className="grid gap-5">
+          <label className="grid gap-2 text-sm font-medium">
+            Name
+            <TextInput placeholder="E.g. My Environment" value={name} maxLength={50} onChange={(event) => setName(event.target.value)} />
+            <span className="text-sm font-normal text-muted">50 characters or fewer.</span>
+          </label>
+          <div className="grid gap-2">
+            <label className="text-sm font-medium">Hosting type</label>
+            <FieldSelect label="" value={hostingType} options={["Cloud", "Self-hosted"]} onValueChange={setHostingType} />
+            <p className="text-sm text-muted">This cannot be changed after creation.</p>
+          </div>
+          <label className="grid gap-2 text-sm font-medium">
+            Description
+            <textarea
+              className="cds-focus min-h-[96px] resize-none rounded-cds border border-line bg-white px-3 py-3 text-sm leading-6"
+              placeholder="Optional description for this environment"
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
+            />
+          </label>
+        </div>
+        <div className="sticky bottom-0 -mx-6 mt-6 flex justify-end gap-2 bg-white px-6 py-5">
+          <Button variant="secondary" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button onClick={submit} disabled={!canCreate}>Create</Button>
+        </div>
+      </div>
+    </ConsoleDialog>
+  );
+}
+
 function CodeYaml({ source }: { source: string }) {
   return (
     <>
@@ -1159,6 +1495,40 @@ function deploymentTone(status: string): "neutral" | "green" | "blue" | "red" {
   if (status === "Active" || status === "Running") return "green";
   if (status === "Queued" || status === "Ready") return "blue";
   return "neutral";
+}
+
+function environmentTone(status: string): "neutral" | "green" | "blue" | "red" {
+  if (status === "Archived") return "neutral";
+  if (status === "Failed") return "red";
+  if (status === "Active") return "green";
+  return "blue";
+}
+
+function EnvironmentActions({ onArchive }: { onArchive: () => void }) {
+  return (
+    <CdsDropdownMenu.Root>
+      <CdsDropdownMenu.Trigger asChild>
+        <Button variant="icon" aria-label="More actions">
+          ⋯
+        </Button>
+      </CdsDropdownMenu.Trigger>
+      <CdsDropdownMenu.Portal>
+        <CdsDropdownMenu.Content className="z-50 min-w-[150px] rounded-cds border border-line bg-white p-1 shadow-lg" align="end">
+          <CdsDropdownMenu.Item
+            className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill"
+            onSelect={onArchive}
+          >
+            <Archive className="h-4 w-4 text-muted" />
+            Archive
+          </CdsDropdownMenu.Item>
+        </CdsDropdownMenu.Content>
+      </CdsDropdownMenu.Portal>
+    </CdsDropdownMenu.Root>
+  );
+}
+
+function splitValues(value: string) {
+  return value.split(/\s+/).map((item) => item.trim()).filter(Boolean);
 }
 
 function CollectionPage({ route }: { route: { path: CollectionName; title: string; description: string; action: string } }) {

@@ -1,4 +1,5 @@
 import * as Dialog from "@radix-ui/react-dialog";
+import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import * as Select from "@radix-ui/react-select";
 import * as Tabs from "@radix-ui/react-tabs";
 import { Check, ChevronDown, X } from "lucide-react";
@@ -205,3 +206,4 @@ export function ConsoleDialog({
 }
 
 export const CdsTabs = Tabs;
+export const CdsDropdownMenu = DropdownMenu;

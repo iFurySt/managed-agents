@@ -23,6 +23,37 @@ export type Resource = {
   updatedAt: string;
 };
 
+export type Environment = {
+  id: string;
+  name: string;
+  status: string;
+  type: string;
+  description: string;
+  networkingType: string;
+  packageManager: string;
+  packages: string;
+  metadata: string;
+  createdLabel: string;
+  updatedLabel: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type CreateEnvironmentInput = {
+  name: string;
+  hostingType: string;
+  description: string;
+};
+
+export type UpdateEnvironmentInput = {
+  name: string;
+  description: string;
+  networkingType: string;
+  packageManager: string;
+  packages: string[];
+  metadata: string;
+};
+
 export type SessionEvent = {
   id: string;
   sessionId: string;
@@ -113,7 +144,6 @@ export type CreateDeploymentInput = {
 };
 
 export type CollectionName =
-  | "environments"
   | "vaults"
   | "memory-stores"
   | "files"

@@ -1,4 +1,16 @@
-import type { Agent, CollectionName, CreateDeploymentInput, CreateSessionInput, Deployment, DeploymentRun, Resource, Session } from "./types";
+import type {
+  Agent,
+  CollectionName,
+  CreateDeploymentInput,
+  CreateEnvironmentInput,
+  CreateSessionInput,
+  Deployment,
+  DeploymentRun,
+  Environment,
+  Resource,
+  Session,
+  UpdateEnvironmentInput
+} from "./types";
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "";
 
@@ -13,6 +25,18 @@ async function getJSON<T>(path: string): Promise<T> {
 async function postJSON<T>(path: string, body: unknown): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, {
     method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  });
+  if (!response.ok) {
+    throw new Error(`${response.status} ${response.statusText}`);
+  }
+  return response.json() as Promise<T>;
+}
+
+async function patchJSON<T>(path: string, body: unknown): Promise<T> {
+  const response = await fetch(`${API_BASE}${path}`, {
+    method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body)
   });
@@ -67,6 +91,27 @@ export async function createDeployment(input: CreateDeploymentInput): Promise<De
 
 export async function runDeployment(id: string): Promise<DeploymentRun> {
   return postJSON<DeploymentRun>(`/api/deployments/${id}/run`, {});
+}
+
+export async function listEnvironments(): Promise<Environment[]> {
+  const data = await getJSON<{ items: Environment[] }>("/api/environments");
+  return data.items;
+}
+
+export async function getEnvironment(id: string): Promise<Environment> {
+  return getJSON<Environment>(`/api/environments/${id}`);
+}
+
+export async function createEnvironment(input: CreateEnvironmentInput): Promise<Environment> {
+  return postJSON<Environment>("/api/environments", input);
+}
+
+export async function updateEnvironment(id: string, input: UpdateEnvironmentInput): Promise<Environment> {
+  return patchJSON<Environment>(`/api/environments/${id}`, input);
+}
+
+export async function archiveEnvironment(id: string): Promise<Environment> {
+  return postJSON<Environment>(`/api/environments/${id}/archive`, {});
 }
 
 export async function listCollection(collection: CollectionName): Promise<Resource[]> {

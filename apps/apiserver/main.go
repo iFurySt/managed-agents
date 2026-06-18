@@ -40,6 +40,22 @@ type Resource struct {
 	UpdatedAt   time.Time `json:"updatedAt"`
 }
 
+type Environment struct {
+	ID             string    `json:"id" gorm:"primaryKey"`
+	Name           string    `json:"name"`
+	Status         string    `json:"status" gorm:"index"`
+	Type           string    `json:"type" gorm:"index"`
+	Description    string    `json:"description" gorm:"type:text"`
+	NetworkingType string    `json:"networkingType"`
+	PackageManager string    `json:"packageManager"`
+	Packages       string    `json:"packages" gorm:"type:text"`
+	Metadata       string    `json:"metadata" gorm:"type:text"`
+	CreatedLabel   string    `json:"createdLabel"`
+	UpdatedLabel   string    `json:"updatedLabel"`
+	CreatedAt      time.Time `json:"createdAt"`
+	UpdatedAt      time.Time `json:"updatedAt"`
+}
+
 type Session struct {
 	ID              string         `json:"id" gorm:"primaryKey"`
 	Name            string         `json:"name"`
@@ -136,8 +152,22 @@ type CreateDeploymentRequest struct {
 	Timezone       string   `json:"timezone"`
 }
 
+type CreateEnvironmentRequest struct {
+	Name        string `json:"name"`
+	HostingType string `json:"hostingType"`
+	Description string `json:"description"`
+}
+
+type UpdateEnvironmentRequest struct {
+	Name           string   `json:"name"`
+	Description    string   `json:"description"`
+	NetworkingType string   `json:"networkingType"`
+	PackageManager string   `json:"packageManager"`
+	Packages       []string `json:"packages"`
+	Metadata       string   `json:"metadata"`
+}
+
 var resourceKinds = map[string]string{
-	"environments":  "environment",
 	"vaults":        "vault",
 	"memory-stores": "memory_store",
 	"files":         "file",
@@ -162,7 +192,7 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	if err := db.AutoMigrate(&Agent{}, &Resource{}, &Session{}, &SessionEvent{}, &Deployment{}, &DeploymentRun{}); err != nil {
+	if err := db.AutoMigrate(&Agent{}, &Resource{}, &Environment{}, &Session{}, &SessionEvent{}, &Deployment{}, &DeploymentRun{}); err != nil {
 		return err
 	}
 	if err := seed(db); err != nil {
@@ -192,6 +222,11 @@ func run() error {
 	router.GET("/api/deployments/:id", getDeployment(db))
 	router.POST("/api/deployments", createDeployment(db))
 	router.POST("/api/deployments/:id/run", runDeployment(db))
+	router.GET("/api/environments", listEnvironments(db))
+	router.GET("/api/environments/:id", getEnvironment(db))
+	router.POST("/api/environments", createEnvironment(db))
+	router.PATCH("/api/environments/:id", updateEnvironment(db))
+	router.POST("/api/environments/:id/archive", archiveEnvironment(db))
 	router.GET("/api/:collection", listResources(db))
 
 	addr := env("APISERVER_ADDR", ":8080")
@@ -321,11 +356,7 @@ func createSession(db *gorm.DB) gin.HandlerFunc {
 			agentName = agent.Name
 		}
 		envID := defaultString(req.EnvironmentID, "env_01ManagedDebug")
-		envName := "managed-sh-debug-env"
-		var environment Resource
-		if err := db.First(&environment, "id = ? AND kind = ?", envID, "environment").Error; err == nil {
-			envName = environment.Name
-		}
+		envName := lookupEnvironmentName(db, envID, "managed-sh-debug-env")
 		name := strings.TrimSpace(req.Title)
 		if name == "" {
 			name = "Untitled session"
@@ -437,11 +468,7 @@ func createDeployment(db *gorm.DB) gin.HandlerFunc {
 			agentName = agent.Name
 		}
 		envID := defaultString(req.EnvironmentID, "env_01PythonBrowser")
-		envName := "world-cup-digest-env"
-		var environment Resource
-		if err := db.First(&environment, "id = ? AND kind = ?", envID, "environment").Error; err == nil {
-			envName = environment.Name
-		}
+		envName := lookupEnvironmentName(db, envID, "world-cup-digest-env")
 		name := strings.TrimSpace(req.Name)
 		if name == "" {
 			name = "Untitled deployment"
@@ -546,6 +573,143 @@ func runDeployment(db *gorm.DB) gin.HandlerFunc {
 	}
 }
 
+func listEnvironments(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var environments []Environment
+		query := db.Order("created_at desc")
+		if search := strings.TrimSpace(c.Query("q")); search != "" {
+			query = query.Where("id ILIKE ? OR name ILIKE ?", "%"+search+"%", "%"+search+"%")
+		}
+		if status := strings.TrimSpace(c.Query("status")); status != "" && !strings.EqualFold(status, "all") {
+			query = query.Where("status = ?", status)
+		}
+		if err := query.Find(&environments).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"items": environments})
+	}
+}
+
+func getEnvironment(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var environment Environment
+		if err := db.First(&environment, "id = ?", c.Param("id")).Error; err != nil {
+			status := http.StatusInternalServerError
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				status = http.StatusNotFound
+			}
+			c.JSON(status, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, environment)
+	}
+}
+
+func createEnvironment(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var req CreateEnvironmentRequest
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		now := time.Now().UTC()
+		name := strings.TrimSpace(req.Name)
+		if name == "" {
+			name = "Untitled environment"
+		}
+		if len(name) > 50 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "name must be 50 characters or fewer"})
+			return
+		}
+		hostingType := defaultString(req.HostingType, "Cloud")
+		if !strings.EqualFold(hostingType, "Cloud") && !strings.EqualFold(hostingType, "Self-hosted") {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "hostingType must be Cloud or Self-hosted"})
+			return
+		}
+		environment := Environment{
+			ID:             fmt.Sprintf("env_local_%s%09d", now.Format("20060102150405"), now.Nanosecond()),
+			Name:           name,
+			Status:         "Active",
+			Type:           titleHostType(hostingType),
+			Description:    strings.TrimSpace(req.Description),
+			NetworkingType: "Unrestricted",
+			PackageManager: "apt",
+			Packages:       "",
+			Metadata:       "",
+			CreatedLabel:   "just now",
+			UpdatedLabel:   "just now",
+			CreatedAt:      now,
+			UpdatedAt:      now,
+		}
+		if err := db.Create(&environment).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusCreated, environment)
+	}
+}
+
+func updateEnvironment(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var environment Environment
+		if err := db.First(&environment, "id = ?", c.Param("id")).Error; err != nil {
+			status := http.StatusInternalServerError
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				status = http.StatusNotFound
+			}
+			c.JSON(status, gin.H{"error": err.Error()})
+			return
+		}
+		var req UpdateEnvironmentRequest
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		if name := strings.TrimSpace(req.Name); name != "" {
+			if len(name) > 50 {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "name must be 50 characters or fewer"})
+				return
+			}
+			environment.Name = name
+		}
+		environment.Description = strings.TrimSpace(req.Description)
+		environment.NetworkingType = defaultString(req.NetworkingType, environment.NetworkingType)
+		environment.PackageManager = defaultString(req.PackageManager, environment.PackageManager)
+		environment.Packages = strings.Join(req.Packages, " ")
+		environment.Metadata = strings.TrimSpace(req.Metadata)
+		environment.UpdatedLabel = "just now"
+		environment.UpdatedAt = time.Now().UTC()
+		if err := db.Save(&environment).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, environment)
+	}
+}
+
+func archiveEnvironment(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var environment Environment
+		if err := db.First(&environment, "id = ?", c.Param("id")).Error; err != nil {
+			status := http.StatusInternalServerError
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				status = http.StatusNotFound
+			}
+			c.JSON(status, gin.H{"error": err.Error()})
+			return
+		}
+		environment.Status = "Archived"
+		environment.UpdatedLabel = "just now"
+		environment.UpdatedAt = time.Now().UTC()
+		if err := db.Save(&environment).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, environment)
+	}
+}
+
 func listResources(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		kind, ok := resourceKinds[c.Param("collection")]
@@ -587,6 +751,16 @@ func seed(db *gorm.DB) error {
 	if count == 0 {
 		items := seedResources(now)
 		if err := db.Create(&items).Error; err != nil {
+			return err
+		}
+	}
+
+	if err := db.Model(&Environment{}).Count(&count).Error; err != nil {
+		return err
+	}
+	if count == 0 {
+		environments := seedEnvironments(now)
+		if err := db.Create(&environments).Error; err != nil {
 			return err
 		}
 	}
@@ -646,6 +820,33 @@ func seedResources(ts time.Time) []Resource {
 		resource("memory_store", "mem_01Ops", "Operations memory", "Active", "42 documents", "vector index ready", ts),
 		resource("file", "file_01Outputs", "session-output.tar.gz", "Available", "outputs", "2.4 MB", ts),
 		resource("skill", "skill_01ReverseTunnel", "reverse-tunnel-bootstrap", "Active", "v0.1.0", "read-only mount", ts),
+	}
+}
+
+func seedEnvironments(ts time.Time) []Environment {
+	return []Environment{
+		environment("env_01UTaKkbFknSkQNEsZjUARMh", "managed-ssh-debug-env", "Active", "Cloud", "Cloud env for reverse SSH access through amoylab jump host", "Unrestricted", "apt", "openssh-client openssh-server procps net-tools", "", "Jun 16", ts),
+		environment("env_01LiiuDCwZBtqZd5EYMk9D9x", "123", "Active", "Self-hosted", "Self-hosted test environment connected through a customer-managed runner.", "Unrestricted", "apt", "", "", "Jun 16", ts),
+		environment("env_01AzQWp3SXQEATgdCFUNwteR", "myenv", "Active", "Self-hosted", "Local self-hosted environment registered for runtime checks.", "Unrestricted", "apt", "", "", "Jun 16", ts),
+		environment("env_01UNo9NMB1ZQLKCZk21qryb8", "world-cup-digest-env", "Active", "Cloud", "Cloud runtime for World Cup daily digest sessions and deployments.", "Unrestricted", "apt", "python3 python3-pip playwright chromium", "", "Jun 16", ts),
+	}
+}
+
+func environment(id, name, status, hostType, description, networkingType, packageManager, packages, metadata, updatedLabel string, ts time.Time) Environment {
+	return Environment{
+		ID:             id,
+		Name:           name,
+		Status:         status,
+		Type:           hostType,
+		Description:    description,
+		NetworkingType: networkingType,
+		PackageManager: packageManager,
+		Packages:       packages,
+		Metadata:       metadata,
+		CreatedLabel:   updatedLabel,
+		UpdatedLabel:   updatedLabel,
+		CreatedAt:      ts,
+		UpdatedAt:      ts,
 	}
 }
 
@@ -769,6 +970,25 @@ func resource(kind, id, name, status, primary, secondary string, ts time.Time) R
 		CreatedAt:   ts,
 		UpdatedAt:   ts,
 	}
+}
+
+func lookupEnvironmentName(db *gorm.DB, id, fallback string) string {
+	var environment Environment
+	if err := db.First(&environment, "id = ?", id).Error; err == nil {
+		return environment.Name
+	}
+	var resource Resource
+	if err := db.First(&resource, "id = ? AND kind = ?", id, "environment").Error; err == nil {
+		return resource.Name
+	}
+	return fallback
+}
+
+func titleHostType(value string) string {
+	if strings.EqualFold(value, "self-hosted") || strings.EqualFold(value, "self hosted") {
+		return "Self-hosted"
+	}
+	return "Cloud"
 }
 
 func env(key, fallback string) string {
