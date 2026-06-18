@@ -1698,7 +1698,7 @@ function FilesPage() {
   }
 
   return (
-    <section className="flex flex-col gap-4">
+    <section className="flex flex-col gap-2">
       <PageHeader
         title="Files"
         description="Only files from the Default workspace are shown. To see other workspace's files, select a workspace."
@@ -1777,26 +1777,32 @@ function FilesPage() {
 function FilesEmptyState({ language, onLanguageChange }: { language: string; onLanguageChange: (value: string) => void }) {
   const code = language === "Python" ? filesPythonTemplate : filesCurlTemplate;
   return (
-    <div className="mt-2 max-w-[760px]">
-      <p className="mb-4 text-sm text-muted">No files have been uploaded to the Default workspace. Copy the template below to upload your first file:</p>
-      <div className="rounded-cds border border-line bg-white">
-        <div className="flex items-center justify-between border-b border-line px-3 py-2">
-          <div className="flex items-center gap-2">
-            <FieldSelect label="" value={language} options={["Python", "cURL"]} onValueChange={onLanguageChange} />
-            <a className="inline-flex h-8 items-center gap-2 rounded-control px-2 text-sm font-medium hover:bg-fill" href="https://docs.claude.com/en/docs/build-with-claude/files">
+    <div className="mt-2 max-w-[952px]">
+      <p className="mb-3 text-sm text-ink">No files have been uploaded to the Default workspace. Copy the template below to upload your first file:</p>
+      <div className="overflow-hidden rounded-cds bg-fill">
+        <div className="flex h-9 items-center gap-2 px-3">
+          <FieldSelect
+            label=""
+            value={language}
+            options={["Python", "cURL"]}
+            onValueChange={onLanguageChange}
+            triggerClassName="!h-6 !rounded-md !border-0 !bg-transparent !px-2 !text-[13px] !text-muted hover:!bg-[#eeeeeb] [&_svg]:!h-3.5 [&_svg]:!w-3.5"
+          />
+          <div className="ml-auto flex items-center gap-1">
+            <a className="inline-flex h-6 items-center gap-1.5 rounded-md px-2 text-[13px] font-medium leading-5 hover:bg-[#eeeeeb]" href="https://docs.claude.com/en/docs/build-with-claude/files">
               View docs
               <span className="text-muted">↗</span>
             </a>
+            <Button variant="ghost" size="sm" className="!h-6 !w-6 !rounded-md !px-0" aria-label="Copy code" onClick={() => copyText(code)}>
+              <Copy className="h-3.5 w-3.5" />
+            </Button>
           </div>
-          <Button variant="ghost" size="sm" aria-label="Copy code" onClick={() => copyText(code)}>
-            <Copy className="h-4 w-4" />
-          </Button>
         </div>
-        <pre className="overflow-x-auto p-4 font-mono text-sm leading-7">
+        <pre className="overflow-x-auto px-3 pb-3 pt-3 font-mono text-[13px] leading-[21px] text-ink">
           {code.split("\n").map((line, index) => (
-            <span key={`${line}-${index}`} className="block">
-              <span className="mr-5 select-none text-muted">{index + 1}</span>
-              <span>{line}</span>
+            <span key={`${line}-${index}`} className="relative block min-h-[21px] whitespace-pre-wrap pl-10">
+              <span className="absolute left-0 w-6 select-none text-right text-muted">{index + 1}</span>
+              <span>{line || " "}</span>
             </span>
           ))}
         </pre>
