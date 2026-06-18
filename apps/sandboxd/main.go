@@ -50,6 +50,7 @@ type options struct {
 	processSignal       string
 	forceRemove         bool
 	vsockCID            uint32
+	listenAddr          string
 }
 
 type listBucketResult struct {
@@ -166,6 +167,28 @@ type processNetwork struct {
 	guestMAC string
 }
 
+type sandboxdStartRequest struct {
+	ID                  string `json:"id,omitempty"`
+	Image               string `json:"image,omitempty"`
+	VCPUCount           int    `json:"vcpu_count,omitempty"`
+	MemMiB              int    `json:"mem_mib,omitempty"`
+	Wait                *bool  `json:"wait,omitempty"`
+	ProcessAPI          bool   `json:"process_api,omitempty"`
+	ProcessAPIBin       string `json:"process_api_bin,omitempty"`
+	ProcessAPITransport string `json:"process_api_transport,omitempty"`
+	ProcessAPIPort      uint32 `json:"process_api_port,omitempty"`
+	ProcessAPITCPPort   uint32 `json:"process_api_tcp_port,omitempty"`
+	VsockCID            uint32 `json:"vsock_cid,omitempty"`
+	TimeoutMillis       int64  `json:"timeout_millis,omitempty"`
+}
+
+type sandboxdHealth struct {
+	OK        bool   `json:"ok"`
+	Service   string `json:"service"`
+	Version   string `json:"version"`
+	Timestamp string `json:"timestamp"`
+}
+
 func main() {
 	var opt options
 	root := &cobra.Command{
@@ -232,6 +255,25 @@ func main() {
 	verify.Flags().Uint32Var(&opt.processAPITCPPort, "process-api-tcp-port", 8080, "guest TCP port for process-api")
 	verify.Flags().Uint32Var(&opt.vsockCID, "vsock-cid", 3, "Firecracker guest CID for the sandbox vsock device")
 	root.AddCommand(verify)
+
+	serve := &cobra.Command{
+		Use:          "serve",
+		Short:        "Run the host-local sandboxd HTTP API",
+		SilenceUsage: true,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return serveSandboxd(cmd.Context(), opt)
+		},
+	}
+	serve.Flags().StringVar(&opt.listenAddr, "listen", "127.0.0.1:8787", "host-local HTTP listen address")
+	serve.Flags().IntVar(&opt.vcpuCount, "vcpu", 1, "default microVM vCPU count")
+	serve.Flags().IntVar(&opt.memMiB, "mem-mib", 256, "default microVM memory size in MiB")
+	serve.Flags().DurationVar(&opt.timeout, "timeout", 90*time.Second, "default time to wait for guest boot signals")
+	serve.Flags().StringVar(&opt.processAPIBin, "process-api-bin", "/opt/managed-agents/bin/process-api", "default Linux process-api binary to inject into the guest rootfs")
+	serve.Flags().StringVar(&opt.processAPITransport, "process-api-transport", "tcp", "default process-api transport: tcp or vsock")
+	serve.Flags().Uint32Var(&opt.processAPIPort, "process-api-port", 1024, "default guest AF_VSOCK port for process-api")
+	serve.Flags().Uint32Var(&opt.processAPITCPPort, "process-api-tcp-port", 8080, "default guest TCP port for process-api")
+	serve.Flags().Uint32Var(&opt.vsockCID, "vsock-cid", 3, "default Firecracker guest CID for the sandbox vsock device")
+	root.AddCommand(serve)
 
 	sandbox := &cobra.Command{
 		Use:   "sandbox",
@@ -724,6 +766,199 @@ func waitForGuestProcessStatus(ctx context.Context, state sandboxState, processI
 		return processAPIProcessResponse{}, lastErr
 	}
 	return processAPIProcessResponse{}, fmt.Errorf("process %s did not reach status %s before timeout; last=%+v", processID, status, last)
+}
+
+func serveSandboxd(ctx context.Context, opt options) error {
+	if opt.listenAddr == "" {
+		opt.listenAddr = "127.0.0.1:8787"
+	}
+	server := &http.Server{
+		Addr:              opt.listenAddr,
+		Handler:           sandboxdHTTPHandler(opt),
+		ReadHeaderTimeout: 5 * time.Second,
+	}
+	go func() {
+		<-ctx.Done()
+		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		_ = server.Shutdown(shutdownCtx)
+	}()
+	fmt.Printf("sandboxd_listen=%s\n", opt.listenAddr)
+	if err := server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		return err
+	}
+	return nil
+}
+
+func sandboxdHTTPHandler(opt options) http.Handler {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodGet {
+			writeAPIError(w, http.StatusMethodNotAllowed, "method not allowed")
+			return
+		}
+		writeJSON(w, http.StatusOK, sandboxdHealth{
+			OK:        true,
+			Service:   "sandboxd",
+			Version:   "dev",
+			Timestamp: time.Now().UTC().Format(time.RFC3339Nano),
+		})
+	})
+	mux.HandleFunc("/sandboxes", func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		case http.MethodGet:
+			states, err := listSandboxes(opt)
+			if err != nil {
+				writeAPIError(w, http.StatusInternalServerError, err.Error())
+				return
+			}
+			for i := range states {
+				states[i] = refreshSandboxStatus(states[i])
+			}
+			writeJSON(w, http.StatusOK, states)
+		case http.MethodPost:
+			var request sandboxdStartRequest
+			if err := json.NewDecoder(r.Body).Decode(&request); err != nil && !errors.Is(err, io.EOF) {
+				writeAPIError(w, http.StatusBadRequest, "invalid json body")
+				return
+			}
+			startOpt := sandboxdStartOptions(opt, request)
+			state, err := startSandbox(r.Context(), startOpt, request.ID)
+			if err != nil {
+				writeAPIError(w, statusForError(err), err.Error())
+				return
+			}
+			writeJSON(w, http.StatusCreated, state)
+		default:
+			writeAPIError(w, http.StatusMethodNotAllowed, "method not allowed")
+		}
+	})
+	mux.HandleFunc("/sandboxes/", func(w http.ResponseWriter, r *http.Request) {
+		parts := strings.Split(strings.Trim(strings.TrimPrefix(r.URL.Path, "/sandboxes/"), "/"), "/")
+		if len(parts) == 0 || parts[0] == "" {
+			writeAPIError(w, http.StatusNotFound, "sandbox id is required")
+			return
+		}
+		id := parts[0]
+		if err := validateSandboxID(id); err != nil {
+			writeAPIError(w, http.StatusBadRequest, err.Error())
+			return
+		}
+		if len(parts) == 1 {
+			handleSandboxResource(w, r, opt, id)
+			return
+		}
+		if len(parts) == 2 && parts[1] == "stop" {
+			if r.Method != http.MethodPost {
+				writeAPIError(w, http.StatusMethodNotAllowed, "method not allowed")
+				return
+			}
+			state, err := stopSandbox(r.Context(), opt, id)
+			if err != nil {
+				writeAPIError(w, statusForError(err), err.Error())
+				return
+			}
+			writeJSON(w, http.StatusOK, state)
+			return
+		}
+		if len(parts) == 2 && parts[1] == "process-api-health" {
+			if r.Method != http.MethodGet {
+				writeAPIError(w, http.StatusMethodNotAllowed, "method not allowed")
+				return
+			}
+			state, err := readSandboxState(opt, id)
+			if err != nil {
+				writeAPIError(w, statusForError(err), err.Error())
+				return
+			}
+			health, err := getProcessAPIHealth(r.Context(), state)
+			if err != nil {
+				writeAPIError(w, statusForError(err), err.Error())
+				return
+			}
+			writeJSON(w, http.StatusOK, health)
+			return
+		}
+		writeAPIError(w, http.StatusNotFound, "route not found")
+	})
+	return mux
+}
+
+func sandboxdStartOptions(base options, request sandboxdStartRequest) options {
+	if request.Image != "" {
+		base.image = request.Image
+	}
+	if request.VCPUCount > 0 {
+		base.vcpuCount = request.VCPUCount
+	}
+	if request.MemMiB > 0 {
+		base.memMiB = request.MemMiB
+	}
+	base.waitForBoot = true
+	if request.Wait != nil {
+		base.waitForBoot = *request.Wait
+	}
+	base.withProcessAPI = request.ProcessAPI
+	if request.ProcessAPIBin != "" {
+		base.processAPIBin = request.ProcessAPIBin
+	}
+	if request.ProcessAPITransport != "" {
+		base.processAPITransport = request.ProcessAPITransport
+	}
+	if request.ProcessAPIPort > 0 {
+		base.processAPIPort = request.ProcessAPIPort
+	}
+	if request.ProcessAPITCPPort > 0 {
+		base.processAPITCPPort = request.ProcessAPITCPPort
+	}
+	if request.VsockCID > 0 {
+		base.vsockCID = request.VsockCID
+	}
+	if request.TimeoutMillis > 0 {
+		base.timeout = time.Duration(request.TimeoutMillis) * time.Millisecond
+	}
+	return base
+}
+
+func handleSandboxResource(w http.ResponseWriter, r *http.Request, opt options, id string) {
+	switch r.Method {
+	case http.MethodGet:
+		state, err := readSandboxState(opt, id)
+		if err != nil {
+			writeAPIError(w, statusForError(err), err.Error())
+			return
+		}
+		writeJSON(w, http.StatusOK, refreshSandboxStatus(state))
+	case http.MethodDelete:
+		force := r.URL.Query().Get("force") == "true" || r.URL.Query().Get("force") == "1"
+		if err := removeSandbox(r.Context(), opt, id, force); err != nil {
+			writeAPIError(w, statusForError(err), err.Error())
+			return
+		}
+		writeJSON(w, http.StatusOK, map[string]any{"id": id, "removed": true})
+	default:
+		writeAPIError(w, http.StatusMethodNotAllowed, "method not allowed")
+	}
+}
+
+func statusForError(err error) int {
+	if err == nil {
+		return http.StatusOK
+	}
+	if errors.Is(err, os.ErrNotExist) {
+		return http.StatusNotFound
+	}
+	return http.StatusBadRequest
+}
+
+func writeJSON(w http.ResponseWriter, status int, value any) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	_ = json.NewEncoder(w).Encode(value)
+}
+
+func writeAPIError(w http.ResponseWriter, status int, message string) {
+	writeJSON(w, status, map[string]string{"error": message})
 }
 
 func resolveImage(name string) (imageSpec, error) {

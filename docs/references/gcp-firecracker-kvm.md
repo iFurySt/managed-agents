@@ -9,8 +9,9 @@ billing account IDs, public VM IPs, SSH keys, or one-off project IDs here.
 ## Known Working Shape
 
 - Cloud: Google Cloud Compute Engine.
-- Current reusable harness project: `fc-harness-20260617` with display name
-  `firecracker-harness`.
+- Current reusable harness display name: `firecracker-harness`.
+- Current reusable harness project ID: keep in local/private context and pass it
+  as `PROJECT_ID`; do not commit the concrete ID.
 - VM family: Intel-based N2.
 - Tested machine type: `n2-standard-4`.
 - Tested guest image: Debian 12.
@@ -53,7 +54,7 @@ The reusable project is intentionally small and should be stopped when idle.
 Use these values unless a task explicitly creates a new disposable project:
 
 ```bash
-PROJECT_ID="fc-harness-20260617"
+PROJECT_ID="REDACTED_FIRECRACKER_HARNESS_PROJECT_ID"
 ZONE="us-east1-b"
 VM_NAME="fc-kvm-test-1"
 ```
@@ -148,7 +149,7 @@ on that address and matches the stopped/started lifecycle. Keep the project and
 zone explicit:
 
 ```bash
-PROJECT_ID="fc-harness-20260617"
+PROJECT_ID="REDACTED_FIRECRACKER_HARNESS_PROJECT_ID"
 ZONE="us-east1-b"
 VM_NAME="fc-kvm-test-1"
 
@@ -201,6 +202,27 @@ sudo mv /tmp/process-api /opt/managed-agents/bin/process-api
 sudo chown -R "$USER:$USER" /opt/managed-agents'
 ```
 
+For fast iteration on a stable IAP connection, direct binary copy is also fine:
+
+```bash
+GOOS=linux GOARCH=amd64 go build -o /tmp/managed-agents-sandboxd ./apps/sandboxd
+GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o /tmp/managed-agents-process-api ./apps/process-api
+
+gcloud compute ssh "$VM_NAME" \
+  --project="$PROJECT_ID" \
+  --zone="$ZONE" \
+  --tunnel-through-iap \
+  --command='sudo mkdir -p /opt/managed-agents/bin && sudo chown "$USER:$USER" /opt/managed-agents/bin'
+
+gcloud compute scp \
+  /tmp/managed-agents-sandboxd \
+  /tmp/managed-agents-process-api \
+  "$VM_NAME:/opt/managed-agents/bin/" \
+  --project="$PROJECT_ID" \
+  --zone="$ZONE" \
+  --tunnel-through-iap
+```
+
 If local dirty changes belong to another workstream, create a clean git
 worktree and sync from that worktree rather than from the primary checkout.
 
@@ -248,6 +270,51 @@ Expected lifecycle signals:
   the Firecracker process exists.
 - `sandbox stop` reports `status=stopped`, and `pgrep -a firecracker` should not
   show the stopped sandbox process.
+
+## Sandboxd Daemon API Test
+
+`sandboxd serve` exposes the same host-local lifecycle operations over JSON HTTP
+so the future orchestrator can call a worker host without shelling out. Keep the
+listener on loopback unless a later task adds authentication and transport
+security.
+
+```bash
+WORK_DIR=/opt/managed-agents/firecracker
+SANDBOX_ID=sbx-serve-api
+
+/opt/managed-agents/bin/sandboxd serve \
+  --work-dir "$WORK_DIR" \
+  --sudo \
+  --listen 127.0.0.1:8787 \
+  --process-api-bin /opt/managed-agents/bin/process-api \
+  --timeout 150s
+```
+
+From another SSH session on the harness VM, exercise the daemon API:
+
+```bash
+curl -fsS http://127.0.0.1:8787/healthz
+
+curl -fsS -X POST http://127.0.0.1:8787/sandboxes \
+  -H "Content-Type: application/json" \
+  -d '{"id":"sbx-serve-api","process_api":true,"process_api_bin":"/opt/managed-agents/bin/process-api","timeout_millis":150000}'
+
+curl -fsS http://127.0.0.1:8787/sandboxes/sbx-serve-api
+curl -fsS http://127.0.0.1:8787/sandboxes/sbx-serve-api/process-api-health
+curl -fsS -X POST http://127.0.0.1:8787/sandboxes/sbx-serve-api/stop
+curl -fsS -X DELETE http://127.0.0.1:8787/sandboxes/sbx-serve-api
+```
+
+Expected daemon API signals:
+
+- `/healthz` reports `service=sandboxd`.
+- `POST /sandboxes` returns the created sandbox state with the requested id.
+- `GET /sandboxes/<id>` reports `status=running` while Firecracker is live.
+- `GET /sandboxes/<id>/process-api-health` reports `service=process-api`.
+- `POST /sandboxes/<id>/stop` reports `status=stopped`.
+- `DELETE /sandboxes/<id>` reports `removed=true`.
+- After deletion, the sandbox directory is gone and no Firecracker process or
+  `ma*` tap device remains.
 
 ## Process API Guest Test
 

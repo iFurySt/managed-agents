@@ -44,6 +44,9 @@ go run ./apps/sandboxd sandbox rm sbx-dev --work-dir /opt/managed-agents/firecra
 
 # Or run the full lifecycle verifier:
 go run ./apps/sandboxd verify --work-dir /opt/managed-agents/firecracker --sudo
+
+# Or run the host-local sandboxd daemon API:
+go run ./apps/sandboxd serve --work-dir /opt/managed-agents/firecracker --sudo --listen 127.0.0.1:8787
 ```
 
 For the reusable GCP N2 nested-virtualization harness and sync commands, see

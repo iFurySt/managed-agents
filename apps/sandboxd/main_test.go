@@ -249,3 +249,129 @@ func TestWaitForGuestProcessStatus(t *testing.T) {
 		t.Fatalf("unexpected process/calls: %#v %d", process, calls)
 	}
 }
+
+func TestSandboxdHTTPHandlerStatusStopAndRemove(t *testing.T) {
+	opt := options{workDir: t.TempDir()}
+	state := sandboxState{
+		ID:         "sbx-http",
+		Image:      "firecracker-ci-ubuntu-22.04",
+		Status:     "running",
+		PID:        -1,
+		WorkDir:    opt.workDir,
+		SandboxDir: filepath.Join(sandboxesDir(opt), "sbx-http"),
+		StartedAt:  time.Date(2026, 6, 18, 12, 0, 0, 0, time.UTC),
+	}
+	if err := writeSandboxState(state); err != nil {
+		t.Fatalf("writeSandboxState returned error: %v", err)
+	}
+	server := httptest.NewServer(sandboxdHTTPHandler(opt))
+	defer server.Close()
+
+	resp, err := http.Get(server.URL + "/healthz")
+	if err != nil {
+		t.Fatalf("GET /healthz returned error: %v", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("GET /healthz status = %d", resp.StatusCode)
+	}
+	var health sandboxdHealth
+	if err := json.NewDecoder(resp.Body).Decode(&health); err != nil {
+		t.Fatalf("decode health: %v", err)
+	}
+	if !health.OK || health.Service != "sandboxd" {
+		t.Fatalf("unexpected health response: %#v", health)
+	}
+
+	resp, err = http.Get(server.URL + "/sandboxes")
+	if err != nil {
+		t.Fatalf("GET /sandboxes returned error: %v", err)
+	}
+	defer resp.Body.Close()
+	var states []sandboxState
+	if err := json.NewDecoder(resp.Body).Decode(&states); err != nil {
+		t.Fatalf("decode sandbox list: %v", err)
+	}
+	if len(states) != 1 || states[0].ID != "sbx-http" {
+		t.Fatalf("unexpected sandbox list: %#v", states)
+	}
+
+	req, err := http.NewRequest(http.MethodPost, server.URL+"/sandboxes/sbx-http/stop", nil)
+	if err != nil {
+		t.Fatalf("new stop request: %v", err)
+	}
+	resp, err = http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatalf("POST stop returned error: %v", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("POST stop status = %d", resp.StatusCode)
+	}
+	var stopped sandboxState
+	if err := json.NewDecoder(resp.Body).Decode(&stopped); err != nil {
+		t.Fatalf("decode stopped state: %v", err)
+	}
+	if stopped.Status != "stopped" {
+		t.Fatalf("stopped status = %q", stopped.Status)
+	}
+
+	req, err = http.NewRequest(http.MethodDelete, server.URL+"/sandboxes/sbx-http", nil)
+	if err != nil {
+		t.Fatalf("new delete request: %v", err)
+	}
+	resp, err = http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatalf("DELETE sandbox returned error: %v", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("DELETE sandbox status = %d", resp.StatusCode)
+	}
+	if _, err := os.Stat(state.SandboxDir); !os.IsNotExist(err) {
+		t.Fatalf("sandbox dir still exists or unexpected error: %v", err)
+	}
+}
+
+func TestSandboxdStartOptions(t *testing.T) {
+	wait := false
+	base := options{
+		image:               "base-image",
+		vcpuCount:           1,
+		memMiB:              256,
+		timeout:             90 * time.Second,
+		processAPIBin:       "/default/process-api",
+		processAPITransport: "tcp",
+		processAPIPort:      1024,
+		processAPITCPPort:   8080,
+		vsockCID:            3,
+	}
+	got := sandboxdStartOptions(base, sandboxdStartRequest{
+		Image:               "custom-image",
+		VCPUCount:           2,
+		MemMiB:              512,
+		Wait:                &wait,
+		ProcessAPI:          true,
+		ProcessAPIBin:       "/custom/process-api",
+		ProcessAPITransport: "vsock",
+		ProcessAPIPort:      2048,
+		ProcessAPITCPPort:   9090,
+		VsockCID:            4,
+		TimeoutMillis:       1234,
+	})
+	if got.image != "custom-image" || got.vcpuCount != 2 || got.memMiB != 512 {
+		t.Fatalf("resource overrides not applied: %#v", got)
+	}
+	if got.waitForBoot || !got.withProcessAPI {
+		t.Fatalf("wait/process-api overrides not applied: %#v", got)
+	}
+	if got.processAPIBin != "/custom/process-api" || got.processAPITransport != "vsock" {
+		t.Fatalf("process-api overrides not applied: %#v", got)
+	}
+	if got.processAPIPort != 2048 || got.processAPITCPPort != 9090 || got.vsockCID != 4 {
+		t.Fatalf("process-api port overrides not applied: %#v", got)
+	}
+	if got.timeout != 1234*time.Millisecond {
+		t.Fatalf("timeout = %s", got.timeout)
+	}
+}

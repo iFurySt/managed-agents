@@ -26,13 +26,14 @@
   - Added process-api `POST /processes`, `GET /processes/{id}`, and `POST /processes/{id}/signal` plus `sandboxd sandbox process start/status/signal`.
   - Added `sandboxd sandbox rm` to remove stopped sandbox directories and per-sandbox rootfs files, with `--force` for running sandboxes.
   - Added `sandboxd verify`, a single full lifecycle verifier that runs start, process-api health, exec, long-running process lifecycle, signal, stop, and remove.
+  - Added `sandboxd serve`, a loopback JSON API for worker-host health, sandbox list/start/status/stop/remove, and guest process-api health checks.
   - Kept vsock support in code, but used TCP/tap for the CI Ubuntu rootfs because that image does not ship guest vsock kernel modules.
   - Updated the GCP Firecracker harness reference with the reusable project, VM shape, IAP SSH/SCP, and binary sync workflow.
   - Added README and reference entries for the sandboxd lifecycle and process-api paths.
 
 ### Design Intent
 
-This milestone keeps `sandboxd` independent from `apiserver` and `orchestrator` while proving the host-local boundary that will later receive scheduled work. The first useful slice was a real microVM boot on a nested-virtualization host, not a mock runner. The follow-up slices turn that boot path into a small local lifecycle surface and prove that a guest process-api can be injected into the microVM, started by systemd, reached from the host, execute commands, manage long-running processes, return stdout/stderr/exit status, and be cleaned up with the sandbox directory removed afterward.
+This milestone keeps `sandboxd` independent from `apiserver` and `orchestrator` while proving the host-local boundary that will later receive scheduled work. The first useful slice was a real microVM boot on a nested-virtualization host, not a mock runner. The follow-up slices turn that boot path into a small local lifecycle surface and prove that a guest process-api can be injected into the microVM, started by systemd, reached from the host, execute commands, manage long-running processes, return stdout/stderr/exit status, and be cleaned up with the sandbox directory removed afterward. The daemon API intentionally stays on loopback and reuses the same lifecycle functions as the CLI, giving the future orchestrator an HTTP boundary without adding a second execution path.
 
 ### Verification
 
@@ -52,6 +53,7 @@ This milestone keeps `sandboxd` independent from `apiserver` and `orchestrator` 
   - Ran `sandboxd sandbox process start/status/signal`; verified running and exited states, stdout capture for a long-running shell command, TERM signaling for a sleep process, and no Firecracker or tap device remaining after stop.
   - Ran `sandboxd sandbox rm`; verified the stopped sandbox directory and rootfs were removed.
   - Ran `sandboxd verify`; verified the full lifecycle returns `verify=passed` and removes its temporary sandbox.
+  - Ran `sandboxd serve`; verified HTTP `/healthz`, `POST /sandboxes`, `GET /sandboxes/<id>`, `GET /sandboxes/<id>/process-api-health`, `POST /sandboxes/<id>/stop`, and `DELETE /sandboxes/<id>` against a real Firecracker sandbox, with no Firecracker or tap device remaining after deletion.
 
 ### Files Modified
 
