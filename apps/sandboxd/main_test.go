@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -86,6 +88,52 @@ func TestSandboxStateRoundTripAndList(t *testing.T) {
 	refreshed := refreshSandboxStatus(read)
 	if refreshed.Status != "exited" {
 		t.Fatalf("refreshSandboxStatus status = %q", refreshed.Status)
+	}
+}
+
+func TestRemoveSandboxRemovesStoppedState(t *testing.T) {
+	opt := options{workDir: t.TempDir()}
+	state := sandboxState{
+		ID:         "sbx-remove",
+		Status:     "stopped",
+		PID:        -1,
+		WorkDir:    opt.workDir,
+		SandboxDir: filepath.Join(sandboxesDir(opt), "sbx-remove"),
+		StartedAt:  time.Date(2026, 6, 18, 12, 0, 0, 0, time.UTC),
+	}
+	if err := writeSandboxState(state); err != nil {
+		t.Fatalf("writeSandboxState returned error: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(state.SandboxDir, "rootfs.ext4"), []byte("rootfs"), 0o644); err != nil {
+		t.Fatalf("write rootfs marker: %v", err)
+	}
+	if err := removeSandbox(context.Background(), opt, "sbx-remove", false); err != nil {
+		t.Fatalf("removeSandbox returned error: %v", err)
+	}
+	if _, err := os.Stat(state.SandboxDir); !os.IsNotExist(err) {
+		t.Fatalf("sandbox dir still exists or unexpected error: %v", err)
+	}
+}
+
+func TestRemoveSandboxRefusesRunningWithoutForce(t *testing.T) {
+	opt := options{workDir: t.TempDir()}
+	state := sandboxState{
+		ID:         "sbx-running",
+		Status:     "running",
+		PID:        os.Getpid(),
+		WorkDir:    opt.workDir,
+		SandboxDir: filepath.Join(sandboxesDir(opt), "sbx-running"),
+		StartedAt:  time.Date(2026, 6, 18, 12, 0, 0, 0, time.UTC),
+	}
+	if err := writeSandboxState(state); err != nil {
+		t.Fatalf("writeSandboxState returned error: %v", err)
+	}
+	err := removeSandbox(context.Background(), opt, "sbx-running", false)
+	if err == nil || !strings.Contains(err.Error(), "still running") {
+		t.Fatalf("removeSandbox error = %v", err)
+	}
+	if _, err := os.Stat(state.SandboxDir); err != nil {
+		t.Fatalf("sandbox dir should still exist: %v", err)
 	}
 }
 

@@ -234,6 +234,9 @@ SANDBOX_ID=sbx-harness
 
 /opt/managed-agents/bin/sandboxd sandbox stop "$SANDBOX_ID" \
   --work-dir "$WORK_DIR"
+
+/opt/managed-agents/bin/sandboxd sandbox rm "$SANDBOX_ID" \
+  --work-dir "$WORK_DIR"
 ```
 
 Expected lifecycle signals:
@@ -320,6 +323,8 @@ Expected process-api signals:
 - The console log contains `process_api_ready`.
 - After `sandbox stop`, both `pgrep -a firecracker` and `ip addr show | grep ma`
   should be empty for the stopped sandbox.
+- `sandbox rm` removes the sandbox directory, including state, console logs, and
+  the per-sandbox rootfs.
 
 ## Firecracker Smoke Test
 

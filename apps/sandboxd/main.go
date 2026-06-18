@@ -48,6 +48,7 @@ type options struct {
 	execEnv             []string
 	execTimeout         time.Duration
 	processSignal       string
+	forceRemove         bool
 	vsockCID            uint32
 }
 
@@ -401,6 +402,21 @@ func main() {
 	processSignal.Flags().StringVar(&opt.processSignal, "signal", "TERM", "signal to send: TERM, INT, KILL, or HUP")
 	processCmd.AddCommand(processSignal)
 	sandbox.AddCommand(processCmd)
+	remove := &cobra.Command{
+		Use:          "rm <sandbox-id>",
+		Short:        "Remove a stopped sandbox directory and local state",
+		Args:         cobra.ExactArgs(1),
+		SilenceUsage: true,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if err := removeSandbox(cmd.Context(), opt, args[0], opt.forceRemove); err != nil {
+				return err
+			}
+			fmt.Printf("sandbox=%s\nremoved=true\n", args[0])
+			return nil
+		},
+	}
+	remove.Flags().BoolVar(&opt.forceRemove, "force", false, "stop the sandbox first if it is still running")
+	sandbox.AddCommand(remove)
 	sandbox.AddCommand(&cobra.Command{
 		Use:   "stop <sandbox-id>",
 		Short: "Stop a running Firecracker sandbox",
@@ -801,7 +817,7 @@ func deleteTap(ctx context.Context, tapName string) error {
 	if tapName == "" {
 		return nil
 	}
-	return runPassthrough(ctx, true, "ip", "link", "del", tapName)
+	return runShell(ctx, true, "ip link show "+shellQuote(tapName)+" >/dev/null 2>&1 || exit 0\nip link del "+shellQuote(tapName), "")
 }
 
 func shellQuote(value string) string {
@@ -826,6 +842,44 @@ func stopSandbox(ctx context.Context, opt options, id string) (sandboxState, err
 		return sandboxState{}, err
 	}
 	return state, nil
+}
+
+func removeSandbox(ctx context.Context, opt options, id string, force bool) error {
+	if err := validateSandboxID(id); err != nil {
+		return err
+	}
+	state, err := readSandboxState(opt, id)
+	if err != nil {
+		return err
+	}
+	if isProcessAlive(state.PID) {
+		if !force {
+			return fmt.Errorf("sandbox %s is still running; stop it first or pass --force", id)
+		}
+		if _, err := stopSandbox(ctx, opt, id); err != nil {
+			return err
+		}
+		state, err = readSandboxState(opt, id)
+		if err != nil {
+			return err
+		}
+	}
+	_ = os.Remove(state.SocketPath)
+	_ = os.Remove(state.VsockPath)
+	_ = deleteTap(ctx, state.TapName)
+	sandboxDir := filepath.Join(sandboxesDir(opt), id)
+	cleanDir, err := filepath.Abs(sandboxDir)
+	if err != nil {
+		return err
+	}
+	cleanRoot, err := filepath.Abs(sandboxesDir(opt))
+	if err != nil {
+		return err
+	}
+	if cleanDir == cleanRoot || !strings.HasPrefix(cleanDir, cleanRoot+string(os.PathSeparator)) {
+		return fmt.Errorf("refusing to remove sandbox directory outside sandbox root: %s", cleanDir)
+	}
+	return os.RemoveAll(cleanDir)
 }
 
 func startSandbox(ctx context.Context, opt options, id string) (sandboxState, error) {

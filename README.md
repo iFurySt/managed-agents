@@ -40,6 +40,7 @@ go run ./apps/sandboxd sandbox exec sbx-dev --work-dir /opt/managed-agents/firec
 go run ./apps/sandboxd sandbox process start sbx-dev --work-dir /opt/managed-agents/firecracker -- /bin/sleep 30
 go run ./apps/sandboxd sandbox status sbx-dev --work-dir /opt/managed-agents/firecracker
 go run ./apps/sandboxd sandbox stop sbx-dev --work-dir /opt/managed-agents/firecracker
+go run ./apps/sandboxd sandbox rm sbx-dev --work-dir /opt/managed-agents/firecracker
 ```
 
 For the reusable GCP N2 nested-virtualization harness and sync commands, see
