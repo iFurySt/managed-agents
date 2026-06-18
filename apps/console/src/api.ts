@@ -175,8 +175,12 @@ export async function archiveEnvironment(id: string): Promise<Environment> {
   return postJSON<Environment>(`/api/environments/${id}/archive`, {});
 }
 
-export async function listVaults(): Promise<Vault[]> {
-  const data = await getJSON<{ items: Vault[] }>("/api/vaults");
+export async function listVaults(params: { q?: string; status?: string } = {}): Promise<Vault[]> {
+  const search = new URLSearchParams();
+  if (params.q) search.set("q", params.q);
+  if (params.status && params.status !== "All") search.set("status", params.status);
+  const query = search.toString();
+  const data = await getJSON<{ items: Vault[] }>(`/api/vaults${query ? `?${query}` : ""}`);
   return data.items;
 }
 

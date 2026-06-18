@@ -111,22 +111,26 @@ export function DataTable<T>({
   rows,
   getKey,
   renderActions,
-  actionsHeader
+  actionsHeader,
+  showSelection = true
 }: {
   columns: { key: string; header: string; render: (row: T) => ReactNode; width?: string }[];
   rows: T[];
   getKey: (row: T) => string;
   renderActions?: (row: T) => ReactNode;
   actionsHeader?: string;
+  showSelection?: boolean;
 }) {
   return (
     <div data-cds="DataTable" className="w-full overflow-hidden">
       <table data-cds="Table" className="w-full border-collapse text-left text-sm">
         <thead>
           <tr className="border-b border-line text-muted">
-            <th className="w-10 py-3">
-              <span className="block h-4 w-4 rounded border border-[#cfcac2]" />
-            </th>
+            {showSelection ? (
+              <th className="w-10 py-3">
+                <span className="block h-4 w-4 rounded border border-[#cfcac2]" />
+              </th>
+            ) : null}
             {columns.map((column) => (
               <th key={column.key} className="py-3 font-semibold" style={{ width: column.width }}>
                 {column.header}
@@ -138,9 +142,11 @@ export function DataTable<T>({
         <tbody>
           {rows.map((row) => (
             <tr key={getKey(row)} className="border-b border-[#efede8] hover:bg-[#fbfaf7]">
-              <td className="py-3">
-                <span className="block h-4 w-4 rounded border border-[#cfcac2]" />
-              </td>
+              {showSelection ? (
+                <td className="py-3">
+                  <span className="block h-4 w-4 rounded border border-[#cfcac2]" />
+                </td>
+              ) : null}
               {columns.map((column) => (
                 <td key={column.key} className="max-w-[260px] truncate py-3 pr-4 align-middle">
                   {column.render(row)}

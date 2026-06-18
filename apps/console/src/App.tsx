@@ -1221,19 +1221,28 @@ function EnvironmentDetailPage() {
 
 function VaultsPage() {
   const [vaults, setVaults] = useState<Vault[]>([]);
+  const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All");
   const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
-    listVaults().then(setVaults).catch(() => setVaults([]));
-  }, []);
+    listVaults({ q: search, status }).then(setVaults).catch(() => setVaults([]));
+  }, [search, status]);
 
-  const visibleVaults = status === "All" ? vaults : vaults.filter((vault) => vault.status === status);
+  async function archiveCurrent(vault: Vault) {
+    const updated = await archiveVault(vault.id);
+    setVaults((items) => items.map((item) => (item.id === updated.id ? updated : item)));
+  }
+
+  async function deleteCurrent(vault: Vault) {
+    await deleteVault(vault.id);
+    setVaults((items) => items.filter((item) => item.id !== vault.id));
+  }
 
   return (
     <section className="flex flex-col gap-4">
       <PageHeader
-        title="Credential vault"
+        title="Credential vaults"
         description="Manage credential vaults that provide your agents with access to MCP servers and other tools."
         action={
           <Button onClick={() => setDialogOpen(true)}>
@@ -1245,13 +1254,14 @@ function VaultsPage() {
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative w-[486px]">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-          <TextInput className="pl-9" aria-label="Search by name or exact ID" placeholder="Search by name or exact ID" />
+          <TextInput className="pl-9" aria-label="Search by name or exact ID" placeholder="Search by name or exact ID" value={search} onChange={(event) => setSearch(event.target.value)} />
         </div>
         <FieldSelect label="Status" value={status} options={["All", "Active", "Archived"]} onValueChange={setStatus} />
       </div>
       <DataTable
-        rows={visibleVaults}
+        rows={vaults}
         getKey={(vault) => vault.id}
+        showSelection={false}
         columns={[
           {
             key: "id",
@@ -1260,7 +1270,7 @@ function VaultsPage() {
             render: (vault) => (
               <div className="flex items-center gap-2">
                 <span className="font-mono font-semibold">{shortId(vault.id)}</span>
-                <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${vault.id}`}>
+                <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${vault.id}`} onClick={() => copyText(vault.id)}>
                   <Copy className="h-3.5 w-3.5" />
                 </Button>
               </div>
@@ -1279,6 +1289,7 @@ function VaultsPage() {
           { key: "status", header: "Status", width: "160px", render: (vault) => <Badge tone={vaultTone(vault.status)}>{vault.status}</Badge> },
           { key: "created", header: "Created", width: "180px", render: (vault) => <span className="text-muted">{vault.createdLabel}</span> }
         ]}
+        renderActions={(vault) => <VaultRowActions vault={vault} onArchive={() => archiveCurrent(vault)} onDelete={() => deleteCurrent(vault)} />}
       />
       <div className="flex gap-2">
         <Button variant="secondary" className="h-8 w-8 px-0" disabled>
@@ -1341,7 +1352,7 @@ function VaultDetailPage() {
       <div className="flex h-[52px] items-center justify-between">
         <nav className="flex items-center gap-2 text-sm text-muted">
           <Link className="rounded-control px-3 py-1.5 hover:bg-fill" to="/vaults">
-            Credential vault
+            Credential vaults
           </Link>
           <span>/</span>
           <span className="text-ink">{vault.name}</span>
@@ -1356,7 +1367,7 @@ function VaultDetailPage() {
           </div>
           <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
             <span className="font-mono">{shortId(vault.id)}</span>
-            <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${vault.id}`}>
+            <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${vault.id}`} onClick={() => copyText(vault.id)}>
               <Copy className="h-3.5 w-3.5" />
             </Button>
             <span>·</span>
@@ -1370,7 +1381,7 @@ function VaultDetailPage() {
             <Plus className="h-4 w-4" />
             Add credential
           </Button>
-          <VaultActions onArchive={archiveCurrentVault} onDelete={deleteCurrentVault} />
+          <VaultRowActions vault={vault} onArchive={archiveCurrentVault} onDelete={deleteCurrentVault} />
         </div>
       </div>
 
@@ -1380,8 +1391,21 @@ function VaultDetailPage() {
       <DataTable
         rows={visibleCredentials}
         getKey={(credential) => credential.id}
+        showSelection={false}
         columns={[
-          { key: "id", header: "ID", width: "220px", render: (credential) => <span className="font-mono font-semibold">{shortId(credential.id)}</span> },
+          {
+            key: "id",
+            header: "ID",
+            width: "220px",
+            render: (credential) => (
+              <div className="flex items-center gap-2">
+                <span className="font-mono font-semibold">{shortId(credential.id)}</span>
+                <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${credential.id}`} onClick={() => copyText(credential.id)}>
+                  <Copy className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            )
+          },
           { key: "name", header: "Name", width: "210px", render: (credential) => <span className="font-medium">{credential.name}</span> },
           {
             key: "auth",
@@ -1398,7 +1422,7 @@ function VaultDetailPage() {
           { key: "lastUsed", header: "Last used", width: "150px", render: (credential) => <span className="text-muted">{credential.lastUsed}</span> },
           { key: "updated", header: "Updated", width: "150px", render: (credential) => <span className="text-muted">{credential.updatedLabel}</span> }
         ]}
-        renderActions={(credential) => <VaultActions onArchive={() => archiveCredential(credential)} onDelete={() => deleteCredential(credential)} />}
+        renderActions={(credential) => <CredentialActions credential={credential} onArchive={() => archiveCredential(credential)} onDelete={() => deleteCredential(credential)} />}
       />
       <div className="flex gap-2">
         <Button variant="secondary" className="h-8 w-8 px-0" disabled>
@@ -2589,21 +2613,22 @@ function CreateCredentialForm({
 }) {
   const [name, setName] = useState("");
   const [authType, setAuthType] = useState("MCP OAuth");
-  const [target, setTarget] = useState("https://mcp.example.com");
+  const [target, setTarget] = useState("");
 
   useEffect(() => {
-    if (authType === "MCP OAuth") setTarget("https://mcp.example.com");
-    if (authType === "Bearer token") setTarget("https://api.example.com/");
-    if (authType === "Environment variable") setTarget("ENV_VAR_NAME");
+    setTarget("");
   }, [authType]);
 
   async function submit() {
+    if (!target.trim()) return;
     await onSubmit({ name, authType, target });
     setName("");
+    setTarget("");
   }
 
   const targetLabel = authType === "Environment variable" ? "Environment variable" : authType === "Bearer token" ? "Endpoint" : "MCP server";
   const targetPlaceholder = authType === "Environment variable" ? "ENV_VAR_NAME" : authType === "Bearer token" ? "https://api.example.com/" : "https://mcp.example.com";
+  const canSubmit = target.trim().length > 0;
 
   return (
     <div className="px-6 pb-0 pt-5">
@@ -2618,11 +2643,6 @@ function CreateCredentialForm({
         <div className="grid gap-2">
           <label className="text-sm font-medium">Type</label>
           <FieldSelect label="" value={authType} options={["MCP OAuth", "Bearer token", "Environment variable"]} onValueChange={setAuthType} />
-          <div className="rounded-cds border border-line bg-fill p-3 text-sm leading-6 text-muted">
-            <div><span className="font-semibold text-ink">MCP OAuth</span> For MCP servers that support OAuth.</div>
-            <div><span className="font-semibold text-ink">Bearer token</span> For MCP servers that accept a long-lived API key or personal access token.</div>
-            <div><span className="font-semibold text-ink">Environment variable</span> For CLIs, SDKs, or direct API calls. The agent never sees the value.</div>
-          </div>
         </div>
         <label className="grid gap-2 text-sm font-medium">
           {targetLabel}
@@ -2631,7 +2651,7 @@ function CreateCredentialForm({
       </div>
       <div className="sticky bottom-0 -mx-6 mt-6 flex justify-end gap-2 bg-white px-6 py-5">
         {secondaryLabel ? <Button variant="secondary" onClick={onSecondary}>{secondaryLabel}</Button> : null}
-        <Button onClick={submit}>{submitLabel}</Button>
+        <Button onClick={submit} disabled={!canSubmit}>{submitLabel}</Button>
       </div>
     </div>
   );
@@ -2987,22 +3007,71 @@ function EnvironmentActions({ environment, onArchive }: { environment: Environme
   );
 }
 
-function VaultActions({ onArchive, onDelete }: { onArchive: () => void; onDelete: () => void }) {
+function VaultRowActions({ vault, onArchive, onDelete }: { vault: Vault; onArchive: () => void; onDelete: () => void }) {
+  const navigate = useNavigate();
+  const archived = vault.status === "Archived";
   return (
     <CdsDropdownMenu.Root>
       <CdsDropdownMenu.Trigger asChild>
         <Button variant="icon" aria-label="More actions">
-          ⋯
+          <span className="text-lg leading-none">⋯</span>
         </Button>
       </CdsDropdownMenu.Trigger>
       <CdsDropdownMenu.Portal>
-        <CdsDropdownMenu.Content className="z-50 min-w-[150px] rounded-cds border border-line bg-white p-1 shadow-lg" align="end">
+        <CdsDropdownMenu.Content className="z-50 min-w-[170px] rounded-cds border border-line bg-white p-1 shadow-lg" align="end">
+          <CdsDropdownMenu.Item className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill" onSelect={() => navigate(`/vaults/${vault.id}`)}>
+            <KeyRound className="h-4 w-4" />
+            Open vault
+          </CdsDropdownMenu.Item>
+          <CdsDropdownMenu.Item className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill" onSelect={() => copyText(vault.id)}>
+            <Copy className="h-4 w-4" />
+            Copy ID
+          </CdsDropdownMenu.Item>
+          <CdsDropdownMenu.Separator className="my-1 h-px bg-line" />
           <CdsDropdownMenu.Item
             className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill"
             onSelect={onArchive}
+            disabled={archived}
           >
             <Archive className="h-4 w-4 text-muted" />
-            Archive
+            {archived ? "Archived" : "Archive"}
+          </CdsDropdownMenu.Item>
+          <CdsDropdownMenu.Item
+            className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm text-[#a33a29] outline-none data-[highlighted]:bg-[#fff1ef]"
+            onSelect={onDelete}
+          >
+            <Trash2 className="h-4 w-4" />
+            Delete
+          </CdsDropdownMenu.Item>
+        </CdsDropdownMenu.Content>
+      </CdsDropdownMenu.Portal>
+    </CdsDropdownMenu.Root>
+  );
+}
+
+function CredentialActions({ credential, onArchive, onDelete }: { credential: VaultCredential; onArchive: () => void; onDelete: () => void }) {
+  const archived = credential.status === "Archived";
+  return (
+    <CdsDropdownMenu.Root>
+      <CdsDropdownMenu.Trigger asChild>
+        <Button variant="icon" aria-label="More actions">
+          <span className="text-lg leading-none">⋯</span>
+        </Button>
+      </CdsDropdownMenu.Trigger>
+      <CdsDropdownMenu.Portal>
+        <CdsDropdownMenu.Content className="z-50 min-w-[160px] rounded-cds border border-line bg-white p-1 shadow-lg" align="end">
+          <CdsDropdownMenu.Item className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill" onSelect={() => copyText(credential.id)}>
+            <Copy className="h-4 w-4" />
+            Copy ID
+          </CdsDropdownMenu.Item>
+          <CdsDropdownMenu.Separator className="my-1 h-px bg-line" />
+          <CdsDropdownMenu.Item
+            className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill"
+            onSelect={onArchive}
+            disabled={archived}
+          >
+            <Archive className="h-4 w-4 text-muted" />
+            {archived ? "Archived" : "Archive"}
           </CdsDropdownMenu.Item>
           <CdsDropdownMenu.Item
             className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm text-[#a33a29] outline-none data-[highlighted]:bg-[#fff1ef]"
