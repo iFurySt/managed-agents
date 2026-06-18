@@ -150,8 +150,12 @@ export async function archiveDeployment(id: string): Promise<Deployment> {
   return postJSON<Deployment>(`/api/deployments/${id}/archive`, {});
 }
 
-export async function listEnvironments(): Promise<Environment[]> {
-  const data = await getJSON<{ items: Environment[] }>("/api/environments");
+export async function listEnvironments(params: { q?: string; status?: string } = {}): Promise<Environment[]> {
+  const search = new URLSearchParams();
+  if (params.q) search.set("q", params.q);
+  if (params.status && params.status !== "All") search.set("status", params.status);
+  const query = search.toString();
+  const data = await getJSON<{ items: Environment[] }>(`/api/environments${query ? `?${query}` : ""}`);
   return data.items;
 }
 

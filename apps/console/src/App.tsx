@@ -912,19 +912,23 @@ function DeploymentDetailPage() {
 
 function EnvironmentsPage() {
   const [environments, setEnvironments] = useState<Environment[]>([]);
+  const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All");
   const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
-    listEnvironments().then(setEnvironments).catch(() => setEnvironments([]));
-  }, []);
+    listEnvironments({ q: search, status }).then(setEnvironments).catch(() => setEnvironments([]));
+  }, [search, status]);
 
-  const visibleEnvironments = status === "All" ? environments : environments.filter((environment) => environment.status === status);
+  async function archiveCurrent(environment: Environment) {
+    const updated = await archiveEnvironment(environment.id);
+    setEnvironments((items) => items.map((item) => (item.id === updated.id ? updated : item)));
+  }
 
   return (
     <section className="flex flex-col gap-4">
       <PageHeader
-        title="Environment"
+        title="Environments"
         description="Configuration template for containers, such as sessions or code execution."
         action={
           <Button onClick={() => setDialogOpen(true)}>
@@ -936,12 +940,12 @@ function EnvironmentsPage() {
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative w-[486px]">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-          <TextInput className="pl-9" aria-label="Search by name or exact ID" placeholder="Search by name or exact ID" />
+          <TextInput className="pl-9" aria-label="Search by name or exact ID" placeholder="Search by name or exact ID" value={search} onChange={(event) => setSearch(event.target.value)} />
         </div>
         <FieldSelect label="Status" value={status} options={["All", "Active", "Archived"]} onValueChange={setStatus} />
       </div>
       <DataTable
-        rows={visibleEnvironments}
+        rows={environments}
         getKey={(environment) => environment.id}
         columns={[
           {
@@ -951,7 +955,7 @@ function EnvironmentsPage() {
             render: (environment) => (
               <div className="flex items-center gap-2">
                 <span className="font-mono font-semibold">{shortId(environment.id)}</span>
-                <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${environment.id}`}>
+                <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${environment.id}`} onClick={() => copyText(environment.id)}>
                   <Copy className="h-3.5 w-3.5" />
                 </Button>
               </div>
@@ -971,6 +975,7 @@ function EnvironmentsPage() {
           { key: "type", header: "Type", width: "160px", render: (environment) => <span>{environment.type}</span> },
           { key: "updated", header: "Updated at", width: "180px", render: (environment) => <span className="text-muted">{environment.updatedLabel}</span> }
         ]}
+        renderActions={(environment) => <EnvironmentActions environment={environment} onArchive={() => archiveCurrent(environment)} />}
       />
       <div className="flex gap-2">
         <Button variant="secondary" className="h-8 w-8 px-0" disabled>
@@ -999,7 +1004,7 @@ function EnvironmentDetailPage() {
   const [packageManager, setPackageManager] = useState("apt");
   const [packages, setPackages] = useState<string[]>([]);
   const [packageDraft, setPackageDraft] = useState("");
-  const [metadata, setMetadata] = useState("");
+  const [metadataRows, setMetadataRows] = useState<MetadataRow[]>(emptyMetadataRows());
 
   useEffect(() => {
     if (id) getEnvironment(id).then(setEnvironment).catch(() => setEnvironment(null));
@@ -1013,7 +1018,7 @@ function EnvironmentDetailPage() {
     setPackageManager(environment.packageManager || "apt");
     setPackages(splitValues(environment.packages));
     setPackageDraft("");
-    setMetadata(environment.metadata);
+    setMetadataRows(parseMetadataRows(environment.metadata));
     setEditing(true);
   }
 
@@ -1025,7 +1030,7 @@ function EnvironmentDetailPage() {
       networkingType,
       packageManager,
       packages,
-      metadata
+      metadata: serializeMetadataRows(metadataRows)
     });
     setEnvironment(updated);
     setEditing(false);
@@ -1044,6 +1049,21 @@ function EnvironmentDetailPage() {
     setPackageDraft("");
   }
 
+  function updateMetadataRow(id: string, field: "key" | "value", value: string) {
+    setMetadataRows((rows) => rows.map((row) => (row.id === id ? { ...row, [field]: value } : row)));
+  }
+
+  function addMetadataRow() {
+    setMetadataRows((rows) => [...rows, { id: nextLocalId("metadata"), key: "", value: "" }]);
+  }
+
+  function removeMetadataRow(id: string) {
+    setMetadataRows((rows) => {
+      const next = rows.filter((row) => row.id !== id);
+      return next.length ? next : emptyMetadataRows();
+    });
+  }
+
   if (!environment) return <EmptyState title="Environment not found" description="The selected environment could not be loaded." />;
 
   return (
@@ -1051,7 +1071,7 @@ function EnvironmentDetailPage() {
       <div className="flex h-[52px] items-center justify-between">
         <nav className="flex items-center gap-2 text-sm text-muted">
           <Link className="rounded-control px-3 py-1.5 hover:bg-fill" to="/environments">
-            Environment
+            Environments
           </Link>
           <span>/</span>
           <span className="text-ink">{environment.name}</span>
@@ -1070,7 +1090,7 @@ function EnvironmentDetailPage() {
           </div>
           <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
             <span className="font-mono">{shortId(environment.id)}</span>
-            <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${environment.id}`}>
+            <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${environment.id}`} onClick={() => copyText(environment.id)}>
               <Copy className="h-3.5 w-3.5" />
             </Button>
             <span>·</span>
@@ -1086,7 +1106,7 @@ function EnvironmentDetailPage() {
           ) : (
             <>
               <Button variant="secondary" onClick={startEdit}>Edit</Button>
-              <EnvironmentActions onArchive={archiveCurrent} />
+              <EnvironmentActions environment={environment} onArchive={archiveCurrent} />
             </>
           )}
         </div>
@@ -1139,15 +1159,36 @@ function EnvironmentDetailPage() {
               </div>
             </div>
           </DetailSection>
-          <DetailSection title="Metadata">
+          <section>
+            <div className="mb-3 flex items-center gap-2">
+              <h2 className="text-base font-semibold">Metadata</h2>
+              <Button variant="icon" aria-label="Add metadata entry" onClick={addMetadataRow}>
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
             <p className="mb-3 text-sm text-muted">Add custom key-value pairs to tag and organize this environment. Keys must be lowercase.</p>
-            <textarea
-              className="cds-focus min-h-[84px] w-full resize-none rounded-cds border border-line bg-white px-3 py-3 font-mono text-sm leading-6"
-              placeholder="client_key=Value"
-              value={metadata}
-              onChange={(event) => setMetadata(event.target.value)}
-            />
-          </DetailSection>
+            <div className="grid gap-2">
+              {metadataRows.map((row, index) => (
+                <div key={row.id} className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_28px] items-center gap-2">
+                  <TextInput
+                    aria-label={`Metadata key ${index + 1}`}
+                    placeholder="client_key..."
+                    value={row.key}
+                    onChange={(event) => updateMetadataRow(row.id, "key", event.target.value)}
+                  />
+                  <TextInput
+                    aria-label={`Metadata value ${index + 1}`}
+                    placeholder="Value"
+                    value={row.value}
+                    onChange={(event) => updateMetadataRow(row.id, "value", event.target.value)}
+                  />
+                  <Button variant="icon" aria-label={`Remove metadata row ${index + 1}`} onClick={() => removeMetadataRow(row.id)} disabled={metadataRows.length === 1}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </section>
         </div>
       ) : (
         <div className="grid max-w-[820px] gap-8">
@@ -1163,7 +1204,7 @@ function EnvironmentDetailPage() {
             <p className="mb-4 text-sm text-muted">Specify packages and their versions available in this environment. Separate multiple values with spaces.</p>
             <div className="flex items-start justify-between gap-4 rounded-cds border border-line bg-white p-3">
               <pre className="whitespace-pre-wrap font-mono text-sm leading-6">{environment.packageManager || "apt"}: {environment.packages || "No packages"}</pre>
-              <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label="Copy">
+              <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label="Copy" onClick={() => copyText(`${environment.packageManager || "apt"}: ${environment.packages || ""}`.trim())}>
                 <Copy className="h-3.5 w-3.5" />
               </Button>
             </div>
@@ -2911,22 +2952,34 @@ function fileTone(status: string): "neutral" | "green" | "blue" | "red" {
   return "blue";
 }
 
-function EnvironmentActions({ onArchive }: { onArchive: () => void }) {
+function EnvironmentActions({ environment, onArchive }: { environment: Environment; onArchive: () => void }) {
+  const navigate = useNavigate();
+  const archived = environment.status === "Archived";
   return (
     <CdsDropdownMenu.Root>
       <CdsDropdownMenu.Trigger asChild>
         <Button variant="icon" aria-label="More actions">
-          ⋯
+          <span className="text-lg leading-none">⋯</span>
         </Button>
       </CdsDropdownMenu.Trigger>
       <CdsDropdownMenu.Portal>
-        <CdsDropdownMenu.Content className="z-50 min-w-[150px] rounded-cds border border-line bg-white p-1 shadow-lg" align="end">
+        <CdsDropdownMenu.Content className="z-50 min-w-[170px] rounded-cds border border-line bg-white p-1 shadow-lg" align="end">
+          <CdsDropdownMenu.Item className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill" onSelect={() => navigate(`/environments/${environment.id}`)}>
+            <Database className="h-4 w-4" />
+            Open environment
+          </CdsDropdownMenu.Item>
+          <CdsDropdownMenu.Item className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill" onSelect={() => copyText(environment.id)}>
+            <Copy className="h-4 w-4" />
+            Copy ID
+          </CdsDropdownMenu.Item>
+          <CdsDropdownMenu.Separator className="my-1 h-px bg-line" />
           <CdsDropdownMenu.Item
-            className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill"
+            className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm text-[#a33a29] outline-none data-[highlighted]:bg-[#fff1ef]"
             onSelect={onArchive}
+            disabled={archived}
           >
-            <Archive className="h-4 w-4 text-muted" />
-            Archive
+            <Archive className="h-4 w-4" />
+            {archived ? "Archived" : "Archive"}
           </CdsDropdownMenu.Item>
         </CdsDropdownMenu.Content>
       </CdsDropdownMenu.Portal>
@@ -3291,6 +3344,36 @@ function UploadIcon() {
 
 function splitValues(value: string) {
   return value.split(/\s+/).map((item) => item.trim()).filter(Boolean);
+}
+
+type MetadataRow = { id: string; key: string; value: string };
+
+function emptyMetadataRows(): MetadataRow[] {
+  return [{ id: nextLocalId("metadata"), key: "", value: "" }];
+}
+
+function parseMetadataRows(value: string): MetadataRow[] {
+  const rows = value
+    .split(/\n+/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const [key, ...rest] = line.split("=");
+      return { id: nextLocalId("metadata"), key: key.trim(), value: rest.join("=").trim() };
+    });
+  return rows.length ? rows : emptyMetadataRows();
+}
+
+function serializeMetadataRows(rows: MetadataRow[]) {
+  return rows
+    .map((row) => ({ key: row.key.trim(), value: row.value.trim() }))
+    .filter((row) => row.key || row.value)
+    .map((row) => `${row.key}=${row.value}`)
+    .join("\n");
+}
+
+function nextLocalId(prefix: string) {
+  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
 function memoryFolders(memories: MemoryRecord[]) {
