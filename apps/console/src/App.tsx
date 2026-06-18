@@ -349,14 +349,32 @@ function SessionsPage() {
         }
       />
       <div className="flex flex-wrap items-center gap-2">
-        <div className="relative w-[276px]">
+        <div className="relative w-[320px]">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
           <TextInput className="pl-9" aria-label="Search by session ID" placeholder="Search by session ID" value={search} onChange={(event) => setSearch(event.target.value)} />
         </div>
-        <FieldSelect label="Created" value={created} options={["All time", "Last 24 hours", "Last 7 days", "Last 30 days"]} onValueChange={setCreated} />
-        <FieldSelect label="Agent" value={agent} options={["All", "agent_013mi1SmR2hJ6Hk6wNTeJvF9", "agent_017k8CPYuCFRD9AmupUeXd2Z"]} onValueChange={setAgent} />
-        <FieldSelect label="Deployment" value={deployment} options={["All", "depl_01ERmHnRJWQSLyxk7pVCMZXs"]} onValueChange={setDeployment} />
-        <FieldSelect label="Status" value={status} options={["Active", "Idle", "Cancelled", "All"]} onValueChange={setStatus} />
+        <FieldSelect
+          label="Created"
+          value={created}
+          options={["All time", "Last 24 hours", "Last 7 days", "Last 30 days"]}
+          onValueChange={setCreated}
+          triggerClassName="w-[142px]"
+        />
+        <FieldSelect
+          label="Agent"
+          value={agent}
+          options={["All", "agent_013mi1SmR2hJ6Hk6wNTeJvF9", "agent_017k8CPYuCFRD9AmupUeXd2Z"]}
+          onValueChange={setAgent}
+          triggerClassName="ml-2 w-[112px]"
+        />
+        <FieldSelect
+          label="Deployment"
+          value={deployment}
+          options={["All", "depl_01ERmHnRJWQSLyxk7pVCMZXs"]}
+          onValueChange={setDeployment}
+          triggerClassName="ml-2 w-[136px]"
+        />
+        <FieldSelect label="Status" value={status} options={["Active", "Idle", "Cancelled", "All"]} onValueChange={setStatus} triggerClassName="ml-2 w-[123px]" />
       </div>
       <DataTable
         rows={sessions}
@@ -399,6 +417,7 @@ function SessionsPage() {
           },
           { key: "created", header: "Created", width: "200px", render: (session) => <span className="text-muted">{session.createdLabel}</span> }
         ]}
+        actionsWidth="56px"
         renderActions={(session) => <SessionRowActions session={session} onCancel={() => cancelCurrent(session)} />}
       />
       <CreateSessionDialog

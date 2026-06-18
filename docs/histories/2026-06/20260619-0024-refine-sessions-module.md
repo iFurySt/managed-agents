@@ -22,6 +22,13 @@ Sessions are the operational debugging surface for managed agents, so this pass 
 
 The follow-up keeps the fixed-layout behavior in the shared CDS table so declared column widths are honored consistently, while the Sessions-specific width values mirror the Claude table: compact ID/status/agent columns and a wider Created column.
 
+### Follow-up: Sessions List Geometry
+
+- Re-captured the Claude Platform Sessions list with OBU at a 1272px viewport.
+- Aligned the Sessions filter row to the captured controls: 320px search field, 142px Created select, 112px Agent select, 136px Deployment select, and 123px Status select with the same x-position spacing as Claude.
+- Set the Sessions table actions column to 56px so the list keeps the captured 968px row shape with 40/160/191/130/191/200/56 column geometry.
+- Verified the local `/sessions` page with OBU after the change; filter and table x/width/height values match the Claude reference, while global shell vertical positioning remains a separate follow-up.
+
 ### Verification
 
 - OBU confirmed the local Sessions table renders at `968px` wide with `45px` rows and `32px` headers.
