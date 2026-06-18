@@ -11,6 +11,7 @@ Continue cloning the Claude Platform managed-agents console one module at a time
 - Tightened the Create skill dialog to match Claude's narrow upload modal and disabled Continue state.
 - Refined the Skill version history dialog with Claude-like width, compact title sizing, copyable version labels, and reduced bottom whitespace.
 - Changed apiserver seed behavior to upsert built-in Anthropic skills and versions on startup, keeping local development databases aligned with the captured Claude labels and version history while preserving user-created skills.
+- Follow-up: rechecked the Claude Skills page and Create skill dialog with OBU, widened the local skills list to the observed 952px content width, changed version-history controls to transparent 28px icon buttons, and reshaped the upload drop zone so the 112px dashed box only contains the upload prompt while the 8MB limit/help links sit below it.
 
 ### Intent
 
@@ -22,9 +23,11 @@ Skills remain a logical module inside `apiserver` for the MVP. The UI keeps the 
 - OBU post-change local dialog measurements:
   - Create skill: `510x264`, matching Claude's `510x265` modal.
   - Version history: `520x393`, matching Claude's `520x396` modal.
+- OBU follow-up measurements confirmed the local Skills list at `952px`, version-history buttons at `28x28`, and the Create skill upload drop zone at `460x112` with a transparent dashed style.
 - `npm run build:console`
 - `go test ./...`
 - `curl -sS http://127.0.0.1:8080/api/skills` confirmed the built-in xlsx skill uses `createdLabel: Oct 14, 2025` and `updatedLabel: Feb 3`.
+- `POST /api/skills` plus `DELETE /api/skills/:id` smoke created and removed a temporary local skill.
 
 ### Files
 

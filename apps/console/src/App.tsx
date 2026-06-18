@@ -24,7 +24,6 @@ import {
   Shield,
   Terminal,
   Trash2,
-  Upload,
   Wrench
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -1907,7 +1906,7 @@ function SkillsPage() {
           </Button>
         }
       />
-      <div className="flex max-w-[920px] flex-col gap-5">
+      <div className="flex max-w-[952px] flex-col gap-5">
         {skills.map((skill) => (
           <article key={skill.id} className="grid grid-cols-[minmax(0,1fr)_36px] gap-4 border-b border-line pb-5">
             <div className="min-w-0">
@@ -1931,7 +1930,12 @@ function SkillsPage() {
               </div>
             </div>
             <div className="flex flex-col items-end gap-2">
-              <Button variant="icon" aria-label={`View version history for ${skill.name}`} onClick={() => setVersionSkillId(skill.id)}>
+              <Button
+                variant="icon"
+                className="!h-7 !w-7 !border-0 !bg-transparent !px-0 !text-ink"
+                aria-label={`View version history for ${skill.name}`}
+                onClick={() => setVersionSkillId(skill.id)}
+              >
                 <Clock className="h-4 w-4" />
               </Button>
               {skill.owner !== "Anthropic" ? <SkillActions onDelete={() => deleteCurrent(skill)} /> : null}
@@ -2888,8 +2892,8 @@ function CreateSkillDialog({
       closeLabel="Close"
     >
       <div className="px-6 pb-0 pt-3">
-        <div className="grid gap-4">
-          <label className="grid min-h-[112px] cursor-pointer place-items-center rounded-cds border border-dashed border-[#cfcac2] bg-fill px-6 py-4 text-center">
+        <div className="grid gap-2">
+          <label className="flex h-[112px] cursor-pointer items-center justify-center rounded-cds border border-dashed border-line bg-transparent px-4 py-6 text-center">
             <input
               className="hidden"
               type="file"
@@ -2897,16 +2901,15 @@ function CreateSkillDialog({
               onChange={(event) => setSelectedName(event.target.files?.[0]?.name ?? "")}
             />
             <div>
-              <div className="mx-auto mb-2 grid h-8 w-8 place-items-center rounded-cds border border-line bg-white">
-                <UploadIcon />
-              </div>
               <p className="text-sm font-medium">Drag and drop a .zip, .skill file, or directory to upload</p>
-              <p className="mt-2 text-sm text-muted">Total file size limit: 8MB. <span className="font-medium text-ink">File format</span> · <span className="font-medium text-ink">download an example</span>.</p>
               {selectedName ? <p className="mt-3 font-mono text-sm text-ink">{selectedName}</p> : null}
             </div>
           </label>
+          <p className="text-center text-xs leading-4 text-muted">
+            Total file size limit: 8MB. <span className="font-medium">File format</span> · <span className="font-medium">download an example</span>.
+          </p>
         </div>
-        <div className="sticky bottom-0 -mx-6 mt-4 flex justify-end bg-white px-6 py-3">
+        <div className="sticky bottom-0 -mx-6 mt-[15px] flex justify-end bg-white px-6 py-0">
           <Button onClick={submit} disabled={!canContinue}>Continue</Button>
         </div>
       </div>
@@ -3492,10 +3495,6 @@ function SkillActions({ onDelete }: { onDelete: () => void }) {
       </CdsDropdownMenu.Portal>
     </CdsDropdownMenu.Root>
   );
-}
-
-function UploadIcon() {
-  return <Upload className="h-4 w-4 text-muted" />;
 }
 
 function splitValues(value: string) {
