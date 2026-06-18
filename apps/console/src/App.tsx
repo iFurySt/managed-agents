@@ -255,7 +255,7 @@ function AgentsPage() {
         }
       />
       <div className="flex items-center gap-2">
-        <div className="relative w-[486px]">
+        <div className="relative w-[320px]">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
           <TextInput
             className="pl-9"
@@ -264,8 +264,14 @@ function AgentsPage() {
             onChange={(event) => setSearch(event.target.value)}
           />
         </div>
-        <FieldSelect label="Created" value={created} options={["All time", "Last 24 hours", "Last 7 days", "Last 30 days"]} onValueChange={setCreated} />
-        <FieldSelect label="Status" value={status} options={["Active", "Archived", "All"]} onValueChange={setStatus} />
+        <FieldSelect
+          label="Created"
+          value={created}
+          options={["All time", "Last 24 hours", "Last 7 days", "Last 30 days"]}
+          onValueChange={setCreated}
+          triggerClassName="w-[142px]"
+        />
+        <FieldSelect label="Status" value={status} options={["Active", "Archived", "All"]} onValueChange={setStatus} triggerClassName="ml-2 w-[123px]" />
       </div>
       <DataTable
         rows={agents}
@@ -299,6 +305,7 @@ function AgentsPage() {
           { key: "created", header: "Created", width: "150px", render: (agent) => <span className="text-muted">{agent.createdLabel || "2 days ago"}</span> },
           { key: "updated", header: "Last updated", width: "150px", render: (agent) => <span className="text-muted">{agent.updatedLabel || "2 days ago"}</span> }
         ]}
+        actionsWidth="56px"
         renderActions={(agent) => <AgentRowActions agent={agent} onArchive={() => archiveCurrent(agent)} />}
       />
       <CreateAgentDialog

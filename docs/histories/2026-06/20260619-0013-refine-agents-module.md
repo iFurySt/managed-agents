@@ -23,6 +23,13 @@ Agents are the primary entry point for sessions and deployments, so this pass mo
 
 The follow-up keeps the table density and fixed-layout changes in the shared CDS layer because Agents, Sessions, Deployments, Environments, Vaults, Files, and other management lists share the same Claude table token.
 
+### Follow-up: Agents List Geometry
+
+- Re-captured the Claude Platform Agents list with OBU at a 1272px viewport.
+- Aligned the Agents filter row to the captured controls: 320px search field, 142px Created select, and 123px Status select with the same x-position spacing as Claude.
+- Set the Agents table actions column to 56px so the list keeps the captured 1106px row shape with 40/180/240/170/120/150/150/56 column geometry.
+- Verified the local `/agents` page with OBU after the change; filter and table x/width/height values match the Claude reference, while global shell vertical positioning remains a separate follow-up.
+
 ### Files Modified
 
 - `apps/apiserver/main.go`
