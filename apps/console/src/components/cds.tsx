@@ -125,7 +125,7 @@ export function DataTable<T>({
 }) {
   return (
     <div data-cds="DataTable" className="w-full overflow-hidden">
-      <table data-cds="Table" className="w-full border-collapse text-left text-sm">
+      <table data-cds="Table" className="w-full table-fixed border-collapse text-left text-sm">
         <thead>
           <tr className="h-8 border-b border-line text-[13px] font-medium leading-4 text-[#52514e]">
             {showSelection ? (
@@ -150,7 +150,7 @@ export function DataTable<T>({
                 </td>
               ) : null}
               {columns.map((column) => (
-                <td key={column.key} className="max-w-[260px] truncate px-3 py-2 align-middle">
+                <td key={column.key} className="max-w-[260px] truncate px-3 py-2 align-middle" style={{ width: column.width }}>
                   {column.render(row)}
                 </td>
               ))}

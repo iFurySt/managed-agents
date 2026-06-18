@@ -274,7 +274,7 @@ function AgentsPage() {
           {
             key: "id",
             header: "ID",
-            width: "190px",
+            width: "180px",
             render: (agent) => (
               <div className="flex items-center gap-2 font-mono font-semibold">
                 <span>{shortId(agent.id)}</span>
@@ -287,17 +287,17 @@ function AgentsPage() {
           {
             key: "name",
             header: "Name",
-            width: "330px",
+            width: "240px",
             render: (agent) => (
-              <Link className="font-medium hover:underline" to={`/agents/${agent.id}`}>
+              <Link className="block truncate font-medium hover:underline" to={`/agents/${agent.id}`}>
                 {agent.name}
               </Link>
             )
           },
-          { key: "model", header: "Model", width: "210px", render: (agent) => <span className="font-mono text-muted">{agent.model}</span> },
-          { key: "status", header: "Status", width: "150px", render: (agent) => <Badge tone={agent.status === "Archived" ? "neutral" : "green"}>{agent.status}</Badge> },
+          { key: "model", header: "Model", width: "170px", render: (agent) => <span className="font-mono text-muted">{agent.model}</span> },
+          { key: "status", header: "Status", width: "120px", render: (agent) => <Badge tone={agent.status === "Archived" ? "neutral" : "green"}>{agent.status}</Badge> },
           { key: "created", header: "Created", width: "150px", render: (agent) => <span className="text-muted">{agent.createdLabel || "2 days ago"}</span> },
-          { key: "updated", header: "Last updated", width: "160px", render: (agent) => <span className="text-muted">{agent.updatedLabel || "2 days ago"}</span> }
+          { key: "updated", header: "Last updated", width: "150px", render: (agent) => <span className="text-muted">{agent.updatedLabel || "2 days ago"}</span> }
         ]}
         renderActions={(agent) => <AgentRowActions agent={agent} onArchive={() => archiveCurrent(agent)} />}
       />
@@ -358,7 +358,7 @@ function SessionsPage() {
           {
             key: "id",
             header: "ID",
-            width: "210px",
+            width: "160px",
             render: (session) => (
               <div className="flex items-center gap-2">
                 <span className="font-mono font-semibold">{shortId(session.id)}</span>
@@ -371,26 +371,26 @@ function SessionsPage() {
           {
             key: "name",
             header: "Name",
-            width: "360px",
+            width: "191px",
             render: (session) => (
-              <Link className="font-medium hover:underline" to={`/sessions/${session.id}`}>
+              <Link className="block truncate font-medium hover:underline" to={`/sessions/${session.id}`}>
                 {session.name}
               </Link>
             )
           },
-          { key: "status", header: "Status", width: "140px", render: (session) => <Badge tone={sessionTone(session.status)}>{session.status}</Badge> },
+          { key: "status", header: "Status", width: "130px", render: (session) => <Badge tone={sessionTone(session.status)}>{session.status}</Badge> },
           {
             key: "agent",
             header: "Agent",
-            width: "320px",
+            width: "191px",
             render: (session) => (
-              <Button variant="ghost" className="h-[25px] justify-start px-2">
+              <Button variant="ghost" className="h-[25px] max-w-[170px] justify-start px-2">
                 <Braces className="h-4 w-4 text-muted" />
-                {session.agentName}
+                <span className="truncate">{session.agentName}</span>
               </Button>
             )
           },
-          { key: "created", header: "Created", width: "160px", render: (session) => <span className="text-muted">{session.createdLabel}</span> }
+          { key: "created", header: "Created", width: "200px", render: (session) => <span className="text-muted">{session.createdLabel}</span> }
         ]}
         renderActions={(session) => <SessionRowActions session={session} onCancel={() => cancelCurrent(session)} />}
       />

@@ -14,13 +14,26 @@
 
 - Area: `apiserver`, console UI, API client.
 - Key actions: refined the Sessions list, create dialog, detail controls, event filtering, transcript copy/download, and Ask Claude follow-up flow against fresh OBU DOM and screenshot evidence.
+- Follow-up: rechecked Claude and local Sessions tables with OBU after the shared table-density token pass, then enabled fixed table layout and tuned Sessions column widths to match the observed Claude distribution.
 
 ### Design Intent
 
 Sessions are the operational debugging surface for managed agents, so this pass makes the page behave more like the Claude reference instead of only displaying seeded rows. The list filters now call the API, Active maps to live session states, Ask Claude appends session events, and the detail view has searchable transcript events plus explicit transcript copy/download actions.
 
+The follow-up keeps the fixed-layout behavior in the shared CDS table so declared column widths are honored consistently, while the Sessions-specific width values mirror the Claude table: compact ID/status/agent columns and a wider Created column.
+
+### Verification
+
+- OBU confirmed the local Sessions table renders at `968px` wide with `45px` rows and `32px` headers.
+- OBU confirmed the local Sessions column widths now align with the captured Claude proportions: ID about `161px`, Name about `193px`, Status about `131px`, Agent about `193px`, and Created about `202px`.
+- OBU confirmed the Agents table still renders without horizontal overflow after the shared fixed-layout change.
+- `npm run build:console`
+- `go test ./...`
+- `GET /api/sessions?status=Active` smoke returned 8 sessions.
+
 ### Files Modified
 
 - `apps/apiserver/main.go`
 - `apps/console/src/App.tsx`
+- `apps/console/src/components/cds.tsx`
 - `apps/console/src/api.ts`
