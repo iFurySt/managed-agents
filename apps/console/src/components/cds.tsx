@@ -213,7 +213,7 @@ export function ConsoleDialog({
               {description ? <Dialog.Description className="mt-1 text-sm text-muted">{description}</Dialog.Description> : null}
             </div>
             <Dialog.Close asChild>
-              <Button variant="ghost" className="h-7 w-7 px-0" aria-label={closeLabel}>
+              <Button variant="ghost" className="h-8 w-8 px-0" aria-label={closeLabel}>
                 <X className="h-5 w-5" />
               </Button>
             </Dialog.Close>

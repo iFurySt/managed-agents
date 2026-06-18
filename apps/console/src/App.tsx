@@ -2322,6 +2322,8 @@ function CreateDeploymentDialog({
   const [trigger, setTrigger] = useState("");
 
   const canCreate = name && agentId && initialMessage && environmentId && trigger;
+  const fieldLabelClass = "text-sm font-medium leading-none";
+  const manageLinkClass = "text-sm font-medium leading-none text-ink hover:underline";
 
   async function submit() {
     if (!canCreate) return;
@@ -2343,17 +2345,25 @@ function CreateDeploymentDialog({
   }
 
   return (
-    <ConsoleDialog title="Create deployment" description="Deploy an agent with a trigger, environment, and credentials." open={open} onOpenChange={onOpenChange}>
-      <div className="max-h-[calc(86vh-92px)] overflow-y-auto px-6 pb-0 pt-5">
+    <ConsoleDialog
+      title="Create deployment"
+      description="Deploy an agent with a trigger, environment, and credentials."
+      open={open}
+      onOpenChange={onOpenChange}
+      contentClassName="w-[520px] max-w-[calc(100vw-32px)] max-h-[calc(100dvh-32px)]"
+      titleClassName="text-lg font-semibold text-ink"
+      closeLabel="Close"
+    >
+      <div className="max-h-[calc(100dvh-116px)] overflow-y-auto px-6 pb-0 pt-5">
         <div className="grid gap-5">
-          <label className="grid gap-2 text-sm font-medium">
+          <label className={`grid gap-2 ${fieldLabelClass}`}>
             Name
             <TextInput placeholder="Nightly inbox triage" value={name} onChange={(event) => setName(event.target.value)} />
           </label>
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
-              <label className="text-sm font-medium">Agent</label>
-              <Button variant="ghost" size="sm">Manage agents</Button>
+              <label className={fieldLabelClass}>Agent</label>
+              <a className={manageLinkClass} href="/agents" target="_blank" rel="noreferrer">Manage agents</a>
             </div>
             <FieldSelect
               label=""
@@ -2362,20 +2372,20 @@ function CreateDeploymentDialog({
               onValueChange={(value) => setAgentId(value === "Select an agent" ? "" : value)}
             />
           </div>
-          <label className="grid gap-2 text-sm font-medium">
+          <label className={`grid gap-2 ${fieldLabelClass}`}>
             Initial message
-            <span className="text-sm font-normal text-muted">Sent to the agent at the start of every run.</span>
             <textarea
               className="cds-focus min-h-14 resize-none rounded-control border border-line bg-white px-3 py-2 text-sm"
               placeholder="Summarize today's support tickets and post to #digest"
               value={initialMessage}
               onChange={(event) => setInitialMessage(event.target.value)}
             />
+            <span className="text-[13px] font-normal leading-[18px] text-muted">Sent to the agent at the start of every run.</span>
           </label>
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
-              <label className="text-sm font-medium">Environment</label>
-              <Button variant="ghost" size="sm">Manage environments</Button>
+              <label className={fieldLabelClass}>Environment</label>
+              <a className={manageLinkClass} href="/environments" target="_blank" rel="noreferrer">Manage environments</a>
             </div>
             <FieldSelect
               label=""
@@ -2386,30 +2396,24 @@ function CreateDeploymentDialog({
           </div>
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
-              <label className="text-sm font-medium">Credential vaults(optional)</label>
-              <Button variant="ghost" size="sm">Manage credential vault</Button>
+              <label className={fieldLabelClass}>Credential vaults(optional)</label>
+              <a className={manageLinkClass} href="/vaults" target="_blank" rel="noreferrer">Manage credential vaults</a>
             </div>
             <FieldSelect label="" value={vault || "Add vault"} options={["Add vault", "test_secret", "vault_01GitHub"]} onValueChange={(value) => setVault(value === "Add vault" ? "" : value)} />
           </div>
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
-              <label className="text-sm font-medium">Memory stores(optional)</label>
-              <Button variant="ghost" size="sm">Manage memory store</Button>
+              <label className={fieldLabelClass}>Memory stores(optional)</label>
+              <a className={manageLinkClass} href="/memory-stores" target="_blank" rel="noreferrer">Manage memory stores</a>
             </div>
             <FieldSelect label="" value={memoryStore || "Add memory store"} options={["Add memory store", "world cup"]} onValueChange={(value) => setMemoryStore(value === "Add memory store" ? "" : value)} />
           </div>
           <div className="grid gap-2">
-            <label className="text-sm font-medium">Trigger</label>
+            <label className={fieldLabelClass}>Trigger</label>
             <FieldSelect label="" value={trigger || "Select a trigger"} options={["Select a trigger", "Manual", "Schedule"]} onValueChange={(value) => setTrigger(value === "Select a trigger" ? "" : value)} />
-            <div className="rounded-cds border border-line bg-fill p-3 text-sm text-muted">
-              <div className="font-semibold text-ink">Manual</div>
-              <div>Run on demand from the dashboard or API</div>
-              <div className="mt-2 font-semibold text-ink">Schedule</div>
-              <div>Run automatically on a cron schedule</div>
-            </div>
           </div>
         </div>
-        <div className="sticky bottom-0 -mx-6 mt-6 flex justify-end bg-white px-6 py-5">
+        <div className="sticky bottom-0 -mx-6 mt-5 flex justify-end bg-white px-6 pb-[25px] pt-0">
           <Button onClick={submit} disabled={!canCreate}>Create</Button>
         </div>
       </div>
