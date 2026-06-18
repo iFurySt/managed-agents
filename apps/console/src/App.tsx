@@ -1722,7 +1722,7 @@ function FilesPage() {
   }
 
   return (
-    <section className="flex flex-col gap-2">
+    <section className="ml-2 flex flex-col gap-2">
       <PageHeader
         title="Files"
         description="Only files from the Default workspace are shown. To see other workspace's files, select a workspace."
@@ -1810,14 +1810,14 @@ function FilesEmptyState({ language, onLanguageChange }: { language: string; onL
             value={language}
             options={["Python", "cURL"]}
             onValueChange={onLanguageChange}
-            triggerClassName="!h-6 !rounded-md !border-0 !bg-transparent !px-2 !text-[13px] !text-muted hover:!bg-[#eeeeeb] [&_svg]:!h-3.5 [&_svg]:!w-3.5"
+            triggerClassName="!h-6 !w-[81px] !gap-1.5 !rounded-md !border-0 !bg-transparent !px-2 !text-[13px] !font-semibold !text-muted hover:!bg-[#eeeeeb] [&_svg]:!h-3.5 [&_svg]:!w-3.5"
           />
           <div className="ml-auto flex items-center gap-1">
-            <a className="inline-flex h-6 items-center gap-1.5 rounded-md px-2 text-[13px] font-medium leading-5 hover:bg-[#eeeeeb]" href="https://docs.claude.com/en/docs/build-with-claude/files">
+            <a className="inline-flex h-6 w-[96px] items-center gap-1.5 rounded-md px-2 text-[13px] font-medium leading-5 hover:bg-[#eeeeeb]" href="https://docs.claude.com/en/docs/build-with-claude/files">
               View docs
               <span className="text-muted">↗</span>
             </a>
-            <Button variant="ghost" size="sm" className="!h-6 !w-6 !rounded-md !px-0" aria-label="Copy code" onClick={() => copyText(code)}>
+            <Button variant="ghost" size="sm" className="!-mr-1 !h-6 !w-6 !rounded-md !px-0" aria-label="Copy code" onClick={() => copyText(code)}>
               <Copy className="h-3.5 w-3.5" />
             </Button>
           </div>

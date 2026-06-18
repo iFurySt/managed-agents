@@ -26,3 +26,9 @@ The follow-up keeps the empty workspace path free of a local upload dialog becau
 
 - `apps/console/src/App.tsx`
 - `apps/console/src/api.ts`
+
+### Follow-up: Empty State Control Geometry
+
+- Re-captured the Claude Platform Files empty state with OBU.
+- Shifted the local Files content 8px right to match the observed Files page content origin.
+- Tuned the code example toolbar controls to the captured geometry: 81px Python selector, 96px docs link, and copy button aligned at the same right edge.
