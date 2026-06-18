@@ -215,6 +215,24 @@ func main() {
 	smoke.Flags().BoolVar(&opt.keepAlive, "keep-alive", false, "leave the Firecracker process running after validation")
 	root.AddCommand(smoke)
 
+	verify := &cobra.Command{
+		Use:          "verify",
+		Short:        "Run the full sandbox and process-api lifecycle verifier",
+		SilenceUsage: true,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return verifyLifecycle(cmd.Context(), opt)
+		},
+	}
+	verify.Flags().IntVar(&opt.vcpuCount, "vcpu", 1, "microVM vCPU count")
+	verify.Flags().IntVar(&opt.memMiB, "mem-mib", 256, "microVM memory size in MiB")
+	verify.Flags().DurationVar(&opt.timeout, "timeout", 150*time.Second, "time to wait for guest boot and process-api readiness")
+	verify.Flags().StringVar(&opt.processAPIBin, "process-api-bin", "/opt/managed-agents/bin/process-api", "Linux process-api binary to inject into the guest rootfs")
+	verify.Flags().StringVar(&opt.processAPITransport, "process-api-transport", "tcp", "process-api transport: tcp or vsock")
+	verify.Flags().Uint32Var(&opt.processAPIPort, "process-api-port", 1024, "guest AF_VSOCK port for process-api")
+	verify.Flags().Uint32Var(&opt.processAPITCPPort, "process-api-tcp-port", 8080, "guest TCP port for process-api")
+	verify.Flags().Uint32Var(&opt.vsockCID, "vsock-cid", 3, "Firecracker guest CID for the sandbox vsock device")
+	root.AddCommand(verify)
+
 	sandbox := &cobra.Command{
 		Use:   "sandbox",
 		Short: "Manage local Firecracker sandbox lifecycles",
@@ -561,6 +579,153 @@ func smoke(ctx context.Context, opt options) error {
 	return nil
 }
 
+func verifyLifecycle(ctx context.Context, opt options) error {
+	opt.withProcessAPI = true
+	opt.waitForBoot = true
+	if opt.vcpuCount == 0 {
+		opt.vcpuCount = 1
+	}
+	if opt.memMiB == 0 {
+		opt.memMiB = 256
+	}
+	if opt.timeout == 0 {
+		opt.timeout = 150 * time.Second
+	}
+	if opt.processAPITransport == "" {
+		opt.processAPITransport = "tcp"
+	}
+	if opt.processAPIPort == 0 {
+		opt.processAPIPort = 1024
+	}
+	if opt.processAPITCPPort == 0 {
+		opt.processAPITCPPort = 8080
+	}
+	id := generateSandboxID()
+	fmt.Printf("verify_step=start sandbox=%s\n", id)
+	state, err := startSandbox(ctx, opt, id)
+	if err != nil {
+		return err
+	}
+	cleanup := true
+	defer func() {
+		if cleanup {
+			_, _ = stopSandbox(ctx, opt, id)
+			_ = removeSandbox(ctx, opt, id, true)
+		}
+	}()
+
+	fmt.Println("verify_step=ping")
+	health, err := getProcessAPIHealth(ctx, state)
+	if err != nil {
+		return err
+	}
+	if health.Service != "process-api" || health.OS != "linux" {
+		return fmt.Errorf("unexpected process-api health response: %+v", health)
+	}
+
+	fmt.Println("verify_step=exec")
+	execResp, err := execProcessAPI(ctx, state, processAPIExecRequest{
+		Argv:          []string{"/bin/uname", "-m"},
+		TimeoutMillis: (10 * time.Second).Milliseconds(),
+	})
+	if err != nil {
+		return err
+	}
+	if !execResp.OK || execResp.ExitCode != 0 || strings.TrimSpace(execResp.Stdout) == "" {
+		return fmt.Errorf("guest uname verification failed: %+v", execResp)
+	}
+
+	fmt.Println("verify_step=exec_env_cwd")
+	envResp, err := execProcessAPI(ctx, state, processAPIExecRequest{
+		Argv:          []string{"/bin/sh", "-c", `printf cwd=; pwd; printf " env=$MA_VERIFY"`},
+		Cwd:           "/tmp",
+		Env:           map[string]string{"MA_VERIFY": "ok"},
+		TimeoutMillis: (10 * time.Second).Milliseconds(),
+	})
+	if err != nil {
+		return err
+	}
+	if !envResp.OK || !strings.Contains(envResp.Stdout, "cwd=/tmp") || !strings.Contains(envResp.Stdout, "env=ok") {
+		return fmt.Errorf("guest cwd/env verification failed: %+v", envResp)
+	}
+
+	fmt.Println("verify_step=process_lifecycle")
+	proc, err := startProcessAPI(ctx, state, processAPIProcessRequest{
+		Argv:          []string{"/bin/sh", "-c", "printf begin; sleep 1; printf done"},
+		TimeoutMillis: (10 * time.Second).Milliseconds(),
+	})
+	if err != nil {
+		return err
+	}
+	if proc.Status != "running" {
+		return fmt.Errorf("expected running process, got %+v", proc)
+	}
+	proc, err = waitForGuestProcessStatus(ctx, state, proc.ID, "exited", 5*time.Second)
+	if err != nil {
+		return err
+	}
+	if proc.ExitCode != 0 || proc.Stdout != "begindone" {
+		return fmt.Errorf("guest process lifecycle verification failed: %+v", proc)
+	}
+
+	fmt.Println("verify_step=process_signal")
+	sleepProc, err := startProcessAPI(ctx, state, processAPIProcessRequest{
+		Argv: []string{"/bin/sleep", "30"},
+	})
+	if err != nil {
+		return err
+	}
+	if sleepProc.Status != "running" {
+		return fmt.Errorf("expected running sleep process, got %+v", sleepProc)
+	}
+	if _, err := signalProcessAPI(ctx, state, sleepProc.ID, "TERM"); err != nil {
+		return err
+	}
+	sleepProc, err = waitForGuestProcessStatus(ctx, state, sleepProc.ID, "exited", 5*time.Second)
+	if err != nil {
+		return err
+	}
+	if sleepProc.ExitCode == 0 {
+		return fmt.Errorf("expected non-zero signal exit, got %+v", sleepProc)
+	}
+
+	fmt.Println("verify_step=cleanup")
+	if _, err := stopSandbox(ctx, opt, id); err != nil {
+		return err
+	}
+	if err := removeSandbox(ctx, opt, id, false); err != nil {
+		return err
+	}
+	if _, err := os.Stat(filepath.Join(sandboxesDir(opt), id)); !errors.Is(err, os.ErrNotExist) {
+		return fmt.Errorf("sandbox directory still exists after cleanup: %v", err)
+	}
+	cleanup = false
+	fmt.Println("verify=passed")
+	return nil
+}
+
+func waitForGuestProcessStatus(ctx context.Context, state sandboxState, processID, status string, timeout time.Duration) (processAPIProcessResponse, error) {
+	deadline := time.Now().Add(timeout)
+	var last processAPIProcessResponse
+	var lastErr error
+	for time.Now().Before(deadline) {
+		process, err := getProcessAPIProcess(ctx, state, processID)
+		if err == nil {
+			last = process
+			if process.Status == status {
+				return process, nil
+			}
+		} else {
+			lastErr = err
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+	if lastErr != nil {
+		return processAPIProcessResponse{}, lastErr
+	}
+	return processAPIProcessResponse{}, fmt.Errorf("process %s did not reach status %s before timeout; last=%+v", processID, status, last)
+}
+
 func resolveImage(name string) (imageSpec, error) {
 	switch name {
 	case "", "firecracker-ci-ubuntu-22.04", "ubuntu-22.04":
@@ -830,7 +995,7 @@ func stopSandbox(ctx context.Context, opt options, id string) (sandboxState, err
 		return sandboxState{}, err
 	}
 	if isProcessAlive(state.PID) {
-		if err := terminatePID(state.PID); err != nil {
+		if err := terminatePID(state.PID); err != nil && isProcessAlive(state.PID) {
 			return sandboxState{}, err
 		}
 	}
@@ -1705,6 +1870,7 @@ func terminatePID(pid int) error {
 	if err != nil {
 		return err
 	}
+	_ = syscall.Kill(-pid, syscall.SIGTERM)
 	_ = process.Signal(syscall.SIGTERM)
 	deadline := time.Now().Add(3 * time.Second)
 	for time.Now().Before(deadline) {
@@ -1713,6 +1879,7 @@ func terminatePID(pid int) error {
 		}
 		time.Sleep(100 * time.Millisecond)
 	}
+	_ = syscall.Kill(-pid, syscall.SIGKILL)
 	_ = process.Kill()
 	for i := 0; i < 20; i++ {
 		if !isProcessAlive(pid) {
@@ -1729,6 +1896,18 @@ func terminatePID(pid int) error {
 func isProcessAlive(pid int) bool {
 	if pid <= 0 {
 		return false
+	}
+	if runtime.GOOS == "linux" {
+		data, err := os.ReadFile(fmt.Sprintf("/proc/%d/stat", pid))
+		if errors.Is(err, os.ErrNotExist) {
+			return false
+		}
+		if err == nil {
+			parts := strings.SplitN(string(data), ") ", 2)
+			if len(parts) == 2 && len(parts[1]) > 0 {
+				return parts[1][0] != 'Z'
+			}
+		}
 	}
 	err := syscall.Kill(pid, 0)
 	return err == nil || errors.Is(err, syscall.EPERM)

@@ -41,6 +41,9 @@ go run ./apps/sandboxd sandbox process start sbx-dev --work-dir /opt/managed-age
 go run ./apps/sandboxd sandbox status sbx-dev --work-dir /opt/managed-agents/firecracker
 go run ./apps/sandboxd sandbox stop sbx-dev --work-dir /opt/managed-agents/firecracker
 go run ./apps/sandboxd sandbox rm sbx-dev --work-dir /opt/managed-agents/firecracker
+
+# Or run the full lifecycle verifier:
+go run ./apps/sandboxd verify --work-dir /opt/managed-agents/firecracker --sudo
 ```
 
 For the reusable GCP N2 nested-virtualization harness and sync commands, see

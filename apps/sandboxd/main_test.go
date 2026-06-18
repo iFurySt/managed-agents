@@ -2,6 +2,10 @@ package main
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"strings"
@@ -205,5 +209,43 @@ func TestProcessAPIURL(t *testing.T) {
 	}
 	if got := processAPIURL(vsock, "/healthz"); got != "http://process-api/healthz" {
 		t.Fatalf("vsock URL = %q", got)
+	}
+}
+
+func TestWaitForGuestProcessStatus(t *testing.T) {
+	var calls int
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		calls++
+		status := "running"
+		if calls >= 2 {
+			status = "exited"
+		}
+		_ = json.NewEncoder(w).Encode(processAPIProcessResponse{
+			ID:       "proc-1",
+			Status:   status,
+			ExitCode: 0,
+			Stdout:   "done",
+		})
+	}))
+	defer server.Close()
+	state := sandboxState{
+		ID:               "sbx-test",
+		ProcessAPI:       true,
+		ProcessTransport: "tcp",
+		GuestIP:          strings.TrimPrefix(server.URL, "http://"),
+		ProcessTCPPort:   80,
+	}
+	host, port, _ := strings.Cut(state.GuestIP, ":")
+	state.GuestIP = host
+	if port != "" {
+		state.ProcessTCPPort = 0
+		fmt.Sscanf(port, "%d", &state.ProcessTCPPort)
+	}
+	process, err := waitForGuestProcessStatus(context.Background(), state, "proc-1", "exited", time.Second)
+	if err != nil {
+		t.Fatalf("waitForGuestProcessStatus returned error: %v", err)
+	}
+	if process.Status != "exited" || calls < 2 {
+		t.Fatalf("unexpected process/calls: %#v %d", process, calls)
 	}
 }

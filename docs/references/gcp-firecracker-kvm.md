@@ -258,6 +258,25 @@ this milestone uses Firecracker tap networking and a guest TCP listener. The
 rootfs with vsock support can switch transports without changing the lifecycle
 shape.
 
+For the full verifier, run:
+
+```bash
+WORK_DIR=/opt/managed-agents/firecracker
+
+/opt/managed-agents/bin/sandboxd verify \
+  --work-dir "$WORK_DIR" \
+  --sudo \
+  --process-api-bin /opt/managed-agents/bin/process-api \
+  --timeout 150s
+```
+
+Expected verifier signal:
+
+- The command prints `verify=passed`.
+- The verifier removes its temporary sandbox directory before returning.
+
+For individual step-by-step checks, run:
+
 ```bash
 WORK_DIR=/opt/managed-agents/firecracker
 SANDBOX_ID=sbx-process-api
