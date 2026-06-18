@@ -4,6 +4,7 @@ import (
 	"archive/tar"
 	"compress/gzip"
 	"context"
+	"encoding/json"
 	"encoding/xml"
 	"errors"
 	"fmt"
@@ -28,11 +29,13 @@ const ciArtifactBucket = "https://s3.amazonaws.com/spec.ccfc.min"
 type options struct {
 	workDir            string
 	firecrackerVersion string
+	image              string
 	vcpuCount          int
 	memMiB             int
 	timeout            time.Duration
 	useSudo            bool
 	keepAlive          bool
+	waitForBoot        bool
 }
 
 type listBucketResult struct {
@@ -48,6 +51,36 @@ type assets struct {
 	firecracker string
 	kernel      string
 	rootfs      string
+	image       string
+	prefix      string
+	rootfsKey   string
+	kernelKey   string
+}
+
+type imageSpec struct {
+	name          string
+	rootfsVersion string
+}
+
+type sandboxState struct {
+	ID          string    `json:"id"`
+	Image       string    `json:"image"`
+	Status      string    `json:"status"`
+	Booted      bool      `json:"booted"`
+	PID         int       `json:"pid"`
+	VCPUCount   int       `json:"vcpu_count"`
+	MemMiB      int       `json:"mem_mib"`
+	WorkDir     string    `json:"work_dir"`
+	SandboxDir  string    `json:"sandbox_dir"`
+	SocketPath  string    `json:"socket_path"`
+	ConsolePath string    `json:"console_path"`
+	LogPath     string    `json:"log_path"`
+	KernelPath  string    `json:"kernel_path"`
+	RootfsPath  string    `json:"rootfs_path"`
+	BaseRootfs  string    `json:"base_rootfs"`
+	Firecracker string    `json:"firecracker"`
+	StartedAt   time.Time `json:"started_at"`
+	StoppedAt   time.Time `json:"stopped_at,omitempty"`
 }
 
 func main() {
@@ -58,6 +91,7 @@ func main() {
 	}
 	root.PersistentFlags().StringVar(&opt.workDir, "work-dir", "/opt/managed-agents/firecracker", "workspace for Firecracker binaries and guest assets")
 	root.PersistentFlags().StringVar(&opt.firecrackerVersion, "firecracker-version", "latest", "Firecracker release tag or latest")
+	root.PersistentFlags().StringVar(&opt.image, "image", "firecracker-ci-ubuntu-22.04", "microVM image to pull or boot")
 	root.PersistentFlags().BoolVar(&opt.useSudo, "sudo", true, "run host operations that need KVM/root privileges through sudo")
 
 	root.AddCommand(&cobra.Command{
@@ -76,6 +110,14 @@ func main() {
 			return err
 		},
 	})
+	root.AddCommand(&cobra.Command{
+		Use:   "pull",
+		Short: "Pull the configured microVM image into the local cache",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			_, err := prepareAssets(cmd.Context(), opt)
+			return err
+		},
+	})
 
 	smoke := &cobra.Command{
 		Use:   "smoke",
@@ -89,6 +131,76 @@ func main() {
 	smoke.Flags().DurationVar(&opt.timeout, "timeout", 90*time.Second, "time to wait for guest boot signals")
 	smoke.Flags().BoolVar(&opt.keepAlive, "keep-alive", false, "leave the Firecracker process running after validation")
 	root.AddCommand(smoke)
+
+	sandbox := &cobra.Command{
+		Use:   "sandbox",
+		Short: "Manage local Firecracker sandbox lifecycles",
+	}
+	start := &cobra.Command{
+		Use:   "start [sandbox-id]",
+		Short: "Start a Firecracker sandbox from the configured image",
+		Args:  cobra.MaximumNArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			id := ""
+			if len(args) > 0 {
+				id = args[0]
+			}
+			state, err := startSandbox(cmd.Context(), opt, id)
+			if err != nil {
+				return err
+			}
+			printSandboxState(state)
+			return nil
+		},
+	}
+	start.Flags().IntVar(&opt.vcpuCount, "vcpu", 1, "microVM vCPU count")
+	start.Flags().IntVar(&opt.memMiB, "mem-mib", 256, "microVM memory size in MiB")
+	start.Flags().DurationVar(&opt.timeout, "timeout", 90*time.Second, "time to wait for guest boot signals")
+	start.Flags().BoolVar(&opt.waitForBoot, "wait", true, "wait until the guest emits a boot signal before returning")
+	sandbox.AddCommand(start)
+
+	sandbox.AddCommand(&cobra.Command{
+		Use:   "status <sandbox-id>",
+		Short: "Inspect a local sandbox state file and host process",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			state, err := readSandboxState(opt, args[0])
+			if err != nil {
+				return err
+			}
+			state = refreshSandboxStatus(state)
+			printSandboxState(state)
+			return nil
+		},
+	})
+	sandbox.AddCommand(&cobra.Command{
+		Use:   "list",
+		Short: "List known local sandboxes",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			states, err := listSandboxes(opt)
+			if err != nil {
+				return err
+			}
+			for _, state := range states {
+				printSandboxState(refreshSandboxStatus(state))
+			}
+			return nil
+		},
+	})
+	sandbox.AddCommand(&cobra.Command{
+		Use:   "stop <sandbox-id>",
+		Short: "Stop a running Firecracker sandbox",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			state, err := stopSandbox(cmd.Context(), opt, args[0])
+			if err != nil {
+				return err
+			}
+			printSandboxState(state)
+			return nil
+		},
+	})
+	root.AddCommand(sandbox)
 
 	if err := root.Execute(); err != nil {
 		os.Exit(1)
@@ -133,6 +245,10 @@ func prepareAssets(ctx context.Context, opt options) (assets, error) {
 	if err := os.MkdirAll(opt.workDir, 0o755); err != nil {
 		return assets{}, err
 	}
+	image, err := resolveImage(opt.image)
+	if err != nil {
+		return assets{}, err
+	}
 	if err := requireCommand("unsquashfs"); err != nil {
 		return assets{}, err
 	}
@@ -155,6 +271,12 @@ func prepareAssets(ctx context.Context, opt options) (assets, error) {
 	rootfsKey, err := latestKey(ctx, prefix+arch+"/ubuntu-", regexp.MustCompile(regexp.QuoteMeta(prefix+arch+`/`)+`ubuntu-[0-9]+\.[0-9]+\.squashfs$`))
 	if err != nil {
 		return assets{}, err
+	}
+	if image.rootfsVersion != "" {
+		rootfsKey, err = latestKey(ctx, prefix+arch+"/ubuntu-"+image.rootfsVersion, regexp.MustCompile(regexp.QuoteMeta(prefix+arch+`/ubuntu-`+image.rootfsVersion+`.squashfs`)+`$`))
+		if err != nil {
+			return assets{}, err
+		}
 	}
 
 	kernelPath := filepath.Join(opt.workDir, filepath.Base(kernelKey))
@@ -188,80 +310,295 @@ func prepareAssets(ctx context.Context, opt options) (assets, error) {
 	if err := os.Chmod(fcPath, 0o755); err != nil {
 		return assets{}, err
 	}
-	fmt.Printf("firecracker=%s\nkernel=%s\nrootfs=%s\n", fcPath, kernelPath, rootfsExt4Path)
-	return assets{firecracker: fcPath, kernel: kernelPath, rootfs: rootfsExt4Path}, nil
+	fmt.Printf("image=%s\nartifact_prefix=%s\nfirecracker=%s\nkernel=%s\nrootfs=%s\n", image.name, prefix, fcPath, kernelPath, rootfsExt4Path)
+	return assets{firecracker: fcPath, kernel: kernelPath, rootfs: rootfsExt4Path, image: image.name, prefix: prefix, rootfsKey: rootfsKey, kernelKey: kernelKey}, nil
 }
 
 func smoke(ctx context.Context, opt options) error {
-	if opt.vcpuCount <= 0 || opt.memMiB <= 0 {
-		return errors.New("vcpu and mem-mib must be positive")
-	}
-	if err := doctor(ctx, opt); err != nil {
-		return err
-	}
-	assets, err := prepareAssets(ctx, opt)
+	opt.waitForBoot = true
+	state, err := startSandbox(ctx, opt, "")
 	if err != nil {
 		return err
 	}
+	defer func() {
+		if opt.keepAlive {
+			fmt.Printf("sandbox=%s\nfirecracker_pid=%d\n", state.ID, state.PID)
+			return
+		}
+		_, _ = stopSandbox(ctx, opt, state.ID)
+	}()
+	fmt.Printf("microvm=booted sandbox=%s console=%s\n", state.ID, state.ConsolePath)
+	return nil
+}
 
-	socketPath := filepath.Join(os.TempDir(), fmt.Sprintf("managed-agents-firecracker-%d.socket", time.Now().UnixNano()))
-	consolePath := filepath.Join(opt.workDir, "firecracker.console.log")
-	logPath := filepath.Join(opt.workDir, "firecracker.log")
+func resolveImage(name string) (imageSpec, error) {
+	switch name {
+	case "", "firecracker-ci-ubuntu-22.04", "ubuntu-22.04":
+		return imageSpec{name: "firecracker-ci-ubuntu-22.04", rootfsVersion: "22.04"}, nil
+	default:
+		return imageSpec{}, fmt.Errorf("unsupported image %q; supported images: firecracker-ci-ubuntu-22.04", name)
+	}
+}
+
+func generateSandboxID() string {
+	return fmt.Sprintf("sbx-%s", time.Now().UTC().Format("20060102-150405"))
+}
+
+func validateSandboxID(id string) error {
+	if id == "" {
+		return errors.New("sandbox id is required")
+	}
+	if len(id) > 64 {
+		return fmt.Errorf("sandbox id %q is too long", id)
+	}
+	if ok, _ := regexp.MatchString(`^[A-Za-z0-9][A-Za-z0-9_.-]*$`, id); !ok {
+		return fmt.Errorf("sandbox id %q must contain only letters, numbers, dot, underscore, or dash", id)
+	}
+	return nil
+}
+
+func sandboxesDir(opt options) string {
+	return filepath.Join(opt.workDir, "sandboxes")
+}
+
+func sandboxStatePath(opt options, id string) string {
+	return filepath.Join(sandboxesDir(opt), id, "state.json")
+}
+
+func writeSandboxState(state sandboxState) error {
+	if err := os.MkdirAll(state.SandboxDir, 0o755); err != nil {
+		return err
+	}
+	data, err := json.MarshalIndent(state, "", "  ")
+	if err != nil {
+		return err
+	}
+	data = append(data, '\n')
+	path := filepath.Join(state.SandboxDir, "state.json")
+	tmp := path + ".tmp"
+	if err := os.WriteFile(tmp, data, 0o644); err != nil {
+		return err
+	}
+	return os.Rename(tmp, path)
+}
+
+func readSandboxState(opt options, id string) (sandboxState, error) {
+	if err := validateSandboxID(id); err != nil {
+		return sandboxState{}, err
+	}
+	data, err := os.ReadFile(sandboxStatePath(opt, id))
+	if err != nil {
+		return sandboxState{}, err
+	}
+	var state sandboxState
+	if err := json.Unmarshal(data, &state); err != nil {
+		return sandboxState{}, err
+	}
+	return state, nil
+}
+
+func listSandboxes(opt options) ([]sandboxState, error) {
+	entries, err := os.ReadDir(sandboxesDir(opt))
+	if errors.Is(err, os.ErrNotExist) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	var states []sandboxState
+	for _, entry := range entries {
+		if !entry.IsDir() {
+			continue
+		}
+		state, err := readSandboxState(opt, entry.Name())
+		if err == nil {
+			states = append(states, state)
+		}
+	}
+	sort.Slice(states, func(i, j int) bool {
+		return states[i].StartedAt.Before(states[j].StartedAt)
+	})
+	return states, nil
+}
+
+func refreshSandboxStatus(state sandboxState) sandboxState {
+	switch state.Status {
+	case "running", "starting":
+		if !isProcessAlive(state.PID) {
+			state.Status = "exited"
+		}
+	}
+	return state
+}
+
+func printSandboxState(state sandboxState) {
+	fmt.Printf("sandbox=%s\nstatus=%s\nbooted=%t\npid=%d\nimage=%s\nvcpu=%d\nmem_mib=%d\nsandbox_dir=%s\nconsole=%s\nrootfs=%s\n",
+		state.ID,
+		state.Status,
+		state.Booted,
+		state.PID,
+		state.Image,
+		state.VCPUCount,
+		state.MemMiB,
+		state.SandboxDir,
+		state.ConsolePath,
+		state.RootfsPath,
+	)
+}
+
+func copyRootfs(ctx context.Context, source, target string) error {
+	if err := requireCommand("cp"); err != nil {
+		return err
+	}
+	if err := os.MkdirAll(filepath.Dir(target), 0o755); err != nil {
+		return err
+	}
+	_ = os.Remove(target)
+	return runPassthrough(ctx, false, "cp", "--reflink=auto", "--sparse=always", source, target)
+}
+
+func stopSandbox(ctx context.Context, opt options, id string) (sandboxState, error) {
+	state, err := readSandboxState(opt, id)
+	if err != nil {
+		return sandboxState{}, err
+	}
+	if isProcessAlive(state.PID) {
+		if err := terminatePID(state.PID); err != nil {
+			return sandboxState{}, err
+		}
+	}
+	_ = os.Remove(state.SocketPath)
+	state.Status = "stopped"
+	state.StoppedAt = time.Now().UTC()
+	if err := writeSandboxState(state); err != nil {
+		return sandboxState{}, err
+	}
+	return state, nil
+}
+
+func startSandbox(ctx context.Context, opt options, id string) (sandboxState, error) {
+	if opt.vcpuCount <= 0 || opt.memMiB <= 0 {
+		return sandboxState{}, errors.New("vcpu and mem-mib must be positive")
+	}
+	if opt.timeout == 0 {
+		opt.timeout = 90 * time.Second
+	}
+	if id == "" {
+		id = generateSandboxID()
+	}
+	if err := validateSandboxID(id); err != nil {
+		return sandboxState{}, err
+	}
+	if existing, err := readSandboxState(opt, id); err == nil && isProcessAlive(existing.PID) {
+		return sandboxState{}, fmt.Errorf("sandbox %s is already running with pid %d", id, existing.PID)
+	}
+	if err := doctor(ctx, opt); err != nil {
+		return sandboxState{}, err
+	}
+	assets, err := prepareAssets(ctx, opt)
+	if err != nil {
+		return sandboxState{}, err
+	}
+
+	sandboxDir := filepath.Join(sandboxesDir(opt), id)
+	if err := os.MkdirAll(sandboxDir, 0o755); err != nil {
+		return sandboxState{}, err
+	}
+	rootfsPath := filepath.Join(sandboxDir, "rootfs.ext4")
+	if err := copyRootfs(ctx, assets.rootfs, rootfsPath); err != nil {
+		return sandboxState{}, err
+	}
+
+	socketPath := filepath.Join(sandboxDir, "firecracker.socket")
+	consolePath := filepath.Join(sandboxDir, "console.log")
+	logPath := filepath.Join(sandboxDir, "firecracker.log")
 	_ = os.Remove(socketPath)
 	_ = os.Remove(consolePath)
 	_ = os.Remove(logPath)
 
-	cmd := exec.CommandContext(ctx, assets.firecracker, "--api-sock", socketPath)
+	cmd := exec.Command(assets.firecracker, "--api-sock", socketPath)
 	if opt.useSudo {
-		cmd = exec.CommandContext(ctx, "sudo", assets.firecracker, "--api-sock", socketPath)
+		cmd = exec.Command("sudo", assets.firecracker, "--api-sock", socketPath)
 	}
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setsid: true}
 	console, err := os.Create(consolePath)
 	if err != nil {
-		return err
+		return sandboxState{}, err
 	}
 	defer console.Close()
 	cmd.Stdout = console
 	cmd.Stderr = console
 	if err := cmd.Start(); err != nil {
-		return err
+		return sandboxState{}, err
 	}
-	defer func() {
-		if opt.keepAlive {
-			fmt.Printf("firecracker_pid=%d\n", cmd.Process.Pid)
-			return
-		}
+
+	state := sandboxState{
+		ID:          id,
+		Image:       assets.image,
+		Status:      "starting",
+		PID:         cmd.Process.Pid,
+		VCPUCount:   opt.vcpuCount,
+		MemMiB:      opt.memMiB,
+		WorkDir:     opt.workDir,
+		SandboxDir:  sandboxDir,
+		SocketPath:  socketPath,
+		ConsolePath: consolePath,
+		LogPath:     logPath,
+		KernelPath:  assets.kernel,
+		RootfsPath:  rootfsPath,
+		BaseRootfs:  assets.rootfs,
+		Firecracker: assets.firecracker,
+		StartedAt:   time.Now().UTC(),
+	}
+	if err := writeSandboxState(state); err != nil {
 		_ = terminateProcess(cmd.Process)
-		_ = os.Remove(socketPath)
-	}()
+		return sandboxState{}, err
+	}
 
 	if err := waitForSocket(socketPath, 5*time.Second); err != nil {
-		return err
+		_ = terminateProcess(cmd.Process)
+		return sandboxState{}, err
 	}
 	if opt.useSudo {
 		_ = runPassthrough(ctx, true, "chmod", "666", socketPath)
 	}
 	client := firecrackerClient(socketPath)
 	if err := putJSON(ctx, client, "/logger", fmt.Sprintf(`{"log_path":%q,"level":"Info","show_level":true,"show_log_origin":true}`, logPath)); err != nil {
-		return err
+		_ = terminateProcess(cmd.Process)
+		return sandboxState{}, err
 	}
 	if err := putJSON(ctx, client, "/boot-source", fmt.Sprintf(`{"kernel_image_path":%q,"boot_args":"console=ttyS0 reboot=k panic=1 pci=off"}`, assets.kernel)); err != nil {
-		return err
+		_ = terminateProcess(cmd.Process)
+		return sandboxState{}, err
 	}
-	if err := putJSON(ctx, client, "/drives/rootfs", fmt.Sprintf(`{"drive_id":"rootfs","path_on_host":%q,"is_root_device":true,"is_read_only":false}`, assets.rootfs)); err != nil {
-		return err
+	if err := putJSON(ctx, client, "/drives/rootfs", fmt.Sprintf(`{"drive_id":"rootfs","path_on_host":%q,"is_root_device":true,"is_read_only":false}`, rootfsPath)); err != nil {
+		_ = terminateProcess(cmd.Process)
+		return sandboxState{}, err
 	}
 	if err := putJSON(ctx, client, "/machine-config", fmt.Sprintf(`{"vcpu_count":%d,"mem_size_mib":%d}`, opt.vcpuCount, opt.memMiB)); err != nil {
-		return err
+		_ = terminateProcess(cmd.Process)
+		return sandboxState{}, err
 	}
 	if err := putJSON(ctx, client, "/actions", `{"action_type":"InstanceStart"}`); err != nil {
-		return err
+		_ = terminateProcess(cmd.Process)
+		return sandboxState{}, err
 	}
 
-	if err := waitForConsole(consolePath, opt.timeout); err != nil {
-		return err
+	state.Status = "running"
+	if opt.waitForBoot {
+		if err := waitForConsole(consolePath, opt.timeout); err != nil {
+			_ = terminateProcess(cmd.Process)
+			state.Status = "failed"
+			_ = writeSandboxState(state)
+			return sandboxState{}, err
+		}
+		state.Booted = true
 	}
-	fmt.Printf("microvm=booted console=%s\n", consolePath)
-	return nil
+	if err := writeSandboxState(state); err != nil {
+		_ = terminateProcess(cmd.Process)
+		return sandboxState{}, err
+	}
+	return state, nil
 }
 
 func firecrackerArch() (string, error) {
@@ -571,4 +908,41 @@ func terminateProcess(process *os.Process) error {
 	case <-done:
 	}
 	return nil
+}
+
+func terminatePID(pid int) error {
+	if pid <= 0 {
+		return nil
+	}
+	process, err := os.FindProcess(pid)
+	if err != nil {
+		return err
+	}
+	_ = process.Signal(syscall.SIGTERM)
+	deadline := time.Now().Add(3 * time.Second)
+	for time.Now().Before(deadline) {
+		if !isProcessAlive(pid) {
+			return nil
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+	_ = process.Kill()
+	for i := 0; i < 20; i++ {
+		if !isProcessAlive(pid) {
+			return nil
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+	if isProcessAlive(pid) {
+		return fmt.Errorf("pid %d did not exit after SIGKILL", pid)
+	}
+	return nil
+}
+
+func isProcessAlive(pid int) bool {
+	if pid <= 0 {
+		return false
+	}
+	err := syscall.Kill(pid, 0)
+	return err == nil || errors.Is(err, syscall.EPERM)
 }

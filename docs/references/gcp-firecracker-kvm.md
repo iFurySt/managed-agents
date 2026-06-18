@@ -15,7 +15,7 @@ billing account IDs, public VM IPs, SSH keys, or one-off project IDs here.
 - Tested machine type: `n2-standard-4`.
 - Tested guest image: Debian 12.
 - Tested Firecracker release: `v1.16.0`.
-- Tested microVM guest: Ubuntu 24.04 rootfs from Firecracker CI artifacts.
+- Tested microVM guest: Ubuntu 22.04 rootfs from Firecracker CI artifacts.
 - Required VM option: `--enable-nested-virtualization`.
 - Required CPU platform for N2: `Intel Cascade Lake` or newer.
 - Current reusable harness VM: `fc-kvm-test-1` in `us-east1-b`.
@@ -197,6 +197,48 @@ sudo chown -R "$USER:$USER" /opt/managed-agents'
 
 If local dirty changes belong to another workstream, create a clean git
 worktree and sync from that worktree rather than from the primary checkout.
+
+## Sandboxd Lifecycle Test
+
+After syncing the compiled `sandboxd` binary, run the host-local lifecycle path
+from the harness VM. This pulls the configured microVM image into the local
+cache, starts one sandbox from that image, inspects its state, then stops it:
+
+```bash
+WORK_DIR=/opt/managed-agents/firecracker
+SANDBOX_ID=sbx-harness
+
+/opt/managed-agents/bin/sandboxd doctor \
+  --work-dir "$WORK_DIR" \
+  --sudo
+
+/opt/managed-agents/bin/sandboxd pull \
+  --work-dir "$WORK_DIR" \
+  --image firecracker-ci-ubuntu-22.04 \
+  --sudo
+
+/opt/managed-agents/bin/sandboxd sandbox start "$SANDBOX_ID" \
+  --work-dir "$WORK_DIR" \
+  --image firecracker-ci-ubuntu-22.04 \
+  --sudo \
+  --timeout 120s
+
+/opt/managed-agents/bin/sandboxd sandbox status "$SANDBOX_ID" \
+  --work-dir "$WORK_DIR"
+
+/opt/managed-agents/bin/sandboxd sandbox stop "$SANDBOX_ID" \
+  --work-dir "$WORK_DIR"
+```
+
+Expected lifecycle signals:
+
+- `pull` reports the resolved image, Firecracker binary, kernel, and base rootfs.
+- `sandbox start` reports `status=running`, `booted=true`, a launcher PID, a
+  sandbox directory, a console log, and a per-sandbox `rootfs.ext4`.
+- `sandbox status` reports the same sandbox id and a live `running` status while
+  the Firecracker process exists.
+- `sandbox stop` reports `status=stopped`, and `pgrep -a firecracker` should not
+  show the stopped sandbox process.
 
 ## Firecracker Smoke Test
 
