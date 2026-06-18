@@ -47,6 +47,7 @@ type options struct {
 	execCwd             string
 	execEnv             []string
 	execTimeout         time.Duration
+	processSignal       string
 	vsockCID            uint32
 }
 
@@ -132,6 +133,28 @@ type processAPIExecResponse struct {
 	Stderr         string   `json:"stderr"`
 	Error          string   `json:"error,omitempty"`
 	TimedOut       bool     `json:"timed_out"`
+	DurationMillis int64    `json:"duration_millis"`
+}
+
+type processAPIProcessRequest processAPIExecRequest
+
+type processAPISignalRequest struct {
+	Signal string `json:"signal"`
+}
+
+type processAPIProcessResponse struct {
+	ID             string   `json:"id"`
+	Argv           []string `json:"argv"`
+	Cwd            string   `json:"cwd"`
+	Status         string   `json:"status"`
+	PID            int      `json:"pid,omitempty"`
+	ExitCode       int      `json:"exit_code"`
+	Stdout         string   `json:"stdout"`
+	Stderr         string   `json:"stderr"`
+	Error          string   `json:"error,omitempty"`
+	TimedOut       bool     `json:"timed_out"`
+	StartedAt      string   `json:"started_at"`
+	ExitedAt       string   `json:"exited_at,omitempty"`
 	DurationMillis int64    `json:"duration_millis"`
 }
 
@@ -307,6 +330,77 @@ func main() {
 	execCmd.Flags().StringArrayVar(&opt.execEnv, "env", nil, "guest environment override as KEY=VALUE; repeatable")
 	execCmd.Flags().DurationVar(&opt.execTimeout, "timeout", 30*time.Second, "guest command timeout")
 	sandbox.AddCommand(execCmd)
+
+	processCmd := &cobra.Command{
+		Use:   "process",
+		Short: "Manage long-running guest processes through process-api",
+	}
+	processStart := &cobra.Command{
+		Use:          "start <sandbox-id> -- <command> [args...]",
+		Short:        "Start a guest process without waiting for completion",
+		Args:         cobra.MinimumNArgs(2),
+		SilenceUsage: true,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			state, err := readSandboxState(opt, args[0])
+			if err != nil {
+				return err
+			}
+			resp, err := startProcessAPI(cmd.Context(), state, processAPIProcessRequest{
+				Argv:          args[1:],
+				Cwd:           opt.execCwd,
+				Env:           parseEnv(opt.execEnv),
+				TimeoutMillis: opt.execTimeout.Milliseconds(),
+			})
+			if err != nil {
+				return err
+			}
+			printProcess(resp)
+			return nil
+		},
+	}
+	processStart.Flags().StringVar(&opt.execCwd, "cwd", "/", "guest working directory")
+	processStart.Flags().StringArrayVar(&opt.execEnv, "env", nil, "guest environment override as KEY=VALUE; repeatable")
+	processStart.Flags().DurationVar(&opt.execTimeout, "timeout", 0, "optional guest process timeout; 0 disables timeout")
+	processCmd.AddCommand(processStart)
+	processCmd.AddCommand(&cobra.Command{
+		Use:          "status <sandbox-id> <process-id>",
+		Short:        "Inspect a guest process",
+		Args:         cobra.ExactArgs(2),
+		SilenceUsage: true,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			state, err := readSandboxState(opt, args[0])
+			if err != nil {
+				return err
+			}
+			resp, err := getProcessAPIProcess(cmd.Context(), state, args[1])
+			if err != nil {
+				return err
+			}
+			printProcess(resp)
+			return nil
+		},
+	})
+	processSignal := &cobra.Command{
+		Use:          "signal <sandbox-id> <process-id>",
+		Short:        "Send a signal to a guest process",
+		Args:         cobra.ExactArgs(2),
+		SilenceUsage: true,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			state, err := readSandboxState(opt, args[0])
+			if err != nil {
+				return err
+			}
+			resp, err := signalProcessAPI(cmd.Context(), state, args[1], opt.processSignal)
+			if err != nil {
+				return err
+			}
+			printProcess(resp)
+			return nil
+		},
+	}
+	processSignal.Flags().StringVar(&opt.processSignal, "signal", "TERM", "signal to send: TERM, INT, KILL, or HUP")
+	processCmd.AddCommand(processSignal)
+	sandbox.AddCommand(processCmd)
 	sandbox.AddCommand(&cobra.Command{
 		Use:   "stop <sandbox-id>",
 		Short: "Stop a running Firecracker sandbox",
@@ -1283,6 +1377,123 @@ func execProcessAPI(ctx context.Context, state sandboxState, request processAPIE
 		return processAPIExecResponse{}, err
 	}
 	return result, nil
+}
+
+func startProcessAPI(ctx context.Context, state sandboxState, request processAPIProcessRequest) (processAPIProcessResponse, error) {
+	if err := validateProcessAPIState(state); err != nil {
+		return processAPIProcessResponse{}, err
+	}
+	if len(request.Argv) == 0 {
+		return processAPIProcessResponse{}, errors.New("guest command is required")
+	}
+	if request.Cwd == "" {
+		request.Cwd = "/"
+	}
+	var body bytes.Buffer
+	if err := json.NewEncoder(&body).Encode(request); err != nil {
+		return processAPIProcessResponse{}, err
+	}
+	client := processAPIClient(state)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, processAPIURL(state, "/processes"), &body)
+	if err != nil {
+		return processAPIProcessResponse{}, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := client.Do(req)
+	if err != nil {
+		return processAPIProcessResponse{}, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		data, _ := io.ReadAll(resp.Body)
+		return processAPIProcessResponse{}, fmt.Errorf("process-api process start failed: %s %s", resp.Status, strings.TrimSpace(string(data)))
+	}
+	var result processAPIProcessResponse
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return processAPIProcessResponse{}, err
+	}
+	return result, nil
+}
+
+func getProcessAPIProcess(ctx context.Context, state sandboxState, processID string) (processAPIProcessResponse, error) {
+	if err := validateProcessAPIState(state); err != nil {
+		return processAPIProcessResponse{}, err
+	}
+	if processID == "" {
+		return processAPIProcessResponse{}, errors.New("process id is required")
+	}
+	client := processAPIClient(state)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, processAPIURL(state, "/processes/"+processID), nil)
+	if err != nil {
+		return processAPIProcessResponse{}, err
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		return processAPIProcessResponse{}, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		data, _ := io.ReadAll(resp.Body)
+		return processAPIProcessResponse{}, fmt.Errorf("process-api process status failed: %s %s", resp.Status, strings.TrimSpace(string(data)))
+	}
+	var result processAPIProcessResponse
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return processAPIProcessResponse{}, err
+	}
+	return result, nil
+}
+
+func signalProcessAPI(ctx context.Context, state sandboxState, processID, signal string) (processAPIProcessResponse, error) {
+	if err := validateProcessAPIState(state); err != nil {
+		return processAPIProcessResponse{}, err
+	}
+	if processID == "" {
+		return processAPIProcessResponse{}, errors.New("process id is required")
+	}
+	var body bytes.Buffer
+	if err := json.NewEncoder(&body).Encode(processAPISignalRequest{Signal: signal}); err != nil {
+		return processAPIProcessResponse{}, err
+	}
+	client := processAPIClient(state)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, processAPIURL(state, "/processes/"+processID+"/signal"), &body)
+	if err != nil {
+		return processAPIProcessResponse{}, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := client.Do(req)
+	if err != nil {
+		return processAPIProcessResponse{}, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		data, _ := io.ReadAll(resp.Body)
+		return processAPIProcessResponse{}, fmt.Errorf("process-api process signal failed: %s %s", resp.Status, strings.TrimSpace(string(data)))
+	}
+	var result processAPIProcessResponse
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return processAPIProcessResponse{}, err
+	}
+	return result, nil
+}
+
+func printProcess(process processAPIProcessResponse) {
+	fmt.Printf("process=%s\nstatus=%s\npid=%d\nexit_code=%d\ntimed_out=%t\nduration_ms=%d\n",
+		process.ID,
+		process.Status,
+		process.PID,
+		process.ExitCode,
+		process.TimedOut,
+		process.DurationMillis,
+	)
+	if process.Stdout != "" {
+		fmt.Printf("stdout=%q\n", process.Stdout)
+	}
+	if process.Stderr != "" {
+		fmt.Printf("stderr=%q\n", process.Stderr)
+	}
+	if process.Error != "" {
+		fmt.Printf("error=%q\n", process.Error)
+	}
 }
 
 func validateProcessAPIState(state sandboxState) error {

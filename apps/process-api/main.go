@@ -12,6 +12,9 @@ import (
 	"os/exec"
 	"runtime"
 	"strings"
+	"sync"
+	"sync/atomic"
+	"syscall"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -52,6 +55,57 @@ type execResponse struct {
 	DurationMillis int64    `json:"duration_millis"`
 }
 
+type processCreateRequest execRequest
+
+type processSignalRequest struct {
+	Signal string `json:"signal"`
+}
+
+type processResponse struct {
+	ID             string   `json:"id"`
+	Argv           []string `json:"argv"`
+	Cwd            string   `json:"cwd"`
+	Status         string   `json:"status"`
+	PID            int      `json:"pid,omitempty"`
+	ExitCode       int      `json:"exit_code"`
+	Stdout         string   `json:"stdout"`
+	Stderr         string   `json:"stderr"`
+	Error          string   `json:"error,omitempty"`
+	TimedOut       bool     `json:"timed_out"`
+	StartedAt      string   `json:"started_at"`
+	ExitedAt       string   `json:"exited_at,omitempty"`
+	DurationMillis int64    `json:"duration_millis"`
+}
+
+type processManager struct {
+	next      atomic.Uint64
+	mu        sync.Mutex
+	processes map[string]*managedProcess
+}
+
+type managedProcess struct {
+	mu        sync.Mutex
+	id        string
+	argv      []string
+	cwd       string
+	command   *exec.Cmd
+	stdout    *lockedBuffer
+	stderr    *lockedBuffer
+	status    string
+	pid       int
+	exitCode  int
+	errText   string
+	timedOut  bool
+	startedAt time.Time
+	exitedAt  time.Time
+	cancel    context.CancelFunc
+}
+
+type lockedBuffer struct {
+	mu  sync.Mutex
+	buf bytes.Buffer
+}
+
 func main() {
 	var opt options
 	root := &cobra.Command{
@@ -76,6 +130,7 @@ func run(ctx context.Context, opt options) error {
 	}
 	defer listener.Close()
 
+	processes := newProcessManager()
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, healthResponse{
@@ -89,6 +144,9 @@ func run(ctx context.Context, opt options) error {
 		})
 	})
 	mux.HandleFunc("POST /exec", handleExec)
+	mux.HandleFunc("POST /processes", processes.handleCreate)
+	mux.HandleFunc("GET /processes/{id}", processes.handleGet)
+	mux.HandleFunc("POST /processes/{id}/signal", processes.handleSignal)
 	mux.HandleFunc("POST /shutdown", func(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, map[string]any{"ok": true, "action": "shutdown"})
 		go func() {
@@ -171,6 +229,203 @@ func runExec(ctx context.Context, req execRequest) execResponse {
 	}
 	resp.OK = true
 	return resp
+}
+
+func newProcessManager() *processManager {
+	return &processManager{
+		processes: make(map[string]*managedProcess),
+	}
+}
+
+func (manager *processManager) handleCreate(w http.ResponseWriter, r *http.Request) {
+	var req processCreateRequest
+	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 1<<20)).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	process, err := manager.start(r.Context(), execRequest(req))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	writeJSON(w, process.snapshot())
+}
+
+func (manager *processManager) handleGet(w http.ResponseWriter, r *http.Request) {
+	process, ok := manager.get(r.PathValue("id"))
+	if !ok {
+		http.NotFound(w, r)
+		return
+	}
+	writeJSON(w, process.snapshot())
+}
+
+func (manager *processManager) handleSignal(w http.ResponseWriter, r *http.Request) {
+	process, ok := manager.get(r.PathValue("id"))
+	if !ok {
+		http.NotFound(w, r)
+		return
+	}
+	var req processSignalRequest
+	if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 1<<20)).Decode(&req); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	signal, err := parseSignal(req.Signal)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	if err := process.signal(signal); err != nil {
+		http.Error(w, err.Error(), http.StatusConflict)
+		return
+	}
+	writeJSON(w, process.snapshot())
+}
+
+func (manager *processManager) start(ctx context.Context, req execRequest) (*managedProcess, error) {
+	cwd := req.Cwd
+	if cwd == "" {
+		cwd = "/"
+	}
+	if len(req.Argv) == 0 || strings.TrimSpace(req.Argv[0]) == "" {
+		return nil, errors.New("argv must include a command")
+	}
+	timeout := time.Duration(0)
+	if req.TimeoutMillis > 0 {
+		timeout = time.Duration(req.TimeoutMillis) * time.Millisecond
+	}
+	processCtx := context.Background()
+	cancel := func() {}
+	if timeout > 0 {
+		processCtx, cancel = context.WithTimeout(processCtx, timeout)
+	}
+	command := exec.CommandContext(processCtx, req.Argv[0], req.Argv[1:]...)
+	command.Dir = cwd
+	command.Env = mergeEnv(os.Environ(), req.Env)
+	stdout := &lockedBuffer{}
+	stderr := &lockedBuffer{}
+	command.Stdout = stdout
+	command.Stderr = stderr
+
+	id := fmt.Sprintf("proc-%d", manager.next.Add(1))
+	process := &managedProcess{
+		id:        id,
+		argv:      append([]string(nil), req.Argv...),
+		cwd:       cwd,
+		command:   command,
+		stdout:    stdout,
+		stderr:    stderr,
+		status:    "starting",
+		exitCode:  -1,
+		startedAt: time.Now().UTC(),
+		cancel:    cancel,
+	}
+	if err := command.Start(); err != nil {
+		cancel()
+		return nil, err
+	}
+	process.mu.Lock()
+	process.status = "running"
+	process.pid = command.Process.Pid
+	process.mu.Unlock()
+
+	manager.mu.Lock()
+	manager.processes[id] = process
+	manager.mu.Unlock()
+
+	go process.wait(processCtx)
+	_ = ctx
+	return process, nil
+}
+
+func (manager *processManager) get(id string) (*managedProcess, bool) {
+	manager.mu.Lock()
+	defer manager.mu.Unlock()
+	process, ok := manager.processes[id]
+	return process, ok
+}
+
+func (process *managedProcess) wait(ctx context.Context) {
+	err := process.command.Wait()
+	process.mu.Lock()
+	defer process.mu.Unlock()
+	process.exitedAt = time.Now().UTC()
+	process.exitCode = 0
+	process.status = "exited"
+	if errors.Is(ctx.Err(), context.DeadlineExceeded) {
+		process.timedOut = true
+		process.status = "timed_out"
+		process.exitCode = -1
+		process.errText = "command timed out"
+		process.cancel()
+		return
+	}
+	if err != nil {
+		process.exitCode = exitCode(err)
+		process.errText = err.Error()
+	}
+	process.cancel()
+}
+
+func (process *managedProcess) signal(signal os.Signal) error {
+	process.mu.Lock()
+	defer process.mu.Unlock()
+	if process.command.Process == nil || process.status != "running" {
+		return fmt.Errorf("process %s is not running", process.id)
+	}
+	return process.command.Process.Signal(signal)
+}
+
+func (process *managedProcess) snapshot() processResponse {
+	process.mu.Lock()
+	defer process.mu.Unlock()
+	resp := processResponse{
+		ID:             process.id,
+		Argv:           append([]string(nil), process.argv...),
+		Cwd:            process.cwd,
+		Status:         process.status,
+		PID:            process.pid,
+		ExitCode:       process.exitCode,
+		Stdout:         process.stdout.String(),
+		Stderr:         process.stderr.String(),
+		Error:          process.errText,
+		TimedOut:       process.timedOut,
+		StartedAt:      process.startedAt.Format(time.RFC3339Nano),
+		DurationMillis: time.Since(process.startedAt).Milliseconds(),
+	}
+	if !process.exitedAt.IsZero() {
+		resp.ExitedAt = process.exitedAt.Format(time.RFC3339Nano)
+		resp.DurationMillis = process.exitedAt.Sub(process.startedAt).Milliseconds()
+	}
+	return resp
+}
+
+func (buffer *lockedBuffer) Write(data []byte) (int, error) {
+	buffer.mu.Lock()
+	defer buffer.mu.Unlock()
+	return buffer.buf.Write(data)
+}
+
+func (buffer *lockedBuffer) String() string {
+	buffer.mu.Lock()
+	defer buffer.mu.Unlock()
+	return buffer.buf.String()
+}
+
+func parseSignal(value string) (os.Signal, error) {
+	switch strings.ToUpper(strings.TrimPrefix(value, "SIG")) {
+	case "", "TERM":
+		return syscall.SIGTERM, nil
+	case "INT":
+		return os.Interrupt, nil
+	case "KILL":
+		return syscall.SIGKILL, nil
+	case "HUP":
+		return syscall.SIGHUP, nil
+	default:
+		return nil, fmt.Errorf("unsupported signal %q", value)
+	}
 }
 
 func mergeEnv(base []string, overrides map[string]string) []string {

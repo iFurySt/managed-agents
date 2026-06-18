@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"strings"
+	"syscall"
 	"testing"
 	"time"
 )
@@ -64,4 +65,83 @@ func TestMergeEnvOverrides(t *testing.T) {
 	if got["A"] != "1" || got["B"] != "3" || got["C"] != "4" {
 		t.Fatalf("unexpected env: %#v", got)
 	}
+}
+
+func TestProcessManagerStartAndStatus(t *testing.T) {
+	manager := newProcessManager()
+	process, err := manager.start(context.Background(), execRequest{
+		Argv: []string{"/bin/sh", "-c", "printf begin; sleep 0.1; printf done"},
+	})
+	if err != nil {
+		t.Fatalf("start returned error: %v", err)
+	}
+	if process.id == "" {
+		t.Fatal("process id is empty")
+	}
+	first := process.snapshot()
+	if first.Status != "running" {
+		t.Fatalf("initial status = %q", first.Status)
+	}
+	final := waitForProcessStatus(t, process, "exited")
+	if final.ExitCode != 0 {
+		t.Fatalf("exit code = %d", final.ExitCode)
+	}
+	if final.Stdout != "begindone" {
+		t.Fatalf("stdout = %q", final.Stdout)
+	}
+	if got, ok := manager.get(process.id); !ok || got != process {
+		t.Fatalf("manager lookup failed: %v %#v", ok, got)
+	}
+}
+
+func TestProcessManagerSignal(t *testing.T) {
+	manager := newProcessManager()
+	process, err := manager.start(context.Background(), execRequest{
+		Argv: []string{"/bin/sh", "-c", "trap 'echo term; exit 42' TERM; sleep 10"},
+	})
+	if err != nil {
+		t.Fatalf("start returned error: %v", err)
+	}
+	if err := process.signal(syscall.SIGTERM); err != nil {
+		t.Fatalf("signal returned error: %v", err)
+	}
+	final := waitForAnyProcessStatus(t, process, []string{"exited", "timed_out"})
+	if final.Status != "exited" {
+		t.Fatalf("status = %q", final.Status)
+	}
+	if final.ExitCode == 0 {
+		t.Fatalf("expected non-zero exit after signal: %#v", final)
+	}
+}
+
+func TestParseSignal(t *testing.T) {
+	for _, value := range []string{"TERM", "SIGTERM", ""} {
+		if _, err := parseSignal(value); err != nil {
+			t.Fatalf("parseSignal(%q) returned error: %v", value, err)
+		}
+	}
+	if _, err := parseSignal("NOPE"); err == nil {
+		t.Fatal("parseSignal accepted unsupported signal")
+	}
+}
+
+func waitForProcessStatus(t *testing.T, process *managedProcess, status string) processResponse {
+	t.Helper()
+	return waitForAnyProcessStatus(t, process, []string{status})
+}
+
+func waitForAnyProcessStatus(t *testing.T, process *managedProcess, statuses []string) processResponse {
+	t.Helper()
+	deadline := time.Now().Add(2 * time.Second)
+	for time.Now().Before(deadline) {
+		snapshot := process.snapshot()
+		for _, status := range statuses {
+			if snapshot.Status == status {
+				return snapshot
+			}
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	t.Fatalf("process did not reach status %v; last=%#v", statuses, process.snapshot())
+	return processResponse{}
 }

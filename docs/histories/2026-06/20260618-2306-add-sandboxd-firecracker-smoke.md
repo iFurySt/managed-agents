@@ -8,7 +8,7 @@
 
 ### User Query
 
-> Switch this forked workstream to sandboxd and Firecracker, document the existing firecracker-harness environment in a redacted way, and start proving the single-node sandbox path with real validation. Continue by making sandboxd handle sandbox lifecycle, pulling the corresponding microVM image, and adding the minimum process-api path, including guest command execution; defer environment management and rclone until the API server side is ready.
+> Switch this forked workstream to sandboxd and Firecracker, document the existing firecracker-harness environment in a redacted way, and start proving the single-node sandbox path with real validation. Continue by making sandboxd handle sandbox lifecycle, pulling the corresponding microVM image, and adding the minimum process-api path, including guest command execution and process lifecycle control; defer environment management and rclone until the API server side is ready.
 
 ### Changes Overview
 
@@ -23,13 +23,14 @@
   - Added `apps/process-api`, a minimal guest process API exposing `/healthz` and `/shutdown`.
   - Added process-api rootfs injection, systemd service setup, Firecracker tap networking, and `sandbox ping`.
   - Added `POST /exec` to process-api plus `sandboxd sandbox exec` for host-to-guest command execution.
+  - Added process-api `POST /processes`, `GET /processes/{id}`, and `POST /processes/{id}/signal` plus `sandboxd sandbox process start/status/signal`.
   - Kept vsock support in code, but used TCP/tap for the CI Ubuntu rootfs because that image does not ship guest vsock kernel modules.
   - Updated the GCP Firecracker harness reference with the reusable project, VM shape, IAP SSH/SCP, and binary sync workflow.
   - Added README and reference entries for the sandboxd lifecycle and process-api paths.
 
 ### Design Intent
 
-This milestone keeps `sandboxd` independent from `apiserver` and `orchestrator` while proving the host-local boundary that will later receive scheduled work. The first useful slice was a real microVM boot on a nested-virtualization host, not a mock runner. The follow-up slices turn that boot path into a small local lifecycle surface and prove that a guest process-api can be injected into the microVM, started by systemd, reached from the host, execute commands, return stdout/stderr/exit status, and be cleaned up with the sandbox.
+This milestone keeps `sandboxd` independent from `apiserver` and `orchestrator` while proving the host-local boundary that will later receive scheduled work. The first useful slice was a real microVM boot on a nested-virtualization host, not a mock runner. The follow-up slices turn that boot path into a small local lifecycle surface and prove that a guest process-api can be injected into the microVM, started by systemd, reached from the host, execute commands, manage long-running processes, return stdout/stderr/exit status, and be cleaned up with the sandbox.
 
 ### Verification
 
@@ -46,6 +47,7 @@ This milestone keeps `sandboxd` independent from `apiserver` and `orchestrator` 
   - Ran `sandboxd sandbox start`, `status`, and `stop`; verified booted state, sandbox-local rootfs, console log, live PID during status, and no remaining Firecracker process after stop.
   - Ran `sandboxd sandbox start --process-api`, `sandboxd sandbox ping`, and `sandboxd sandbox stop`; verified guest `/healthz`, `process_api_ready` in the console, Firecracker running during ping, and no Firecracker or tap device remaining after stop.
   - Ran `sandboxd sandbox exec`; verified `uname -m`, guest cwd/env propagation, non-zero guest exit status, stderr capture, and cleanup after stop.
+  - Ran `sandboxd sandbox process start/status/signal`; verified running and exited states, stdout capture for a long-running shell command, TERM signaling for a sleep process, and no Firecracker or tap device remaining after stop.
 
 ### Files Modified
 

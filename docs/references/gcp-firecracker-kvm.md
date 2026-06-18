@@ -280,6 +280,27 @@ SANDBOX_ID=sbx-process-api
   --env MA_EXEC_TEST=ok \
   -- /bin/sh -c 'printf cwd=; pwd; printf env=; printf "$MA_EXEC_TEST"'
 
+PROCESS_OUTPUT=$(/opt/managed-agents/bin/sandboxd sandbox process start "$SANDBOX_ID" \
+  --work-dir "$WORK_DIR" \
+  -- /bin/sh -c 'printf begin; sleep 1; printf done')
+printf '%s\n' "$PROCESS_OUTPUT"
+PROCESS_ID=$(printf '%s\n' "$PROCESS_OUTPUT" | sed -n 's/^process=//p')
+
+/opt/managed-agents/bin/sandboxd sandbox process status "$SANDBOX_ID" "$PROCESS_ID" \
+  --work-dir "$WORK_DIR"
+sleep 2
+/opt/managed-agents/bin/sandboxd sandbox process status "$SANDBOX_ID" "$PROCESS_ID" \
+  --work-dir "$WORK_DIR"
+
+SLEEP_OUTPUT=$(/opt/managed-agents/bin/sandboxd sandbox process start "$SANDBOX_ID" \
+  --work-dir "$WORK_DIR" \
+  -- /bin/sleep 30)
+SLEEP_ID=$(printf '%s\n' "$SLEEP_OUTPUT" | sed -n 's/^process=//p')
+
+/opt/managed-agents/bin/sandboxd sandbox process signal "$SANDBOX_ID" "$SLEEP_ID" \
+  --work-dir "$WORK_DIR" \
+  --signal TERM
+
 /opt/managed-agents/bin/sandboxd sandbox stop "$SANDBOX_ID" \
   --work-dir "$WORK_DIR"
 ```
@@ -290,6 +311,10 @@ Expected process-api signals:
 - `sandbox ping` reports `service=process-api`, `os=linux`, and `arch=amd64`.
 - `sandbox exec` returns guest command stdout plus `exit_code=0`.
 - A failing guest command returns its stderr and non-zero `exit_code`.
+- `sandbox process start/status` shows a running process, then an exited process
+  with captured stdout.
+- `sandbox process signal --signal TERM` moves a long-running process to an
+  exited state with a signal error.
 - `state.json` records `process_transport=tcp`, a tap name, host IP, guest IP,
   and guest MAC.
 - The console log contains `process_api_ready`.
