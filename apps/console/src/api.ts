@@ -212,8 +212,12 @@ export async function deleteVaultCredential(vaultId: string, credentialId: strin
   return deleteJSON<{ deleted: boolean }>(`/api/vaults/${vaultId}/credentials/${credentialId}`);
 }
 
-export async function listMemoryStores(): Promise<MemoryStore[]> {
-  const data = await getJSON<{ items: MemoryStore[] }>("/api/memory-stores");
+export async function listMemoryStores(params: { q?: string; status?: string } = {}): Promise<MemoryStore[]> {
+  const search = new URLSearchParams();
+  if (params.q) search.set("q", params.q);
+  if (params.status && params.status !== "All") search.set("status", params.status);
+  const query = search.toString();
+  const data = await getJSON<{ items: MemoryStore[] }>(`/api/memory-stores${query ? `?${query}` : ""}`);
   return data.items;
 }
 

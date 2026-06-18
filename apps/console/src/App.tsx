@@ -1452,13 +1452,15 @@ function MemoryStoresPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
-    listMemoryStores().then(setStores).catch(() => setStores([]));
-  }, []);
+    listMemoryStores({ q: query, status }).then(setStores).catch(() => setStores([]));
+  }, [query, status]);
 
   const visibleStores = stores.filter((store) => {
-    const matchesQuery = !query || store.name.toLowerCase().includes(query.toLowerCase()) || store.id.toLowerCase() === query.toLowerCase();
-    const matchesStatus = status === "All" || store.status === status;
-    return matchesQuery && matchesStatus;
+    if (created === "All time") return true;
+    if (created === "Last 24 hours") return store.createdLabel.includes("hour") || store.createdLabel === "just now";
+    if (created === "Last 7 days") return store.createdLabel.includes("hour") || store.createdLabel.includes("day") || store.createdLabel === "just now";
+    if (created === "Last 30 days") return store.createdLabel !== "";
+    return true;
   });
 
   async function archiveStore(store: MemoryStore) {
@@ -1508,7 +1510,7 @@ function MemoryStoresPage() {
             render: (store) => (
               <div className="flex items-center gap-2">
                 <span className="font-mono font-semibold">{shortId(store.id)}</span>
-                <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${store.id}`}>
+                <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${store.id}`} onClick={() => copyText(store.id)}>
                   <Copy className="h-3.5 w-3.5" />
                 </Button>
               </div>
@@ -1527,7 +1529,7 @@ function MemoryStoresPage() {
           { key: "status", header: "Status", width: "150px", render: (store) => <Badge tone={memoryTone(store.status)}>{store.status}</Badge> },
           { key: "created", header: "Created", width: "170px", render: (store) => <span className="text-muted">{store.createdLabel}</span> }
         ]}
-        renderActions={(store) => <MemoryStoreActions onArchive={() => archiveStore(store)} onDelete={() => deleteStore(store)} />}
+        renderActions={(store) => <MemoryStoreActions store={store} onArchive={() => archiveStore(store)} onDelete={() => deleteStore(store)} />}
       />
       <div className="flex gap-2">
         <Button variant="secondary" className="h-8 w-8 px-0" disabled>
@@ -1556,6 +1558,21 @@ function MemoryStoreDetailPage() {
   useEffect(() => {
     if (id) getMemoryStore(id).then(setStore).catch(() => setStore(null));
   }, [id]);
+
+  useEffect(() => {
+    if (!store) {
+      setSelectedMemoryId(null);
+      return;
+    }
+    const records = store.memories ?? [];
+    if (!records.length && selectedMemoryId) {
+      setSelectedMemoryId(null);
+      return;
+    }
+    if (records.length && (!selectedMemoryId || !records.some((record) => record.id === selectedMemoryId))) {
+      setSelectedMemoryId(records[0].id);
+    }
+  }, [selectedMemoryId, store]);
 
   async function archiveCurrentStore() {
     if (!store) return;
@@ -1603,7 +1620,7 @@ function MemoryStoreDetailPage() {
           <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
             <span className="font-mono">{shortId(store.id)}</span>
             <span className="hidden font-mono">{store.id}</span>
-            <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${store.id}`}>
+            <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${store.id}`} onClick={() => copyText(store.id)}>
               <Copy className="h-3.5 w-3.5" />
             </Button>
             <span>·</span>
@@ -1615,7 +1632,7 @@ function MemoryStoreDetailPage() {
             <Plus className="h-4 w-4" />
             Add memory
           </Button>
-          <MemoryStoreActions onArchive={archiveCurrentStore} onDelete={deleteCurrentStore} />
+          <MemoryStoreActions store={store} onArchive={archiveCurrentStore} onDelete={deleteCurrentStore} />
         </div>
       </div>
 
@@ -1657,6 +1674,9 @@ function MemoryStoreDetailPage() {
                   <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-muted">
                     <span className="font-mono">{shortId(selectedMemory.id)}</span>
                     <span className="hidden font-mono">{selectedMemory.id}</span>
+                    <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${selectedMemory.id}`} onClick={() => copyText(selectedMemory.id)}>
+                      <Copy className="h-3.5 w-3.5" />
+                    </Button>
                     <span>·</span>
                     <span>Updated {selectedMemory.updatedLabel}</span>
                     <span>·</span>
@@ -1664,7 +1684,7 @@ function MemoryStoreDetailPage() {
                   </div>
                 </div>
                 <div className="flex gap-2">
-                  <MemoryRecordActions onDelete={() => deleteRecord(selectedMemory)} />
+                  <MemoryRecordActions record={selectedMemory} onDelete={() => deleteRecord(selectedMemory)} />
                   <Button variant="secondary">
                     <FileText className="h-4 w-4" />
                     Edit
@@ -3086,22 +3106,34 @@ function CredentialActions({ credential, onArchive, onDelete }: { credential: Va
   );
 }
 
-function MemoryStoreActions({ onArchive, onDelete }: { onArchive: () => void; onDelete: () => void }) {
+function MemoryStoreActions({ store, onArchive, onDelete }: { store: MemoryStore; onArchive: () => void; onDelete: () => void }) {
+  const navigate = useNavigate();
+  const archived = store.status === "Archived";
   return (
     <CdsDropdownMenu.Root>
       <CdsDropdownMenu.Trigger asChild>
         <Button variant="icon" aria-label="More actions">
-          ⋯
+          <span className="text-lg leading-none">⋯</span>
         </Button>
       </CdsDropdownMenu.Trigger>
       <CdsDropdownMenu.Portal>
         <CdsDropdownMenu.Content className="z-50 min-w-[170px] rounded-cds border border-line bg-white p-1 shadow-lg" align="end">
+          <CdsDropdownMenu.Item className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill" onSelect={() => navigate(`/memory-stores/${store.id}`)}>
+            <Database className="h-4 w-4" />
+            Open store
+          </CdsDropdownMenu.Item>
+          <CdsDropdownMenu.Item className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill" onSelect={() => copyText(store.id)}>
+            <Copy className="h-4 w-4" />
+            Copy ID
+          </CdsDropdownMenu.Item>
+          <CdsDropdownMenu.Separator className="my-1 h-px bg-line" />
           <CdsDropdownMenu.Item
             className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill"
             onSelect={onArchive}
+            disabled={archived}
           >
             <Archive className="h-4 w-4 text-muted" />
-            Archive store
+            {archived ? "Archived" : "Archive store"}
           </CdsDropdownMenu.Item>
           <CdsDropdownMenu.Item
             className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm text-[#a33a29] outline-none data-[highlighted]:bg-[#fff1ef]"
@@ -3116,16 +3148,21 @@ function MemoryStoreActions({ onArchive, onDelete }: { onArchive: () => void; on
   );
 }
 
-function MemoryRecordActions({ onDelete }: { onDelete: () => void }) {
+function MemoryRecordActions({ record, onDelete }: { record: MemoryRecord; onDelete: () => void }) {
   return (
     <CdsDropdownMenu.Root>
       <CdsDropdownMenu.Trigger asChild>
         <Button variant="icon" aria-label="More actions">
-          ⋯
+          <span className="text-lg leading-none">⋯</span>
         </Button>
       </CdsDropdownMenu.Trigger>
       <CdsDropdownMenu.Portal>
-        <CdsDropdownMenu.Content className="z-50 min-w-[130px] rounded-cds border border-line bg-white p-1 shadow-lg" align="end">
+        <CdsDropdownMenu.Content className="z-50 min-w-[150px] rounded-cds border border-line bg-white p-1 shadow-lg" align="end">
+          <CdsDropdownMenu.Item className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill" onSelect={() => copyText(record.id)}>
+            <Copy className="h-4 w-4" />
+            Copy ID
+          </CdsDropdownMenu.Item>
+          <CdsDropdownMenu.Separator className="my-1 h-px bg-line" />
           <CdsDropdownMenu.Item
             className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm text-[#a33a29] outline-none data-[highlighted]:bg-[#fff1ef]"
             onSelect={onDelete}
