@@ -2,12 +2,14 @@ package main
 
 import (
 	"archive/tar"
+	"bufio"
 	"compress/gzip"
 	"context"
 	"encoding/json"
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"hash/fnv"
 	"io"
 	"net"
 	"net/http"
@@ -27,15 +29,21 @@ import (
 const ciArtifactBucket = "https://s3.amazonaws.com/spec.ccfc.min"
 
 type options struct {
-	workDir            string
-	firecrackerVersion string
-	image              string
-	vcpuCount          int
-	memMiB             int
-	timeout            time.Duration
-	useSudo            bool
-	keepAlive          bool
-	waitForBoot        bool
+	workDir             string
+	firecrackerVersion  string
+	image               string
+	vcpuCount           int
+	memMiB              int
+	timeout             time.Duration
+	useSudo             bool
+	keepAlive           bool
+	waitForBoot         bool
+	withProcessAPI      bool
+	processAPIBin       string
+	processAPITransport string
+	processAPIPort      uint32
+	processAPITCPPort   uint32
+	vsockCID            uint32
 }
 
 type listBucketResult struct {
@@ -63,24 +71,52 @@ type imageSpec struct {
 }
 
 type sandboxState struct {
-	ID          string    `json:"id"`
-	Image       string    `json:"image"`
-	Status      string    `json:"status"`
-	Booted      bool      `json:"booted"`
-	PID         int       `json:"pid"`
-	VCPUCount   int       `json:"vcpu_count"`
-	MemMiB      int       `json:"mem_mib"`
-	WorkDir     string    `json:"work_dir"`
-	SandboxDir  string    `json:"sandbox_dir"`
-	SocketPath  string    `json:"socket_path"`
-	ConsolePath string    `json:"console_path"`
-	LogPath     string    `json:"log_path"`
-	KernelPath  string    `json:"kernel_path"`
-	RootfsPath  string    `json:"rootfs_path"`
-	BaseRootfs  string    `json:"base_rootfs"`
-	Firecracker string    `json:"firecracker"`
-	StartedAt   time.Time `json:"started_at"`
-	StoppedAt   time.Time `json:"stopped_at,omitempty"`
+	ID               string    `json:"id"`
+	Image            string    `json:"image"`
+	Status           string    `json:"status"`
+	Booted           bool      `json:"booted"`
+	PID              int       `json:"pid"`
+	VCPUCount        int       `json:"vcpu_count"`
+	MemMiB           int       `json:"mem_mib"`
+	WorkDir          string    `json:"work_dir"`
+	SandboxDir       string    `json:"sandbox_dir"`
+	SocketPath       string    `json:"socket_path"`
+	ConsolePath      string    `json:"console_path"`
+	LogPath          string    `json:"log_path"`
+	KernelPath       string    `json:"kernel_path"`
+	RootfsPath       string    `json:"rootfs_path"`
+	BaseRootfs       string    `json:"base_rootfs"`
+	Firecracker      string    `json:"firecracker"`
+	ProcessAPI       bool      `json:"process_api"`
+	ProcessTransport string    `json:"process_transport,omitempty"`
+	ProcessPort      uint32    `json:"process_port,omitempty"`
+	ProcessTCPPort   uint32    `json:"process_tcp_port,omitempty"`
+	VsockCID         uint32    `json:"vsock_cid,omitempty"`
+	VsockPath        string    `json:"vsock_path,omitempty"`
+	TapName          string    `json:"tap_name,omitempty"`
+	HostIP           string    `json:"host_ip,omitempty"`
+	GuestIP          string    `json:"guest_ip,omitempty"`
+	GuestMAC         string    `json:"guest_mac,omitempty"`
+	ProcessBin       string    `json:"process_bin,omitempty"`
+	StartedAt        time.Time `json:"started_at"`
+	StoppedAt        time.Time `json:"stopped_at,omitempty"`
+}
+
+type processAPIHealth struct {
+	OK        bool   `json:"ok"`
+	Service   string `json:"service"`
+	Version   string `json:"version"`
+	OS        string `json:"os"`
+	Arch      string `json:"arch"`
+	PID       int    `json:"pid"`
+	Timestamp string `json:"timestamp"`
+}
+
+type processNetwork struct {
+	tapName  string
+	hostIP   string
+	guestIP  string
+	guestMAC string
 }
 
 func main() {
@@ -157,6 +193,12 @@ func main() {
 	start.Flags().IntVar(&opt.memMiB, "mem-mib", 256, "microVM memory size in MiB")
 	start.Flags().DurationVar(&opt.timeout, "timeout", 90*time.Second, "time to wait for guest boot signals")
 	start.Flags().BoolVar(&opt.waitForBoot, "wait", true, "wait until the guest emits a boot signal before returning")
+	start.Flags().BoolVar(&opt.withProcessAPI, "process-api", false, "inject and verify the guest process-api")
+	start.Flags().StringVar(&opt.processAPIBin, "process-api-bin", "/opt/managed-agents/bin/process-api", "Linux process-api binary to inject into the guest rootfs")
+	start.Flags().StringVar(&opt.processAPITransport, "process-api-transport", "tcp", "process-api transport: tcp or vsock")
+	start.Flags().Uint32Var(&opt.processAPIPort, "process-api-port", 1024, "guest AF_VSOCK port for process-api")
+	start.Flags().Uint32Var(&opt.processAPITCPPort, "process-api-tcp-port", 8080, "guest TCP port for process-api")
+	start.Flags().Uint32Var(&opt.vsockCID, "vsock-cid", 3, "Firecracker guest CID for the sandbox vsock device")
 	sandbox.AddCommand(start)
 
 	sandbox.AddCommand(&cobra.Command{
@@ -184,6 +226,23 @@ func main() {
 			for _, state := range states {
 				printSandboxState(refreshSandboxStatus(state))
 			}
+			return nil
+		},
+	})
+	sandbox.AddCommand(&cobra.Command{
+		Use:   "ping <sandbox-id>",
+		Short: "Query guest process-api health over Firecracker vsock",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			state, err := readSandboxState(opt, args[0])
+			if err != nil {
+				return err
+			}
+			health, err := getProcessAPIHealth(cmd.Context(), state)
+			if err != nil {
+				return err
+			}
+			fmt.Printf("process_api=ready\nservice=%s\npid=%d\nos=%s\narch=%s\n", health.Service, health.PID, health.OS, health.Arch)
 			return nil
 		},
 	})
@@ -432,7 +491,7 @@ func refreshSandboxStatus(state sandboxState) sandboxState {
 }
 
 func printSandboxState(state sandboxState) {
-	fmt.Printf("sandbox=%s\nstatus=%s\nbooted=%t\npid=%d\nimage=%s\nvcpu=%d\nmem_mib=%d\nsandbox_dir=%s\nconsole=%s\nrootfs=%s\n",
+	fmt.Printf("sandbox=%s\nstatus=%s\nbooted=%t\npid=%d\nimage=%s\nvcpu=%d\nmem_mib=%d\nsandbox_dir=%s\nconsole=%s\nrootfs=%s\nprocess_api=%t\n",
 		state.ID,
 		state.Status,
 		state.Booted,
@@ -443,7 +502,21 @@ func printSandboxState(state sandboxState) {
 		state.SandboxDir,
 		state.ConsolePath,
 		state.RootfsPath,
+		state.ProcessAPI,
 	)
+	if state.ProcessAPI {
+		fmt.Printf("process_transport=%s\nprocess_port=%d\nprocess_tcp_port=%d\nvsock_cid=%d\nvsock_path=%s\ntap_name=%s\nhost_ip=%s\nguest_ip=%s\nguest_mac=%s\n",
+			state.ProcessTransport,
+			state.ProcessPort,
+			state.ProcessTCPPort,
+			state.VsockCID,
+			state.VsockPath,
+			state.TapName,
+			state.HostIP,
+			state.GuestIP,
+			state.GuestMAC,
+		)
+	}
 }
 
 func copyRootfs(ctx context.Context, source, target string) error {
@@ -457,6 +530,129 @@ func copyRootfs(ctx context.Context, source, target string) error {
 	return runPassthrough(ctx, false, "cp", "--reflink=auto", "--sparse=always", source, target)
 }
 
+func injectProcessAPI(ctx context.Context, opt options, rootfsPath, sandboxDir string) error {
+	if opt.processAPIBin == "" {
+		return errors.New("process-api binary path is required")
+	}
+	if _, err := os.Stat(opt.processAPIBin); err != nil {
+		return fmt.Errorf("process-api binary is not available at %s: %w", opt.processAPIBin, err)
+	}
+	mountDir := filepath.Join(sandboxDir, "rootfs-mount")
+	if err := os.MkdirAll(mountDir, 0o755); err != nil {
+		return err
+	}
+	servicePath := filepath.Join(sandboxDir, "process-api.service")
+	if err := os.WriteFile(servicePath, []byte(processAPIService(opt)), 0o644); err != nil {
+		return err
+	}
+	mounted := false
+	defer func() {
+		if mounted {
+			_ = runPassthrough(ctx, true, "umount", mountDir)
+		}
+		_ = os.RemoveAll(mountDir)
+	}()
+	if err := runPassthrough(ctx, true, "mount", "-o", "loop", rootfsPath, mountDir); err != nil {
+		return err
+	}
+	mounted = true
+	if err := runPassthrough(ctx, true, "mkdir", "-p",
+		filepath.Join(mountDir, "opt/managed-agents/bin"),
+		filepath.Join(mountDir, "etc/systemd/system/multi-user.target.wants"),
+	); err != nil {
+		return err
+	}
+	if err := runPassthrough(ctx, true, "cp", opt.processAPIBin, filepath.Join(mountDir, "opt/managed-agents/bin/process-api")); err != nil {
+		return err
+	}
+	if err := runPassthrough(ctx, true, "chmod", "0755", filepath.Join(mountDir, "opt/managed-agents/bin/process-api")); err != nil {
+		return err
+	}
+	if err := runPassthrough(ctx, true, "cp", servicePath, filepath.Join(mountDir, "etc/systemd/system/process-api.service")); err != nil {
+		return err
+	}
+	if err := runPassthrough(ctx, true, "ln", "-sf", "../process-api.service", filepath.Join(mountDir, "etc/systemd/system/multi-user.target.wants/process-api.service")); err != nil {
+		return err
+	}
+	if err := runPassthrough(ctx, true, "sync"); err != nil {
+		return err
+	}
+	if err := runPassthrough(ctx, true, "umount", mountDir); err != nil {
+		return err
+	}
+	mounted = false
+	return nil
+}
+
+func processAPIService(opt options) string {
+	args := fmt.Sprintf("--transport %s --tcp-addr 0.0.0.0:%d --vsock-port %d", opt.processAPITransport, opt.processAPITCPPort, opt.processAPIPort)
+	return fmt.Sprintf(`[Unit]
+Description=Managed Agents Process API
+After=basic.target
+
+[Service]
+Type=simple
+ExecStart=/opt/managed-agents/bin/process-api %s
+Restart=always
+RestartSec=1
+StandardOutput=journal+console
+StandardError=journal+console
+
+[Install]
+WantedBy=multi-user.target
+`, args)
+}
+
+func processNetworkForSandbox(id string) processNetwork {
+	octet := sandboxNetworkOctet(id)
+	return processNetwork{
+		tapName:  fmt.Sprintf("ma%x", networkHash(id)&0xfffffff),
+		hostIP:   fmt.Sprintf("172.16.%d.1", octet),
+		guestIP:  fmt.Sprintf("172.16.%d.2", octet),
+		guestMAC: fmt.Sprintf("06:00:ac:10:%02x:02", octet),
+	}
+}
+
+func sandboxNetworkOctet(id string) uint32 {
+	return networkHash(id)%253 + 1
+}
+
+func networkHash(id string) uint32 {
+	hash := fnv.New32a()
+	_, _ = hash.Write([]byte(id))
+	return hash.Sum32()
+}
+
+func setupTap(ctx context.Context, network processNetwork) error {
+	if err := requireCommand("ip"); err != nil {
+		return err
+	}
+	_ = runShell(ctx, true, "ip link del "+shellQuote(network.tapName)+" 2>/dev/null || true", "")
+	if err := runPassthrough(ctx, true, "ip", "tuntap", "add", "dev", network.tapName, "mode", "tap"); err != nil {
+		return err
+	}
+	if err := runPassthrough(ctx, true, "ip", "addr", "add", network.hostIP+"/30", "dev", network.tapName); err != nil {
+		_ = deleteTap(ctx, network.tapName)
+		return err
+	}
+	if err := runPassthrough(ctx, true, "ip", "link", "set", network.tapName, "up"); err != nil {
+		_ = deleteTap(ctx, network.tapName)
+		return err
+	}
+	return nil
+}
+
+func deleteTap(ctx context.Context, tapName string) error {
+	if tapName == "" {
+		return nil
+	}
+	return runPassthrough(ctx, true, "ip", "link", "del", tapName)
+}
+
+func shellQuote(value string) string {
+	return "'" + strings.ReplaceAll(value, "'", "'\\''") + "'"
+}
+
 func stopSandbox(ctx context.Context, opt options, id string) (sandboxState, error) {
 	state, err := readSandboxState(opt, id)
 	if err != nil {
@@ -468,6 +664,7 @@ func stopSandbox(ctx context.Context, opt options, id string) (sandboxState, err
 		}
 	}
 	_ = os.Remove(state.SocketPath)
+	_ = deleteTap(ctx, state.TapName)
 	state.Status = "stopped"
 	state.StoppedAt = time.Now().UTC()
 	if err := writeSandboxState(state); err != nil {
@@ -489,6 +686,11 @@ func startSandbox(ctx context.Context, opt options, id string) (sandboxState, er
 	if err := validateSandboxID(id); err != nil {
 		return sandboxState{}, err
 	}
+	if opt.withProcessAPI {
+		if err := validateProcessAPIOptions(opt); err != nil {
+			return sandboxState{}, err
+		}
+	}
 	if existing, err := readSandboxState(opt, id); err == nil && isProcessAlive(existing.PID) {
 		return sandboxState{}, fmt.Errorf("sandbox %s is already running with pid %d", id, existing.PID)
 	}
@@ -508,13 +710,36 @@ func startSandbox(ctx context.Context, opt options, id string) (sandboxState, er
 	if err := copyRootfs(ctx, assets.rootfs, rootfsPath); err != nil {
 		return sandboxState{}, err
 	}
+	if opt.withProcessAPI {
+		if err := injectProcessAPI(ctx, opt, rootfsPath, sandboxDir); err != nil {
+			return sandboxState{}, err
+		}
+	}
 
 	socketPath := filepath.Join(sandboxDir, "firecracker.socket")
+	vsockPath := filepath.Join(sandboxDir, "process-api.vsock")
 	consolePath := filepath.Join(sandboxDir, "console.log")
 	logPath := filepath.Join(sandboxDir, "firecracker.log")
 	_ = os.Remove(socketPath)
+	_ = os.Remove(vsockPath)
 	_ = os.Remove(consolePath)
 	_ = os.Remove(logPath)
+
+	var network processNetwork
+	networkReady := false
+	if opt.withProcessAPI && opt.processAPITransport == "tcp" {
+		network = processNetworkForSandbox(id)
+		if err := setupTap(ctx, network); err != nil {
+			return sandboxState{}, err
+		}
+		networkReady = true
+	}
+	started := false
+	defer func() {
+		if !started && networkReady {
+			_ = deleteTap(ctx, network.tapName)
+		}
+	}()
 
 	cmd := exec.Command(assets.firecracker, "--api-sock", socketPath)
 	if opt.useSudo {
@@ -548,7 +773,24 @@ func startSandbox(ctx context.Context, opt options, id string) (sandboxState, er
 		RootfsPath:  rootfsPath,
 		BaseRootfs:  assets.rootfs,
 		Firecracker: assets.firecracker,
+		ProcessAPI:  opt.withProcessAPI,
 		StartedAt:   time.Now().UTC(),
+	}
+	if opt.withProcessAPI {
+		state.ProcessTransport = opt.processAPITransport
+		state.ProcessPort = opt.processAPIPort
+		state.ProcessTCPPort = opt.processAPITCPPort
+		state.VsockCID = opt.vsockCID
+		state.ProcessBin = opt.processAPIBin
+		if opt.processAPITransport == "vsock" {
+			state.VsockPath = vsockPath
+		}
+		if opt.processAPITransport == "tcp" {
+			state.TapName = network.tapName
+			state.HostIP = network.hostIP
+			state.GuestIP = network.guestIP
+			state.GuestMAC = network.guestMAC
+		}
 	}
 	if err := writeSandboxState(state); err != nil {
 		_ = terminateProcess(cmd.Process)
@@ -579,9 +821,30 @@ func startSandbox(ctx context.Context, opt options, id string) (sandboxState, er
 		_ = terminateProcess(cmd.Process)
 		return sandboxState{}, err
 	}
+	if opt.withProcessAPI && opt.processAPITransport == "vsock" {
+		if err := putJSON(ctx, client, "/vsock", fmt.Sprintf(`{"vsock_id":"process-api","guest_cid":%d,"uds_path":%q}`, opt.vsockCID, vsockPath)); err != nil {
+			_ = terminateProcess(cmd.Process)
+			return sandboxState{}, err
+		}
+	}
+	if opt.withProcessAPI && opt.processAPITransport == "tcp" {
+		if err := putJSON(ctx, client, "/network-interfaces/eth0", fmt.Sprintf(`{"iface_id":"eth0","guest_mac":%q,"host_dev_name":%q}`, network.guestMAC, network.tapName)); err != nil {
+			_ = terminateProcess(cmd.Process)
+			return sandboxState{}, err
+		}
+	}
 	if err := putJSON(ctx, client, "/actions", `{"action_type":"InstanceStart"}`); err != nil {
 		_ = terminateProcess(cmd.Process)
 		return sandboxState{}, err
+	}
+	if opt.withProcessAPI && opt.processAPITransport == "vsock" {
+		if err := waitForSocket(vsockPath, 5*time.Second); err != nil {
+			_ = terminateProcess(cmd.Process)
+			return sandboxState{}, err
+		}
+		if opt.useSudo {
+			_ = runPassthrough(ctx, true, "chmod", "666", vsockPath)
+		}
 	}
 
 	state.Status = "running"
@@ -594,11 +857,40 @@ func startSandbox(ctx context.Context, opt options, id string) (sandboxState, er
 		}
 		state.Booted = true
 	}
+	if opt.withProcessAPI {
+		if _, err := waitForProcessAPI(ctx, state, opt.timeout); err != nil {
+			_ = terminateProcess(cmd.Process)
+			state.Status = "failed"
+			_ = writeSandboxState(state)
+			return sandboxState{}, err
+		}
+		fmt.Println("process_api=ready")
+	}
 	if err := writeSandboxState(state); err != nil {
 		_ = terminateProcess(cmd.Process)
 		return sandboxState{}, err
 	}
+	started = true
 	return state, nil
+}
+
+func validateProcessAPIOptions(opt options) error {
+	if opt.processAPIBin == "" {
+		return errors.New("process-api binary path is required")
+	}
+	switch opt.processAPITransport {
+	case "tcp":
+		if opt.processAPITCPPort == 0 {
+			return errors.New("process-api TCP port must be positive")
+		}
+	case "vsock":
+		if opt.processAPIPort == 0 {
+			return errors.New("process-api vsock port must be positive")
+		}
+	default:
+		return fmt.Errorf("unsupported process-api transport %q", opt.processAPITransport)
+	}
+	return nil
 }
 
 func firecrackerArch() (string, error) {
@@ -837,6 +1129,117 @@ func waitForConsole(path string, timeout time.Duration) error {
 		last = last[len(last)-2000:]
 	}
 	return fmt.Errorf("guest boot signal not found before timeout; console tail:\n%s", last)
+}
+
+func waitForProcessAPI(ctx context.Context, state sandboxState, timeout time.Duration) (processAPIHealth, error) {
+	deadline := time.Now().Add(timeout)
+	var lastErr error
+	for time.Now().Before(deadline) {
+		health, err := getProcessAPIHealth(ctx, state)
+		if err == nil {
+			return health, nil
+		}
+		lastErr = err
+		time.Sleep(500 * time.Millisecond)
+	}
+	return processAPIHealth{}, fmt.Errorf("process-api did not become ready before timeout: %w", lastErr)
+}
+
+func getProcessAPIHealth(ctx context.Context, state sandboxState) (processAPIHealth, error) {
+	if !state.ProcessAPI {
+		return processAPIHealth{}, fmt.Errorf("sandbox %s was not started with process-api", state.ID)
+	}
+	switch state.ProcessTransport {
+	case "tcp":
+		if state.GuestIP == "" || state.ProcessTCPPort == 0 {
+			return processAPIHealth{}, fmt.Errorf("sandbox %s is missing process-api TCP metadata", state.ID)
+		}
+	case "vsock":
+		if state.VsockPath == "" || state.ProcessPort == 0 {
+			return processAPIHealth{}, fmt.Errorf("sandbox %s is missing process-api vsock metadata", state.ID)
+		}
+	default:
+		return processAPIHealth{}, fmt.Errorf("sandbox %s has unsupported process-api transport %q", state.ID, state.ProcessTransport)
+	}
+	client := processAPIClient(state)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, processAPIHealthURL(state), nil)
+	if err != nil {
+		return processAPIHealth{}, err
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		return processAPIHealth{}, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		data, _ := io.ReadAll(resp.Body)
+		return processAPIHealth{}, fmt.Errorf("process-api health failed: %s %s", resp.Status, strings.TrimSpace(string(data)))
+	}
+	var health processAPIHealth
+	if err := json.NewDecoder(resp.Body).Decode(&health); err != nil {
+		return processAPIHealth{}, err
+	}
+	if !health.OK || health.Service != "process-api" {
+		return processAPIHealth{}, fmt.Errorf("unexpected process-api health response: %+v", health)
+	}
+	return health, nil
+}
+
+func processAPIClient(state sandboxState) *http.Client {
+	if state.ProcessTransport == "tcp" {
+		return &http.Client{
+			Transport: &http.Transport{Proxy: nil},
+			Timeout:   10 * time.Second,
+		}
+	}
+	return &http.Client{
+		Transport: &http.Transport{
+			Proxy: nil,
+			DialContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+				return dialFirecrackerVsock(ctx, state.VsockPath, state.ProcessPort)
+			},
+		},
+		Timeout: 10 * time.Second,
+	}
+}
+
+func processAPIHealthURL(state sandboxState) string {
+	if state.ProcessTransport == "tcp" {
+		return fmt.Sprintf("http://%s:%d/healthz", state.GuestIP, state.ProcessTCPPort)
+	}
+	return "http://process-api/healthz"
+}
+
+func dialFirecrackerVsock(ctx context.Context, udsPath string, port uint32) (net.Conn, error) {
+	var dialer net.Dialer
+	conn, err := dialer.DialContext(ctx, "unix", udsPath)
+	if err != nil {
+		return nil, err
+	}
+	if _, err := fmt.Fprintf(conn, "CONNECT %d\n", port); err != nil {
+		_ = conn.Close()
+		return nil, err
+	}
+	reader := bufio.NewReader(conn)
+	line, err := reader.ReadString('\n')
+	if err != nil {
+		_ = conn.Close()
+		return nil, err
+	}
+	if !strings.HasPrefix(line, "OK ") {
+		_ = conn.Close()
+		return nil, fmt.Errorf("Firecracker vsock connect failed: %s", strings.TrimSpace(line))
+	}
+	return &bufferedConn{Conn: conn, reader: reader}, nil
+}
+
+type bufferedConn struct {
+	net.Conn
+	reader *bufio.Reader
+}
+
+func (conn *bufferedConn) Read(data []byte) (int, error) {
+	return conn.reader.Read(data)
 }
 
 func requireCommand(name string) error {

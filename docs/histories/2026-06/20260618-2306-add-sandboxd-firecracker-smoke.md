@@ -8,7 +8,7 @@
 
 ### User Query
 
-> Switch this forked workstream to sandboxd and Firecracker, document the existing firecracker-harness environment in a redacted way, and start proving the single-node sandbox path with real validation. Continue by making sandboxd handle sandbox lifecycle and pulling the corresponding microVM image; defer environment management and rclone until the API server side is ready.
+> Switch this forked workstream to sandboxd and Firecracker, document the existing firecracker-harness environment in a redacted way, and start proving the single-node sandbox path with real validation. Continue by making sandboxd handle sandbox lifecycle, pulling the corresponding microVM image, and adding the minimum process-api path; defer environment management and rclone until the API server side is ready.
 
 ### Changes Overview
 
@@ -20,18 +20,22 @@
   - Added `pull` and `sandbox start/status/list/stop` commands backed by per-sandbox state files.
   - Added per-sandbox rootfs copies so running sandboxes do not share a writable base image.
   - Added sandboxd unit coverage for image aliases, sandbox id validation, and state file round trips.
+  - Added `apps/process-api`, a minimal guest process API exposing `/healthz` and `/shutdown`.
+  - Added process-api rootfs injection, systemd service setup, Firecracker tap networking, and `sandbox ping`.
+  - Kept vsock support in code, but used TCP/tap for the CI Ubuntu rootfs because that image does not ship guest vsock kernel modules.
   - Updated the GCP Firecracker harness reference with the reusable project, VM shape, IAP SSH/SCP, and binary sync workflow.
-  - Added README and reference entries for the sandboxd lifecycle path.
+  - Added README and reference entries for the sandboxd lifecycle and process-api paths.
 
 ### Design Intent
 
-This milestone keeps `sandboxd` independent from `apiserver` and `orchestrator` while proving the host-local boundary that will later receive scheduled work. The first useful slice was a real microVM boot on a nested-virtualization host, not a mock runner. The follow-up slice turns that boot path into a small local lifecycle surface: pull an image, start a named sandbox, inspect its host process and state, and stop it cleanly.
+This milestone keeps `sandboxd` independent from `apiserver` and `orchestrator` while proving the host-local boundary that will later receive scheduled work. The first useful slice was a real microVM boot on a nested-virtualization host, not a mock runner. The follow-up slices turn that boot path into a small local lifecycle surface and prove that a guest process-api can be injected into the microVM, started by systemd, reached from the host, and cleaned up with the sandbox.
 
 ### Verification
 
 - Local:
   - `go test ./...`
   - `GOOS=linux GOARCH=amd64 go build -o /tmp/managed-agents-sandboxd ./apps/sandboxd`
+  - `GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o /tmp/managed-agents-process-api ./apps/process-api`
 - Remote GCP harness:
   - Started the reusable `firecracker-harness` VM.
   - Ran `sandboxd doctor`; verified VMX, `/dev/kvm`, and `kvm_intel`/`kvm` modules.
@@ -39,11 +43,16 @@ This milestone keeps `sandboxd` independent from `apiserver` and `orchestrator` 
   - Confirmed no Firecracker process was left running after the smoke test.
   - Ran `sandboxd pull` for `firecracker-ci-ubuntu-22.04`.
   - Ran `sandboxd sandbox start`, `status`, and `stop`; verified booted state, sandbox-local rootfs, console log, live PID during status, and no remaining Firecracker process after stop.
+  - Ran `sandboxd sandbox start --process-api`, `sandboxd sandbox ping`, and `sandboxd sandbox stop`; verified guest `/healthz`, `process_api_ready` in the console, Firecracker running during ping, and no Firecracker or tap device remaining after stop.
 
 ### Files Modified
 
+- `apps/process-api/main.go`
+- `apps/process-api/vsock_linux.go`
+- `apps/process-api/vsock_unsupported.go`
 - `apps/sandboxd/main.go`
 - `apps/sandboxd/main_test.go`
+- `go.mod`
 - `docs/references/gcp-firecracker-kvm.md`
 - `README.md`
 - `docs/histories/2026-06/20260618-2306-add-sandboxd-firecracker-smoke.md`

@@ -29,9 +29,13 @@ APISERVER_ADDR=:8080
 Run the host-plane Firecracker smoke test on a Linux host with KVM:
 
 ```sh
+GOOS=linux GOARCH=amd64 go build -o /opt/managed-agents/bin/process-api ./apps/process-api
+GOOS=linux GOARCH=amd64 go build -o /opt/managed-agents/bin/sandboxd ./apps/sandboxd
+
 go run ./apps/sandboxd doctor
 go run ./apps/sandboxd pull --work-dir /opt/managed-agents/firecracker --sudo
-go run ./apps/sandboxd sandbox start sbx-dev --work-dir /opt/managed-agents/firecracker --sudo
+go run ./apps/sandboxd sandbox start sbx-dev --work-dir /opt/managed-agents/firecracker --sudo --process-api
+go run ./apps/sandboxd sandbox ping sbx-dev --work-dir /opt/managed-agents/firecracker
 go run ./apps/sandboxd sandbox status sbx-dev --work-dir /opt/managed-agents/firecracker
 go run ./apps/sandboxd sandbox stop sbx-dev --work-dir /opt/managed-agents/firecracker
 ```

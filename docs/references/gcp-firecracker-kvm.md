@@ -162,7 +162,7 @@ For one-shot syncs, use `gcloud compute scp`:
 
 ```bash
 gcloud compute scp --recurse \
-  apps/sandboxd \
+  apps/sandboxd apps/process-api \
   go.mod go.sum \
   "$VM_NAME:~/managed-agents/" \
   --project="$PROJECT_ID" \
@@ -170,15 +170,19 @@ gcloud compute scp --recurse \
   --tunnel-through-iap
 ```
 
-For a compiled sandboxd smoke binary, compress locally and copy the smaller
-archive through IAP:
+For compiled sandboxd and process-api binaries, compress locally and copy the
+smaller archives through IAP:
 
 ```bash
 GOOS=linux GOARCH=amd64 go build -o /tmp/managed-agents-sandboxd ./apps/sandboxd
+GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o /tmp/managed-agents-process-api ./apps/process-api
 gzip -c /tmp/managed-agents-sandboxd > /tmp/managed-agents-sandboxd.gz
+gzip -c /tmp/managed-agents-process-api > /tmp/managed-agents-process-api.gz
 
-gcloud compute scp /tmp/managed-agents-sandboxd.gz \
-  "$VM_NAME:/tmp/sandboxd.gz" \
+gcloud compute scp \
+  /tmp/managed-agents-sandboxd.gz \
+  /tmp/managed-agents-process-api.gz \
+  "$VM_NAME:/tmp/" \
   --project="$PROJECT_ID" \
   --zone="$ZONE" \
   --tunnel-through-iap
@@ -188,10 +192,12 @@ gcloud compute ssh "$VM_NAME" \
   --zone="$ZONE" \
   --tunnel-through-iap \
   --command='set -euo pipefail
-gzip -dc /tmp/sandboxd.gz > /tmp/sandboxd
-chmod +x /tmp/sandboxd
+gzip -dc /tmp/managed-agents-sandboxd.gz > /tmp/sandboxd
+gzip -dc /tmp/managed-agents-process-api.gz > /tmp/process-api
+chmod +x /tmp/sandboxd /tmp/process-api
 sudo mkdir -p /opt/managed-agents/bin /opt/managed-agents/firecracker
 sudo mv /tmp/sandboxd /opt/managed-agents/bin/sandboxd
+sudo mv /tmp/process-api /opt/managed-agents/bin/process-api
 sudo chown -R "$USER:$USER" /opt/managed-agents'
 ```
 
@@ -239,6 +245,44 @@ Expected lifecycle signals:
   the Firecracker process exists.
 - `sandbox stop` reports `status=stopped`, and `pgrep -a firecracker` should not
   show the stopped sandbox process.
+
+## Process API Guest Test
+
+After syncing both binaries, run the first guest process-api path. The current
+Firecracker CI Ubuntu rootfs does not ship kernel modules for guest AF_VSOCK, so
+this milestone uses Firecracker tap networking and a guest TCP listener. The
+`sandboxd` state still records the process-api transport explicitly so a later
+rootfs with vsock support can switch transports without changing the lifecycle
+shape.
+
+```bash
+WORK_DIR=/opt/managed-agents/firecracker
+SANDBOX_ID=sbx-process-api
+
+/opt/managed-agents/bin/sandboxd sandbox start "$SANDBOX_ID" \
+  --work-dir "$WORK_DIR" \
+  --image firecracker-ci-ubuntu-22.04 \
+  --sudo \
+  --process-api \
+  --process-api-bin /opt/managed-agents/bin/process-api \
+  --timeout 150s
+
+/opt/managed-agents/bin/sandboxd sandbox ping "$SANDBOX_ID" \
+  --work-dir "$WORK_DIR"
+
+/opt/managed-agents/bin/sandboxd sandbox stop "$SANDBOX_ID" \
+  --work-dir "$WORK_DIR"
+```
+
+Expected process-api signals:
+
+- `sandbox start` reports `process_api=ready`.
+- `sandbox ping` reports `service=process-api`, `os=linux`, and `arch=amd64`.
+- `state.json` records `process_transport=tcp`, a tap name, host IP, guest IP,
+  and guest MAC.
+- The console log contains `process_api_ready`.
+- After `sandbox stop`, both `pgrep -a firecracker` and `ip addr show | grep ma`
+  should be empty for the stopped sandbox.
 
 ## Firecracker Smoke Test
 
