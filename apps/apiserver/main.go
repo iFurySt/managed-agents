@@ -571,6 +571,9 @@ func listSessions(db *gorm.DB) gin.HandlerFunc {
 		if deploymentID := strings.TrimSpace(c.Query("deploymentId")); deploymentID != "" {
 			query = query.Where("deployment_id = ?", deploymentID)
 		}
+		if cutoff, ok := createdCutoff(c.Query("created"), time.Now().UTC()); ok {
+			query = query.Where("created_at >= ?", cutoff)
+		}
 		if err := query.Find(&sessions).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -1228,6 +1231,9 @@ func listMemoryStores(db *gorm.DB) gin.HandlerFunc {
 		}
 		if status := strings.TrimSpace(c.Query("status")); status != "" && !strings.EqualFold(status, "all") {
 			query = query.Where("status = ?", status)
+		}
+		if cutoff, ok := createdCutoff(c.Query("created"), time.Now().UTC()); ok {
+			query = query.Where("created_at >= ?", cutoff)
 		}
 		if err := query.Find(&stores).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

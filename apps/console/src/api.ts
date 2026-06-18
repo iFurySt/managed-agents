@@ -93,12 +93,13 @@ export async function archiveAgent(id: string): Promise<Agent> {
   return postJSON<Agent>(`/api/agents/${id}/archive`, {});
 }
 
-export async function listSessions(params: { q?: string; status?: string; agentId?: string; deploymentId?: string } = {}): Promise<Session[]> {
+export async function listSessions(params: { q?: string; status?: string; agentId?: string; deploymentId?: string; created?: string } = {}): Promise<Session[]> {
   const search = new URLSearchParams();
   if (params.q) search.set("q", params.q);
   if (params.status && params.status !== "All") search.set("status", params.status);
   if (params.agentId && params.agentId !== "All") search.set("agentId", params.agentId);
   if (params.deploymentId && params.deploymentId !== "All") search.set("deploymentId", params.deploymentId);
+  if (params.created && params.created !== "All time") search.set("created", params.created);
   const query = search.toString();
   const data = await getJSON<{ items: Session[] }>(`/api/sessions${query ? `?${query}` : ""}`);
   return data.items;
@@ -216,10 +217,11 @@ export async function deleteVaultCredential(vaultId: string, credentialId: strin
   return deleteJSON<{ deleted: boolean }>(`/api/vaults/${vaultId}/credentials/${credentialId}`);
 }
 
-export async function listMemoryStores(params: { q?: string; status?: string } = {}): Promise<MemoryStore[]> {
+export async function listMemoryStores(params: { q?: string; status?: string; created?: string } = {}): Promise<MemoryStore[]> {
   const search = new URLSearchParams();
   if (params.q) search.set("q", params.q);
   if (params.status && params.status !== "All") search.set("status", params.status);
+  if (params.created && params.created !== "All time") search.set("created", params.created);
   const query = search.toString();
   const data = await getJSON<{ items: MemoryStore[] }>(`/api/memory-stores${query ? `?${query}` : ""}`);
   return data.items;

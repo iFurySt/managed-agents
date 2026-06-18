@@ -322,8 +322,8 @@ function SessionsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
-    listSessions({ q: search, status, agentId: agent, deploymentId: deployment }).then(setSessions).catch(() => setSessions([]));
-  }, [agent, deployment, search, status]);
+    listSessions({ q: search, status, agentId: agent, deploymentId: deployment, created }).then(setSessions).catch(() => setSessions([]));
+  }, [agent, created, deployment, search, status]);
 
   async function cancelCurrent(session: Session) {
     const updated = await cancelSession(session.id);
@@ -395,14 +395,6 @@ function SessionsPage() {
         ]}
         renderActions={(session) => <SessionRowActions session={session} onCancel={() => cancelCurrent(session)} />}
       />
-      <div className="flex gap-2">
-        <Button variant="secondary" className="h-8 w-8 px-0" disabled>
-          ‹
-        </Button>
-        <Button variant="secondary" className="h-8 w-8 px-0" disabled>
-          ›
-        </Button>
-      </div>
       <CreateSessionDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
@@ -1450,16 +1442,8 @@ function MemoryStoresPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
-    listMemoryStores({ q: query, status }).then(setStores).catch(() => setStores([]));
-  }, [query, status]);
-
-  const visibleStores = stores.filter((store) => {
-    if (created === "All time") return true;
-    if (created === "Last 24 hours") return store.createdLabel.includes("hour") || store.createdLabel === "just now";
-    if (created === "Last 7 days") return store.createdLabel.includes("hour") || store.createdLabel.includes("day") || store.createdLabel === "just now";
-    if (created === "Last 30 days") return store.createdLabel !== "";
-    return true;
-  });
+    listMemoryStores({ q: query, status, created }).then(setStores).catch(() => setStores([]));
+  }, [created, query, status]);
 
   async function archiveStore(store: MemoryStore) {
     const updated = await archiveMemoryStore(store.id);
@@ -1498,7 +1482,7 @@ function MemoryStoresPage() {
         <FieldSelect label="Status" value={status} options={["Active", "Archived", "All"]} onValueChange={setStatus} />
       </div>
       <DataTable
-        rows={visibleStores}
+        rows={stores}
         getKey={(store) => store.id}
         columns={[
           {
@@ -1529,14 +1513,6 @@ function MemoryStoresPage() {
         ]}
         renderActions={(store) => <MemoryStoreActions store={store} onArchive={() => archiveStore(store)} onDelete={() => deleteStore(store)} />}
       />
-      <div className="flex gap-2">
-        <Button variant="secondary" className="h-8 w-8 px-0" disabled>
-          ‹
-        </Button>
-        <Button variant="secondary" className="h-8 w-8 px-0" disabled>
-          ›
-        </Button>
-      </div>
       <CreateMemoryStoreDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
