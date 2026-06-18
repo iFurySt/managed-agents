@@ -188,26 +188,32 @@ export function ConsoleDialog({
   description,
   open,
   onOpenChange,
-  children
+  children,
+  contentClassName = "w-[706px]",
+  titleClassName = "text-2xl font-semibold text-ink",
+  closeLabel = "Close dialog"
 }: {
   title: string;
   description?: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   children: ReactNode;
+  contentClassName?: string;
+  titleClassName?: string;
+  closeLabel?: string;
 }) {
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-40 bg-black/35 backdrop-blur-[1px]" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 max-h-[86vh] w-[706px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-cds border border-line bg-white shadow-xl">
+        <Dialog.Content className={`fixed left-1/2 top-1/2 z-50 max-h-[86vh] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-cds border border-line bg-white shadow-xl ${contentClassName}`}>
           <div className="flex items-start justify-between px-6 pt-6">
             <div>
-              <Dialog.Title className="text-2xl font-semibold text-ink">{title}</Dialog.Title>
+              <Dialog.Title className={titleClassName}>{title}</Dialog.Title>
               {description ? <Dialog.Description className="mt-1 text-sm text-muted">{description}</Dialog.Description> : null}
             </div>
             <Dialog.Close asChild>
-              <Button variant="ghost" className="h-7 w-7 px-0" aria-label="Close dialog">
+              <Button variant="ghost" className="h-7 w-7 px-0" aria-label={closeLabel}>
                 <X className="h-5 w-5" />
               </Button>
             </Dialog.Close>

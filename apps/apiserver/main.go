@@ -14,6 +14,7 @@ import (
 	"github.com/spf13/cobra"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type Agent struct {
@@ -1620,17 +1621,35 @@ func seed(db *gorm.DB) error {
 		}
 	}
 
-	if err := db.Model(&SkillPackage{}).Count(&count).Error; err != nil {
+	skills, versions := seedSkills(now)
+	if err := db.Clauses(clause.OnConflict{
+		Columns: []clause.Column{{Name: "id"}},
+		DoUpdates: clause.AssignmentColumns([]string{
+			"name",
+			"status",
+			"description",
+			"slug",
+			"owner",
+			"version",
+			"latest_label",
+			"created_label",
+			"updated_label",
+			"updated_at",
+		}),
+	}).Create(&skills).Error; err != nil {
 		return err
 	}
-	if count == 0 {
-		skills, versions := seedSkills(now)
-		if err := db.Create(&skills).Error; err != nil {
-			return err
-		}
-		if err := db.Create(&versions).Error; err != nil {
-			return err
-		}
+	if err := db.Clauses(clause.OnConflict{
+		Columns: []clause.Column{{Name: "id"}},
+		DoUpdates: clause.AssignmentColumns([]string{
+			"skill_id",
+			"version",
+			"released_at",
+			"latest",
+			"description",
+		}),
+	}).Create(&versions).Error; err != nil {
+		return err
 	}
 
 	if err := db.Model(&Deployment{}).Count(&count).Error; err != nil {

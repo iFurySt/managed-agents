@@ -1966,7 +1966,16 @@ function SkillsPage() {
               <h2 className="mb-2 text-lg font-semibold">{skill.name}</h2>
               <p className="max-w-[820px] whitespace-pre-wrap text-sm leading-6 text-[#3f3a35]">{skill.description}</p>
               <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-muted">
-                <span className="font-mono text-ink">{skill.slug}</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-[22px] gap-1 px-0 pr-1 font-mono text-ink"
+                  aria-label={`Copy ${skill.slug}`}
+                  onClick={() => copyText(skill.slug)}
+                >
+                  <span>{skill.slug}</span>
+                  <Copy className="h-3.5 w-3.5" />
+                </Button>
                 <span>•</span>
                 <span>{skill.owner}</span>
                 <span>•</span>
@@ -2864,10 +2873,17 @@ function CreateSkillDialog({
   }
 
   return (
-    <ConsoleDialog title="Create skill" open={open} onOpenChange={onOpenChange}>
-      <div className="px-6 pb-0 pt-5">
-        <div className="grid gap-5">
-          <label className="grid min-h-[180px] cursor-pointer place-items-center rounded-cds border border-dashed border-[#cfcac2] bg-fill px-6 py-8 text-center">
+    <ConsoleDialog
+      title="Create skill"
+      open={open}
+      onOpenChange={onOpenChange}
+      contentClassName="w-[510px] max-w-[calc(100vw-32px)]"
+      titleClassName="text-lg font-semibold text-ink"
+      closeLabel="Close"
+    >
+      <div className="px-6 pb-0 pt-3">
+        <div className="grid gap-4">
+          <label className="grid min-h-[112px] cursor-pointer place-items-center rounded-cds border border-dashed border-[#cfcac2] bg-fill px-6 py-4 text-center">
             <input
               className="hidden"
               type="file"
@@ -2875,16 +2891,16 @@ function CreateSkillDialog({
               onChange={(event) => setSelectedName(event.target.files?.[0]?.name ?? "")}
             />
             <div>
-              <div className="mx-auto mb-3 grid h-10 w-10 place-items-center rounded-cds border border-line bg-white">
+              <div className="mx-auto mb-2 grid h-8 w-8 place-items-center rounded-cds border border-line bg-white">
                 <UploadIcon />
               </div>
               <p className="text-sm font-medium">Drag and drop a .zip, .skill file, or directory to upload</p>
-              <p className="mt-3 text-sm text-muted">Total file size limit: 8MB. <span className="font-medium text-ink">File format</span> · <span className="font-medium text-ink">download an example</span>.</p>
+              <p className="mt-2 text-sm text-muted">Total file size limit: 8MB. <span className="font-medium text-ink">File format</span> · <span className="font-medium text-ink">download an example</span>.</p>
               {selectedName ? <p className="mt-3 font-mono text-sm text-ink">{selectedName}</p> : null}
             </div>
           </label>
         </div>
-        <div className="sticky bottom-0 -mx-6 mt-6 flex justify-end bg-white px-6 py-5">
+        <div className="sticky bottom-0 -mx-6 mt-4 flex justify-end bg-white px-6 py-3">
           <Button onClick={submit} disabled={!canContinue}>Continue</Button>
         </div>
       </div>
@@ -2906,7 +2922,14 @@ function SkillVersionDialog({ skillId, onOpenChange }: { skillId: string | null;
   const open = Boolean(skillId);
 
   return (
-    <ConsoleDialog title={skill?.name ?? "Skill"} open={open} onOpenChange={onOpenChange}>
+    <ConsoleDialog
+      title={skill?.name ?? "Skill"}
+      open={open}
+      onOpenChange={onOpenChange}
+      contentClassName="w-[520px] max-w-[calc(100vw-32px)]"
+      titleClassName="text-lg font-semibold text-ink"
+      closeLabel="Close"
+    >
       <div className="px-6 pb-0 pt-2">
         {skill ? (
           <div className="grid gap-5">
@@ -2918,8 +2941,17 @@ function SkillVersionDialog({ skillId, onOpenChange }: { skillId: string | null;
             <DetailSection title="Version history">
               <div className="grid gap-1">
                 {(skill.versions ?? []).map((version) => (
-                  <div key={version.id} className="grid h-10 grid-cols-[1fr_120px_80px] items-center rounded-control px-2 text-sm hover:bg-fill">
-                    <span className="font-mono font-semibold">{version.version}</span>
+                  <div key={version.id} className="grid min-h-[47px] grid-cols-[minmax(0,1fr)_130px_72px] items-center rounded-control px-2 text-sm hover:bg-fill">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-[22px] w-[74px] justify-start gap-0.5 px-0 font-mono font-semibold text-ink"
+                      aria-label={`Copy ${version.version}`}
+                      onClick={() => copyText(version.version)}
+                    >
+                      <span>{version.version}</span>
+                      <Copy className="h-3.5 w-3.5" />
+                    </Button>
                     <span className="text-muted">{version.releasedAt}</span>
                     <span>{version.latest ? <Badge>Latest</Badge> : null}</span>
                   </div>
@@ -2930,7 +2962,6 @@ function SkillVersionDialog({ skillId, onOpenChange }: { skillId: string | null;
         ) : (
           <EmptyState compact title="Loading version history" description="" />
         )}
-        <div className="sticky bottom-0 -mx-6 mt-6 h-5 bg-white" />
       </div>
     </ConsoleDialog>
   );
@@ -3458,7 +3489,7 @@ function SkillActions({ onDelete }: { onDelete: () => void }) {
 }
 
 function UploadIcon() {
-  return <Upload className="h-5 w-5 text-muted" />;
+  return <Upload className="h-4 w-4 text-muted" />;
 }
 
 function splitValues(value: string) {
