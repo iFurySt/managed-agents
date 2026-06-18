@@ -701,14 +701,6 @@ function DeploymentsPage() {
           />
         )}
       />
-      <div className="flex gap-2">
-        <Button variant="secondary" className="h-8 w-8 px-0" disabled>
-          ‹
-        </Button>
-        <Button variant="secondary" className="h-8 w-8 px-0" disabled>
-          ›
-        </Button>
-      </div>
       <CreateDeploymentDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
@@ -967,14 +959,6 @@ function EnvironmentsPage() {
         ]}
         renderActions={(environment) => <EnvironmentActions environment={environment} onArchive={() => archiveCurrent(environment)} />}
       />
-      <div className="flex gap-2">
-        <Button variant="secondary" className="h-8 w-8 px-0" disabled>
-          ‹
-        </Button>
-        <Button variant="secondary" className="h-8 w-8 px-0" disabled>
-          ›
-        </Button>
-      </div>
       <CreateEnvironmentDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
@@ -1281,14 +1265,6 @@ function VaultsPage() {
         ]}
         renderActions={(vault) => <VaultRowActions vault={vault} onArchive={() => archiveCurrent(vault)} onDelete={() => deleteCurrent(vault)} />}
       />
-      <div className="flex gap-2">
-        <Button variant="secondary" className="h-8 w-8 px-0" disabled>
-          ‹
-        </Button>
-        <Button variant="secondary" className="h-8 w-8 px-0" disabled>
-          ›
-        </Button>
-      </div>
       <CreateVaultDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
@@ -1414,14 +1390,6 @@ function VaultDetailPage() {
         ]}
         renderActions={(credential) => <CredentialActions credential={credential} onArchive={() => archiveCredential(credential)} onDelete={() => deleteCredential(credential)} />}
       />
-      <div className="flex gap-2">
-        <Button variant="secondary" className="h-8 w-8 px-0" disabled>
-          ‹
-        </Button>
-        <Button variant="secondary" className="h-8 w-8 px-0" disabled>
-          ›
-        </Button>
-      </div>
       <CreateCredentialDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
