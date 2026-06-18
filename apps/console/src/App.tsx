@@ -643,20 +643,34 @@ function DeploymentsPage() {
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
           <TextInput className="pl-9" aria-label="Search by name or exact ID" placeholder="Search by name or exact ID" value={search} onChange={(event) => setSearch(event.target.value)} />
         </div>
-        <FieldSelect label="Agent" value={agent} options={["All", "agent_017k8CPYuCFRD9AmupUeXd2Z", "agent_013mi1SmR2hJ6Hk6wNTeJvF9"]} onValueChange={setAgent} />
-        <FieldSelect label="Status" value={status} options={["All", "Paused", "Active", "Archived", "Failed"]} onValueChange={setStatus} />
+        <FieldSelect
+          label="Agent"
+          value={agent}
+          options={["All", "agent_017k8CPYuCFRD9AmupUeXd2Z", "agent_013mi1SmR2hJ6Hk6wNTeJvF9"]}
+          onValueChange={setAgent}
+          triggerClassName="w-[112px]"
+        />
+        <FieldSelect
+          label="Status"
+          value={status}
+          options={["All", "Paused", "Active", "Archived", "Failed"]}
+          onValueChange={setStatus}
+          triggerClassName="w-[98px]"
+        />
       </div>
       <DataTable
         rows={deployments}
         getKey={(deployment) => deployment.id}
+        showSelection={false}
+        actionsWidth="56px"
         columns={[
           {
             key: "id",
             header: "ID",
-            width: "190px",
+            width: "160px",
             render: (deployment) => (
-              <div className="flex items-center gap-2">
-                <span className="font-mono font-semibold">{shortId(deployment.id)}</span>
+              <div className="flex min-w-0 items-center gap-2">
+                <span className="truncate font-mono font-semibold">{shortId(deployment.id)}</span>
                 <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${deployment.id}`} onClick={() => copyText(deployment.id)}>
                   <Copy className="h-3.5 w-3.5" />
                 </Button>
@@ -668,26 +682,26 @@ function DeploymentsPage() {
             header: "Name",
             width: "240px",
             render: (deployment) => (
-              <Link className="font-medium hover:underline" to={`/deployments/${deployment.id}`}>
+              <Link className="block truncate font-medium hover:underline" to={`/deployments/${deployment.id}`}>
                 {deployment.name}
               </Link>
             )
           },
-          { key: "status", header: "Status", width: "120px", render: (deployment) => <Badge tone={deploymentTone(deployment.status)}>{deployment.status}</Badge> },
+          { key: "status", header: "Status", width: "110px", render: (deployment) => <Badge tone={deploymentTone(deployment.status)}>{deployment.status}</Badge> },
           {
             key: "agent",
             header: "Agent",
-            width: "240px",
+            width: "220px",
             render: (deployment) => (
-              <Button variant="ghost" className="h-[25px] justify-start px-2">
+              <Button variant="ghost" className="h-[25px] min-w-0 max-w-full justify-start px-2">
                 <Braces className="h-4 w-4 text-muted" />
-                <span>{deployment.agentName}</span>
-                <span className="text-muted">{deployment.agentVersion}</span>
+                <span className="min-w-0 truncate">{deployment.agentName}</span>
+                <span className="shrink-0 text-muted">{deployment.agentVersion}</span>
               </Button>
             )
           },
-          { key: "trigger", header: "Trigger", width: "220px", render: (deployment) => <span>{deployment.trigger === "Schedule" ? "Daily at 1:00 AM GMT+8" : deployment.trigger}</span> },
-          { key: "created", header: "Created", width: "140px", render: (deployment) => <span className="text-muted">{deployment.createdLabel}</span> }
+          { key: "trigger", header: "Trigger", width: "200px", render: (deployment) => <span>{deployment.trigger === "Schedule" ? "Daily at 1:00 AM GMT+8" : deployment.trigger}</span> },
+          { key: "created", header: "Created", width: "160px", render: (deployment) => <span className="text-muted">{deployment.createdLabel}</span> }
         ]}
         actionsHeader="Actions"
         renderActions={(deployment) => (

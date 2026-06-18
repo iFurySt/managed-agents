@@ -114,7 +114,8 @@ export function DataTable<T>({
   getKey,
   renderActions,
   actionsHeader,
-  showSelection = true
+  showSelection = true,
+  actionsWidth = "48px"
 }: {
   columns: { key: string; header: string; render: (row: T) => ReactNode; width?: string }[];
   rows: T[];
@@ -122,6 +123,7 @@ export function DataTable<T>({
   renderActions?: (row: T) => ReactNode;
   actionsHeader?: string;
   showSelection?: boolean;
+  actionsWidth?: string;
 }) {
   return (
     <div data-cds="DataTable" className="w-full overflow-hidden">
@@ -138,7 +140,9 @@ export function DataTable<T>({
                 {column.header}
               </th>
             ))}
-            <th className="w-12 px-3 py-0 font-medium">{actionsHeader}</th>
+            <th className="px-3 py-0 font-medium" style={{ width: actionsWidth }}>
+              {actionsHeader}
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -154,7 +158,7 @@ export function DataTable<T>({
                   {column.render(row)}
                 </td>
               ))}
-              <td className="px-3 py-2">
+              <td className="px-3 py-2" style={{ width: actionsWidth }}>
                 {renderActions ? (
                   renderActions(row)
                 ) : (
