@@ -24,3 +24,9 @@ Keep vaults as an `apiserver` control-plane module while tightening console fide
 - `apps/console/src/App.tsx`
 - `apps/console/src/api.ts`
 - `apps/console/src/components/cds.tsx`
+
+### Follow-up: List And Create Dialog Geometry
+
+- Re-captured the Claude Platform credential vaults list and create vault dialog with OBU.
+- Aligned the vault list filter and table geometry to the observed Claude surface: 320px search input, compact status filter, and 216/304/200/200/48 table columns.
+- Tightened the create vault first step against the observed dialog: 510px shell, 22px title, and the amber workspace-sharing warning banner.

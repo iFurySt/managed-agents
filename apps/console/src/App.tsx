@@ -1243,11 +1243,11 @@ function VaultsPage() {
         }
       />
       <div className="flex flex-wrap items-center gap-2">
-        <div className="relative w-[486px]">
+        <div className="relative w-[320px]">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
           <TextInput className="pl-9" aria-label="Search by name or exact ID" placeholder="Search by name or exact ID" value={search} onChange={(event) => setSearch(event.target.value)} />
         </div>
-        <FieldSelect label="Status" value={status} options={["All", "Active", "Archived"]} onValueChange={setStatus} />
+        <FieldSelect label="Status" value={status} options={["All", "Active", "Archived"]} onValueChange={setStatus} triggerClassName="w-[104px]" />
       </div>
       <DataTable
         rows={vaults}
@@ -1257,7 +1257,7 @@ function VaultsPage() {
           {
             key: "id",
             header: "ID",
-            width: "230px",
+            width: "216px",
             render: (vault) => (
               <div className="flex items-center gap-2">
                 <span className="font-mono font-semibold">{shortId(vault.id)}</span>
@@ -1270,15 +1270,15 @@ function VaultsPage() {
           {
             key: "name",
             header: "Name",
-            width: "460px",
+            width: "304px",
             render: (vault) => (
               <Link className="font-medium hover:underline" to={`/vaults/${vault.id}`}>
                 {vault.name}
               </Link>
             )
           },
-          { key: "status", header: "Status", width: "160px", render: (vault) => <Badge tone={vaultTone(vault.status)}>{vault.status}</Badge> },
-          { key: "created", header: "Created", width: "180px", render: (vault) => <span className="text-muted">{vault.createdLabel}</span> }
+          { key: "status", header: "Status", width: "200px", render: (vault) => <Badge tone={vaultTone(vault.status)}>{vault.status}</Badge> },
+          { key: "created", header: "Created", width: "200px", render: (vault) => <span className="text-muted">{vault.createdLabel}</span> }
         ]}
         renderActions={(vault) => <VaultRowActions vault={vault} onArchive={() => archiveCurrent(vault)} onDelete={() => deleteCurrent(vault)} />}
       />
@@ -2568,17 +2568,17 @@ function CreateVaultDialog({
       open={open}
       onOpenChange={closeDialog}
       contentClassName={step === "vault" ? "w-[510px] max-w-[calc(100vw-32px)]" : undefined}
-      titleClassName={step === "vault" ? "text-lg font-semibold text-ink" : undefined}
+      titleClassName={step === "vault" ? "text-[22px] font-semibold leading-[26px] text-ink" : undefined}
       closeLabel={step === "vault" ? "Close" : undefined}
     >
       {step === "vault" ? (
         <div className="px-6 pb-0 pt-3">
-          <div className="mb-3 flex gap-2 rounded-cds border border-line bg-fill p-2.5 text-sm leading-5 text-[#3f3a35]">
-            <Info className="mt-0.5 h-4 w-4 shrink-0 text-muted" />
+          <div className="mb-3 flex gap-2 rounded-[12px] border border-line bg-[#f9dca4] px-4 py-3 text-sm leading-5 text-[#734500]">
+            <Info className="h-5 w-5 shrink-0 text-[#734500]" />
             <p>
               Vaults are shared across this workspace. Credentials added to this vault will be usable by anyone with API key access.{" "}
-              <span className="font-medium text-ink">Learn more here</span>
-              <span className="text-muted"> (opens in new tab).</span>
+              <span className="font-medium text-[#184f95]">Learn more here</span>
+              <span> (opens in new tab).</span>
             </p>
           </div>
           <label className="grid gap-1 text-sm font-medium">
