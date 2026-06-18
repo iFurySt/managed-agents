@@ -30,6 +30,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate, Route, Routes, useNavigate, useParams } from "react-router-dom";
 import {
   cancelSession,
+  archiveAgent,
   createAgent,
   createDeployment,
   createEnvironment,
@@ -68,6 +69,7 @@ import {
   listSessions,
   listVaults,
   runDeployment,
+  updateAgent,
   updateEnvironment
 } from "./api";
 import { Badge, Button, CdsDropdownMenu, CdsTabs, ConsoleDialog, DataTable, FieldSelect, SidebarItem, TextInput } from "./components/cds";
@@ -227,8 +229,13 @@ function AgentsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
-    listAgents().then(setAgents).catch(() => setAgents([]));
-  }, []);
+    listAgents({ status }).then(setAgents).catch(() => setAgents([]));
+  }, [status]);
+
+  async function archiveCurrent(agent: Agent) {
+    const updated = await archiveAgent(agent.id);
+    setAgents((items) => status === "Archived" ? items.map((item) => (item.id === updated.id ? updated : item)) : items.filter((item) => item.id !== updated.id));
+  }
 
   return (
     <section className="flex flex-col gap-4">
@@ -259,9 +266,11 @@ function AgentsPage() {
             header: "ID",
             width: "190px",
             render: (agent) => (
-              <div className="font-mono font-semibold">
+              <div className="flex items-center gap-2 font-mono font-semibold">
                 <span>{shortId(agent.id)}</span>
-                <div className="hidden">{agent.id}</div>
+                <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${agent.id}`} onClick={() => copyText(agent.id)}>
+                  <Copy className="h-3.5 w-3.5" />
+                </Button>
               </div>
             )
           },
@@ -276,10 +285,11 @@ function AgentsPage() {
             )
           },
           { key: "model", header: "Model", width: "210px", render: (agent) => <span className="font-mono text-muted">{agent.model}</span> },
-          { key: "status", header: "Status", width: "150px", render: (agent) => <Badge tone="green">{agent.status}</Badge> },
-          { key: "created", header: "Created", width: "150px", render: () => <span className="text-muted">2 days ago</span> },
-          { key: "updated", header: "Last updated", width: "160px", render: () => <span className="text-muted">2 days ago</span> }
+          { key: "status", header: "Status", width: "150px", render: (agent) => <Badge tone={agent.status === "Archived" ? "neutral" : "green"}>{agent.status}</Badge> },
+          { key: "created", header: "Created", width: "150px", render: (agent) => <span className="text-muted">{agent.createdLabel || "2 days ago"}</span> },
+          { key: "updated", header: "Last updated", width: "160px", render: (agent) => <span className="text-muted">{agent.updatedLabel || "2 days ago"}</span> }
         ]}
+        renderActions={(agent) => <AgentRowActions agent={agent} onArchive={() => archiveCurrent(agent)} />}
       />
       <div className="flex gap-2">
         <Button variant="secondary" className="h-8 w-8 px-0">
@@ -1811,12 +1821,20 @@ function SkillsPage() {
 function AgentDetailPage() {
   const { id } = useParams();
   const [agent, setAgent] = useState<Agent | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
 
   useEffect(() => {
     if (id) getAgent(id).then(setAgent).catch(() => setAgent(null));
   }, [id]);
 
   if (!agent) return <EmptyState title="Agent not found" description="The selected agent could not be loaded." />;
+
+  const currentAgent = agent;
+
+  async function archiveCurrent() {
+    const updated = await archiveAgent(currentAgent.id);
+    setAgent(updated);
+  }
 
   return (
     <section className="flex flex-col gap-6">
@@ -1830,18 +1848,22 @@ function AgentDetailPage() {
         title={agent.name}
         description={
           <span>
-            <Badge tone="green">{agent.status}</Badge>
+            <Badge tone={agent.status === "Archived" ? "neutral" : "green"}>{agent.status}</Badge>
             <span className="ml-3 font-mono">{agent.id}</span>
+            <Button variant="ghost" size="sm" className="ml-1 h-[22px] w-[22px] px-0" aria-label={`Copy ${agent.id}`} onClick={() => copyText(agent.id)}>
+              <Copy className="h-3.5 w-3.5" />
+            </Button>
             <span className="mx-2">·</span>
-            Last updated 2 days ago
+            Last updated {agent.updatedLabel || "2 days ago"}
           </span>
         }
         action={
           <div className="flex gap-2">
-            <Button variant="secondary">Edit</Button>
-            <Button variant="icon" aria-label="More actions">
-              ⋯
+            <Button variant="secondary" onClick={() => setEditOpen(true)}>
+              <Settings className="h-4 w-4" />
+              Edit
             </Button>
+            <AgentRowActions agent={agent} onArchive={archiveCurrent} />
           </div>
         }
       />
@@ -1859,11 +1881,20 @@ function AgentDetailPage() {
           ))}
         </CdsTabs.List>
         <CdsTabs.Content value="agent" className="grid max-w-4xl gap-6">
+          <div>
+            <FieldSelect label="Version:" value={agent.version || "v1"} options={[agent.version || "v1"]} onValueChange={() => undefined} />
+          </div>
           <DetailSection title="Model">
             <div className="font-mono text-sm">{agent.model}</div>
           </DetailSection>
           <DetailSection title="System prompt">
             <p className="max-w-4xl text-sm leading-6 text-[#3f3a35]">{agent.systemPrompt}</p>
+            <div className="mt-3 flex">
+              <Button variant="ghost" size="sm" onClick={() => copyText(agent.systemPrompt)}>
+                <Copy className="h-4 w-4" />
+                Copy to clipboard
+              </Button>
+            </div>
           </DetailSection>
           <DetailSection title="MCPs and tools">
             <div className="flex items-center gap-3 rounded-cds border border-line bg-white p-4">
@@ -1887,6 +1918,15 @@ function AgentDetailPage() {
           <EmptyState title="No deployments yet" description="Deployments created by this agent will appear here." />
         </CdsTabs.Content>
       </CdsTabs.Root>
+      <EditAgentDialog
+        agent={agent}
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        onSaved={(updated) => {
+          setAgent(updated);
+          setEditOpen(false);
+        }}
+      />
     </section>
   );
 }
@@ -1900,28 +1940,24 @@ function CreateAgentDialog({
   onOpenChange: (open: boolean) => void;
   onCreated: (agent: Agent) => void;
 }) {
-  const [description, setDescription] = useState("Summarizes new GitHub PRs and posts a digest to Slack.");
-  const yaml = useMemo(
-    () => `name: Untitled agent
-description: A blank starting point with the core toolset.
-model: claude-sonnet-4-6
-system: You are a general-purpose agent that can research, write code, run commands, and use connected tools to complete the user's task end to end.
-mcp_servers: []
-tools:
-  - type: agent_toolset_20260401
-skills: []`,
-    []
-  );
+  const [description, setDescription] = useState("");
+  const [format, setFormat] = useState<"YAML" | "JSON">("YAML");
+  const [configYaml, setConfigYaml] = useState(defaultAgentYaml());
+  const jsonConfig = useMemo(() => JSON.stringify(agentConfigFromYaml(configYaml), null, 2), [configYaml]);
 
   async function submit() {
+    const config = agentConfigFromYaml(configYaml);
     const agent = await createAgent({
-      name: "Untitled agent",
-      description: "A blank starting point with the core toolset.",
-      model: "claude-sonnet-4-6",
-      systemPrompt: yaml
+      name: config.name,
+      description: config.description,
+      model: config.model,
+      systemPrompt: config.system,
+      configYaml
     });
     onCreated(agent);
     onOpenChange(false);
+    setDescription("");
+    setConfigYaml(defaultAgentYaml());
   }
 
   return (
@@ -1941,10 +1977,12 @@ skills: []`,
           <div className="mt-3 flex min-h-[116px] rounded-control border border-line bg-white p-3">
             <textarea
               className="min-h-[84px] flex-1 resize-none border-0 text-sm outline-none placeholder:text-muted"
+              aria-label="Describe your agent"
+              placeholder="Summarizes new GitHub PRs and posts a digest to Slack."
               value={description}
               onChange={(event) => setDescription(event.target.value)}
             />
-            <Button variant="secondary" className="self-end">
+            <Button variant="secondary" className="self-end" disabled={!description.trim()}>
               Generate
             </Button>
           </div>
@@ -1954,20 +1992,95 @@ skills: []`,
           <div className="rounded-cds border border-line bg-white p-3">
             <div className="mb-3 flex items-center justify-between">
               <div className="inline-flex rounded-full bg-fill p-1 text-sm">
-                <button className="rounded-full bg-white px-3 py-1 font-semibold shadow-sm">YAML</button>
-                <button className="rounded-full px-3 py-1 text-muted">JSON</button>
+                <button className={`rounded-full px-3 py-1 ${format === "YAML" ? "bg-white font-semibold shadow-sm" : "text-muted"}`} onClick={() => setFormat("YAML")}>YAML</button>
+                <button className={`rounded-full px-3 py-1 ${format === "JSON" ? "bg-white font-semibold shadow-sm" : "text-muted"}`} onClick={() => setFormat("JSON")}>JSON</button>
               </div>
-              <Button variant="ghost" className="h-7 w-7 px-0" aria-label="Copy config">
-                ⧉
+              <Button variant="ghost" className="h-7 w-7 px-0" aria-label="Copy code" onClick={() => copyText(format === "YAML" ? configYaml : jsonConfig)}>
+                <Copy className="h-4 w-4" />
               </Button>
             </div>
-            <pre className="min-h-[190px] whitespace-pre-wrap font-mono text-sm leading-6">
-              <CodeYaml source={yaml} />
-            </pre>
+            <p className="mb-2 text-xs text-muted">Tab inserts indentation. Press Escape then Tab to move focus out of the editor.</p>
+            {format === "YAML" ? (
+              <textarea
+                className="min-h-[260px] w-full resize-y border-0 bg-white font-mono text-sm leading-6 outline-none"
+                value={configYaml}
+                onChange={(event) => setConfigYaml(event.target.value)}
+              />
+            ) : (
+              <pre className="min-h-[260px] whitespace-pre-wrap font-mono text-sm leading-6">
+                {jsonConfig}
+              </pre>
+            )}
           </div>
         </div>
         <div className="sticky bottom-0 -mx-6 mt-5 flex justify-end border-t border-transparent bg-white px-6 py-5">
           <Button onClick={submit}>Create agent</Button>
+        </div>
+      </div>
+    </ConsoleDialog>
+  );
+}
+
+function EditAgentDialog({
+  agent,
+  open,
+  onOpenChange,
+  onSaved
+}: {
+  agent: Agent;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onSaved: (agent: Agent) => void;
+}) {
+  const [format, setFormat] = useState<"YAML" | "JSON">("YAML");
+  const [configYaml, setConfigYaml] = useState(agent.configYaml || defaultAgentYaml(agent));
+
+  useEffect(() => {
+    if (open) setConfigYaml(agent.configYaml || defaultAgentYaml(agent));
+  }, [agent, open]);
+
+  const jsonConfig = useMemo(() => JSON.stringify(agentConfigFromYaml(configYaml), null, 2), [configYaml]);
+
+  async function submit() {
+    const config = agentConfigFromYaml(configYaml);
+    const updated = await updateAgent(agent.id, {
+      name: config.name,
+      description: config.description,
+      model: config.model,
+      systemPrompt: config.system,
+      configYaml
+    });
+    onSaved(updated);
+  }
+
+  return (
+    <ConsoleDialog title="Edit agent" open={open} onOpenChange={onOpenChange}>
+      <div className="max-h-[calc(86vh-92px)] overflow-y-auto px-6 pb-0 pt-4">
+        <div className="rounded-cds border border-line bg-white p-3">
+          <div className="mb-3 flex items-center justify-between">
+            <div className="inline-flex rounded-full bg-fill p-1 text-sm">
+              <button className={`rounded-full px-3 py-1 ${format === "YAML" ? "bg-white font-semibold shadow-sm" : "text-muted"}`} onClick={() => setFormat("YAML")}>YAML</button>
+              <button className={`rounded-full px-3 py-1 ${format === "JSON" ? "bg-white font-semibold shadow-sm" : "text-muted"}`} onClick={() => setFormat("JSON")}>JSON</button>
+            </div>
+            <Button variant="ghost" className="h-7 w-7 px-0" aria-label="Copy code" onClick={() => copyText(format === "YAML" ? configYaml : jsonConfig)}>
+              <Copy className="h-4 w-4" />
+            </Button>
+          </div>
+          <p className="mb-2 text-xs text-muted">Tab inserts indentation. Press Escape then Tab to move focus out of the editor.</p>
+          {format === "YAML" ? (
+            <textarea
+              className="min-h-[360px] w-full resize-y border-0 bg-white font-mono text-sm leading-6 outline-none"
+              value={configYaml}
+              onChange={(event) => setConfigYaml(event.target.value)}
+            />
+          ) : (
+            <pre className="min-h-[360px] whitespace-pre-wrap font-mono text-sm leading-6">
+              {jsonConfig}
+            </pre>
+          )}
+        </div>
+        <div className="sticky bottom-0 -mx-6 mt-5 flex justify-end border-t border-transparent bg-white px-6 py-5">
+          <Button onClick={submit}>Save new version</Button>
         </div>
       </div>
     </ConsoleDialog>
@@ -2825,6 +2938,53 @@ function FileActions({ onDelete }: { onDelete: () => void }) {
   );
 }
 
+function AgentRowActions({ agent, onArchive }: { agent: Agent; onArchive: () => void }) {
+  const navigate = useNavigate();
+  return (
+    <CdsDropdownMenu.Root>
+      <CdsDropdownMenu.Trigger asChild>
+        <Button variant="icon" aria-label="More actions">
+          <span className="text-lg leading-none">⋯</span>
+        </Button>
+      </CdsDropdownMenu.Trigger>
+      <CdsDropdownMenu.Portal>
+        <CdsDropdownMenu.Content className="z-50 min-w-[190px] rounded-cds border border-line bg-white p-1 shadow-lg" align="end">
+          <CdsDropdownMenu.Item
+            className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill"
+            onSelect={() => navigate(`/sessions?agentId=${agent.id}`)}
+          >
+            <Play className="h-4 w-4" />
+            Start session
+          </CdsDropdownMenu.Item>
+          <CdsDropdownMenu.Item
+            className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill"
+            onSelect={() => navigate(`/agents/${agent.id}`)}
+          >
+            <MessageSquare className="h-4 w-4" />
+            Guided edit
+          </CdsDropdownMenu.Item>
+          <CdsDropdownMenu.Item
+            className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill"
+            onSelect={() => navigate(`/deployments?agentId=${agent.id}`)}
+          >
+            <Plus className="h-4 w-4" />
+            Create deployment
+          </CdsDropdownMenu.Item>
+          <CdsDropdownMenu.Separator className="my-1 h-px bg-line" />
+          <CdsDropdownMenu.Item
+            className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm text-[#a33a29] outline-none data-[highlighted]:bg-[#fff1ef]"
+            onSelect={onArchive}
+            disabled={agent.status === "Archived"}
+          >
+            <Archive className="h-4 w-4" />
+            {agent.status === "Archived" ? "Archived" : "Archive"}
+          </CdsDropdownMenu.Item>
+        </CdsDropdownMenu.Content>
+      </CdsDropdownMenu.Portal>
+    </CdsDropdownMenu.Root>
+  );
+}
+
 function SkillActions({ onDelete }: { onDelete: () => void }) {
   return (
     <CdsDropdownMenu.Root>
@@ -2941,6 +3101,45 @@ function EmptyState({ title, description, compact = false }: { title: string; de
 function shortId(id: string) {
   if (id.length <= 14) return id;
   return `${id.slice(0, 7)}…${id.slice(-6)}`;
+}
+
+function copyText(value: string) {
+  void navigator.clipboard?.writeText(value);
+}
+
+function defaultAgentYaml(agent?: Agent) {
+  return `name: ${agent?.name ?? "Untitled agent"}
+model:
+  id: ${agent?.model ?? "claude-sonnet-4-6"}
+  speed: standard
+description: ${agent?.description ?? "A blank starting point with the core toolset."}
+system: ${JSON.stringify(agent?.systemPrompt ?? "You are a general-purpose agent that can research, write code, run commands, and use connected tools to complete the user's task end to end.")}
+mcp_servers: []
+tools:
+  - configs: []
+    default_config:
+      enabled: true
+      permission_policy:
+        type: always_allow
+    type: agent_toolset_20260401
+skills: []
+metadata: {}`;
+}
+
+function agentConfigFromYaml(source: string) {
+  return {
+    name: yamlValue(source, "name", "Untitled agent"),
+    model: yamlValue(source, "id", yamlValue(source, "model", "claude-sonnet-4-6")),
+    description: yamlValue(source, "description", "A blank starting point with the core toolset."),
+    system: yamlValue(source, "system", "You are a general-purpose agent that can research, write code, run commands, and use connected tools to complete the user's task end to end.")
+  };
+}
+
+function yamlValue(source: string, key: string, fallback: string) {
+  const line = source.split("\n").find((item) => item.trim().startsWith(`${key}:`));
+  if (!line) return fallback;
+  const value = line.trim().slice(key.length + 1).trim();
+  return value ? value.replace(/^['"]|['"]$/g, "") : fallback;
 }
 
 const filesPythonTemplate = `import anthropic

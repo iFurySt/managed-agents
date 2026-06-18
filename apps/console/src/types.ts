@@ -7,8 +7,20 @@ export type Agent = {
   systemPrompt: string;
   tools: string;
   skills: string;
+  version: string;
+  configYaml: string;
+  createdLabel: string;
+  updatedLabel: string;
   createdAt: string;
   updatedAt: string;
+};
+
+export type UpdateAgentInput = {
+  name: string;
+  description: string;
+  model: string;
+  systemPrompt: string;
+  configYaml: string;
 };
 
 export type Resource = {

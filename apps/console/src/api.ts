@@ -18,6 +18,7 @@ import type {
   Resource,
   Session,
   SkillPackage,
+  UpdateAgentInput,
   UpdateEnvironmentInput,
   Vault,
   VaultCredential,
@@ -66,8 +67,9 @@ async function deleteJSON<T>(path: string): Promise<T> {
   return response.json() as Promise<T>;
 }
 
-export async function listAgents(): Promise<Agent[]> {
-  const data = await getJSON<{ items: Agent[] }>("/api/agents");
+export async function listAgents(params: { status?: string } = {}): Promise<Agent[]> {
+  const query = params.status && params.status !== "All" ? `?status=${encodeURIComponent(params.status)}` : "";
+  const data = await getJSON<{ items: Agent[] }>(`/api/agents${query}`);
   return data.items;
 }
 
@@ -77,6 +79,14 @@ export async function getAgent(id: string): Promise<Agent> {
 
 export async function createAgent(input: Partial<Agent>): Promise<Agent> {
   return postJSON<Agent>("/api/agents", input);
+}
+
+export async function updateAgent(id: string, input: UpdateAgentInput): Promise<Agent> {
+  return patchJSON<Agent>(`/api/agents/${id}`, input);
+}
+
+export async function archiveAgent(id: string): Promise<Agent> {
+  return postJSON<Agent>(`/api/agents/${id}/archive`, {});
 }
 
 export async function listSessions(): Promise<Session[]> {

@@ -25,6 +25,10 @@ type Agent struct {
 	SystemPrompt string    `json:"systemPrompt" gorm:"type:text"`
 	Tools        string    `json:"tools"`
 	Skills       string    `json:"skills"`
+	Version      string    `json:"version"`
+	ConfigYAML   string    `json:"configYaml" gorm:"type:text"`
+	CreatedLabel string    `json:"createdLabel"`
+	UpdatedLabel string    `json:"updatedLabel"`
 	CreatedAt    time.Time `json:"createdAt"`
 	UpdatedAt    time.Time `json:"updatedAt"`
 }
@@ -223,6 +227,15 @@ type CreateAgentRequest struct {
 	Description  string `json:"description"`
 	Model        string `json:"model"`
 	SystemPrompt string `json:"systemPrompt"`
+	ConfigYAML   string `json:"configYaml"`
+}
+
+type UpdateAgentRequest struct {
+	Name         string `json:"name"`
+	Description  string `json:"description"`
+	Model        string `json:"model"`
+	SystemPrompt string `json:"systemPrompt"`
+	ConfigYAML   string `json:"configYaml"`
 }
 
 type CreateSessionRequest struct {
@@ -335,6 +348,8 @@ func run() error {
 	router.GET("/api/agents", listAgents(db))
 	router.GET("/api/agents/:id", getAgent(db))
 	router.POST("/api/agents", createAgent(db))
+	router.PATCH("/api/agents/:id", updateAgent(db))
+	router.POST("/api/agents/:id/archive", archiveAgent(db))
 	router.GET("/api/sessions", listSessions(db))
 	router.GET("/api/sessions/:id", getSession(db))
 	router.POST("/api/sessions", createSession(db))
@@ -389,6 +404,9 @@ func listAgents(db *gorm.DB) gin.HandlerFunc {
 		if search := strings.TrimSpace(c.Query("q")); search != "" {
 			query = query.Where("name ILIKE ? OR id ILIKE ?", "%"+search+"%", "%"+search+"%")
 		}
+		if status := strings.TrimSpace(c.Query("status")); status != "" && !strings.EqualFold(status, "all") {
+			query = query.Where("status = ?", status)
+		}
 		if err := query.Find(&agents).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
@@ -424,15 +442,22 @@ func createAgent(db *gorm.DB) gin.HandlerFunc {
 		if name == "" {
 			name = "Untitled agent"
 		}
+		description := defaultString(req.Description, "A blank starting point with the core toolset.")
+		model := defaultString(req.Model, "claude-sonnet-4-6")
+		systemPrompt := defaultString(req.SystemPrompt, defaultSystemPrompt)
 		agent := Agent{
 			ID:           "agent_local_" + now.Format("20060102150405"),
 			Name:         name,
-			Model:        defaultString(req.Model, "claude-sonnet-4-6"),
+			Model:        model,
 			Status:       "Active",
-			Description:  defaultString(req.Description, "A blank starting point with the core toolset."),
-			SystemPrompt: defaultString(req.SystemPrompt, defaultSystemPrompt),
+			Description:  description,
+			SystemPrompt: systemPrompt,
 			Tools:        "agent_toolset_20260401",
 			Skills:       "[]",
+			Version:      "v1",
+			ConfigYAML:   defaultString(req.ConfigYAML, agentConfigYAML(name, model, description, systemPrompt)),
+			CreatedLabel: "just now",
+			UpdatedLabel: "just now",
 			CreatedAt:    now,
 			UpdatedAt:    now,
 		}
@@ -441,6 +466,76 @@ func createAgent(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 		c.JSON(http.StatusCreated, agent)
+	}
+}
+
+func updateAgent(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var req UpdateAgentRequest
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		var agent Agent
+		if err := db.First(&agent, "id = ?", c.Param("id")).Error; err != nil {
+			status := http.StatusInternalServerError
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				status = http.StatusNotFound
+			}
+			c.JSON(status, gin.H{"error": err.Error()})
+			return
+		}
+		if value := strings.TrimSpace(req.Name); value != "" {
+			agent.Name = value
+		}
+		if value := strings.TrimSpace(req.Description); value != "" {
+			agent.Description = value
+		}
+		if value := strings.TrimSpace(req.Model); value != "" {
+			agent.Model = value
+		}
+		if value := strings.TrimSpace(req.SystemPrompt); value != "" {
+			agent.SystemPrompt = value
+		}
+		if value := strings.TrimSpace(req.ConfigYAML); value != "" {
+			agent.ConfigYAML = value
+			agent.Name = yamlField(value, "name", agent.Name)
+			agent.Description = yamlField(value, "description", agent.Description)
+			agent.Model = yamlField(value, "id", yamlField(value, "model", agent.Model))
+		}
+		if strings.TrimSpace(agent.ConfigYAML) == "" {
+			agent.ConfigYAML = agentConfigYAML(agent.Name, agent.Model, agent.Description, agent.SystemPrompt)
+		}
+		agent.Version = nextAgentVersion(agent.Version)
+		agent.UpdatedLabel = "just now"
+		agent.UpdatedAt = time.Now().UTC()
+		if err := db.Save(&agent).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, agent)
+	}
+}
+
+func archiveAgent(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var agent Agent
+		if err := db.First(&agent, "id = ?", c.Param("id")).Error; err != nil {
+			status := http.StatusInternalServerError
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				status = http.StatusNotFound
+			}
+			c.JSON(status, gin.H{"error": err.Error()})
+			return
+		}
+		agent.Status = "Archived"
+		agent.UpdatedLabel = "just now"
+		agent.UpdatedAt = time.Now().UTC()
+		if err := db.Save(&agent).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, agent)
 	}
 }
 
@@ -1482,6 +1577,10 @@ func agent(id, name, model, description, prompt string, ts time.Time) Agent {
 		SystemPrompt: prompt,
 		Tools:        "agent_toolset_20260401",
 		Skills:       "[]",
+		Version:      "v1",
+		ConfigYAML:   agentConfigYAML(name, model, description, prompt),
+		CreatedLabel: "2 days ago",
+		UpdatedLabel: "2 days ago",
 		CreatedAt:    ts,
 		UpdatedAt:    ts,
 	}
@@ -1886,6 +1985,55 @@ func slugify(value string) string {
 		return "skill"
 	}
 	return strings.Join(parts, "-")
+}
+
+func agentConfigYAML(name, model, description, systemPrompt string) string {
+	return fmt.Sprintf(`name: %s
+model:
+  id: %s
+  speed: standard
+description: %s
+system: %q
+mcp_servers: []
+tools:
+  - configs: []
+    default_config:
+      enabled: true
+      permission_policy:
+        type: always_allow
+    type: agent_toolset_20260401
+skills: []
+metadata: {}`, name, model, description, systemPrompt)
+}
+
+func nextAgentVersion(current string) string {
+	current = strings.TrimPrefix(strings.TrimSpace(current), "v")
+	if current == "" {
+		return "v2"
+	}
+	var version int
+	if _, err := fmt.Sscanf(current, "%d", &version); err != nil {
+		return "v2"
+	}
+	return fmt.Sprintf("v%d", version+1)
+}
+
+func yamlField(source, key, fallback string) string {
+	lines := strings.Split(source, "\n")
+	for i, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		prefix := key + ":"
+		if strings.HasPrefix(trimmed, prefix) {
+			value := strings.TrimSpace(strings.TrimPrefix(trimmed, prefix))
+			if value != "" {
+				return strings.Trim(value, `"'`)
+			}
+			if key == "model" && i+1 < len(lines) {
+				return yamlField(strings.Join(lines[i+1:], "\n"), "id", fallback)
+			}
+		}
+	}
+	return fallback
 }
 
 func env(key, fallback string) string {
