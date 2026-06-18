@@ -23,3 +23,11 @@ Keep the environment persistence model unchanged while improving the console fid
 
 - `apps/console/src/App.tsx`
 - `apps/console/src/api.ts`
+
+### Follow-up: Environments List Geometry
+
+- Rechecked the Claude Platform Environments list and Create environment dialog with OBU.
+- Aligned the local list filter row to the observed 272px search input and 98px Status select.
+- Updated the Environments table to match the 968px reference width with 40/216/296/100/120/140/56px columns for selection, ID, Name, Status, Type, Updated at, and actions.
+- Added an environment-specific short ID formatter so rows render like `env_...ZjUARMh` while preserving copy behavior for the full ID.
+- Revalidated the local list with OBU: headers, cells, and rows now render at the same 968px width with 45px rows; the local create dialog remains close to the captured 510px reference dialog.

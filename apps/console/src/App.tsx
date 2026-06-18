@@ -932,23 +932,24 @@ function EnvironmentsPage() {
         }
       />
       <div className="flex flex-wrap items-center gap-2">
-        <div className="relative w-[486px]">
+        <div className="relative w-[272px]">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
           <TextInput className="pl-9" aria-label="Search by name or exact ID" placeholder="Search by name or exact ID" value={search} onChange={(event) => setSearch(event.target.value)} />
         </div>
-        <FieldSelect label="Status" value={status} options={["All", "Active", "Archived"]} onValueChange={setStatus} />
+        <FieldSelect label="Status" value={status} options={["All", "Active", "Archived"]} onValueChange={setStatus} triggerClassName="w-[98px]" />
       </div>
       <DataTable
         rows={environments}
         getKey={(environment) => environment.id}
+        actionsWidth="56px"
         columns={[
           {
             key: "id",
             header: "ID",
-            width: "210px",
+            width: "216px",
             render: (environment) => (
-              <div className="flex items-center gap-2">
-                <span className="font-mono font-semibold">{shortId(environment.id)}</span>
+              <div className="flex min-w-0 items-center gap-2">
+                <span className="truncate font-mono font-semibold">{shortEnvironmentId(environment.id)}</span>
                 <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${environment.id}`} onClick={() => copyText(environment.id)}>
                   <Copy className="h-3.5 w-3.5" />
                 </Button>
@@ -958,16 +959,16 @@ function EnvironmentsPage() {
           {
             key: "name",
             header: "Name",
-            width: "360px",
+            width: "296px",
             render: (environment) => (
-              <Link className="font-medium hover:underline" to={`/environments/${environment.id}`}>
+              <Link className="block truncate font-medium hover:underline" to={`/environments/${environment.id}`}>
                 {environment.name}
               </Link>
             )
           },
-          { key: "status", header: "Status", width: "150px", render: (environment) => <Badge tone={environmentTone(environment.status)}>{environment.status}</Badge> },
-          { key: "type", header: "Type", width: "160px", render: (environment) => <span>{environment.type}</span> },
-          { key: "updated", header: "Updated at", width: "180px", render: (environment) => <span className="text-muted">{environment.updatedLabel}</span> }
+          { key: "status", header: "Status", width: "100px", render: (environment) => <Badge tone={environmentTone(environment.status)}>{environment.status}</Badge> },
+          { key: "type", header: "Type", width: "120px", render: (environment) => <span>{environment.type}</span> },
+          { key: "updated", header: "Updated at", width: "140px", render: (environment) => <span className="text-muted">{environment.updatedLabel}</span> }
         ]}
         renderActions={(environment) => <EnvironmentActions environment={environment} onArchive={() => archiveCurrent(environment)} />}
       />
@@ -3629,6 +3630,11 @@ function EmptyState({ title, description, compact = false }: { title: string; de
 function shortId(id: string) {
   if (id.length <= 14) return id;
   return `${id.slice(0, 7)}…${id.slice(-6)}`;
+}
+
+function shortEnvironmentId(id: string) {
+  if (id.length <= 12) return id;
+  return `${id.slice(0, 4)}…${id.slice(-7)}`;
 }
 
 function copyText(value: string) {
