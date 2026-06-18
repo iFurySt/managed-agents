@@ -1931,17 +1931,17 @@ function SkillsPage() {
           </Button>
         }
       />
-      <div className="flex max-w-[952px] flex-col gap-5">
+      <div className="ml-5 flex max-w-[928px] flex-col gap-5">
         {skills.map((skill) => (
           <article key={skill.id} className="grid grid-cols-[minmax(0,1fr)_36px] gap-4 border-b border-line pb-5">
             <div className="min-w-0">
-              <h2 className="mb-2 text-lg font-semibold">{skill.name}</h2>
+              <h2 className="mb-2 text-base font-semibold leading-6">{skill.name}</h2>
               <p className="max-w-[820px] whitespace-pre-wrap text-sm leading-6 text-[#3f3a35]">{skill.description}</p>
               <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-muted">
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-[22px] gap-1 px-0 pr-1 font-mono text-ink"
+                  className="h-[22px] gap-1 px-0 pr-1 font-mono text-xs font-normal text-muted hover:bg-transparent"
                   aria-label={`Copy ${skill.slug}`}
                   onClick={() => copyText(skill.slug)}
                 >

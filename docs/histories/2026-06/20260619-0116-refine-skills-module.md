@@ -34,3 +34,9 @@ Skills remain a logical module inside `apiserver` for the MVP. The UI keeps the 
 - `apps/console/src/App.tsx`
 - `apps/console/src/components/cds.tsx`
 - `apps/apiserver/main.go`
+
+### Follow-up: Skills List Geometry
+
+- Re-captured the Claude Platform Skills list with OBU.
+- Shifted the local skill item list to the observed x=300 content origin and narrowed it so version-history buttons align at x=1200.
+- Tightened skill item headings to the captured 16px/24px rhythm and softened slug copy controls to match the muted compact Claude affordance.
