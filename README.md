@@ -8,6 +8,26 @@ An agent-first base repo template for building any product you want. For a close
 
 ## Quick Start
 
+Run the managed agents console locally:
+
+```sh
+docker compose -f infra/docker-compose.postgres.yml up -d postgres
+go run ./apps/apiserver
+npm install
+npm run dev:console
+```
+
+Then open `http://localhost:5173`.
+
+The API server uses Postgres by default:
+
+```text
+DATABASE_URL=postgres://managed_agents:managed_agents@localhost:5432/managed_agents?sslmode=disable
+APISERVER_ADDR=:8080
+```
+
+## Template Usage
+
 Use GitHub's template flow from the top right of this repository:
 
 1. Select **Use this template**.

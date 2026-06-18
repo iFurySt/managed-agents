@@ -29,6 +29,10 @@
   - Converged MVP service naming on `apiserver`, `orchestrator`, and `sandboxd`,
     with filestore, vault, events, skills, memory, and deployment records kept
     inside `apiserver` for the first cut.
+  - Added the first runnable milestone: React/Tailwind/Radix console,
+    Go/Cobra/Gin/Gorm `apiserver`, Postgres compose, seeded Agents data, Agents
+    list/detail/create dialog, and placeholder list pages for the other managed
+    agent surfaces.
   - Indexed the new design document.
 
 ### Design Intent
@@ -53,3 +57,9 @@ adding broad management features.
 - `docs/product-specs/index.md`
 - `docs/references/README.md`
 - `docs/references/anthropic-managed-agents-evidence.md`
+- `apps/apiserver/main.go`
+- `apps/console/`
+- `infra/docker-compose.postgres.yml`
+- `go.mod`
+- `package.json`
+- `README.md`

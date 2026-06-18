@@ -23,6 +23,7 @@ node_modules/
 .npm/
 .yarn/
 .turbo/
+*.tsbuildinfo
 .next/
 dist/
 build/
