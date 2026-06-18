@@ -65,18 +65,20 @@ export function FieldSelect({
   label,
   value,
   options,
-  onValueChange
+  onValueChange,
+  triggerClassName = ""
 }: {
   label: string;
   value: string;
   options: string[];
   onValueChange: (value: string) => void;
+  triggerClassName?: string;
 }) {
   return (
     <Select.Root value={value} onValueChange={onValueChange}>
       <Select.Trigger
         data-cds="Button"
-        className="cds-focus inline-flex h-8 items-center gap-2 rounded-control border border-line bg-white px-3 text-sm text-ink"
+        className={`cds-focus inline-flex h-8 items-center gap-2 rounded-control border border-line bg-white px-3 text-sm text-ink ${triggerClassName}`}
       >
         <span className="text-muted">{label}</span>
         <Select.Value />
