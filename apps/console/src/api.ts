@@ -8,6 +8,7 @@ import type {
   CreateSessionInput,
   CreateVaultCredentialInput,
   CreateVaultInput,
+  CreateWorkspaceFileInput,
   Deployment,
   DeploymentRun,
   Environment,
@@ -17,7 +18,8 @@ import type {
   Session,
   UpdateEnvironmentInput,
   Vault,
-  VaultCredential
+  VaultCredential,
+  WorkspaceFile
 } from "./types";
 
 const API_BASE = import.meta.env.VITE_API_BASE ?? "";
@@ -190,6 +192,23 @@ export async function createMemory(id: string, input: CreateMemoryInput): Promis
 
 export async function deleteMemory(storeId: string, memoryId: string): Promise<{ deleted: boolean }> {
   return deleteJSON<{ deleted: boolean }>(`/api/memory-stores/${storeId}/memories/${memoryId}`);
+}
+
+export async function listFiles(): Promise<WorkspaceFile[]> {
+  const data = await getJSON<{ items: WorkspaceFile[] }>("/api/files");
+  return data.items;
+}
+
+export async function getFile(id: string): Promise<WorkspaceFile> {
+  return getJSON<WorkspaceFile>(`/api/files/${id}`);
+}
+
+export async function createFile(input: CreateWorkspaceFileInput): Promise<WorkspaceFile> {
+  return postJSON<WorkspaceFile>("/api/files", input);
+}
+
+export async function deleteFile(id: string): Promise<{ deleted: boolean }> {
+  return deleteJSON<{ deleted: boolean }>(`/api/files/${id}`);
 }
 
 export async function listCollection(collection: CollectionName): Promise<Resource[]> {

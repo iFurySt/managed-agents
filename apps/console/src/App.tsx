@@ -32,6 +32,7 @@ import {
   createAgent,
   createDeployment,
   createEnvironment,
+  createFile,
   createMemory,
   createMemoryStore,
   createSession,
@@ -41,6 +42,7 @@ import {
   archiveVaultCredential,
   deleteMemory,
   deleteMemoryStore,
+  deleteFile,
   createVault,
   createVaultCredential,
   deleteVault,
@@ -48,6 +50,7 @@ import {
   getAgent,
   getDeployment,
   getEnvironment,
+  getFile,
   getMemoryStore,
   getSession,
   getVault,
@@ -55,6 +58,7 @@ import {
   listCollection,
   listDeployments,
   listEnvironments,
+  listFiles,
   listMemoryStores,
   listSessions,
   listVaults,
@@ -62,10 +66,9 @@ import {
   updateEnvironment
 } from "./api";
 import { Badge, Button, CdsDropdownMenu, CdsTabs, ConsoleDialog, DataTable, FieldSelect, SidebarItem, TextInput } from "./components/cds";
-import type { Agent, CollectionName, Deployment, Environment, MemoryRecord, MemoryStore, Resource, Session, Vault, VaultCredential } from "./types";
+import type { Agent, CollectionName, Deployment, Environment, MemoryRecord, MemoryStore, Resource, Session, Vault, VaultCredential, WorkspaceFile } from "./types";
 
 const managedRoutes: { path: CollectionName; title: string; description: string; action: string }[] = [
-  { path: "files", title: "Files", description: "Browse uploads, outputs, artifacts, and snapshots.", action: "Upload file" },
   { path: "skills", title: "Skills", description: "Package and mount reusable agent capabilities.", action: "Create skill" }
 ];
 
@@ -91,6 +94,8 @@ export default function App() {
               <Route path="/vaults/:id" element={<VaultDetailPage />} />
               <Route path="/memory-stores" element={<MemoryStoresPage />} />
               <Route path="/memory-stores/:id" element={<MemoryStoreDetailPage />} />
+              <Route path="/files" element={<FilesPage />} />
+              <Route path="/files/:id" element={<FileDetailPage />} />
               {managedRoutes.map((route) => (
                 <Route key={route.path} path={`/${route.path}`} element={<CollectionPage route={route} />} />
               ))}
@@ -1543,6 +1548,198 @@ function MemoryStoreDetailPage() {
   );
 }
 
+function FilesPage() {
+  const [files, setFiles] = useState<WorkspaceFile[]>([]);
+  const [query, setQuery] = useState("");
+  const [kind, setKind] = useState("All");
+  const [status, setStatus] = useState("All");
+  const [language, setLanguage] = useState("Python");
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  useEffect(() => {
+    listFiles().then(setFiles).catch(() => setFiles([]));
+  }, []);
+
+  const visibleFiles = files.filter((file) => {
+    const matchesQuery = !query || file.name.toLowerCase().includes(query.toLowerCase()) || file.id.toLowerCase() === query.toLowerCase();
+    const matchesKind = kind === "All" || file.kind === kind;
+    const matchesStatus = status === "All" || file.status === status;
+    return matchesQuery && matchesKind && matchesStatus;
+  });
+
+  async function deleteCurrent(file: WorkspaceFile) {
+    await deleteFile(file.id);
+    setFiles((items) => items.filter((item) => item.id !== file.id));
+  }
+
+  return (
+    <section className="flex flex-col gap-4">
+      <PageHeader
+        title="Files"
+        description="Only files from the Default workspace are shown. To see other workspace's files, select a workspace."
+        action={
+          files.length ? (
+            <Button onClick={() => setDialogOpen(true)}>
+              <Plus className="h-4 w-4" />
+              Add local file
+            </Button>
+          ) : null
+        }
+      />
+      {files.length ? (
+        <>
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="relative w-[486px]">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+              <TextInput
+                className="pl-9"
+                aria-label="Search by name or exact ID"
+                placeholder="Search by name or exact ID"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+              />
+            </div>
+            <FieldSelect label="Kind" value={kind} options={["All", "Document", "Image", "Text", "Archive", "File"]} onValueChange={setKind} />
+            <FieldSelect label="Status" value={status} options={["All", "Available", "Quarantined", "Deleted"]} onValueChange={setStatus} />
+          </div>
+          <DataTable
+            rows={visibleFiles}
+            getKey={(file) => file.id}
+            columns={[
+              {
+                key: "id",
+                header: "ID",
+                width: "210px",
+                render: (file) => <span className="font-mono font-semibold">{shortId(file.id)}</span>
+              },
+              {
+                key: "name",
+                header: "Name",
+                width: "360px",
+                render: (file) => (
+                  <Link className="font-medium hover:underline" to={`/files/${file.id}`}>
+                    {file.name}
+                  </Link>
+                )
+              },
+              { key: "kind", header: "Kind", width: "150px", render: (file) => <span>{file.kind}</span> },
+              { key: "status", header: "Status", width: "150px", render: (file) => <Badge tone={fileTone(file.status)}>{file.status}</Badge> },
+              { key: "size", header: "Size", width: "120px", render: (file) => <span className="text-muted">{file.size}</span> },
+              { key: "created", header: "Created", width: "150px", render: (file) => <span className="text-muted">{file.createdLabel}</span> }
+            ]}
+            renderActions={(file) => <FileActions onDelete={() => deleteCurrent(file)} />}
+          />
+        </>
+      ) : (
+        <FilesEmptyState language={language} onLanguageChange={setLanguage} />
+      )}
+      <CreateFileDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        onCreated={(file) => setFiles((items) => [file, ...items])}
+      />
+    </section>
+  );
+}
+
+function FilesEmptyState({ language, onLanguageChange }: { language: string; onLanguageChange: (value: string) => void }) {
+  const code = language === "Python" ? filesPythonTemplate : filesCurlTemplate;
+  return (
+    <div className="mt-2 max-w-[760px]">
+      <p className="mb-4 text-sm text-muted">No files have been uploaded to the Default workspace. Copy the template below to upload your first file:</p>
+      <div className="rounded-cds border border-line bg-white">
+        <div className="flex items-center justify-between border-b border-line px-3 py-2">
+          <div className="flex items-center gap-2">
+            <FieldSelect label="" value={language} options={["Python", "cURL"]} onValueChange={onLanguageChange} />
+            <a className="inline-flex h-8 items-center gap-2 rounded-control px-2 text-sm font-medium hover:bg-fill" href="https://docs.claude.com/en/docs/build-with-claude/files">
+              View docs
+              <span className="text-muted">↗</span>
+            </a>
+          </div>
+          <Button variant="ghost" size="sm" aria-label="Copy code">
+            <Copy className="h-4 w-4" />
+          </Button>
+        </div>
+        <pre className="overflow-x-auto p-4 font-mono text-sm leading-7">
+          {code.split("\n").map((line, index) => (
+            <span key={`${line}-${index}`} className="block">
+              <span className="mr-5 select-none text-muted">{index + 1}</span>
+              <span>{line}</span>
+            </span>
+          ))}
+        </pre>
+      </div>
+    </div>
+  );
+}
+
+function FileDetailPage() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [file, setFile] = useState<WorkspaceFile | null>(null);
+
+  useEffect(() => {
+    if (id) getFile(id).then(setFile).catch(() => setFile(null));
+  }, [id]);
+
+  async function deleteCurrent() {
+    if (!file) return;
+    await deleteFile(file.id);
+    navigate("/files");
+  }
+
+  if (!file) return <EmptyState title="File not found" description="The selected file could not be loaded." />;
+
+  return (
+    <section className="flex flex-col gap-5">
+      <div className="flex h-[52px] items-center justify-between">
+        <nav className="flex items-center gap-2 text-sm text-muted">
+          <Link className="rounded-control px-3 py-1.5 hover:bg-fill" to="/files">
+            Files
+          </Link>
+          <span>/</span>
+          <span className="text-ink">{file.name}</span>
+        </nav>
+      </div>
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0 flex-1">
+          <div className="mb-2 flex items-center gap-3">
+            <h1 className="truncate text-2xl font-medium tracking-[-0.01em]">{file.name}</h1>
+            <Badge tone={fileTone(file.status)}>{file.status}</Badge>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
+            <span className="font-mono">{shortId(file.id)}</span>
+            <span>·</span>
+            <span>{file.kind}</span>
+            <span>·</span>
+            <span>{file.size}</span>
+            <span>·</span>
+            <span>Created {file.createdLabel}</span>
+          </div>
+        </div>
+        <FileActions onDelete={deleteCurrent} />
+      </div>
+      <div className="grid max-w-[820px] gap-8">
+        <DetailSection title="File metadata">
+          <div className="grid grid-cols-[160px_minmax(0,1fr)] gap-3 rounded-cds border border-line bg-white p-4 text-sm">
+            <span className="font-semibold">Media type</span>
+            <span>{file.mediaType}</span>
+            <span className="font-semibold">Checksum</span>
+            <span className="font-mono text-muted">{file.checksum}</span>
+            <span className="font-semibold">Updated</span>
+            <span>{file.updatedLabel}</span>
+          </div>
+        </DetailSection>
+        <DetailSection title="Preview">
+          <pre className="min-h-[260px] whitespace-pre-wrap rounded-cds border border-line bg-white p-4 font-mono text-sm leading-6">
+            {file.content || "No preview available."}
+          </pre>
+        </DetailSection>
+      </div>
+    </section>
+  );
+}
+
 function AgentDetailPage() {
   const { id } = useParams();
   const [agent, setAgent] = useState<Agent | null>(null);
@@ -2217,6 +2414,64 @@ function AddMemoryDialog({
   );
 }
 
+function CreateFileDialog({
+  open,
+  onOpenChange,
+  onCreated
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onCreated: (file: WorkspaceFile) => void;
+}) {
+  const [name, setName] = useState("");
+  const [mediaType, setMediaType] = useState("text/plain");
+  const [description, setDescription] = useState("");
+  const [content, setContent] = useState("");
+  const canCreate = name.trim().length > 0;
+
+  async function submit() {
+    if (!canCreate) return;
+    const file = await createFile({ name, mediaType, description, content });
+    onCreated(file);
+    onOpenChange(false);
+    setName("");
+    setDescription("");
+    setContent("");
+  }
+
+  return (
+    <ConsoleDialog title="Add local file" description="Create a local filestore row for UI testing." open={open} onOpenChange={onOpenChange}>
+      <div className="px-6 pb-0 pt-5">
+        <div className="grid gap-5">
+          <label className="grid gap-2 text-sm font-medium">
+            Name
+            <TextInput placeholder="document.pdf" value={name} onChange={(event) => setName(event.target.value)} />
+          </label>
+          <div className="grid gap-2">
+            <label className="text-sm font-medium">Media type</label>
+            <FieldSelect label="" value={mediaType} options={["text/plain", "application/pdf", "application/json", "image/png"]} onValueChange={setMediaType} />
+          </div>
+          <label className="grid gap-2 text-sm font-medium">
+            Description
+            <TextInput placeholder="Optional note" value={description} onChange={(event) => setDescription(event.target.value)} />
+          </label>
+          <label className="grid gap-2 text-sm font-medium">
+            Content
+            <textarea
+              className="cds-focus min-h-[140px] resize-none rounded-cds border border-line bg-white px-3 py-3 font-mono text-sm leading-6"
+              value={content}
+              onChange={(event) => setContent(event.target.value)}
+            />
+          </label>
+        </div>
+        <div className="sticky bottom-0 -mx-6 mt-6 flex justify-end bg-white px-6 py-5">
+          <Button onClick={submit} disabled={!canCreate}>Create</Button>
+        </div>
+      </div>
+    </ConsoleDialog>
+  );
+}
+
 function CodeYaml({ source }: { source: string }) {
   return (
     <>
@@ -2266,6 +2521,13 @@ function memoryTone(status: string): "neutral" | "green" | "blue" | "red" {
   if (status === "Archived") return "neutral";
   if (status === "Failed") return "red";
   if (status === "Active") return "green";
+  return "blue";
+}
+
+function fileTone(status: string): "neutral" | "green" | "blue" | "red" {
+  if (status === "Deleted") return "neutral";
+  if (status === "Quarantined") return "red";
+  if (status === "Available") return "green";
   return "blue";
 }
 
@@ -2353,6 +2615,29 @@ function MemoryStoreActions({ onArchive, onDelete }: { onArchive: () => void; on
 }
 
 function MemoryRecordActions({ onDelete }: { onDelete: () => void }) {
+  return (
+    <CdsDropdownMenu.Root>
+      <CdsDropdownMenu.Trigger asChild>
+        <Button variant="icon" aria-label="More actions">
+          ⋯
+        </Button>
+      </CdsDropdownMenu.Trigger>
+      <CdsDropdownMenu.Portal>
+        <CdsDropdownMenu.Content className="z-50 min-w-[130px] rounded-cds border border-line bg-white p-1 shadow-lg" align="end">
+          <CdsDropdownMenu.Item
+            className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm text-[#a33a29] outline-none data-[highlighted]:bg-[#fff1ef]"
+            onSelect={onDelete}
+          >
+            <Trash2 className="h-4 w-4" />
+            Delete
+          </CdsDropdownMenu.Item>
+        </CdsDropdownMenu.Content>
+      </CdsDropdownMenu.Portal>
+    </CdsDropdownMenu.Root>
+  );
+}
+
+function FileActions({ onDelete }: { onDelete: () => void }) {
   return (
     <CdsDropdownMenu.Root>
       <CdsDropdownMenu.Trigger asChild>
@@ -2465,3 +2750,17 @@ function shortId(id: string) {
   if (id.length <= 14) return id;
   return `${id.slice(0, 7)}…${id.slice(-6)}`;
 }
+
+const filesPythonTemplate = `import anthropic
+
+client = anthropic.Anthropic()
+
+client.beta.files.upload(
+    file=("document.pdf", open("/path/to/document.pdf", "rb"), "application/pdf"),
+)`;
+
+const filesCurlTemplate = `curl -X POST "https://api.anthropic.com/v1/files" \\
+     -H "x-api-key: $ANTHROPIC_API_KEY" \\
+     -H "anthropic-version: 2023-06-01" \\
+     -H "anthropic-beta: files-api-2025-04-14" \\
+     -F "file=@/path/to/document.pdf"`;

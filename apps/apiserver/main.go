@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/sha256"
 	"errors"
 	"fmt"
 	"net/http"
@@ -104,6 +105,22 @@ type MemoryRecord struct {
 	UpdatedLabel  string    `json:"updatedLabel"`
 	CreatedAt     time.Time `json:"createdAt"`
 	UpdatedAt     time.Time `json:"updatedAt"`
+}
+
+type WorkspaceFile struct {
+	ID           string    `json:"id" gorm:"primaryKey"`
+	Name         string    `json:"name"`
+	Status       string    `json:"status" gorm:"index"`
+	Kind         string    `json:"kind" gorm:"index"`
+	MediaType    string    `json:"mediaType"`
+	Size         string    `json:"size"`
+	Checksum     string    `json:"checksum"`
+	Description  string    `json:"description" gorm:"type:text"`
+	Content      string    `json:"content" gorm:"type:text"`
+	CreatedLabel string    `json:"createdLabel"`
+	UpdatedLabel string    `json:"updatedLabel"`
+	CreatedAt    time.Time `json:"createdAt"`
+	UpdatedAt    time.Time `json:"updatedAt"`
 }
 
 type Session struct {
@@ -237,8 +254,14 @@ type CreateMemoryRequest struct {
 	Content string `json:"content"`
 }
 
+type CreateWorkspaceFileRequest struct {
+	Name        string `json:"name"`
+	MediaType   string `json:"mediaType"`
+	Content     string `json:"content"`
+	Description string `json:"description"`
+}
+
 var resourceKinds = map[string]string{
-	"files":  "file",
 	"skills": "skill",
 }
 
@@ -260,7 +283,7 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	if err := db.AutoMigrate(&Agent{}, &Resource{}, &Environment{}, &Vault{}, &VaultCredential{}, &MemoryStore{}, &MemoryRecord{}, &Session{}, &SessionEvent{}, &Deployment{}, &DeploymentRun{}); err != nil {
+	if err := db.AutoMigrate(&Agent{}, &Resource{}, &Environment{}, &Vault{}, &VaultCredential{}, &MemoryStore{}, &MemoryRecord{}, &WorkspaceFile{}, &Session{}, &SessionEvent{}, &Deployment{}, &DeploymentRun{}); err != nil {
 		return err
 	}
 	if err := seed(db); err != nil {
@@ -310,6 +333,10 @@ func run() error {
 	router.DELETE("/api/memory-stores/:id", deleteMemoryStore(db))
 	router.POST("/api/memory-stores/:id/memories", createMemoryRecord(db))
 	router.DELETE("/api/memory-stores/:id/memories/:memoryID", deleteMemoryRecord(db))
+	router.GET("/api/files", listWorkspaceFiles(db))
+	router.GET("/api/files/:id", getWorkspaceFile(db))
+	router.POST("/api/files", createWorkspaceFile(db))
+	router.DELETE("/api/files/:id", deleteWorkspaceFile(db))
 	router.GET("/api/:collection", listResources(db))
 
 	addr := env("APISERVER_ADDR", ":8080")
@@ -1114,6 +1141,85 @@ func deleteMemoryRecord(db *gorm.DB) gin.HandlerFunc {
 	}
 }
 
+func listWorkspaceFiles(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var files []WorkspaceFile
+		query := db.Order("created_at desc")
+		if search := strings.TrimSpace(c.Query("q")); search != "" {
+			query = query.Where("id ILIKE ? OR name ILIKE ?", "%"+search+"%", "%"+search+"%")
+		}
+		if status := strings.TrimSpace(c.Query("status")); status != "" && !strings.EqualFold(status, "all") {
+			query = query.Where("status = ?", status)
+		}
+		if kind := strings.TrimSpace(c.Query("kind")); kind != "" && !strings.EqualFold(kind, "all") {
+			query = query.Where("kind = ?", kind)
+		}
+		if err := query.Find(&files).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"items": files})
+	}
+}
+
+func getWorkspaceFile(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var file WorkspaceFile
+		if err := db.First(&file, "id = ?", c.Param("id")).Error; err != nil {
+			status := http.StatusInternalServerError
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				status = http.StatusNotFound
+			}
+			c.JSON(status, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, file)
+	}
+}
+
+func createWorkspaceFile(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var req CreateWorkspaceFileRequest
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		name := strings.TrimSpace(req.Name)
+		if name == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "name is required"})
+			return
+		}
+		now := time.Now().UTC()
+		content := req.Content
+		file := WorkspaceFile{
+			ID:           fmt.Sprintf("file_local_%s%09d", now.Format("20060102150405"), now.Nanosecond()),
+			Name:         name,
+			Status:       "Available",
+			Kind:         inferFileKind(name, req.MediaType),
+			MediaType:    defaultString(req.MediaType, "application/octet-stream"),
+			Size:         humanSize(len(content)),
+			Checksum:     fileChecksum(content),
+			Description:  strings.TrimSpace(req.Description),
+			Content:      content,
+			CreatedLabel: "just now",
+			UpdatedLabel: "just now",
+			CreatedAt:    now,
+			UpdatedAt:    now,
+		}
+		if err := db.Create(&file).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusCreated, file)
+	}
+}
+
+func deleteWorkspaceFile(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		deleteByID[WorkspaceFile](c, db, "id = ?", c.Param("id"))
+	}
+}
+
 func listResources(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		kind, ok := resourceKinds[c.Param("collection")]
@@ -1559,6 +1665,28 @@ func humanSize(bytes int) string {
 		return fmt.Sprintf("%.1f KB", kib)
 	}
 	return fmt.Sprintf("%.1f MB", kib/1024)
+}
+
+func inferFileKind(name, mediaType string) string {
+	lowerName := strings.ToLower(name)
+	lowerMedia := strings.ToLower(mediaType)
+	switch {
+	case strings.Contains(lowerMedia, "pdf") || strings.HasSuffix(lowerName, ".pdf"):
+		return "Document"
+	case strings.HasPrefix(lowerMedia, "image/") || strings.HasSuffix(lowerName, ".png") || strings.HasSuffix(lowerName, ".jpg") || strings.HasSuffix(lowerName, ".jpeg"):
+		return "Image"
+	case strings.HasPrefix(lowerMedia, "text/") || strings.HasSuffix(lowerName, ".txt") || strings.HasSuffix(lowerName, ".md"):
+		return "Text"
+	case strings.HasSuffix(lowerName, ".zip") || strings.HasSuffix(lowerName, ".tar.gz"):
+		return "Archive"
+	default:
+		return "File"
+	}
+}
+
+func fileChecksum(content string) string {
+	sum := sha256.Sum256([]byte(content))
+	return fmt.Sprintf("sha256:%x", sum)
 }
 
 func env(key, fallback string) string {

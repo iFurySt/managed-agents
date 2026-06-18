@@ -124,6 +124,29 @@ export type CreateMemoryInput = {
   content: string;
 };
 
+export type WorkspaceFile = {
+  id: string;
+  name: string;
+  status: string;
+  kind: string;
+  mediaType: string;
+  size: string;
+  checksum: string;
+  description: string;
+  content: string;
+  createdLabel: string;
+  updatedLabel: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type CreateWorkspaceFileInput = {
+  name: string;
+  mediaType: string;
+  content: string;
+  description: string;
+};
+
 export type SessionEvent = {
   id: string;
   sessionId: string;
@@ -214,5 +237,4 @@ export type CreateDeploymentInput = {
 };
 
 export type CollectionName =
-  | "files"
   | "skills";
