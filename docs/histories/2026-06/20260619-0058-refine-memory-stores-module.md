@@ -23,3 +23,9 @@ Keep memory stores as an `apiserver` control-plane module while improving consol
 
 - `apps/console/src/App.tsx`
 - `apps/console/src/api.ts`
+
+### Follow-up: List Geometry
+
+- Re-captured the Claude Platform Memory stores list with OBU.
+- Aligned the list filter row to the observed 320px search input, 142px Created filter, and 123px Status filter.
+- Retuned the memory stores table to the observed 968px shape with 40/200/352/120/200/56px selection, ID, Name, Status, Created, and Actions columns.

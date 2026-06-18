@@ -1453,7 +1453,7 @@ function MemoryStoresPage() {
         }
       />
       <div className="flex flex-wrap items-center gap-2">
-        <div className="relative w-[486px]">
+        <div className="relative w-[320px]">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
           <TextInput
             className="pl-9"
@@ -1463,17 +1463,24 @@ function MemoryStoresPage() {
             onChange={(event) => setQuery(event.target.value)}
           />
         </div>
-        <FieldSelect label="Created" value={created} options={["All time", "Last 24 hours", "Last 7 days", "Last 30 days"]} onValueChange={setCreated} />
-        <FieldSelect label="Status" value={status} options={["Active", "Archived", "All"]} onValueChange={setStatus} />
+        <FieldSelect
+          label="Created"
+          value={created}
+          options={["All time", "Last 24 hours", "Last 7 days", "Last 30 days"]}
+          onValueChange={setCreated}
+          triggerClassName="w-[142px]"
+        />
+        <FieldSelect label="Status" value={status} options={["Active", "Archived", "All"]} onValueChange={setStatus} triggerClassName="w-[123px]" />
       </div>
       <DataTable
         rows={stores}
         getKey={(store) => store.id}
+        actionsWidth="56px"
         columns={[
           {
             key: "id",
             header: "ID",
-            width: "250px",
+            width: "200px",
             render: (store) => (
               <div className="flex items-center gap-2">
                 <span className="font-mono font-semibold">{shortId(store.id)}</span>
@@ -1486,15 +1493,15 @@ function MemoryStoresPage() {
           {
             key: "name",
             header: "Name",
-            width: "420px",
+            width: "352px",
             render: (store) => (
               <Link className="font-medium hover:underline" to={`/memory-stores/${store.id}`}>
                 {store.name}
               </Link>
             )
           },
-          { key: "status", header: "Status", width: "150px", render: (store) => <Badge tone={memoryTone(store.status)}>{store.status}</Badge> },
-          { key: "created", header: "Created", width: "170px", render: (store) => <span className="text-muted">{store.createdLabel}</span> }
+          { key: "status", header: "Status", width: "120px", render: (store) => <Badge tone={memoryTone(store.status)}>{store.status}</Badge> },
+          { key: "created", header: "Created", width: "200px", render: (store) => <span className="text-muted">{store.createdLabel}</span> }
         ]}
         renderActions={(store) => <MemoryStoreActions store={store} onArchive={() => archiveStore(store)} onDelete={() => deleteStore(store)} />}
       />
