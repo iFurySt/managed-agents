@@ -81,6 +81,31 @@ type VaultCredential struct {
 	UpdatedAt    time.Time `json:"updatedAt"`
 }
 
+type MemoryStore struct {
+	ID           string         `json:"id" gorm:"primaryKey"`
+	Name         string         `json:"name"`
+	Status       string         `json:"status" gorm:"index"`
+	Description  string         `json:"description" gorm:"type:text"`
+	CreatedLabel string         `json:"createdLabel"`
+	UpdatedLabel string         `json:"updatedLabel"`
+	CreatedAt    time.Time      `json:"createdAt"`
+	UpdatedAt    time.Time      `json:"updatedAt"`
+	Memories     []MemoryRecord `json:"memories" gorm:"foreignKey:MemoryStoreID;references:ID"`
+}
+
+type MemoryRecord struct {
+	ID            string    `json:"id" gorm:"primaryKey"`
+	MemoryStoreID string    `json:"memoryStoreId" gorm:"index"`
+	Path          string    `json:"path"`
+	Status        string    `json:"status" gorm:"index"`
+	Size          string    `json:"size"`
+	Content       string    `json:"content" gorm:"type:text"`
+	AuthorID      string    `json:"authorId"`
+	UpdatedLabel  string    `json:"updatedLabel"`
+	CreatedAt     time.Time `json:"createdAt"`
+	UpdatedAt     time.Time `json:"updatedAt"`
+}
+
 type Session struct {
 	ID              string         `json:"id" gorm:"primaryKey"`
 	Name            string         `json:"name"`
@@ -202,10 +227,19 @@ type CreateVaultCredentialRequest struct {
 	Target   string `json:"target"`
 }
 
+type CreateMemoryStoreRequest struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
+type CreateMemoryRequest struct {
+	Path    string `json:"path"`
+	Content string `json:"content"`
+}
+
 var resourceKinds = map[string]string{
-	"memory-stores": "memory_store",
-	"files":         "file",
-	"skills":        "skill",
+	"files":  "file",
+	"skills": "skill",
 }
 
 func main() {
@@ -226,7 +260,7 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	if err := db.AutoMigrate(&Agent{}, &Resource{}, &Environment{}, &Vault{}, &VaultCredential{}, &Session{}, &SessionEvent{}, &Deployment{}, &DeploymentRun{}); err != nil {
+	if err := db.AutoMigrate(&Agent{}, &Resource{}, &Environment{}, &Vault{}, &VaultCredential{}, &MemoryStore{}, &MemoryRecord{}, &Session{}, &SessionEvent{}, &Deployment{}, &DeploymentRun{}); err != nil {
 		return err
 	}
 	if err := seed(db); err != nil {
@@ -269,6 +303,13 @@ func run() error {
 	router.POST("/api/vaults/:id/credentials", createVaultCredential(db))
 	router.POST("/api/vaults/:id/credentials/:credentialID/archive", archiveVaultCredential(db))
 	router.DELETE("/api/vaults/:id/credentials/:credentialID", deleteVaultCredential(db))
+	router.GET("/api/memory-stores", listMemoryStores(db))
+	router.GET("/api/memory-stores/:id", getMemoryStore(db))
+	router.POST("/api/memory-stores", createMemoryStore(db))
+	router.POST("/api/memory-stores/:id/archive", archiveMemoryStore(db))
+	router.DELETE("/api/memory-stores/:id", deleteMemoryStore(db))
+	router.POST("/api/memory-stores/:id/memories", createMemoryRecord(db))
+	router.DELETE("/api/memory-stores/:id/memories/:memoryID", deleteMemoryRecord(db))
 	router.GET("/api/:collection", listResources(db))
 
 	addr := env("APISERVER_ADDR", ":8080")
@@ -924,6 +965,155 @@ func deleteVaultCredential(db *gorm.DB) gin.HandlerFunc {
 	}
 }
 
+func listMemoryStores(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var stores []MemoryStore
+		query := db.Order("created_at desc")
+		if search := strings.TrimSpace(c.Query("q")); search != "" {
+			query = query.Where("id ILIKE ? OR name ILIKE ?", "%"+search+"%", "%"+search+"%")
+		}
+		if status := strings.TrimSpace(c.Query("status")); status != "" && !strings.EqualFold(status, "all") {
+			query = query.Where("status = ?", status)
+		}
+		if err := query.Find(&stores).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"items": stores})
+	}
+}
+
+func getMemoryStore(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var store MemoryStore
+		if err := db.Preload("Memories", func(tx *gorm.DB) *gorm.DB {
+			return tx.Order("path asc")
+		}).First(&store, "id = ?", c.Param("id")).Error; err != nil {
+			status := http.StatusInternalServerError
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				status = http.StatusNotFound
+			}
+			c.JSON(status, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, store)
+	}
+}
+
+func createMemoryStore(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var req CreateMemoryStoreRequest
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		now := time.Now().UTC()
+		name := strings.TrimSpace(req.Name)
+		if name == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "name is required"})
+			return
+		}
+		store := MemoryStore{
+			ID:           fmt.Sprintf("memstore_local_%s%09d", now.Format("20060102150405"), now.Nanosecond()),
+			Name:         name,
+			Status:       "Active",
+			Description:  strings.TrimSpace(req.Description),
+			CreatedLabel: "just now",
+			UpdatedLabel: "just now",
+			CreatedAt:    now,
+			UpdatedAt:    now,
+		}
+		if err := db.Create(&store).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusCreated, store)
+	}
+}
+
+func archiveMemoryStore(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var store MemoryStore
+		if err := db.First(&store, "id = ?", c.Param("id")).Error; err != nil {
+			status := http.StatusInternalServerError
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				status = http.StatusNotFound
+			}
+			c.JSON(status, gin.H{"error": err.Error()})
+			return
+		}
+		store.Status = "Archived"
+		store.UpdatedLabel = "just now"
+		store.UpdatedAt = time.Now().UTC()
+		if err := db.Save(&store).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, store)
+	}
+}
+
+func deleteMemoryStore(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		if err := db.Where("memory_store_id = ?", c.Param("id")).Delete(&MemoryRecord{}).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		deleteByID[MemoryStore](c, db, "id = ?", c.Param("id"))
+	}
+}
+
+func createMemoryRecord(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var store MemoryStore
+		if err := db.First(&store, "id = ?", c.Param("id")).Error; err != nil {
+			status := http.StatusInternalServerError
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				status = http.StatusNotFound
+			}
+			c.JSON(status, gin.H{"error": err.Error()})
+			return
+		}
+		var req CreateMemoryRequest
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		path := normalizeMemoryPath(req.Path)
+		if path == "/" || path == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "path is required"})
+			return
+		}
+		now := time.Now().UTC()
+		memory := MemoryRecord{
+			ID:            fmt.Sprintf("mem_local_%s%09d", now.Format("20060102150405"), now.Nanosecond()),
+			MemoryStoreID: store.ID,
+			Path:          path,
+			Status:        "Active",
+			Size:          humanSize(len(req.Content)),
+			Content:       req.Content,
+			AuthorID:      "user_local_admin",
+			UpdatedLabel:  "just now",
+			CreatedAt:     now,
+			UpdatedAt:     now,
+		}
+		if err := db.Create(&memory).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		store.UpdatedLabel = "just now"
+		store.UpdatedAt = now
+		_ = db.Save(&store).Error
+		c.JSON(http.StatusCreated, memory)
+	}
+}
+
+func deleteMemoryRecord(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		deleteByID[MemoryRecord](c, db, "id = ? AND memory_store_id = ?", c.Param("memoryID"), c.Param("id"))
+	}
+}
+
 func listResources(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		kind, ok := resourceKinds[c.Param("collection")]
@@ -992,6 +1182,19 @@ func seed(db *gorm.DB) error {
 		}
 	}
 
+	if err := db.Model(&MemoryStore{}).Count(&count).Error; err != nil {
+		return err
+	}
+	if count == 0 {
+		stores, memories := seedMemoryStores(now)
+		if err := db.Create(&stores).Error; err != nil {
+			return err
+		}
+		if err := db.Create(&memories).Error; err != nil {
+			return err
+		}
+	}
+
 	if err := db.Model(&Deployment{}).Count(&count).Error; err != nil {
 		return err
 	}
@@ -1043,8 +1246,6 @@ func seedResources(ts time.Time) []Resource {
 		resource("environment", "env_01PythonBrowser", "Python browser workspace", "Active", "Playwright / Python", "Firecracker", ts),
 		resource("vault", "vault_01GitHub", "GitHub source access", "Active", "3 bindings", "last used 2 days ago", ts),
 		resource("vault", "vault_01TestSecret", "test_secret", "Active", "1 binding", "last used 2 days ago", ts),
-		resource("memory_store", "memstore_01WorldCup", "world cup", "Active", "18 documents", "vector index ready", ts),
-		resource("memory_store", "mem_01Ops", "Operations memory", "Active", "42 documents", "vector index ready", ts),
 		resource("file", "file_01Outputs", "session-output.tar.gz", "Available", "outputs", "2.4 MB", ts),
 		resource("skill", "skill_01ReverseTunnel", "reverse-tunnel-bootstrap", "Active", "v0.1.0", "read-only mount", ts),
 	}
@@ -1117,6 +1318,48 @@ func vaultCredential(id, vaultID, name, authType, target, status, lastUsed, upda
 		UpdatedLabel: updatedLabel,
 		CreatedAt:    ts,
 		UpdatedAt:    ts,
+	}
+}
+
+func seedMemoryStores(ts time.Time) ([]MemoryStore, []MemoryRecord) {
+	stores := []MemoryStore{
+		memoryStore("memstore_01TFhvAtMizQJLWU29TaW5AZ", "123", "Active", "Browse and manage persistent memory for your agents.", "6 hours ago", ts.Add(42*time.Hour)),
+		memoryStore("memstore_01GYUDt8DBmRPDfhs5i9in8M", "zzz", "Active", "Scratch memory store for console testing.", "2 days ago", ts),
+		memoryStore("memstore_01GToktzJyefFL2DVxmgyT5e", "world cup", "Active", "Daily World Cup memory for agents that prepare match and news digests.", "2 days ago", ts),
+		memoryStore("memstore_014LoF1P4MoTKK9HYDmacJuB", "leo_test", "Active", "Personal test memory store.", "2 days ago", ts),
+	}
+	memories := []MemoryRecord{
+		memoryRecord("mem_01VZ3WZtoGtAg3kogjFYzCmu", "memstore_01GToktzJyefFL2DVxmgyT5e", "/test123", "3 B", "123", "user_01LsgCVVMMzNu5zsAxf9EgUv", "Jun 16", ts),
+		memoryRecord("mem_01DailyReport", "memstore_01GToktzJyefFL2DVxmgyT5e", "/daily-reports/jun-16.md", "446 B", "Track match schedule changes, notable injuries, and coach quotes before producing the daily digest.", "user_01LsgCVVMMzNu5zsAxf9EgUv", "Jun 16", ts),
+	}
+	return stores, memories
+}
+
+func memoryStore(id, name, status, description, label string, ts time.Time) MemoryStore {
+	return MemoryStore{
+		ID:           id,
+		Name:         name,
+		Status:       status,
+		Description:  description,
+		CreatedLabel: label,
+		UpdatedLabel: label,
+		CreatedAt:    ts,
+		UpdatedAt:    ts,
+	}
+}
+
+func memoryRecord(id, storeID, path, size, content, authorID, label string, ts time.Time) MemoryRecord {
+	return MemoryRecord{
+		ID:            id,
+		MemoryStoreID: storeID,
+		Path:          path,
+		Status:        "Active",
+		Size:          size,
+		Content:       content,
+		AuthorID:      authorID,
+		UpdatedLabel:  label,
+		CreatedAt:     ts,
+		UpdatedAt:     ts,
 	}
 }
 
@@ -1291,6 +1534,31 @@ func titleHostType(value string) string {
 		return "Self-hosted"
 	}
 	return "Cloud"
+}
+
+func normalizeMemoryPath(value string) string {
+	path := strings.TrimSpace(value)
+	if path == "" {
+		return ""
+	}
+	if !strings.HasPrefix(path, "/") {
+		path = "/" + path
+	}
+	for strings.Contains(path, "//") {
+		path = strings.ReplaceAll(path, "//", "/")
+	}
+	return path
+}
+
+func humanSize(bytes int) string {
+	if bytes < 1024 {
+		return fmt.Sprintf("%d B", bytes)
+	}
+	kib := float64(bytes) / 1024
+	if kib < 1024 {
+		return fmt.Sprintf("%.1f KB", kib)
+	}
+	return fmt.Sprintf("%.1f MB", kib/1024)
 }
 
 func env(key, fallback string) string {

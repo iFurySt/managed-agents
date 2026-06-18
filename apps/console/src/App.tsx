@@ -32,10 +32,15 @@ import {
   createAgent,
   createDeployment,
   createEnvironment,
+  createMemory,
+  createMemoryStore,
   createSession,
   archiveEnvironment,
+  archiveMemoryStore,
   archiveVault,
   archiveVaultCredential,
+  deleteMemory,
+  deleteMemoryStore,
   createVault,
   createVaultCredential,
   deleteVault,
@@ -43,22 +48,23 @@ import {
   getAgent,
   getDeployment,
   getEnvironment,
+  getMemoryStore,
   getSession,
   getVault,
   listAgents,
   listCollection,
   listDeployments,
   listEnvironments,
+  listMemoryStores,
   listSessions,
   listVaults,
   runDeployment,
   updateEnvironment
 } from "./api";
 import { Badge, Button, CdsDropdownMenu, CdsTabs, ConsoleDialog, DataTable, FieldSelect, SidebarItem, TextInput } from "./components/cds";
-import type { Agent, CollectionName, Deployment, Environment, Resource, Session, Vault, VaultCredential } from "./types";
+import type { Agent, CollectionName, Deployment, Environment, MemoryRecord, MemoryStore, Resource, Session, Vault, VaultCredential } from "./types";
 
 const managedRoutes: { path: CollectionName; title: string; description: string; action: string }[] = [
-  { path: "memory-stores", title: "Memory stores", description: "Manage reusable agent knowledge stores.", action: "Create memory store" },
   { path: "files", title: "Files", description: "Browse uploads, outputs, artifacts, and snapshots.", action: "Upload file" },
   { path: "skills", title: "Skills", description: "Package and mount reusable agent capabilities.", action: "Create skill" }
 ];
@@ -83,6 +89,8 @@ export default function App() {
               <Route path="/environments/:id" element={<EnvironmentDetailPage />} />
               <Route path="/vaults" element={<VaultsPage />} />
               <Route path="/vaults/:id" element={<VaultDetailPage />} />
+              <Route path="/memory-stores" element={<MemoryStoresPage />} />
+              <Route path="/memory-stores/:id" element={<MemoryStoreDetailPage />} />
               {managedRoutes.map((route) => (
                 <Route key={route.path} path={`/${route.path}`} element={<CollectionPage route={route} />} />
               ))}
@@ -1261,6 +1269,280 @@ function VaultDetailPage() {
   );
 }
 
+function MemoryStoresPage() {
+  const [stores, setStores] = useState<MemoryStore[]>([]);
+  const [query, setQuery] = useState("");
+  const [created, setCreated] = useState("All time");
+  const [status, setStatus] = useState("Active");
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  useEffect(() => {
+    listMemoryStores().then(setStores).catch(() => setStores([]));
+  }, []);
+
+  const visibleStores = stores.filter((store) => {
+    const matchesQuery = !query || store.name.toLowerCase().includes(query.toLowerCase()) || store.id.toLowerCase() === query.toLowerCase();
+    const matchesStatus = status === "All" || store.status === status;
+    return matchesQuery && matchesStatus;
+  });
+
+  async function archiveStore(store: MemoryStore) {
+    const updated = await archiveMemoryStore(store.id);
+    setStores((items) => items.map((item) => item.id === store.id ? updated : item));
+  }
+
+  async function deleteStore(store: MemoryStore) {
+    await deleteMemoryStore(store.id);
+    setStores((items) => items.filter((item) => item.id !== store.id));
+  }
+
+  return (
+    <section className="flex flex-col gap-4">
+      <PageHeader
+        title="Memory stores"
+        description="Browse and manage persistent memory for your agents."
+        action={
+          <Button onClick={() => setDialogOpen(true)}>
+            <Plus className="h-4 w-4" />
+            Create memory store
+          </Button>
+        }
+      />
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="relative w-[486px]">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+          <TextInput
+            className="pl-9"
+            aria-label="Search by name or exact ID"
+            placeholder="Search by name or exact ID"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+          />
+        </div>
+        <FieldSelect label="Created" value={created} options={["All time", "Last 24 hours", "Last 7 days", "Last 30 days"]} onValueChange={setCreated} />
+        <FieldSelect label="Status" value={status} options={["Active", "Archived", "All"]} onValueChange={setStatus} />
+      </div>
+      <DataTable
+        rows={visibleStores}
+        getKey={(store) => store.id}
+        columns={[
+          {
+            key: "id",
+            header: "ID",
+            width: "250px",
+            render: (store) => (
+              <div className="flex items-center gap-2">
+                <span className="font-mono font-semibold">{shortId(store.id)}</span>
+                <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${store.id}`}>
+                  <Copy className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            )
+          },
+          {
+            key: "name",
+            header: "Name",
+            width: "420px",
+            render: (store) => (
+              <Link className="font-medium hover:underline" to={`/memory-stores/${store.id}`}>
+                {store.name}
+              </Link>
+            )
+          },
+          { key: "status", header: "Status", width: "150px", render: (store) => <Badge tone={memoryTone(store.status)}>{store.status}</Badge> },
+          { key: "created", header: "Created", width: "170px", render: (store) => <span className="text-muted">{store.createdLabel}</span> }
+        ]}
+        renderActions={(store) => <MemoryStoreActions onArchive={() => archiveStore(store)} onDelete={() => deleteStore(store)} />}
+      />
+      <div className="flex gap-2">
+        <Button variant="secondary" className="h-8 w-8 px-0" disabled>
+          ‹
+        </Button>
+        <Button variant="secondary" className="h-8 w-8 px-0" disabled>
+          ›
+        </Button>
+      </div>
+      <CreateMemoryStoreDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        onCreated={(store) => setStores((items) => [store, ...items])}
+      />
+    </section>
+  );
+}
+
+function MemoryStoreDetailPage() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [store, setStore] = useState<MemoryStore | null>(null);
+  const [selectedMemoryId, setSelectedMemoryId] = useState<string | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  useEffect(() => {
+    if (id) getMemoryStore(id).then(setStore).catch(() => setStore(null));
+  }, [id]);
+
+  async function archiveCurrentStore() {
+    if (!store) return;
+    const updated = await archiveMemoryStore(store.id);
+    setStore({ ...store, ...updated });
+  }
+
+  async function deleteCurrentStore() {
+    if (!store) return;
+    await deleteMemoryStore(store.id);
+    navigate("/memory-stores");
+  }
+
+  async function deleteRecord(record: MemoryRecord) {
+    if (!store) return;
+    await deleteMemory(store.id, record.id);
+    setStore({ ...store, memories: (store.memories ?? []).filter((memory) => memory.id !== record.id) });
+    if (selectedMemoryId === record.id) setSelectedMemoryId(null);
+  }
+
+  if (!store) return <EmptyState title="Memory store not found" description="The selected memory store could not be loaded." />;
+
+  const memories = store.memories ?? [];
+  const selectedMemory = memories.find((memory) => memory.id === selectedMemoryId) ?? null;
+  const folders = memoryFolders(memories);
+
+  return (
+    <section className="flex flex-col gap-5">
+      <div className="flex h-[52px] items-center justify-between">
+        <nav className="flex items-center gap-2 text-sm text-muted">
+          <Link className="rounded-control px-3 py-1.5 hover:bg-fill" to="/memory-stores">
+            Memory stores
+          </Link>
+          <span>/</span>
+          <span className="text-ink">{store.name}</span>
+        </nav>
+      </div>
+
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0 flex-1">
+          <div className="mb-2 flex items-center gap-3">
+            <h1 className="truncate text-2xl font-medium tracking-[-0.01em]">{store.name}</h1>
+            <Badge tone={memoryTone(store.status)}>{store.status}</Badge>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
+            <span className="font-mono">{shortId(store.id)}</span>
+            <span className="hidden font-mono">{store.id}</span>
+            <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${store.id}`}>
+              <Copy className="h-3.5 w-3.5" />
+            </Button>
+            <span>·</span>
+            <span>Created {store.createdLabel}</span>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <Button onClick={() => setDialogOpen(true)}>
+            <Plus className="h-4 w-4" />
+            Add memory
+          </Button>
+          <MemoryStoreActions onArchive={archiveCurrentStore} onDelete={deleteCurrentStore} />
+        </div>
+      </div>
+
+      <div className="grid min-h-[540px] grid-cols-[320px_minmax(0,1fr)] border-y border-line">
+        <aside className="border-r border-line py-3 pr-4">
+          <Button variant="ghost" size="sm" className="mb-2">
+            <ChevronDown className="h-4 w-4" />
+            Expand all
+          </Button>
+          <div className="flex flex-col gap-1">
+            {folders.map((folder) => (
+              <div key={folder} className="flex h-8 items-center gap-2 rounded-control px-2 text-sm text-muted">
+                <ChevronDown className="h-4 w-4" />
+                <Database className="h-4 w-4" />
+                <span className="truncate">{folder}</span>
+              </div>
+            ))}
+            {memories.map((memory) => (
+              <button
+                key={memory.id}
+                className={`flex h-11 items-center gap-2 rounded-control px-2 text-left text-sm hover:bg-fill ${selectedMemoryId === memory.id ? "bg-fill" : ""}`}
+                onClick={() => setSelectedMemoryId(memory.id)}
+              >
+                <FileText className="h-4 w-4 text-muted" />
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate font-medium">{memoryName(memory.path)}</span>
+                  <span className="block text-xs text-muted">{memory.size}</span>
+                </span>
+              </button>
+            ))}
+          </div>
+        </aside>
+        <div className="min-w-0 px-6 py-5">
+          {selectedMemory ? (
+            <div className="grid gap-5">
+              <div className="flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <h2 className="truncate font-mono text-lg font-semibold">{selectedMemory.path}</h2>
+                  <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-muted">
+                    <span className="font-mono">{shortId(selectedMemory.id)}</span>
+                    <span className="hidden font-mono">{selectedMemory.id}</span>
+                    <span>·</span>
+                    <span>Updated {selectedMemory.updatedLabel}</span>
+                    <span>·</span>
+                    <span className="font-mono">{shortId(selectedMemory.authorId)}</span>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <MemoryRecordActions onDelete={() => deleteRecord(selectedMemory)} />
+                  <Button variant="secondary">
+                    <FileText className="h-4 w-4" />
+                    Edit
+                  </Button>
+                </div>
+              </div>
+              <CdsTabs.Root defaultValue="preview" className="grid gap-4">
+                <CdsTabs.List data-cds="SegmentedControl" className="inline-flex h-8 w-fit rounded-control bg-fill p-0.5">
+                  {["Preview", "Source"].map((tab) => (
+                    <CdsTabs.Trigger
+                      key={tab}
+                      value={tab.toLowerCase()}
+                      className="h-7 rounded-[6px] px-3 text-sm font-medium text-muted data-[state=active]:bg-white data-[state=active]:text-ink data-[state=active]:shadow-sm"
+                    >
+                      {tab}
+                    </CdsTabs.Trigger>
+                  ))}
+                </CdsTabs.List>
+                <CdsTabs.Content value="preview">
+                  <div className="min-h-[320px] rounded-cds border border-line bg-white p-4 text-sm leading-6 text-[#3f3a35]">
+                    {selectedMemory.content || "No content"}
+                  </div>
+                </CdsTabs.Content>
+                <CdsTabs.Content value="source">
+                  <pre className="min-h-[320px] whitespace-pre-wrap rounded-cds border border-line bg-white p-4 font-mono text-sm leading-6">
+                    {selectedMemory.content || ""}
+                  </pre>
+                </CdsTabs.Content>
+              </CdsTabs.Root>
+            </div>
+          ) : (
+            <div className="grid h-full place-items-center">
+              <div className="text-center">
+                <div className="text-base font-semibold">Select a memory</div>
+                <div className="mt-1 text-sm text-muted">Choose a file from the tree to view its contents.</div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+      <AddMemoryDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        onCreated={(memory) => {
+          setStore({ ...store, memories: [...(store.memories ?? []), memory] });
+          setSelectedMemoryId(memory.id);
+        }}
+        create={(input) => createMemory(store.id, input)}
+      />
+    </section>
+  );
+}
+
 function AgentDetailPage() {
   const { id } = useParams();
   const [agent, setAgent] = useState<Agent | null>(null);
@@ -1595,7 +1877,7 @@ function CreateDeploymentDialog({
               <label className="text-sm font-medium">Memory store (optional)</label>
               <Button variant="ghost" size="sm">Manage memory store</Button>
             </div>
-            <FieldSelect label="" value={memoryStore || "Add memory store"} options={["Add memory store", "world cup", "Operations memory"]} onValueChange={(value) => setMemoryStore(value === "Add memory store" ? "" : value)} />
+            <FieldSelect label="" value={memoryStore || "Add memory store"} options={["Add memory store", "world cup"]} onValueChange={(value) => setMemoryStore(value === "Add memory store" ? "" : value)} />
           </div>
           <div className="grid gap-2">
             <label className="text-sm font-medium">Trigger</label>
@@ -1834,6 +2116,107 @@ function CreateCredentialForm({
   );
 }
 
+function CreateMemoryStoreDialog({
+  open,
+  onOpenChange,
+  onCreated
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onCreated: (store: MemoryStore) => void;
+}) {
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const canCreate = name.trim().length > 0;
+
+  async function submit() {
+    if (!canCreate) return;
+    const store = await createMemoryStore({ name, description });
+    onCreated(store);
+    onOpenChange(false);
+    setName("");
+    setDescription("");
+  }
+
+  return (
+    <ConsoleDialog title="Create memory store" open={open} onOpenChange={onOpenChange}>
+      <div className="px-6 pb-0 pt-5">
+        <div className="grid gap-5">
+          <label className="grid gap-2 text-sm font-medium">
+            Name
+            <TextInput placeholder="My memory store" value={name} onChange={(event) => setName(event.target.value)} />
+          </label>
+          <label className="grid gap-2 text-sm font-medium">
+            <span>
+              Description <span className="font-normal text-muted">(optional)</span>
+            </span>
+            <textarea
+              className="cds-focus min-h-[108px] resize-none rounded-cds border border-line bg-white px-3 py-3 text-sm leading-6"
+              placeholder="What this store contains and how agents should use it"
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
+            />
+          </label>
+          <p className="text-sm text-muted">Name and description are rendered in the agent system prompt when this store is attached.</p>
+        </div>
+        <div className="sticky bottom-0 -mx-6 mt-6 flex justify-end bg-white px-6 py-5">
+          <Button onClick={submit} disabled={!canCreate}>Create</Button>
+        </div>
+      </div>
+    </ConsoleDialog>
+  );
+}
+
+function AddMemoryDialog({
+  open,
+  onOpenChange,
+  onCreated,
+  create
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onCreated: (memory: MemoryRecord) => void;
+  create: (input: { path: string; content: string }) => Promise<MemoryRecord>;
+}) {
+  const [path, setPath] = useState("/");
+  const [content, setContent] = useState("");
+  const canCreate = path.trim().length > 1 && content.trim().length > 0;
+
+  async function submit() {
+    if (!canCreate) return;
+    const memory = await create({ path, content });
+    onCreated(memory);
+    onOpenChange(false);
+    setPath("/");
+    setContent("");
+  }
+
+  return (
+    <ConsoleDialog title="Add memory" open={open} onOpenChange={onOpenChange}>
+      <div className="px-6 pb-0 pt-5">
+        <div className="grid gap-5">
+          <label className="grid gap-2 text-sm font-medium">
+            Path
+            <TextInput placeholder="/notes/ideas.md" value={path} onChange={(event) => setPath(event.target.value)} />
+            <span className="text-sm font-normal text-muted">Folders are derived from the slashes in your path.</span>
+          </label>
+          <label className="grid gap-2 text-sm font-medium">
+            Content
+            <textarea
+              className="cds-focus min-h-[184px] resize-none rounded-cds border border-line bg-white px-3 py-3 font-mono text-sm leading-6"
+              value={content}
+              onChange={(event) => setContent(event.target.value)}
+            />
+          </label>
+        </div>
+        <div className="sticky bottom-0 -mx-6 mt-6 flex justify-end bg-white px-6 py-5">
+          <Button onClick={submit} disabled={!canCreate}>Create</Button>
+        </div>
+      </div>
+    </ConsoleDialog>
+  );
+}
+
 function CodeYaml({ source }: { source: string }) {
   return (
     <>
@@ -1873,6 +2256,13 @@ function environmentTone(status: string): "neutral" | "green" | "blue" | "red" {
 }
 
 function vaultTone(status: string): "neutral" | "green" | "blue" | "red" {
+  if (status === "Archived") return "neutral";
+  if (status === "Failed") return "red";
+  if (status === "Active") return "green";
+  return "blue";
+}
+
+function memoryTone(status: string): "neutral" | "green" | "blue" | "red" {
   if (status === "Archived") return "neutral";
   if (status === "Failed") return "red";
   if (status === "Active") return "green";
@@ -1932,8 +2322,76 @@ function VaultActions({ onArchive, onDelete }: { onArchive: () => void; onDelete
   );
 }
 
+function MemoryStoreActions({ onArchive, onDelete }: { onArchive: () => void; onDelete: () => void }) {
+  return (
+    <CdsDropdownMenu.Root>
+      <CdsDropdownMenu.Trigger asChild>
+        <Button variant="icon" aria-label="More actions">
+          ⋯
+        </Button>
+      </CdsDropdownMenu.Trigger>
+      <CdsDropdownMenu.Portal>
+        <CdsDropdownMenu.Content className="z-50 min-w-[170px] rounded-cds border border-line bg-white p-1 shadow-lg" align="end">
+          <CdsDropdownMenu.Item
+            className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill"
+            onSelect={onArchive}
+          >
+            <Archive className="h-4 w-4 text-muted" />
+            Archive store
+          </CdsDropdownMenu.Item>
+          <CdsDropdownMenu.Item
+            className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm text-[#a33a29] outline-none data-[highlighted]:bg-[#fff1ef]"
+            onSelect={onDelete}
+          >
+            <Trash2 className="h-4 w-4" />
+            Delete store
+          </CdsDropdownMenu.Item>
+        </CdsDropdownMenu.Content>
+      </CdsDropdownMenu.Portal>
+    </CdsDropdownMenu.Root>
+  );
+}
+
+function MemoryRecordActions({ onDelete }: { onDelete: () => void }) {
+  return (
+    <CdsDropdownMenu.Root>
+      <CdsDropdownMenu.Trigger asChild>
+        <Button variant="icon" aria-label="More actions">
+          ⋯
+        </Button>
+      </CdsDropdownMenu.Trigger>
+      <CdsDropdownMenu.Portal>
+        <CdsDropdownMenu.Content className="z-50 min-w-[130px] rounded-cds border border-line bg-white p-1 shadow-lg" align="end">
+          <CdsDropdownMenu.Item
+            className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm text-[#a33a29] outline-none data-[highlighted]:bg-[#fff1ef]"
+            onSelect={onDelete}
+          >
+            <Trash2 className="h-4 w-4" />
+            Delete
+          </CdsDropdownMenu.Item>
+        </CdsDropdownMenu.Content>
+      </CdsDropdownMenu.Portal>
+    </CdsDropdownMenu.Root>
+  );
+}
+
 function splitValues(value: string) {
   return value.split(/\s+/).map((item) => item.trim()).filter(Boolean);
+}
+
+function memoryFolders(memories: MemoryRecord[]) {
+  const folders = new Set<string>();
+  memories.forEach((memory) => {
+    const parts = memory.path.split("/").filter(Boolean);
+    parts.slice(0, -1).forEach((_, index) => {
+      folders.add(parts.slice(0, index + 1).join("/"));
+    });
+  });
+  return [...folders].sort();
+}
+
+function memoryName(path: string) {
+  return path.split("/").filter(Boolean).pop() || path;
 }
 
 function CollectionPage({ route }: { route: { path: CollectionName; title: string; description: string; action: string } }) {

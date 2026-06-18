@@ -89,6 +89,41 @@ export type CreateVaultCredentialInput = {
   target: string;
 };
 
+export type MemoryRecord = {
+  id: string;
+  memoryStoreId: string;
+  path: string;
+  status: string;
+  size: string;
+  content: string;
+  authorId: string;
+  updatedLabel: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type MemoryStore = {
+  id: string;
+  name: string;
+  status: string;
+  description: string;
+  createdLabel: string;
+  updatedLabel: string;
+  createdAt: string;
+  updatedAt: string;
+  memories?: MemoryRecord[];
+};
+
+export type CreateMemoryStoreInput = {
+  name: string;
+  description: string;
+};
+
+export type CreateMemoryInput = {
+  path: string;
+  content: string;
+};
+
 export type SessionEvent = {
   id: string;
   sessionId: string;
@@ -179,6 +214,5 @@ export type CreateDeploymentInput = {
 };
 
 export type CollectionName =
-  | "memory-stores"
   | "files"
   | "skills";

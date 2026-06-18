@@ -3,12 +3,16 @@ import type {
   CollectionName,
   CreateDeploymentInput,
   CreateEnvironmentInput,
+  CreateMemoryInput,
+  CreateMemoryStoreInput,
   CreateSessionInput,
   CreateVaultCredentialInput,
   CreateVaultInput,
   Deployment,
   DeploymentRun,
   Environment,
+  MemoryRecord,
+  MemoryStore,
   Resource,
   Session,
   UpdateEnvironmentInput,
@@ -157,6 +161,35 @@ export async function archiveVaultCredential(vaultId: string, credentialId: stri
 
 export async function deleteVaultCredential(vaultId: string, credentialId: string): Promise<{ deleted: boolean }> {
   return deleteJSON<{ deleted: boolean }>(`/api/vaults/${vaultId}/credentials/${credentialId}`);
+}
+
+export async function listMemoryStores(): Promise<MemoryStore[]> {
+  const data = await getJSON<{ items: MemoryStore[] }>("/api/memory-stores");
+  return data.items;
+}
+
+export async function getMemoryStore(id: string): Promise<MemoryStore> {
+  return getJSON<MemoryStore>(`/api/memory-stores/${id}`);
+}
+
+export async function createMemoryStore(input: CreateMemoryStoreInput): Promise<MemoryStore> {
+  return postJSON<MemoryStore>("/api/memory-stores", input);
+}
+
+export async function archiveMemoryStore(id: string): Promise<MemoryStore> {
+  return postJSON<MemoryStore>(`/api/memory-stores/${id}/archive`, {});
+}
+
+export async function deleteMemoryStore(id: string): Promise<{ deleted: boolean }> {
+  return deleteJSON<{ deleted: boolean }>(`/api/memory-stores/${id}`);
+}
+
+export async function createMemory(id: string, input: CreateMemoryInput): Promise<MemoryRecord> {
+  return postJSON<MemoryRecord>(`/api/memory-stores/${id}/memories`, input);
+}
+
+export async function deleteMemory(storeId: string, memoryId: string): Promise<{ deleted: boolean }> {
+  return deleteJSON<{ deleted: boolean }>(`/api/memory-stores/${storeId}/memories/${memoryId}`);
 }
 
 export async function listCollection(collection: CollectionName): Promise<Resource[]> {
