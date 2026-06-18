@@ -115,6 +115,7 @@ export function DataTable<T>({
   renderActions,
   actionsHeader,
   showSelection = true,
+  showActions = true,
   actionsWidth = "48px"
 }: {
   columns: { key: string; header: string; render: (row: T) => ReactNode; width?: string }[];
@@ -123,6 +124,7 @@ export function DataTable<T>({
   renderActions?: (row: T) => ReactNode;
   actionsHeader?: string;
   showSelection?: boolean;
+  showActions?: boolean;
   actionsWidth?: string;
 }) {
   return (
@@ -140,9 +142,11 @@ export function DataTable<T>({
                 {column.header}
               </th>
             ))}
-            <th className="px-3 py-0 font-medium" style={{ width: actionsWidth }}>
-              {actionsHeader}
-            </th>
+            {showActions ? (
+              <th className="px-3 py-0 font-medium" style={{ width: actionsWidth }}>
+                {actionsHeader}
+              </th>
+            ) : null}
           </tr>
         </thead>
         <tbody>
@@ -158,15 +162,17 @@ export function DataTable<T>({
                   {column.render(row)}
                 </td>
               ))}
-              <td className="px-3 py-2" style={{ width: actionsWidth }}>
-                {renderActions ? (
-                  renderActions(row)
-                ) : (
-                  <Button variant="icon" aria-label="Open row actions">
-                    <span className="text-lg leading-none">⋯</span>
-                  </Button>
-                )}
-              </td>
+              {showActions ? (
+                <td className="px-3 py-2" style={{ width: actionsWidth }}>
+                  {renderActions ? (
+                    renderActions(row)
+                  ) : (
+                    <Button variant="icon" aria-label="Open row actions">
+                      <span className="text-lg leading-none">⋯</span>
+                    </Button>
+                  )}
+                </td>
+              ) : null}
             </tr>
           ))}
         </tbody>

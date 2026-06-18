@@ -32,3 +32,11 @@ Keep deployment lifecycle behavior inside `apiserver` because it is part of the 
 - Updated the local Deployments table to use the same no-selection layout and column widths, including fixed 112px Agent and 98px Status filters.
 - Added a configurable `actionsWidth` to the shared CDS `DataTable` so deployments can match the Claude actions column without changing existing tables.
 - Verified the local deployments list with OBU after the change: rendered row width is 1146px with matching column widths and 45px local row height.
+
+### Follow-up: Deployment Detail Geometry
+
+- Rechecked the Claude Platform deployment detail page with OBU for both Configuration and Runs tabs.
+- Aligned the local detail tab controls to the Claude 32px tab height and added URL-driven `?tab=runs` behavior for deep links.
+- Tightened configuration detail sections to the observed 14px/20px headings, 792px content width, 16px section rhythm, unframed schedule/message blocks, and 111px local schedule height against the 114px reference.
+- Updated deployment runs to remove selection/actions columns, match the 1210px reference width, use 160/260/120/110/160/260/140px columns, and preserve 45px data rows.
+- Extended the shared CDS `DataTable` with optional `showActions` so non-action tables can match Claude without changing existing action tables.

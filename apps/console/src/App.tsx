@@ -725,6 +725,7 @@ function DeploymentsPage() {
 
 function DeploymentDetailPage() {
   const { id } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [deployment, setDeployment] = useState<Deployment | null>(null);
   const [trigger, setTrigger] = useState("All");
   const [result, setResult] = useState("All");
@@ -752,6 +753,7 @@ function DeploymentDetailPage() {
 
   if (!deployment) return <EmptyState title="Deployment not found" description="The selected deployment could not be loaded." />;
 
+  const activeTab = searchParams.get("tab") === "runs" ? "runs" : "configuration";
   const visibleRuns = (deployment.runs ?? []).filter((run) => {
     const triggerMatch = trigger === "All" || run.trigger === trigger;
     const resultMatch = result === "All" || run.result === result;
@@ -772,7 +774,7 @@ function DeploymentDetailPage() {
       <div className="flex items-start justify-between gap-4">
         <div>
           <div className="mb-1 flex items-center gap-3">
-            <h1 className="text-2xl font-medium tracking-[-0.01em]">{deployment.name}</h1>
+            <h1 className="text-[22px] font-medium leading-7">{deployment.name}</h1>
             <Badge tone={deploymentTone(deployment.status)}>{deployment.status}</Badge>
           </div>
           <div className="flex items-center gap-2 text-sm text-muted">
@@ -799,19 +801,23 @@ function DeploymentDetailPage() {
         </div>
       </div>
 
-      <CdsTabs.Root defaultValue="configuration" className="flex flex-col gap-4">
+      <CdsTabs.Root
+        value={activeTab}
+        onValueChange={(value) => setSearchParams(value === "runs" ? { tab: "runs" } : {})}
+        className="flex flex-col gap-4"
+      >
         <CdsTabs.List data-cds="NavigationTabs" className="flex border-b border-line">
           {["Configuration", "Runs"].map((tab) => (
             <CdsTabs.Trigger
               key={tab}
               value={tab.toLowerCase()}
-              className="h-9 border-b-2 border-transparent px-3 text-sm font-medium text-muted data-[state=active]:border-ink data-[state=active]:text-ink"
+              className="h-8 rounded-t-cds border-b-2 border-transparent px-3 text-sm font-medium text-muted data-[state=active]:border-ink data-[state=active]:text-ink"
             >
               {tab}
             </CdsTabs.Trigger>
           ))}
         </CdsTabs.List>
-        <CdsTabs.Content value="configuration" className="grid max-w-[800px] gap-8">
+        <CdsTabs.Content value="configuration" className="grid max-w-[800px] gap-4 px-1 pb-6">
           <div className="grid grid-cols-2 gap-4">
             <DetailSection title="Agent">
               <Button variant="ghost" className="h-[25px] px-2">
@@ -840,63 +846,56 @@ function DeploymentDetailPage() {
             </Button>
           </DetailSection>
           <DetailSection title="Schedule">
-            <div className="rounded-cds border border-line bg-white p-3">
-              <div className="flex items-center justify-between">
-                <pre className="font-mono text-sm">{deployment.schedule}</pre>
-                <Button variant="ghost" className="h-[22px] w-[22px] px-0" aria-label="Copy schedule" onClick={() => copyText(deployment.schedule)}>
-                  <Copy className="h-3.5 w-3.5" />
-                </Button>
-              </div>
-              <div className="mt-2 text-sm text-muted">Timezone: {deployment.timezone}</div>
+            <div className="flex items-center justify-between">
+              <pre className="font-mono text-sm leading-[21px]">{deployment.schedule}</pre>
+              <Button variant="ghost" className="h-[22px] w-[22px] px-0 text-muted" aria-label="Copy" onClick={() => copyText(deployment.schedule)}>
+                <Copy className="h-3.5 w-3.5" />
+              </Button>
             </div>
-            <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-muted">
+            <div className="mt-2 text-sm leading-[21px] text-muted">Timezone: {deployment.timezone}</div>
+            <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm leading-[21px] text-muted">
               <span>Next (when resumed):</span>
-              <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label="About scheduling jitter">
+              <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0 text-muted" aria-label="About scheduling jitter">
                 <Info className="h-3.5 w-3.5" />
               </Button>
               {deployment.nextRuns.split(", ").map((run) => (
-                <Badge key={run}>{run}</Badge>
+                <span key={run} className="text-ink">{run}</span>
               ))}
-              <span className="ml-4">Last scheduled run: {deployment.lastRunLabel}</span>
+              <span className="ml-2">Last scheduled run: {deployment.lastRunLabel}</span>
             </div>
           </DetailSection>
           <DetailSection title="Initial message">
-            <div className="rounded-cds border border-line bg-white p-3">
-              <div className="flex items-start justify-between gap-4">
-                <pre className="whitespace-pre-wrap text-sm leading-6 text-[#3f3a35]">{deployment.initialMessage}</pre>
-                <Button variant="ghost" className="h-[22px] w-[22px] px-0" aria-label="Copy initial message" onClick={() => copyText(deployment.initialMessage)}>
-                  <Copy className="h-3.5 w-3.5" />
-                </Button>
-              </div>
+            <div className="flex items-start justify-between gap-4">
+              <pre className="whitespace-pre-wrap text-sm leading-[21px] text-[#3f3a35]">{deployment.initialMessage}</pre>
+              <Button variant="ghost" className="h-[22px] w-[22px] px-0 text-muted" aria-label="Copy" onClick={() => copyText(deployment.initialMessage)}>
+                <Copy className="h-3.5 w-3.5" />
+              </Button>
             </div>
           </DetailSection>
         </CdsTabs.Content>
         <CdsTabs.Content value="runs" className="flex flex-col gap-4">
-          <div className="flex gap-2">
-            <FieldSelect label="Trigger" value={trigger} options={["All", "Manual", "Schedule"]} onValueChange={setTrigger} />
-            <FieldSelect label="Result" value={result} options={["All", "Success", "Failed"]} onValueChange={setResult} />
+          <div className="flex gap-4">
+            <FieldSelect label="Trigger" value={trigger} options={["All", "Manual", "Schedule"]} onValueChange={setTrigger} triggerClassName="w-[101px]" />
+            <FieldSelect label="Result" value={result} options={["All", "Success", "Failed"]} onValueChange={setResult} triggerClassName="w-[98px]" />
           </div>
           <DataTable
             rows={visibleRuns}
             getKey={(run) => run.id}
+            showSelection={false}
+            showActions={false}
             columns={[
-              { key: "id", header: "ID", width: "190px", render: (run) => <span className="font-mono font-semibold">{shortId(run.id)}</span> },
+              { key: "id", header: "ID", width: "160px", render: (run) => <span className="font-mono font-semibold">{shortId(run.id)}</span> },
               {
                 key: "started",
                 header: "Started at (GMT+8)",
-                width: "220px",
-                render: (run) => (
-                  <div>
-                    <div>{run.startedAt}</div>
-                    <div className="text-xs text-muted">{run.startedLabel}</div>
-                  </div>
-                )
+                width: "260px",
+                render: (run) => <span>{run.startedAt}</span>
               },
-              { key: "trigger", header: "Trigger", width: "130px", render: (run) => <span>{run.trigger}</span> },
-              { key: "status", header: "Status", width: "120px", render: (run) => <Badge tone="green">{run.result}</Badge> },
-              { key: "version", header: "Agent version", width: "150px", render: (run) => <span>{run.agentVersion}</span> },
-              { key: "session", header: "Session", width: "210px", render: (run) => <Link className="font-mono hover:underline" to={`/sessions/${run.sessionId}`}>{shortId(run.sessionId)}</Link> },
-              { key: "sessionStatus", header: "Session status", width: "150px", render: (run) => <Badge tone={sessionTone(run.sessionStatus)}>{run.sessionStatus}</Badge> }
+              { key: "trigger", header: "Trigger", width: "120px", render: (run) => <span>{run.trigger}</span> },
+              { key: "status", header: "Status", width: "110px", render: (run) => <Badge tone="green">{run.result}</Badge> },
+              { key: "version", header: "Agent version", width: "160px", render: (run) => <span>{run.agentVersion}</span> },
+              { key: "session", header: "Session", width: "260px", render: (run) => <Link className="font-mono hover:underline" to={`/sessions/${run.sessionId}`}>{shortId(run.sessionId)}</Link> },
+              { key: "sessionStatus", header: "Session status", width: "140px", render: (run) => <Badge tone={sessionTone(run.sessionStatus)}>{run.sessionStatus}</Badge> }
             ]}
           />
         </CdsTabs.Content>
@@ -3611,7 +3610,7 @@ function PageHeader({ title, description, action }: { title: string; description
 function DetailSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section>
-      <h2 className="mb-3 text-base font-semibold">{title}</h2>
+      <h2 className="mb-1.5 text-sm font-semibold leading-5">{title}</h2>
       {children}
     </section>
   );
