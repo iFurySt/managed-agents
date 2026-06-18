@@ -363,6 +363,9 @@ func run() error {
 	router.GET("/api/deployments/:id", getDeployment(db))
 	router.POST("/api/deployments", createDeployment(db))
 	router.POST("/api/deployments/:id/run", runDeployment(db))
+	router.POST("/api/deployments/:id/pause", pauseDeployment(db))
+	router.POST("/api/deployments/:id/resume", resumeDeployment(db))
+	router.POST("/api/deployments/:id/archive", archiveDeployment(db))
 	router.GET("/api/environments", listEnvironments(db))
 	router.GET("/api/environments/:id", getEnvironment(db))
 	router.POST("/api/environments", createEnvironment(db))
@@ -862,6 +865,44 @@ func runDeployment(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 		c.JSON(http.StatusCreated, run)
+	}
+}
+
+func pauseDeployment(db *gorm.DB) gin.HandlerFunc {
+	return updateDeploymentStatus(db, "Paused")
+}
+
+func resumeDeployment(db *gorm.DB) gin.HandlerFunc {
+	return updateDeploymentStatus(db, "Active")
+}
+
+func archiveDeployment(db *gorm.DB) gin.HandlerFunc {
+	return updateDeploymentStatus(db, "Archived")
+}
+
+func updateDeploymentStatus(db *gorm.DB, status string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var deployment Deployment
+		if err := db.Preload("Runs", func(tx *gorm.DB) *gorm.DB {
+			return tx.Order("created_at desc")
+		}).First(&deployment, "id = ?", c.Param("id")).Error; err != nil {
+			httpStatus := http.StatusInternalServerError
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				httpStatus = http.StatusNotFound
+			}
+			c.JSON(httpStatus, gin.H{"error": err.Error()})
+			return
+		}
+		deployment.Status = status
+		deployment.UpdatedAt = time.Now().UTC()
+		if strings.EqualFold(status, "Active") && strings.EqualFold(deployment.NextRuns, "On demand") && strings.EqualFold(deployment.Trigger, "Schedule") {
+			deployment.NextRuns = "Fri 1:00 AM, Sat 1:00 AM, Sun 1:00 AM, Mon 1:00 AM"
+		}
+		if err := db.Save(&deployment).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, deployment)
 	}
 }
 

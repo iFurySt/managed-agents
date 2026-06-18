@@ -110,12 +110,14 @@ export function DataTable<T>({
   columns,
   rows,
   getKey,
-  renderActions
+  renderActions,
+  actionsHeader
 }: {
   columns: { key: string; header: string; render: (row: T) => ReactNode; width?: string }[];
   rows: T[];
   getKey: (row: T) => string;
   renderActions?: (row: T) => ReactNode;
+  actionsHeader?: string;
 }) {
   return (
     <div data-cds="DataTable" className="w-full overflow-hidden">
@@ -130,7 +132,7 @@ export function DataTable<T>({
                 {column.header}
               </th>
             ))}
-            <th className="w-12 py-3" />
+            <th className="w-12 py-3 font-semibold">{actionsHeader}</th>
           </tr>
         </thead>
         <tbody>

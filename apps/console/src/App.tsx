@@ -16,6 +16,7 @@ import {
   Info,
   KeyRound,
   MessageSquare,
+  Pause,
   Play,
   Plus,
   Search,
@@ -31,6 +32,7 @@ import { Link, Navigate, Route, Routes, useNavigate, useParams, useSearchParams 
 import {
   cancelSession,
   archiveAgent,
+  archiveDeployment,
   createAgent,
   createDeployment,
   createEnvironment,
@@ -69,6 +71,8 @@ import {
   listSkills,
   listSessions,
   listVaults,
+  pauseDeployment,
+  resumeDeployment,
   runDeployment,
   updateAgent,
   updateEnvironment
@@ -609,18 +613,34 @@ function SessionDetailPage() {
 
 function DeploymentsPage() {
   const [deployments, setDeployments] = useState<Deployment[]>([]);
+  const [search, setSearch] = useState("");
   const [agent, setAgent] = useState("All");
   const [status, setStatus] = useState("All");
   const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
-    listDeployments().then(setDeployments).catch(() => setDeployments([]));
-  }, []);
+    listDeployments({ q: search, status, agentId: agent }).then(setDeployments).catch(() => setDeployments([]));
+  }, [agent, search, status]);
+
+  async function applyStatus(deployment: Deployment, action: "pause" | "resume" | "archive") {
+    const updated =
+      action === "pause"
+        ? await pauseDeployment(deployment.id)
+        : action === "resume"
+          ? await resumeDeployment(deployment.id)
+          : await archiveDeployment(deployment.id);
+    setDeployments((items) => items.map((item) => (item.id === updated.id ? updated : item)));
+  }
+
+  async function runCurrent(deployment: Deployment) {
+    const run = await runDeployment(deployment.id);
+    setDeployments((items) => items.map((item) => (item.id === deployment.id ? { ...item, lastRunLabel: "just now", runs: [run, ...(item.runs ?? [])] } : item)));
+  }
 
   return (
     <section className="flex flex-col gap-4">
       <PageHeader
-        title="Deployment"
+        title="Deployments"
         description="A deployment binds an agent to credentials, an environment, and a schedule so it can run on its own."
         action={
           <Button onClick={() => setDialogOpen(true)}>
@@ -632,10 +652,10 @@ function DeploymentsPage() {
       <div className="flex flex-wrap items-center gap-2">
         <div className="relative w-[272px]">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-          <TextInput className="pl-9" aria-label="Search by name or exact ID" placeholder="Search by name or exact ID" />
+          <TextInput className="pl-9" aria-label="Search by name or exact ID" placeholder="Search by name or exact ID" value={search} onChange={(event) => setSearch(event.target.value)} />
         </div>
-        <FieldSelect label="Agent" value={agent} options={["All", "World Cup Daily Digest", "Managed SSH Reverse Tunnel Bootstrapper"]} onValueChange={setAgent} />
-        <FieldSelect label="Status" value={status} options={["All", "Paused", "Active", "Failed"]} onValueChange={setStatus} />
+        <FieldSelect label="Agent" value={agent} options={["All", "agent_017k8CPYuCFRD9AmupUeXd2Z", "agent_013mi1SmR2hJ6Hk6wNTeJvF9"]} onValueChange={setAgent} />
+        <FieldSelect label="Status" value={status} options={["All", "Paused", "Active", "Archived", "Failed"]} onValueChange={setStatus} />
       </div>
       <DataTable
         rows={deployments}
@@ -648,7 +668,7 @@ function DeploymentsPage() {
             render: (deployment) => (
               <div className="flex items-center gap-2">
                 <span className="font-mono font-semibold">{shortId(deployment.id)}</span>
-                <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${deployment.id}`}>
+                <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${deployment.id}`} onClick={() => copyText(deployment.id)}>
                   <Copy className="h-3.5 w-3.5" />
                 </Button>
               </div>
@@ -680,6 +700,16 @@ function DeploymentsPage() {
           { key: "trigger", header: "Trigger", width: "220px", render: (deployment) => <span>{deployment.trigger === "Schedule" ? "Daily at 1:00 AM GMT+8" : deployment.trigger}</span> },
           { key: "created", header: "Created", width: "140px", render: (deployment) => <span className="text-muted">{deployment.createdLabel}</span> }
         ]}
+        actionsHeader="Actions"
+        renderActions={(deployment) => (
+          <DeploymentActions
+            deployment={deployment}
+            onRun={() => runCurrent(deployment)}
+            onPause={() => applyStatus(deployment, "pause")}
+            onResume={() => applyStatus(deployment, "resume")}
+            onArchive={() => applyStatus(deployment, "archive")}
+          />
+        )}
       />
       <div className="flex gap-2">
         <Button variant="secondary" className="h-8 w-8 px-0" disabled>
@@ -714,14 +744,31 @@ function DeploymentDetailPage() {
     setDeployment({ ...deployment, lastRunLabel: "just now", runs: [run, ...(deployment.runs ?? [])] });
   }
 
+  async function applyStatus(action: "pause" | "resume" | "archive") {
+    if (!deployment) return;
+    const updated =
+      action === "pause"
+        ? await pauseDeployment(deployment.id)
+        : action === "resume"
+          ? await resumeDeployment(deployment.id)
+          : await archiveDeployment(deployment.id);
+    setDeployment(updated);
+  }
+
   if (!deployment) return <EmptyState title="Deployment not found" description="The selected deployment could not be loaded." />;
+
+  const visibleRuns = (deployment.runs ?? []).filter((run) => {
+    const triggerMatch = trigger === "All" || run.trigger === trigger;
+    const resultMatch = result === "All" || run.result === result;
+    return triggerMatch && resultMatch;
+  });
 
   return (
     <section className="flex flex-col gap-4">
       <div className="flex h-[52px] items-center justify-between">
         <nav className="flex items-center gap-2 text-sm text-muted">
           <Link className="rounded-control px-3 py-1.5 hover:bg-fill" to="/deployments">
-            Deployment
+            Deployments
           </Link>
           <span>/</span>
           <span className="text-ink">{deployment.name}</span>
@@ -735,6 +782,9 @@ function DeploymentDetailPage() {
           </div>
           <div className="flex items-center gap-2 text-sm text-muted">
             <span className="font-mono">{shortId(deployment.id)}</span>
+            <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${deployment.id}`} onClick={() => copyText(deployment.id)}>
+              <Copy className="h-3.5 w-3.5" />
+            </Button>
             <span>·</span>
             <span>Created {deployment.createdLabel === "Jun 16" ? "Jun 16, 2026" : deployment.createdLabel}</span>
           </div>
@@ -744,9 +794,13 @@ function DeploymentDetailPage() {
             <Play className="h-4 w-4" />
             Run now
           </Button>
-          <Button variant="icon" aria-label="More actions">
-            ⋯
-          </Button>
+          <DeploymentActions
+            deployment={deployment}
+            onRun={runNow}
+            onPause={() => applyStatus("pause")}
+            onResume={() => applyStatus("resume")}
+            onArchive={() => applyStatus("archive")}
+          />
         </div>
       </div>
 
@@ -778,13 +832,13 @@ function DeploymentDetailPage() {
               </Button>
             </DetailSection>
           </div>
-          <DetailSection title="Credential vault">
+          <DetailSection title="Credential vaults">
             <Button variant="ghost" className="h-[25px] px-2">
               <KeyRound className="h-4 w-4" />
               {deployment.vaults || "No credential vault"}
             </Button>
           </DetailSection>
-          <DetailSection title="Memory store">
+          <DetailSection title="Memory stores">
             <Button variant="ghost" className="h-[25px] px-2">
               <Database className="h-4 w-4" />
               {deployment.memoryStores || "No memory store"}
@@ -794,7 +848,7 @@ function DeploymentDetailPage() {
             <div className="rounded-cds border border-line bg-white p-3">
               <div className="flex items-center justify-between">
                 <pre className="font-mono text-sm">{deployment.schedule}</pre>
-                <Button variant="ghost" className="h-[22px] w-[22px] px-0" aria-label="Copy schedule">
+                <Button variant="ghost" className="h-[22px] w-[22px] px-0" aria-label="Copy schedule" onClick={() => copyText(deployment.schedule)}>
                   <Copy className="h-3.5 w-3.5" />
                 </Button>
               </div>
@@ -802,6 +856,9 @@ function DeploymentDetailPage() {
             </div>
             <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-muted">
               <span>Next (when resumed):</span>
+              <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label="About scheduling jitter">
+                <Info className="h-3.5 w-3.5" />
+              </Button>
               {deployment.nextRuns.split(", ").map((run) => (
                 <Badge key={run}>{run}</Badge>
               ))}
@@ -812,7 +869,7 @@ function DeploymentDetailPage() {
             <div className="rounded-cds border border-line bg-white p-3">
               <div className="flex items-start justify-between gap-4">
                 <pre className="whitespace-pre-wrap text-sm leading-6 text-[#3f3a35]">{deployment.initialMessage}</pre>
-                <Button variant="ghost" className="h-[22px] w-[22px] px-0" aria-label="Copy initial message">
+                <Button variant="ghost" className="h-[22px] w-[22px] px-0" aria-label="Copy initial message" onClick={() => copyText(deployment.initialMessage)}>
                   <Copy className="h-3.5 w-3.5" />
                 </Button>
               </div>
@@ -825,7 +882,7 @@ function DeploymentDetailPage() {
             <FieldSelect label="Result" value={result} options={["All", "Success", "Failed"]} onValueChange={setResult} />
           </div>
           <DataTable
-            rows={deployment.runs ?? []}
+            rows={visibleRuns}
             getKey={(run) => run.id}
             columns={[
               { key: "id", header: "ID", width: "190px", render: (run) => <span className="font-mono font-semibold">{shortId(run.id)}</span> },
@@ -2290,14 +2347,14 @@ function CreateDeploymentDialog({
           </div>
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
-              <label className="text-sm font-medium">Credential vault (optional)</label>
+              <label className="text-sm font-medium">Credential vaults(optional)</label>
               <Button variant="ghost" size="sm">Manage credential vault</Button>
             </div>
             <FieldSelect label="" value={vault || "Add vault"} options={["Add vault", "test_secret", "vault_01GitHub"]} onValueChange={(value) => setVault(value === "Add vault" ? "" : value)} />
           </div>
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
-              <label className="text-sm font-medium">Memory store (optional)</label>
+              <label className="text-sm font-medium">Memory stores(optional)</label>
               <Button variant="ghost" size="sm">Manage memory store</Button>
             </div>
             <FieldSelect label="" value={memoryStore || "Add memory store"} options={["Add memory store", "world cup"]} onValueChange={(value) => setMemoryStore(value === "Add memory store" ? "" : value)} />
@@ -3009,6 +3066,64 @@ function SessionRowActions({ session, onCancel }: { session: Session; onCancel: 
           >
             <Archive className="h-4 w-4" />
             {session.status === "Cancelled" ? "Cancelled" : "Cancel"}
+          </CdsDropdownMenu.Item>
+        </CdsDropdownMenu.Content>
+      </CdsDropdownMenu.Portal>
+    </CdsDropdownMenu.Root>
+  );
+}
+
+function DeploymentActions({
+  deployment,
+  onRun,
+  onPause,
+  onResume,
+  onArchive
+}: {
+  deployment: Deployment;
+  onRun: () => void;
+  onPause: () => void;
+  onResume: () => void;
+  onArchive: () => void;
+}) {
+  const paused = deployment.status === "Paused";
+  const archived = deployment.status === "Archived";
+  return (
+    <CdsDropdownMenu.Root>
+      <CdsDropdownMenu.Trigger asChild>
+        <Button variant="icon" aria-label="More actions">
+          <span className="text-lg leading-none">⋯</span>
+        </Button>
+      </CdsDropdownMenu.Trigger>
+      <CdsDropdownMenu.Portal>
+        <CdsDropdownMenu.Content className="z-50 min-w-[170px] rounded-cds border border-line bg-white p-1 shadow-lg" align="end">
+          <CdsDropdownMenu.Item className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill" onSelect={onRun} disabled={archived}>
+            <Play className="h-4 w-4" />
+            Run now
+          </CdsDropdownMenu.Item>
+          <CdsDropdownMenu.Item className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill" onSelect={() => copyText(deployment.id)}>
+            <Copy className="h-4 w-4" />
+            Copy ID
+          </CdsDropdownMenu.Item>
+          {paused ? (
+            <CdsDropdownMenu.Item className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill" onSelect={onResume} disabled={archived}>
+              <Play className="h-4 w-4" />
+              Resume
+            </CdsDropdownMenu.Item>
+          ) : (
+            <CdsDropdownMenu.Item className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill" onSelect={onPause} disabled={archived}>
+              <Pause className="h-4 w-4" />
+              Pause
+            </CdsDropdownMenu.Item>
+          )}
+          <CdsDropdownMenu.Separator className="my-1 h-px bg-line" />
+          <CdsDropdownMenu.Item
+            className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm text-[#a33a29] outline-none data-[highlighted]:bg-[#fff1ef]"
+            onSelect={onArchive}
+            disabled={archived}
+          >
+            <Archive className="h-4 w-4" />
+            {archived ? "Archived" : "Archive"}
           </CdsDropdownMenu.Item>
         </CdsDropdownMenu.Content>
       </CdsDropdownMenu.Portal>

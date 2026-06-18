@@ -116,8 +116,13 @@ export async function createSessionMessage(id: string, message: string): Promise
   return postJSON<Session>(`/api/sessions/${id}/messages`, { message });
 }
 
-export async function listDeployments(): Promise<Deployment[]> {
-  const data = await getJSON<{ items: Deployment[] }>("/api/deployments");
+export async function listDeployments(params: { q?: string; status?: string; agentId?: string } = {}): Promise<Deployment[]> {
+  const search = new URLSearchParams();
+  if (params.q) search.set("q", params.q);
+  if (params.status && params.status !== "All") search.set("status", params.status);
+  if (params.agentId && params.agentId !== "All") search.set("agentId", params.agentId);
+  const query = search.toString();
+  const data = await getJSON<{ items: Deployment[] }>(`/api/deployments${query ? `?${query}` : ""}`);
   return data.items;
 }
 
@@ -131,6 +136,18 @@ export async function createDeployment(input: CreateDeploymentInput): Promise<De
 
 export async function runDeployment(id: string): Promise<DeploymentRun> {
   return postJSON<DeploymentRun>(`/api/deployments/${id}/run`, {});
+}
+
+export async function pauseDeployment(id: string): Promise<Deployment> {
+  return postJSON<Deployment>(`/api/deployments/${id}/pause`, {});
+}
+
+export async function resumeDeployment(id: string): Promise<Deployment> {
+  return postJSON<Deployment>(`/api/deployments/${id}/resume`, {});
+}
+
+export async function archiveDeployment(id: string): Promise<Deployment> {
+  return postJSON<Deployment>(`/api/deployments/${id}/archive`, {});
 }
 
 export async function listEnvironments(): Promise<Environment[]> {
