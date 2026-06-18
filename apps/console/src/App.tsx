@@ -2746,6 +2746,7 @@ function AddMemoryDialog({
   const [path, setPath] = useState("/");
   const [content, setContent] = useState("");
   const canCreate = path.trim().length > 1 && content.trim().length > 0;
+  const fieldLabelClass = "text-sm font-medium leading-none";
 
   async function submit() {
     if (!canCreate) return;
@@ -2757,24 +2758,31 @@ function AddMemoryDialog({
   }
 
   return (
-    <ConsoleDialog title="Add memory" open={open} onOpenChange={onOpenChange}>
-      <div className="px-6 pb-0 pt-5">
-        <div className="grid gap-5">
-          <label className="grid gap-2 text-sm font-medium">
-            Path
+    <ConsoleDialog
+      title="Add memory"
+      open={open}
+      onOpenChange={onOpenChange}
+      contentClassName="w-[510px] max-w-[calc(100vw-32px)]"
+      titleClassName="text-lg font-semibold text-ink"
+      closeLabel="Close"
+    >
+      <div className="px-6 pb-0 pt-1">
+        <div className="grid gap-4">
+          <div className="grid gap-2">
+            <label className={fieldLabelClass}>Path</label>
             <TextInput placeholder="/notes/ideas.md" value={path} onChange={(event) => setPath(event.target.value)} />
-            <span className="text-sm font-normal text-muted">Folders are derived from the slashes in your path.</span>
-          </label>
-          <label className="grid gap-2 text-sm font-medium">
+            <span className="text-[13px] leading-[18px] text-muted">Folders are derived from the slashes in your path.</span>
+          </div>
+          <label className={`grid gap-2 ${fieldLabelClass}`}>
             Content
             <textarea
-              className="cds-focus min-h-[184px] resize-none rounded-cds border border-line bg-white px-3 py-3 font-mono text-sm leading-6"
+              className="cds-focus min-h-[251px] resize-none rounded-control border border-line bg-white px-3 py-2 font-mono text-sm leading-5"
               value={content}
               onChange={(event) => setContent(event.target.value)}
             />
           </label>
         </div>
-        <div className="sticky bottom-0 -mx-6 mt-6 flex justify-end bg-white px-6 py-5">
+        <div className="sticky bottom-0 -mx-6 mt-2 flex justify-end bg-white px-6 pb-[21px] pt-0">
           <Button onClick={submit} disabled={!canCreate}>Create</Button>
         </div>
       </div>
