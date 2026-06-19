@@ -48,3 +48,10 @@ Keep deployment lifecycle behavior inside `apiserver` because it is part of the 
 - Nudged the Deployments row actions trigger 4px to match the captured action button position inside the 56px Actions column.
 - Treated direct API `agentId=All` and `deploymentId=All` query values as unfiltered values so backend list endpoints match the console filter semantics.
 - Verified the local `/deployments` page with OBU after the change; filter, table, row, and actions button x/width/height values match the Claude reference, while global shell vertical positioning remains a separate follow-up.
+
+### Follow-up: Deployments List Shell Rhythm
+
+- Re-captured Claude and local `/deployments` with OBU at a 1272px viewport.
+- Matched the Deployments list shell to the Claude geometry: content x=280, header y=128, filter y=196, table shell x=272/y=260/w=984, table x=280/y=268/w=1146, and first row y=300.
+- Restyled the search field and Agent/Status selects to use the source `bg-white/50`, borderless 32px controls, including the source search input box at x=316/w=272.
+- Wrapped the Deployments table in the same horizontal overflow shell pattern used by the Claude table so the fixed 1146px columns align while the page viewport remains 968px wide.
