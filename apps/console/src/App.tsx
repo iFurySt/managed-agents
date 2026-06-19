@@ -3086,13 +3086,7 @@ function CreateDeploymentDialog({
                 <span className="sr-only">(opens in new tab)</span>
               </a>
             </div>
-            <FieldSelect
-              label="+"
-              value={memoryStore || "Add memory store"}
-              options={["Add memory store", "world cup"]}
-              onValueChange={(value) => setMemoryStore(value === "Add memory store" ? "" : value)}
-              triggerClassName="!h-8 w-full border-0 bg-white/50 px-2"
-            />
+            <DeploymentMemoryStorePicker value={memoryStore} onValueChange={setMemoryStore} />
           </div>
           <div className="grid gap-2">
             <label className={fieldLabelClass}>Trigger</label>
@@ -3160,6 +3154,87 @@ function DeploymentVaultPicker({ value, onValueChange }: { value: string; onValu
                 <span className="inline-flex shrink-0 items-center gap-1.5 text-xs leading-4 text-muted">
                   <KeyRound className="h-3.5 w-3.5" />
                   {option.summary}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function DeploymentMemoryStorePicker({ value, onValueChange }: { value: string; onValueChange: (value: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const options = [
+    { value: "123", name: "123", description: "No description", access: "Read & write" },
+    { value: "zzz", name: "zzz", description: "No description", access: "Read & write" },
+    { value: "world cup", name: "world cup", description: "No description", access: "Read & write" },
+    { value: "leo_test", name: "leo_test", description: "123", access: "Read & write" }
+  ];
+  const selected = options.find((option) => option.value === value);
+
+  return (
+    <div data-cds="Field" className="relative grid gap-2">
+      {selected ? (
+        <div className="flex h-8 items-center justify-between rounded-[8px] bg-white/50 px-2 text-sm">
+          <span className="inline-flex min-w-0 items-center gap-2 truncate">
+            <Database className="h-4 w-4 shrink-0 text-muted" />
+            <span className="truncate">{selected.name}</span>
+            <span className="shrink-0 text-muted">{selected.access}</span>
+          </span>
+          <button
+            type="button"
+            aria-label={`Remove ${selected.name}`}
+            className="grid h-7 w-7 shrink-0 place-items-center rounded-[7px] text-muted hover:bg-fill hover:text-ink"
+            onClick={() => onValueChange("")}
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
+      ) : null}
+      <div className="h-8 rounded-[8px] bg-white/50">
+        <button
+          type="button"
+          role="combobox"
+          aria-expanded={open}
+          aria-label="Add memory store"
+          className="flex h-8 w-full items-center justify-between rounded-[8px] bg-transparent px-2 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-[#c6613f]/35"
+          onClick={() => setOpen((current) => !current)}
+        >
+          <span className="inline-flex min-w-0 items-center gap-2 truncate">
+            <Plus className="h-4 w-4 shrink-0 text-muted" />
+            <span className="truncate">Add memory store</span>
+          </span>
+          <ChevronDown className="h-4 w-4 shrink-0 text-muted" />
+        </button>
+      </div>
+      {open ? (
+        <div
+          data-cds="Combobox"
+          role="dialog"
+          className="absolute bottom-[39px] left-0 z-50 w-full rounded-[12px] bg-white p-1 shadow-[0_10px_28px_rgba(0,0,0,0.12)]"
+        >
+          <div role="listbox" className="grid gap-0">
+            {options.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                role="option"
+                aria-selected={value === option.value}
+                className="flex h-[46px] w-full items-center justify-between rounded-[8px] px-3 text-left outline-none hover:bg-fill"
+                onClick={() => {
+                  onValueChange(option.value);
+                  setOpen(false);
+                }}
+              >
+                <span className="grid min-w-0 gap-0.5">
+                  <span className="truncate text-sm leading-4 text-ink">{option.name}</span>
+                  <span className="truncate text-xs leading-4 text-muted">{option.description}</span>
+                </span>
+                <span className="inline-flex shrink-0 items-center gap-1.5 text-xs leading-4 text-muted">
+                  <Database className="h-3.5 w-3.5" />
+                  {option.access}
                 </span>
               </button>
             ))}
