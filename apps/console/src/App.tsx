@@ -2964,7 +2964,7 @@ function CreateAgentDialog({
     const agent = await createAgent({
       name: config.name,
       description: config.description,
-      model: config.model,
+      model: config.model.id,
       systemPrompt: config.system,
       configYaml
     });
@@ -3106,7 +3106,7 @@ function EditAgentDialog({
     const updated = await updateAgent(agent.id, {
       name: config.name,
       description: config.description,
-      model: config.model,
+      model: config.model.id,
       systemPrompt: config.system,
       configYaml
     });
@@ -3122,28 +3122,45 @@ function EditAgentDialog({
       headerClassName="flex items-start justify-between pl-6 pr-4 pt-4"
       titleClassName="mt-1 text-[22px] leading-[26px] text-ink [font-weight:580]"
       closeButtonClassName="h-8 w-8 rounded-[8px] px-0"
+      closeLabel="Close"
     >
       <div className="max-h-[calc(100dvh-106px)] overflow-y-auto px-6 pb-0 pt-[11px]">
         <div className="flex h-[548px] flex-col overflow-hidden rounded-[8px] border-[0.5px] border-line bg-white">
           <div className="flex h-11 shrink-0 items-center justify-between gap-2 pl-3 pr-2">
-            <div className="flex min-w-0 flex-1 items-center text-sm">
-              <button className={`h-7 w-[60px] rounded-full px-[10px] [font-weight:550] ${format === "YAML" ? "text-ink" : "text-muted"}`} onClick={() => setFormat("YAML")}>YAML</button>
-              <button className={`h-7 w-[59px] rounded-full px-[10px] [font-weight:550] ${format === "JSON" ? "text-ink" : "text-muted"}`} onClick={() => setFormat("JSON")}>JSON</button>
+            <div className="flex min-w-0 flex-1 items-center text-sm" role="tablist" aria-label="Agent config format">
+              <button
+                aria-selected={format === "YAML"}
+                className={`h-7 w-[60px] rounded-full px-[10px] [font-weight:550] ${format === "YAML" ? "text-ink" : "text-muted"}`}
+                role="tab"
+                type="button"
+                onClick={() => setFormat("YAML")}
+              >
+                YAML
+              </button>
+              <button
+                aria-selected={format === "JSON"}
+                className={`h-7 w-[59px] rounded-full px-[10px] [font-weight:550] ${format === "JSON" ? "text-ink" : "text-muted"}`}
+                role="tab"
+                type="button"
+                onClick={() => setFormat("JSON")}
+              >
+                JSON
+              </button>
             </div>
             <Button variant="ghost" className="!h-7 !w-7 !gap-1.5 rounded-[7px] !px-0 [font-weight:550]" aria-label="Copy code" onClick={() => copyText(format === "YAML" ? configYaml : jsonConfig)}>
               <Copy className="h-4 w-4" />
             </Button>
           </div>
-          <div className="relative flex-1 overflow-auto text-ink">
+          <div className="relative flex-1 overflow-auto px-3 pb-3 pt-[13px] text-ink">
             <p className="sr-only">Tab inserts indentation. Press Escape then Tab to move focus out of the editor.</p>
             {format === "YAML" ? (
               <textarea
-                className="min-h-full w-full resize-none border-0 bg-transparent px-3 py-3 font-mono text-[13px] leading-[19px] outline-none"
+                className="h-[475px] w-full resize-none border-0 bg-transparent p-0 font-mono text-[13px] leading-[19px] outline-none"
                 value={configYaml}
                 onChange={(event) => setConfigYaml(event.target.value)}
               />
             ) : (
-              <pre className="min-h-full whitespace-pre-wrap px-3 py-3 font-mono text-[13px] leading-[19px]">
+              <pre className="min-h-[475px] whitespace-pre-wrap p-0 font-mono text-[13px] leading-[19px]">
                 {jsonConfig}
               </pre>
             )}
@@ -6052,8 +6069,10 @@ function filterSessionEvents(events: SessionEvent[], roleFilter: string, search:
 
 function defaultAgentYaml(agent?: Agent) {
   return `name: ${agent?.name ?? "Untitled agent"}
+model:
+  id: ${agent?.model ?? "claude-sonnet-4-6"}
+  speed: standard
 description: ${agent?.description ?? "A blank starting point with the core toolset."}
-model: ${agent?.model ?? "claude-sonnet-4-6"}
 system: ${JSON.stringify(agent?.systemPrompt ?? "You are a general-purpose agent that can research, write code, run commands, and use connected tools to complete the user's task end to end.")}
 mcp_servers: []
 tools:
@@ -6069,8 +6088,10 @@ metadata: {}`;
 
 function agentTemplateYaml(template: (typeof agentStartingTemplates)[number]) {
   return `name: ${template.name === "Blank agent" ? "Untitled agent" : template.name}
+model:
+  id: claude-sonnet-4-6
+  speed: standard
 description: ${template.description}
-model: claude-sonnet-4-6
 system: ${JSON.stringify(template.system)}
 mcp_servers: []
 tools:
@@ -6085,11 +6106,30 @@ metadata: {}`;
 }
 
 function agentConfigFromYaml(source: string) {
+  const modelId = yamlValue(source, "id", yamlValue(source, "model", "claude-sonnet-4-6"));
   return {
     name: yamlValue(source, "name", "Untitled agent"),
-    model: yamlValue(source, "id", yamlValue(source, "model", "claude-sonnet-4-6")),
     description: yamlValue(source, "description", "A blank starting point with the core toolset."),
-    system: yamlValue(source, "system", "You are a general-purpose agent that can research, write code, run commands, and use connected tools to complete the user's task end to end.")
+    model: {
+      id: modelId,
+      speed: "standard"
+    },
+    system: yamlValue(source, "system", "You are a general-purpose agent that can research, write code, run commands, and use connected tools to complete the user's task end to end."),
+    mcp_servers: [],
+    tools: [
+      {
+        type: "agent_toolset_20260401",
+        default_config: {
+          enabled: true,
+          permission_policy: {
+            type: "always_allow"
+          }
+        },
+        configs: []
+      }
+    ],
+    skills: [],
+    metadata: {}
   };
 }
 

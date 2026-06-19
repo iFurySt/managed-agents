@@ -232,7 +232,7 @@ export function ConsoleDialog({
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-40 bg-black/35 backdrop-blur-[1px]" />
-        <Dialog.Content className={`fixed left-1/2 top-1/2 z-50 max-h-[86vh] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-cds border border-line bg-white shadow-xl ${contentClassName}`}>
+        <Dialog.Content data-cds="Dialog" className={`fixed left-1/2 top-1/2 z-50 max-h-[86vh] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-cds border border-line bg-white shadow-xl ${contentClassName}`}>
           <div className={headerClassName}>
             <div>
               <Dialog.Title className={titleClassName}>{title}</Dialog.Title>
