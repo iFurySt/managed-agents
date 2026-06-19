@@ -6006,7 +6006,7 @@ function AgentArchiveDialog({
           </Dialog.Description>
           <div className="mt-3 flex justify-end gap-2">
             <Dialog.Close asChild>
-              <Button variant="secondary" className="h-8 w-[70px] rounded-[8px] border-0 bg-[#f1f0ec] px-0 text-sm [font-weight:550] hover:bg-[#e8e6df]">
+              <Button variant="ghost" className="h-8 w-[70px] rounded-[8px] bg-transparent px-0 text-sm [font-weight:550] hover:bg-fill">
                 Cancel
               </Button>
             </Dialog.Close>
