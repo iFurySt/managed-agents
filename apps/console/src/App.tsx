@@ -2382,15 +2382,7 @@ function FilesEmptyState({ language, onLanguageChange }: { language: string; onL
       <p className="mb-3 text-sm text-ink">No files have been uploaded to the Default workspace. Copy the template below to upload your first file:</p>
       <div className="overflow-hidden rounded-cds bg-fill">
         <div className="flex h-9 items-center gap-2 px-3">
-          <FieldSelect
-            label=""
-            value={language}
-            options={["Python", "cURL"]}
-            onValueChange={onLanguageChange}
-            triggerClassName="!h-6 !w-[81px] !gap-1.5 !rounded-md !border-0 !bg-transparent !px-2 !text-[13px] !text-[#52514e] [font-weight:550] hover:!bg-[#eeeeeb] [&_svg]:!h-3.5 [&_svg]:!w-3.5"
-            contentClassName="!min-w-[128px]"
-            itemClassName="!rounded-[8px]"
-          />
+          <FilesLanguageMenu language={language} onLanguageChange={onLanguageChange} />
           <div className="ml-auto flex items-center gap-1">
             <a data-cds="Button" className="inline-flex h-6 w-[96px] items-center gap-1.5 rounded-md px-2 text-[13px] leading-5 [font-weight:550] hover:bg-[#eeeeeb]" href="https://docs.claude.com/en/docs/build-with-claude/files">
               View docs
@@ -2411,6 +2403,37 @@ function FilesEmptyState({ language, onLanguageChange }: { language: string; onL
         </pre>
       </div>
     </div>
+  );
+}
+
+function FilesLanguageMenu({ language, onLanguageChange }: { language: string; onLanguageChange: (value: string) => void }) {
+  return (
+    <CdsDropdownMenu.Root>
+      <CdsDropdownMenu.Trigger asChild>
+        <Button variant="ghost" className="!h-6 !w-[81px] !gap-1.5 !rounded-md !bg-transparent !px-2 !text-[13px] !text-[#52514e] [font-weight:550] hover:!bg-[#eeeeeb]">
+          {language}
+          <ChevronDown className="h-3.5 w-3.5 text-[#898781]" />
+        </Button>
+      </CdsDropdownMenu.Trigger>
+      <CdsDropdownMenu.Portal>
+        <CdsDropdownMenu.Content data-cds="DropdownButton" className="z-50 w-[128px] rounded-[12px] bg-white p-1 shadow-lg" align="start" sideOffset={6}>
+          <CdsDropdownMenu.RadioGroup value={language} onValueChange={onLanguageChange}>
+            {["Python", "cURL"].map((option) => (
+              <CdsDropdownMenu.RadioItem
+                key={option}
+                value={option}
+                className="flex h-8 w-[120px] cursor-pointer items-center gap-2 rounded-[8px] px-2.5 text-sm leading-5 outline-none data-[highlighted]:bg-fill data-[state=checked]:bg-fill"
+              >
+                <span className="min-w-0 flex-1 truncate">{option}</span>
+                <CdsDropdownMenu.ItemIndicator>
+                  <Check className="h-5 w-5 text-[#2a78d6]" />
+                </CdsDropdownMenu.ItemIndicator>
+              </CdsDropdownMenu.RadioItem>
+            ))}
+          </CdsDropdownMenu.RadioGroup>
+        </CdsDropdownMenu.Content>
+      </CdsDropdownMenu.Portal>
+    </CdsDropdownMenu.Root>
   );
 }
 
