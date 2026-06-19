@@ -578,7 +578,6 @@ function SessionDetailPage() {
             onArchive={() => setArchiveOpen(true)}
           />
           <Button className="w-[116px]" onClick={() => setAskOpen(true)}>
-            <MessageSquare className="h-4 w-4" />
             Ask Claude
           </Button>
         </div>
