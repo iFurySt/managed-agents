@@ -5126,7 +5126,7 @@ function CreateSkillDialog({
       <div className="px-6 pb-0 pt-3">
         <div className="grid gap-2">
           <div
-            className={`flex h-[112px] flex-col items-center justify-center rounded-lg border border-dashed border-line bg-transparent px-4 py-6 text-center transition-colors ${draggingUpload ? "border-[#b7b2aa] bg-[#fbfaf7]" : ""}`}
+            className={`flex h-[112px] flex-col items-center justify-center rounded-lg border border-dashed border-line bg-transparent px-4 py-6 transition-colors ${draggingUpload ? "border-[#b7b2aa] bg-[#fbfaf7]" : ""}`}
             onDragEnter={(event) => {
               event.preventDefault();
               setDraggingUpload(true);
@@ -5140,7 +5140,7 @@ function CreateSkillDialog({
             onDrop={handleDrop}
           >
             <div>
-              <p className="text-sm text-muted">Drag and drop a .zip, .skill file, or directory to upload</p>
+              <p className="text-sm text-ink">Drag and drop a .zip, .skill file, or directory to upload</p>
               {selectedName ? <p className="mt-3 font-mono text-sm text-ink">{selectedName}</p> : null}
             </div>
           </div>
