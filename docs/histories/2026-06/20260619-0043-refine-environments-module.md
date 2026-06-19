@@ -52,3 +52,24 @@ Keep the environment persistence model unchanged while improving the console fid
 - Matched the list shell to the Claude geometry: content x=280, filter x=280/y=204/w=968, search input x=316/w=272, Status select x=608/w=98, table shell x=272/y=252/w=984, table x=280/y=260/w=968, and first row y=292.
 - Restyled the search field and Status select to the source borderless `bg-white/50` 32px controls.
 - Wrapped the Environments table in the same `-mx-2 -my-2 p-2` horizontal overflow shell used by the source table.
+
+### Follow-up: Environment Detail Header and Display Rhythm
+
+- Re-captured the Claude Environment detail display state with OBU at a 1272px viewport.
+- Moved the local breadcrumb and header up to the source rhythm and matched the `22px/26px` environment title weight.
+- Switched the display Edit action from a filled secondary button to the transparent Claude-style action button while preserving the existing edit workflow.
+- Removed the display-only description paragraph from the detail body so the first section starts at the captured Networking position.
+- Reworked Networking display values from a two-column grid to the source stacked label/value shape.
+- Added separated section rhythm for Packages and Metadata while keeping the existing edit form behavior unchanged.
+- OBU source geometry:
+  - breadcrumb `x=268 y=120`
+  - title `x=292 y=180 h=26`
+  - Edit `x=1148.8 y=180 w=51.2 h=32`, actions `x=1208 y=182 w=28 h=28`
+  - headings `Networking x=292 y=282`, `Packages x=292 y=429.2`, `Metadata x=292 y=564.7`
+  - package block `x=292 y=489.2 w=800 h=35`, metadata block `x=292 y=624.7 w=800 h=37`
+- OBU local geometry after the change:
+  - breadcrumb `x=268 y=120`
+  - title `x=292 y=182 h=26`
+  - Edit `x=1149.7 y=182 w=50.3 h=32`, actions `x=1212 y=182 w=28 h=28`
+  - headings `Networking x=292 y=282`, `Packages x=292 y=429`, `Metadata x=292 y=566`
+  - package block `x=292 y=489 w=800 h=36`, metadata block `x=292 y=626 w=800 h=38`

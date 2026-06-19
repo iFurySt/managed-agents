@@ -1186,8 +1186,8 @@ function EnvironmentDetailPage() {
   if (!environment) return <EmptyState title="Environment not found" description="The selected environment could not be loaded." />;
 
   return (
-    <section className="flex flex-col gap-5">
-      <div className="flex h-[52px] items-center justify-between">
+    <section className="-mt-[18px] flex flex-col gap-5">
+      <div className="-ml-5 flex h-[52px] items-center justify-between">
         <nav className="flex items-center gap-2 text-sm text-muted">
           <Link className="rounded-control px-3 py-1.5 hover:bg-fill" to="/environments">
             Environments
@@ -1197,13 +1197,13 @@ function EnvironmentDetailPage() {
         </nav>
       </div>
 
-      <div className="flex items-start justify-between gap-4">
+      <div className="ml-1 flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
           <div className="mb-2 flex items-center gap-3">
             {editing ? (
               <TextInput className="max-w-[420px] text-base font-semibold" placeholder="Environment name" value={name} maxLength={50} onChange={(event) => setName(event.target.value)} />
             ) : (
-              <h1 className="truncate text-2xl font-medium tracking-[-0.01em]">{environment.name}</h1>
+              <h1 className="truncate text-[22px] leading-[26px] [font-weight:580]">{environment.name}</h1>
             )}
             <Badge tone="blue">{environment.type}</Badge>
           </div>
@@ -1224,7 +1224,7 @@ function EnvironmentDetailPage() {
             </>
           ) : (
             <>
-              <Button variant="secondary" onClick={startEdit}>Edit</Button>
+              <Button variant="ghost" className="h-8 bg-transparent px-3 [font-weight:550] hover:bg-fill" onClick={startEdit}>Edit</Button>
               <EnvironmentActions environment={environment} onArchive={archiveCurrent} />
             </>
           )}
@@ -1310,16 +1310,15 @@ function EnvironmentDetailPage() {
           </section>
         </div>
       ) : (
-        <div className="ml-3 grid max-w-[800px] gap-4">
-          <p className="text-sm leading-6 text-[#3f3a35]">{environment.description || "No description"}</p>
+        <div className="ml-1 mt-6 grid max-w-[800px] gap-4">
           <EnvironmentDetailSection title="Networking">
             <p className="mb-3 text-sm text-muted">Configure network access policies for this environment.</p>
-            <div className="grid max-w-[360px] grid-cols-[120px_minmax(0,1fr)] gap-3 text-sm">
-              <span className="font-semibold">Type</span>
-              <span>{environment.networkingType || "Unrestricted"}</span>
+            <div className="text-sm leading-[21px]">
+              <span className="[font-weight:550]">Type</span>
+              <div className="mt-1">{environment.networkingType || "Unrestricted"}</div>
             </div>
           </EnvironmentDetailSection>
-          <EnvironmentDetailSection title="Packages">
+          <EnvironmentDetailSection title="Packages" separated>
             <p className="mb-3 text-sm text-muted">Specify packages and their versions available in this environment. Separate multiple values with spaces.</p>
             <div className="flex min-h-[35px] items-center justify-between gap-4 rounded-md border border-line bg-fill px-3 py-[6px]">
               <pre className="whitespace-pre-wrap font-mono text-sm leading-[21px]">{environment.packageManager || "apt"}: {environment.packages || "No packages"}</pre>
@@ -1328,7 +1327,7 @@ function EnvironmentDetailPage() {
               </Button>
             </div>
           </EnvironmentDetailSection>
-          <EnvironmentDetailSection title="Metadata">
+          <EnvironmentDetailSection title="Metadata" separated>
             <p className="mb-3 text-sm text-muted">Add custom key-value pairs to tag and organize this environment. Keys must be lowercase.</p>
             {environment.metadata ? (
               <pre className="min-h-[37px] rounded-md border border-line bg-fill px-3 py-2 font-mono text-sm leading-5">{environment.metadata}</pre>
@@ -4067,10 +4066,10 @@ function DeploymentDetailSection({ title, children }: { title: string; children:
   );
 }
 
-function EnvironmentDetailSection({ title, children }: { title: string; children: React.ReactNode }) {
+function EnvironmentDetailSection({ title, children, separated = false }: { title: string; children: React.ReactNode; separated?: boolean }) {
   return (
-    <section>
-      <h2 className="mb-3 text-base font-semibold leading-6">{title}</h2>
+    <section className={separated ? "mt-1 border-t border-line pb-2 pt-3" : "pb-2"}>
+      <h2 className="mb-1 text-base leading-6 [font-weight:550]">{title}</h2>
       {children}
     </section>
   );
