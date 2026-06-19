@@ -1625,9 +1625,11 @@ function MemoryStoresPage() {
 function MemoryStoreDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [store, setStore] = useState<MemoryStore | null>(null);
   const [selectedMemoryId, setSelectedMemoryId] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const memoryParam = searchParams.get("memory");
 
   useEffect(() => {
     if (id) getMemoryStore(id).then(setStore).catch(() => setStore(null));
@@ -1643,10 +1645,14 @@ function MemoryStoreDetailPage() {
       setSelectedMemoryId(null);
       return;
     }
+    if (memoryParam && records.some((record) => record.id === memoryParam) && selectedMemoryId !== memoryParam) {
+      setSelectedMemoryId(memoryParam);
+      return;
+    }
     if (records.length && (!selectedMemoryId || !records.some((record) => record.id === selectedMemoryId))) {
       setSelectedMemoryId(records[0].id);
     }
-  }, [selectedMemoryId, store]);
+  }, [memoryParam, selectedMemoryId, store]);
 
   async function archiveCurrentStore() {
     if (!store) return;
@@ -1667,6 +1673,11 @@ function MemoryStoreDetailPage() {
     if (selectedMemoryId === record.id) setSelectedMemoryId(null);
   }
 
+  function selectMemory(memoryID: string) {
+    setSelectedMemoryId(memoryID);
+    setSearchParams({ memory: memoryID });
+  }
+
   if (!store) return <EmptyState title="Memory store not found" description="The selected memory store could not be loaded." />;
 
   const memories = store.memories ?? [];
@@ -1674,8 +1685,8 @@ function MemoryStoreDetailPage() {
   const folders = memoryFolders(memories);
 
   return (
-    <section className="flex flex-col gap-5">
-      <div className="flex h-[52px] items-center justify-between">
+    <section className="-mt-3 flex h-[calc(100vh-88px)] flex-col overflow-hidden">
+      <div className="flex h-9 items-center justify-between">
         <nav className="flex items-center gap-2 text-sm text-muted">
           <Link className="rounded-control px-3 py-1.5 hover:bg-fill" to="/memory-stores">
             Memory stores
@@ -1685,110 +1696,101 @@ function MemoryStoreDetailPage() {
         </nav>
       </div>
 
-      <div className="flex items-start justify-between gap-4">
+      <div className="mt-4 flex h-14 items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
-          <div className="mb-2 flex items-center gap-3">
-            <h1 className="truncate text-2xl font-medium tracking-[-0.01em]">{store.name}</h1>
-            <Badge tone={memoryTone(store.status)}>{store.status}</Badge>
+          <div className="flex h-7 min-w-0 items-center gap-2">
+            <h1 className="truncate text-xl font-semibold leading-7">{store.name}</h1>
+            <Badge className="h-[22px]" tone={memoryTone(store.status)}>{store.status}</Badge>
           </div>
-          <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
-            <span className="font-mono">{shortId(store.id)}</span>
+          <div className="mt-2 flex h-4 flex-wrap items-center gap-2 text-xs text-muted">
+            <button className="-mx-1 -my-0.5 rounded-md px-1 py-0.5 font-mono hover:bg-fill" onClick={() => copyText(store.id)}>
+              <span>{shortId(store.id)}</span>
+              <span className="hidden">{store.id}</span>
+            </button>
             <span className="hidden font-mono">{store.id}</span>
-            <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${store.id}`} onClick={() => copyText(store.id)}>
-              <Copy className="h-3.5 w-3.5" />
-            </Button>
             <span>·</span>
             <span>Created {store.createdLabel}</span>
           </div>
         </div>
         <div className="flex gap-2">
-          <Button onClick={() => setDialogOpen(true)}>
+          <Button className="!gap-1.5 !rounded-[8px] [font-weight:550]" onClick={() => setDialogOpen(true)}>
             <Plus className="h-4 w-4" />
             Add memory
           </Button>
-          <MemoryStoreActions store={store} onArchive={archiveCurrentStore} onDelete={deleteCurrentStore} />
         </div>
       </div>
 
-      <div className="grid min-h-[540px] grid-cols-[320px_minmax(0,1fr)] border-y border-line">
-        <aside className="border-r border-line py-3 pr-4">
-          <Button variant="ghost" size="sm" className="mb-2">
-            <ChevronDown className="h-4 w-4" />
-            Expand all
+      <div className="mt-6 flex min-h-0 flex-1 overflow-hidden rounded-xl border border-line">
+        <aside className="relative w-72 shrink-0 border-r border-line bg-[#f9f9f7]">
+          <Button variant="ghost" size="sm" className="absolute right-2 top-4 h-6 w-6 rounded-[6px] px-0" aria-label="Collapse all">
+            <ChevronDown className="h-3.5 w-3.5" />
           </Button>
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-0.5 overflow-y-auto p-2">
             {folders.map((folder) => (
-              <div key={folder} className="flex h-8 items-center gap-2 rounded-control px-2 text-sm text-muted">
-                <ChevronDown className="h-4 w-4" />
-                <Database className="h-4 w-4" />
+              <div key={folder} className="flex h-7 items-center gap-1.5 rounded-lg px-3 text-sm text-muted hover:bg-[#f6f6f0]">
+                <ChevronDown className="h-3.5 w-3.5" />
+                <Database className="h-3.5 w-3.5" />
                 <span className="truncate">{folder}</span>
               </div>
             ))}
             {memories.map((memory) => (
               <button
                 key={memory.id}
-                className={`flex h-11 items-center gap-2 rounded-control px-2 text-left text-sm hover:bg-fill ${selectedMemoryId === memory.id ? "bg-fill" : ""}`}
-                onClick={() => setSelectedMemoryId(memory.id)}
+                className={`flex h-7 items-center gap-1.5 rounded-lg px-3 text-left text-sm hover:bg-[#f6f6f0] ${selectedMemoryId === memory.id ? "bg-[#f6f6f0] font-semibold text-ink" : "text-[#52514e]"}`}
+                onClick={() => selectMemory(memory.id)}
               >
-                <FileText className="h-4 w-4 text-muted" />
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate font-medium">{memoryName(memory.path)}</span>
-                  <span className="block text-xs text-muted">{memory.size}</span>
-                </span>
+                <FileText className="h-3.5 w-3.5 shrink-0 text-muted" />
+                <span className="min-w-0 flex-1 truncate">{memoryName(memory.path)}</span>
+                <span className="text-xs text-muted">{memory.size}</span>
               </button>
             ))}
           </div>
         </aside>
-        <div className="min-w-0 px-6 py-5">
+        <div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-[#fcfcfb]">
           {selectedMemory ? (
-            <div className="grid gap-5">
-              <div className="flex items-start justify-between gap-4">
+            <>
+              <div className="flex h-[56px] items-center justify-between gap-4 border-b border-line px-3 py-2">
                 <div className="min-w-0">
-                  <h2 className="truncate font-mono text-lg font-semibold">{selectedMemory.path}</h2>
-                  <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-muted">
-                    <span className="font-mono">{shortId(selectedMemory.id)}</span>
+                  <div className="flex min-w-0 items-center gap-2">
+                    <h3 className="truncate font-mono text-sm text-ink">{selectedMemory.path}</h3>
+                  </div>
+                  <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted">
+                    <button className="-mx-1 -my-0.5 rounded-md px-1 py-0.5 font-mono hover:bg-fill" onClick={() => copyText(selectedMemory.id)}>
+                      <span>{shortId(selectedMemory.id)}</span>
+                      <span className="hidden">{selectedMemory.id}</span>
+                    </button>
                     <span className="hidden font-mono">{selectedMemory.id}</span>
-                    <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${selectedMemory.id}`} onClick={() => copyText(selectedMemory.id)}>
-                      <Copy className="h-3.5 w-3.5" />
-                    </Button>
                     <span>·</span>
                     <span>Updated {selectedMemory.updatedLabel}</span>
                     <span>·</span>
-                    <span className="font-mono">{shortId(selectedMemory.authorId)}</span>
+                    <button className="-mx-1 -my-0.5 rounded-md px-1 py-0.5 font-mono hover:bg-fill" onClick={() => copyText(selectedMemory.authorId)}>
+                      <span>{shortId(selectedMemory.authorId)}</span>
+                      <span className="hidden">{selectedMemory.authorId}</span>
+                    </button>
                   </div>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex shrink-0 items-center gap-2">
+                  <div className="inline-flex h-7 rounded-control bg-fill p-px">
+                    <button className="flex h-[26px] w-[26px] items-center justify-center rounded-[6px] bg-white" aria-label="Preview memory">
+                      <FileText className="h-4 w-4" />
+                    </button>
+                    <button className="flex h-[26px] w-[26px] items-center justify-center rounded-[6px] text-muted" aria-label="View source">
+                      <Braces className="h-4 w-4" />
+                    </button>
+                  </div>
                   <MemoryRecordActions record={selectedMemory} onDelete={() => deleteRecord(selectedMemory)} />
-                  <Button variant="secondary">
+                  <Button variant="ghost" size="sm" className="h-7 rounded-[7px] px-2.5 text-sm [font-weight:550]">
                     <FileText className="h-4 w-4" />
                     Edit
                   </Button>
                 </div>
               </div>
-              <CdsTabs.Root defaultValue="preview" className="grid gap-4">
-                <CdsTabs.List data-cds="SegmentedControl" className="inline-flex h-8 w-fit rounded-control bg-fill p-0.5">
-                  {["Preview", "Source"].map((tab) => (
-                    <CdsTabs.Trigger
-                      key={tab}
-                      value={tab.toLowerCase()}
-                      className="h-7 rounded-[6px] px-3 text-sm font-medium text-muted data-[state=active]:bg-white data-[state=active]:text-ink data-[state=active]:shadow-sm"
-                    >
-                      {tab}
-                    </CdsTabs.Trigger>
-                  ))}
-                </CdsTabs.List>
-                <CdsTabs.Content value="preview">
-                  <div className="min-h-[320px] rounded-cds border border-line bg-white p-4 text-sm leading-6 text-[#3f3a35]">
-                    {selectedMemory.content || "No content"}
-                  </div>
-                </CdsTabs.Content>
-                <CdsTabs.Content value="source">
-                  <pre className="min-h-[320px] whitespace-pre-wrap rounded-cds border border-line bg-white p-4 font-mono text-sm leading-6">
-                    {selectedMemory.content || ""}
-                  </pre>
-                </CdsTabs.Content>
-              </CdsTabs.Root>
-            </div>
+              <div className="flex-1 overflow-auto p-4">
+                <div className="max-w-3xl whitespace-pre-wrap break-words text-sm leading-5 text-[#52514e]">
+                  {selectedMemory.content || "No content"}
+                </div>
+              </div>
+            </>
           ) : (
             <div className="grid h-full place-items-center">
               <div className="text-center">
@@ -1805,6 +1807,7 @@ function MemoryStoreDetailPage() {
         onCreated={(memory) => {
           setStore({ ...store, memories: [...(store.memories ?? []), memory] });
           setSelectedMemoryId(memory.id);
+          setSearchParams({ memory: memory.id });
         }}
         create={(input) => createMemory(store.id, input)}
       />

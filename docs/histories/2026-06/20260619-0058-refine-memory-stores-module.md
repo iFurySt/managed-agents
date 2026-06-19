@@ -42,3 +42,10 @@ Keep memory stores as an `apiserver` control-plane module while improving consol
 - Matched the list shell to the Claude geometry: content x=280, filter x=280/y=204/w=968, search input x=316/w=272, Created select x=608/w=142, Status select x=766/w=123, table shell x=272/y=252/w=984, table x=280/y=260/w=968, and first row y=292.
 - Restyled the search field, Created select, and Status select to the source borderless `bg-white/50` 32px controls.
 - Wrapped the Memory stores table in the source horizontal overflow shell while preserving the 40/200/352/120/200/56px table shape.
+
+### Follow-up: Memory Store Detail Layout
+
+- Re-captured Claude and local `/memory-stores/:id?memory=...` with OBU at a 1272px viewport, including DOM/style measurements and screenshots saved under `/tmp`.
+- Wired the detail page to honor the `memory` query parameter so deep links open the selected memory record instead of always choosing the first record.
+- Retuned the detail shell toward the Claude reference: 36px breadcrumb band, compact 20px title header, 32px Add memory button, rounded split pane, 288px memory tree rail, 28px tree rows, and 56px selected-memory header.
+- Removed the local-only text tabs from the selected-memory view and replaced them with the observed compact icon segmented control plus direct rendered memory content.
