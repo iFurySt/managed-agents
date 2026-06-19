@@ -2218,6 +2218,11 @@ function AgentDetailPage() {
   }
 
   const agentDetailHeadingClass = "text-[#52514e] [font-weight:550]";
+  const agentDetailTabWidths: Record<string, string> = {
+    Agent: "w-[65px]",
+    Sessions: "w-[83px]",
+    Deployments: "w-[114px]"
+  };
 
   return (
     <section className="flex max-w-[952px] flex-col">
@@ -2255,12 +2260,12 @@ function AgentDetailPage() {
       </div>
       <p className="mt-[9px] text-sm leading-5 text-[#4e4a45]">{agent.description}</p>
       <CdsTabs.Root defaultValue="agent" className="mt-4 flex flex-col gap-5">
-        <CdsTabs.List data-cds="NavigationTabs" className="flex h-8 gap-1">
+        <CdsTabs.List data-cds="NavigationTabs" className="flex h-8 items-end gap-[2px] border-b border-line font-sans">
           {["Agent", "Sessions", "Deployments"].map((tab) => (
             <CdsTabs.Trigger
               key={tab}
               value={tab.toLowerCase()}
-              className="h-8 border-b-2 border-transparent px-3 text-sm font-medium text-muted data-[state=active]:border-ink data-[state=active]:text-ink"
+              className={`relative -mb-px inline-flex h-8 shrink-0 items-center justify-center rounded-t-[8px] border-b-2 border-transparent px-3 text-sm text-[#898781] [font-weight:400] data-[state=active]:border-ink data-[state=active]:text-ink data-[state=active]:[font-weight:500] ${agentDetailTabWidths[tab]}`}
             >
               {tab}
             </CdsTabs.Trigger>
