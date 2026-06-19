@@ -3008,10 +3008,7 @@ function CreateDeploymentDialog({
               </div>
               <div className="grid gap-2">
                 <label className={fieldLabelClass}>Version</label>
-                <Button variant="ghost" className="h-8 w-[152px] justify-between rounded-[8px] px-2 font-normal">
-                  {initialAgentVersion} · latest
-                  <ChevronDown className="h-4 w-4 text-muted" />
-                </Button>
+                <DeploymentVersionPicker value={initialAgentVersion} />
               </div>
             </div>
           ) : (
@@ -3029,10 +3026,7 @@ function CreateDeploymentDialog({
               </div>
               <div className="grid gap-2">
                 <label className={fieldLabelClass}>Version</label>
-                <Button variant="ghost" className="h-8 w-[152px] justify-between rounded-[8px] px-2 font-normal">
-                  v1 · latest
-                  <ChevronDown className="h-4 w-4 text-muted" />
-                </Button>
+                <DeploymentVersionPicker value="v1" />
               </div>
             </div>
           )}
@@ -3095,6 +3089,49 @@ function CreateDeploymentDialog({
         </div>
       </div>
     </ConsoleDialog>
+  );
+}
+
+function DeploymentVersionPicker({ value }: { value: string }) {
+  const [open, setOpen] = useState(false);
+  const label = `${value} · latest`;
+
+  return (
+    <div data-cds="Field" className="relative w-[160px]">
+      <div className="h-8 rounded-[8px] bg-white/50">
+        <button
+          type="button"
+          role="combobox"
+          aria-expanded={open}
+          aria-label="Select deployment version"
+          className="flex h-8 w-[152px] items-center justify-between rounded-[8px] bg-transparent px-2 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-[#c6613f]/35"
+          onClick={() => setOpen((current) => !current)}
+        >
+          <span className="truncate">{label}</span>
+          <ChevronDown className="h-4 w-4 shrink-0 text-muted" />
+        </button>
+      </div>
+      {open ? (
+        <div
+          data-cds="Combobox"
+          role="dialog"
+          className="absolute left-0 top-[38px] z-50 w-[192px] rounded-[12px] bg-white p-1 shadow-[0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
+        >
+          <div role="listbox">
+            <button
+              type="button"
+              role="option"
+              aria-selected="true"
+              className="flex h-8 w-[184px] items-center justify-between rounded-[8px] bg-black/[0.05] px-3 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.05]"
+              onClick={() => setOpen(false)}
+            >
+              <span>{label}</span>
+              <span className="h-2 w-2 shrink-0 rounded-full bg-[#c6613f]" aria-hidden />
+            </button>
+          </div>
+        </div>
+      ) : null}
+    </div>
   );
 }
 
