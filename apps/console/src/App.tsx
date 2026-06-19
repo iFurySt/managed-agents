@@ -1822,14 +1822,14 @@ function FilesEmptyState({ language, onLanguageChange }: { language: string; onL
             value={language}
             options={["Python", "cURL"]}
             onValueChange={onLanguageChange}
-            triggerClassName="!h-6 !w-[81px] !gap-1.5 !rounded-md !border-0 !bg-transparent !px-2 !text-[13px] !font-semibold !text-muted hover:!bg-[#eeeeeb] [&_svg]:!h-3.5 [&_svg]:!w-3.5"
+            triggerClassName="!h-6 !w-[81px] !gap-1.5 !rounded-md !border-0 !bg-transparent !px-2 !text-[13px] !text-[#52514e] [font-weight:550] hover:!bg-[#eeeeeb] [&_svg]:!h-3.5 [&_svg]:!w-3.5"
           />
           <div className="ml-auto flex items-center gap-1">
-            <a className="inline-flex h-6 w-[96px] items-center gap-1.5 rounded-md px-2 text-[13px] font-medium leading-5 hover:bg-[#eeeeeb]" href="https://docs.claude.com/en/docs/build-with-claude/files">
+            <a className="inline-flex h-6 w-[96px] items-center gap-1.5 rounded-md px-2 text-[13px] leading-5 [font-weight:550] hover:bg-[#eeeeeb]" href="https://docs.claude.com/en/docs/build-with-claude/files">
               View docs
               <span className="text-muted">↗</span>
             </a>
-            <Button variant="ghost" size="sm" className="!-mr-1 !h-6 !w-6 !rounded-md !px-0" aria-label="Copy code" onClick={() => copyText(code)}>
+            <Button variant="ghost" size="sm" className="!-mr-1 !h-6 !w-6 !rounded-md !px-0 [font-weight:550]" aria-label="Copy code" onClick={() => copyText(code)}>
               <Copy className="h-3.5 w-3.5" />
             </Button>
           </div>
@@ -1837,7 +1837,7 @@ function FilesEmptyState({ language, onLanguageChange }: { language: string; onL
         <pre className="overflow-x-auto px-3 pb-3 pt-3 font-mono text-[13px] leading-[21.125px] text-ink">
           {code.split("\n").map((line, index) => (
             <span key={`${line}-${index}`} className="relative block min-h-[21px] whitespace-pre-wrap pl-10">
-              <span className="absolute left-0 w-6 select-none text-right text-muted">{index + 1}</span>
+              <span className="absolute left-0 w-10 select-none pr-4 text-right text-muted">{index + 1}</span>
               <span>{line || " "}</span>
             </span>
           ))}
@@ -3827,7 +3827,7 @@ function PageHeader({ title, description, action }: { title: string; description
   return (
     <div className="flex items-start justify-between gap-4">
       <div className="flex flex-col gap-2">
-        <h1 className="text-2xl font-medium tracking-[-0.01em]">{title}</h1>
+        <h1 className="text-2xl leading-8 [font-weight:550]">{title}</h1>
         <div className="text-sm text-muted">{description}</div>
       </div>
       {action ? <div className="shrink-0">{action}</div> : null}

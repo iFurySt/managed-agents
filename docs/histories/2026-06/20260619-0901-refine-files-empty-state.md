@@ -18,6 +18,9 @@
   - Adjusted the local Files empty state vertical offset so the empty message and code box align with the source page.
   - Matched the code sample line-height to the observed source line metrics.
   - Verified the cURL selector state renders the source-matched `anthropic-beta: files-api-2025-04-14` upload template.
+  - Confirmed the current source Files page has no visible create/upload dialog in the empty state; it exposes the API upload template as the primary empty surface.
+  - Aligned the shared page title weight and zero letter spacing with the measured source Files heading.
+  - Tuned the Files empty state selector, docs link, copy button, and line-number gutter to match the observed source font weight, muted text color, and 40px code gutter.
 
 ### Design Intent
 
@@ -32,12 +35,18 @@ The source Files page currently renders an empty-state API upload template rathe
   - code box: `x=288`, `y=244`, `w=952`, `h=208`
   - toolbar: `x=288`, `y=244`, `w=952`, `h=36`
   - Python trigger: `x=300`, `y=250`, `w=81`, `h=24`
+  - heading: `font=24px/32px`, `font-weight=550`
+  - selector/docs/copy controls: `font-weight=550`
+  - line number gutter: `w=40`, `padding-right=16`
   - code lines: `font=13px/21.125px`
 - OBU local Files empty state after the change:
   - empty text: `x=288`, `y=212`, `w=952`, `h=20`
   - code box: `x=288`, `y=244`, `w=952`, `h=208`
   - toolbar: `x=288`, `y=244`, `w=952`, `h=36`
   - Python trigger: `x=300`, `y=250`, `w=81`, `h=24`
+  - heading: `font=24px/32px`, `font-weight=550`
+  - selector/docs/copy controls: `font-weight=550`
+  - line number gutter: `w=40`, `padding-right=16`
   - code sample: `font=13px/21.125px`
 
 ### Files Modified
