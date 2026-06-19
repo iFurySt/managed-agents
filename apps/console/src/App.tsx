@@ -2934,6 +2934,7 @@ function CreateDeploymentDialog({
   const [memoryStore, setMemoryStore] = useState("");
   const [trigger, setTrigger] = useState("");
   const [scheduleExpression, setScheduleExpression] = useState("0 9 * * 1-5");
+  const [timezone, setTimezone] = useState("Asia/Shanghai");
 
   const canCreate = name && agentId && initialMessage && environmentId && trigger;
   const fieldLabelClass = "text-sm leading-none [font-weight:550]";
@@ -2965,7 +2966,7 @@ function CreateDeploymentDialog({
       memoryStores: memoryStore ? [memoryStore] : [],
       trigger,
       schedule: trigger === "Schedule" ? scheduleExpression : "Manual",
-      timezone: "Asia/Shanghai"
+      timezone
     });
     onCreated(deployment);
     onOpenChange(false);
@@ -2977,6 +2978,7 @@ function CreateDeploymentDialog({
     setMemoryStore("");
     setTrigger("");
     setScheduleExpression("0 9 * * 1-5");
+    setTimezone("Asia/Shanghai");
   }
 
   return (
@@ -3103,7 +3105,14 @@ function CreateDeploymentDialog({
             <label className={fieldLabelClass}>Trigger</label>
             <DeploymentTriggerPicker value={trigger} onValueChange={setTrigger} />
           </div>
-          {trigger === "Schedule" ? <DeploymentScheduleFields expression={scheduleExpression} onExpressionChange={setScheduleExpression} /> : null}
+          {trigger === "Schedule" ? (
+            <DeploymentScheduleFields
+              expression={scheduleExpression}
+              onExpressionChange={setScheduleExpression}
+              timezone={timezone}
+              onTimezoneChange={setTimezone}
+            />
+          ) : null}
         </div>
         <div className="sticky bottom-0 -mx-6 mt-[19px] flex justify-end bg-white px-6 pb-[25px] pt-0">
           <Button className="h-8 w-[71px] rounded-[8px] px-0 [font-weight:550]" onClick={submit} disabled={!canCreate}>Create</Button>
@@ -3555,6 +3564,93 @@ const deploymentScheduleRuns: Record<DeploymentFrequency, string[]> = {
   ]
 };
 
+type DeploymentTimezoneOption = {
+  value: string;
+  label: string;
+  offsetMinutes: number;
+};
+
+type IntlWithSupportedValues = typeof Intl & {
+  supportedValuesOf?: (key: "timeZone") => string[];
+};
+
+const deploymentTimezoneReferenceDate = new Date("2026-06-19T15:00:00Z");
+const fallbackDeploymentTimezones = [
+  "Pacific/Midway",
+  "Pacific/Niue",
+  "Pacific/Pago_Pago",
+  "Pacific/Honolulu",
+  "Pacific/Rarotonga",
+  "Pacific/Tahiti",
+  "Pacific/Marquesas",
+  "America/Adak",
+  "Pacific/Gambier",
+  "UTC",
+  "Europe/London",
+  "Europe/Paris",
+  "Asia/Dubai",
+  "Asia/Kolkata",
+  "Asia/Bangkok",
+  "Asia/Shanghai",
+  "Asia/Singapore",
+  "Asia/Tokyo",
+  "Australia/Sydney",
+  "America/Los_Angeles",
+  "America/New_York"
+];
+
+function getDeploymentTimezoneNames() {
+  const maybeIntl = Intl as IntlWithSupportedValues;
+  const supported = maybeIntl.supportedValuesOf ? maybeIntl.supportedValuesOf("timeZone") : [];
+  return Array.from(new Set([...fallbackDeploymentTimezones, ...supported]));
+}
+
+function getDeploymentTimezoneOffsetMinutes(timezone: string) {
+  try {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone: timezone,
+      hour12: false,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit"
+    }).formatToParts(deploymentTimezoneReferenceDate);
+    const lookup = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+    const localTime = Date.UTC(
+      Number(lookup.year),
+      Number(lookup.month) - 1,
+      Number(lookup.day),
+      Number(lookup.hour),
+      Number(lookup.minute),
+      Number(lookup.second)
+    );
+    return Math.round((localTime - deploymentTimezoneReferenceDate.getTime()) / 60000);
+  } catch {
+    return 0;
+  }
+}
+
+function formatDeploymentTimezoneOffset(offsetMinutes: number) {
+  const sign = offsetMinutes >= 0 ? "+" : "-";
+  const absolute = Math.abs(offsetMinutes);
+  const hours = String(Math.floor(absolute / 60)).padStart(2, "0");
+  const minutes = String(absolute % 60).padStart(2, "0");
+  return `GMT${sign}${hours}:${minutes}`;
+}
+
+const deploymentTimezoneOptions: DeploymentTimezoneOption[] = getDeploymentTimezoneNames()
+  .map((timezone) => {
+    const offsetMinutes = getDeploymentTimezoneOffsetMinutes(timezone);
+    return {
+      value: timezone,
+      label: `(${formatDeploymentTimezoneOffset(offsetMinutes)}) ${timezone.replaceAll("_", " ")}`,
+      offsetMinutes
+    };
+  })
+  .sort((left, right) => left.offsetMinutes - right.offsetMinutes || left.value.localeCompare(right.value));
+
 function DeploymentFrequencyPicker({ value, onValueChange }: { value: DeploymentFrequency; onValueChange: (value: DeploymentFrequency) => void }) {
   const [open, setOpen] = useState(false);
 
@@ -3630,10 +3726,10 @@ function DeploymentTimeField() {
   );
 }
 
-function DeploymentTimezoneField({ label = "Timezone" }: { label?: string }) {
+function DeploymentDayField() {
   return (
     <div data-cds="Field" className="flex min-w-0 flex-col gap-2">
-      <label className="text-sm leading-none [font-weight:550]">{label}</label>
+      <label className="text-sm leading-none [font-weight:550]">On</label>
       <div className="h-8 rounded-[8px] bg-white/50">
         <button
           type="button"
@@ -3641,7 +3737,7 @@ function DeploymentTimezoneField({ label = "Timezone" }: { label?: string }) {
           aria-expanded="false"
           className="flex h-8 w-[calc(100%-8px)] items-center justify-between rounded-[8px] bg-transparent px-2 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-[#c6613f]/35"
         >
-          <span className="truncate">{label === "On" ? "Monday" : "(GMT+08:00) Asia/Shanghai"}</span>
+          <span className="truncate">Monday</span>
           <ChevronDown className="h-4 w-4 shrink-0 text-muted" />
         </button>
       </div>
@@ -3649,7 +3745,91 @@ function DeploymentTimezoneField({ label = "Timezone" }: { label?: string }) {
   );
 }
 
-function DeploymentScheduleFields({ expression, onExpressionChange }: { expression: string; onExpressionChange: (expression: string) => void }) {
+function DeploymentTimezonePicker({ value, onValueChange }: { value: string; onValueChange: (value: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const selected = deploymentTimezoneOptions.find((option) => option.value === value) ?? deploymentTimezoneOptions.find((option) => option.value === "Asia/Shanghai");
+  const filteredOptions = deploymentTimezoneOptions.filter((option) => option.label.toLowerCase().includes(query.trim().toLowerCase()));
+
+  return (
+    <div className="relative h-8 rounded-[8px] bg-white/50">
+      <button
+        type="button"
+        role="combobox"
+        aria-expanded={open}
+        aria-label="Select timezone"
+        className="flex h-8 w-[calc(100%-8px)] items-center justify-between rounded-[8px] bg-transparent px-2 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-[#c6613f]/35"
+        onClick={() => setOpen((current) => !current)}
+      >
+        <span className="truncate">{selected?.label ?? value}</span>
+        <ChevronDown className="h-4 w-4 shrink-0 text-muted" />
+      </button>
+      {open ? (
+        <div
+          data-cds="Combobox"
+          role="dialog"
+          data-side="top"
+          data-align="start"
+          className="absolute bottom-[38px] left-0 z-50 h-[320px] w-[213.5px] rounded-[12px] bg-white p-1 shadow-[0_10px_28px_rgba(0,0,0,0.12)]"
+        >
+          <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-[inherit]">
+            <input
+              type="text"
+              role="combobox"
+              aria-expanded="true"
+              aria-label="Filter timezones"
+              className="-mx-1 -mt-1 mb-1 block h-[37px] w-[calc(100%+8px)] shrink-0 border-0 border-b border-black/10 bg-transparent px-3 text-sm outline-none"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+            />
+            <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden outline-none">
+              <div role="listbox" className="grid w-full min-w-0 gap-1 outline-none">
+                {filteredOptions.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    role="option"
+                    aria-selected={value === option.value}
+                    className="flex h-8 w-full min-w-0 items-center justify-between rounded-[8px] px-3 text-left text-sm leading-5 text-ink outline-none hover:bg-fill aria-selected:bg-black/[0.05]"
+                    onClick={() => {
+                      onValueChange(option.value);
+                      setOpen(false);
+                      setQuery("");
+                    }}
+                  >
+                    <span className="min-w-0 truncate">{option.label}</span>
+                    {value === option.value ? <Check className="h-4 w-4 shrink-0 text-muted" /> : null}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function DeploymentTimezoneField({ value, onValueChange }: { value: string; onValueChange: (value: string) => void }) {
+  return (
+    <div data-cds="Field" className="flex min-w-0 flex-col gap-2">
+      <label className="text-sm leading-none [font-weight:550]">Timezone</label>
+      <DeploymentTimezonePicker value={value} onValueChange={onValueChange} />
+    </div>
+  );
+}
+
+function DeploymentScheduleFields({
+  expression,
+  onExpressionChange,
+  timezone,
+  onTimezoneChange
+}: {
+  expression: string;
+  onExpressionChange: (expression: string) => void;
+  timezone: string;
+  onTimezoneChange: (timezone: string) => void;
+}) {
   const [frequency, setFrequency] = useState<DeploymentFrequency>("Weekdays");
   const customCron = frequency === "Custom cron";
   const nextRuns = deploymentScheduleRuns[customCron ? "Custom cron" : frequency];
@@ -3668,7 +3848,7 @@ function DeploymentScheduleFields({ expression, onExpressionChange }: { expressi
             <label className="text-sm leading-none [font-weight:550]">Frequency</label>
             <DeploymentFrequencyPicker value={frequency} onValueChange={selectFrequency} />
           </div>
-          {frequency === "Weekly" ? <DeploymentTimezoneField label="On" /> : <DeploymentTimezoneField />}
+          {frequency === "Weekly" ? <DeploymentDayField /> : <DeploymentTimezoneField value={timezone} onValueChange={onTimezoneChange} />}
           {frequency === "Daily" || frequency === "Weekdays" ? (
             <>
               <DeploymentTimeField />
@@ -3678,7 +3858,7 @@ function DeploymentScheduleFields({ expression, onExpressionChange }: { expressi
           {frequency === "Weekly" ? (
             <>
               <DeploymentTimeField />
-              <DeploymentTimezoneField />
+              <DeploymentTimezoneField value={timezone} onValueChange={onTimezoneChange} />
             </>
           ) : null}
         </div>
