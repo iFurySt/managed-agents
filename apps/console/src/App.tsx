@@ -2377,8 +2377,8 @@ function CreateSessionDialog({
   const [vault, setVault] = useState("");
   const [resource, setResource] = useState("");
   const canCreate = true;
-  const fieldLabelClass = "text-sm font-medium leading-none";
-  const manageLinkClass = "text-sm font-medium leading-none text-ink hover:underline";
+  const fieldLabelClass = "text-sm leading-none [font-weight:550]";
+  const manageLinkClass = "text-sm leading-none text-ink [font-weight:550] hover:underline";
 
   async function submit() {
     const session = await createSession({
@@ -2403,14 +2403,22 @@ function CreateSessionDialog({
       description="Set up an instance of your agent in its environment."
       open={open}
       onOpenChange={onOpenChange}
-      titleClassName="text-lg font-semibold text-ink"
+      contentClassName="h-[526px] w-[706px] max-w-[calc(100vw-32px)] !rounded-[12px] border-0"
+      headerClassName="flex items-start justify-between pl-6 pr-4 pt-4"
+      titleClassName="mt-1 text-[22px] leading-[26px] text-ink [font-weight:580]"
+      closeButtonClassName="h-[31px] w-[31px] rounded-[8px] px-0"
       closeLabel="Close"
     >
-      <div className="px-6 pb-0 pt-1">
-        <div className="grid gap-5">
+      <div className="px-6 pb-0 pt-[10px]">
+        <div className="grid gap-[17px]">
           <label className={`grid gap-2 ${fieldLabelClass}`}>
             Title
-            <TextInput placeholder="Optional – name this run" value={title} onChange={(event) => setTitle(event.target.value)} />
+            <TextInput
+              className="h-[31px] border-0 bg-white/50 rounded-[8px] px-3 font-normal"
+              placeholder="Optional – name this run"
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+            />
           </label>
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
@@ -2422,6 +2430,7 @@ function CreateSessionDialog({
               value={agentId || "Select an agent"}
               options={["Select an agent", "agent_013mi1SmR2hJ6Hk6wNTeJvF9", "agent_017k8CPYuCFRD9AmupUeXd2Z", "agent_01AVRPTGyYareCeoUasn66q5"]}
               onValueChange={(value) => setAgentId(value === "Select an agent" ? "" : value)}
+              triggerClassName="!h-[31px] w-full border-0 bg-transparent px-2"
             />
           </div>
           <div className="grid gap-2">
@@ -2434,6 +2443,7 @@ function CreateSessionDialog({
               value={environmentId || "Select an environment"}
               options={["Select an environment", "env_01ManagedDebug", "env_01UbuntuNode", "env_01PythonBrowser"]}
               onValueChange={(value) => setEnvironmentId(value === "Select an environment" ? "" : value)}
+              triggerClassName="!h-[31px] w-full border-0 bg-transparent px-2"
             />
           </div>
           <div className="grid gap-2">
@@ -2441,7 +2451,13 @@ function CreateSessionDialog({
               <label className={fieldLabelClass}>Credential vaults</label>
               <a className={manageLinkClass} href="/vaults" target="_blank" rel="noreferrer">Manage credential vaults</a>
             </div>
-            <FieldSelect label="" value={vault || "Select one or more vaults"} options={["Select one or more vaults", "vault_01GitHub", "No vaults"]} onValueChange={(value) => setVault(value === "Select one or more vaults" || value === "No vaults" ? "" : value)} />
+            <FieldSelect
+              label=""
+              value={vault || "Select one or more vaults"}
+              options={["Select one or more vaults", "vault_01GitHub", "No vaults"]}
+              onValueChange={(value) => setVault(value === "Select one or more vaults" || value === "No vaults" ? "" : value)}
+              triggerClassName="!h-[31px] w-full border-0 bg-transparent px-2"
+            />
           </div>
           <div className="grid gap-2">
             <label className={fieldLabelClass}>Resources</label>
@@ -2451,12 +2467,12 @@ function CreateSessionDialog({
               value={resource || "Resource"}
               options={["Resource", "session-output.tar.gz", "operations-memory", "No resources"]}
               onValueChange={(value) => setResource(value === "Resource" || value === "No resources" ? "" : value)}
-              triggerClassName="!h-7 w-[121px] justify-self-start rounded-control px-2 font-medium"
+              triggerClassName="!h-[27px] w-[121px] justify-self-start rounded-control border-0 bg-transparent px-[10px] font-medium"
             />
           </div>
         </div>
-        <div className="sticky bottom-0 -mx-6 mt-4 flex justify-end bg-white px-6 pb-[23px] pt-0">
-          <Button onClick={submit} disabled={!canCreate}>Create session</Button>
+        <div className="sticky bottom-0 -mx-6 mt-9 flex justify-end bg-white px-6 pb-[23px] pt-0">
+          <Button className="h-[31px] w-[122px] rounded-[8px] px-0 [font-weight:550]" onClick={submit} disabled={!canCreate}>Create session</Button>
         </div>
       </div>
     </ConsoleDialog>
