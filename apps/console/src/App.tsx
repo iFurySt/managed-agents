@@ -786,7 +786,7 @@ function DeploymentsPage() {
                 </Button>
               )
             },
-            { key: "trigger", header: "Trigger", width: "200px", render: (deployment) => <span>{deployment.trigger === "Schedule" ? "Daily at 1:00 AM GMT+8" : deployment.trigger}</span> },
+            { key: "trigger", header: "Trigger", width: "200px", render: (deployment) => <span>{deploymentTriggerLabel(deployment)}</span> },
             { key: "created", header: "Created", width: "160px", render: (deployment) => <span className="text-muted">{deployment.createdLabel}</span> }
           ]}
           actionsHeader="Actions"
@@ -2498,7 +2498,7 @@ function AgentDeploymentsPanel({ agent }: { agent: Agent }) {
               )
             },
             { key: "status", header: "Status", width: "120px", render: (deployment) => <Badge tone={deploymentTone(deployment.status)}>{deployment.status}</Badge> },
-            { key: "trigger", header: "Trigger", width: "210px", render: (deployment) => <span>{deployment.trigger === "Schedule" ? "Daily at 1:00 AM GMT+8" : deployment.trigger}</span> },
+            { key: "trigger", header: "Trigger", width: "210px", render: (deployment) => <span>{deploymentTriggerLabel(deployment)}</span> },
             { key: "created", header: "Created", width: "160px", render: (deployment) => <span className="text-muted">{deployment.createdLabel}</span> }
           ]}
           actionsHeader="Actions"
@@ -2931,7 +2931,7 @@ function CreateDeploymentDialog({
   const [vault, setVault] = useState("");
   const [memoryStore, setMemoryStore] = useState("");
   const [trigger, setTrigger] = useState("");
-  const scheduleExpression = "0 9 * * 1-5";
+  const [scheduleExpression, setScheduleExpression] = useState("0 9 * * 1-5");
 
   const canCreate = name && agentId && initialMessage && environmentId && trigger;
   const fieldLabelClass = "text-sm leading-none [font-weight:550]";
@@ -2963,6 +2963,7 @@ function CreateDeploymentDialog({
     setAgentId(initialAgentId);
     setEnvironmentId(initialEnvironmentId);
     setInitialMessage("");
+    setScheduleExpression("0 9 * * 1-5");
   }
 
   return (
@@ -3100,7 +3101,7 @@ function CreateDeploymentDialog({
             <label className={fieldLabelClass}>Trigger</label>
             <DeploymentTriggerPicker value={trigger} onValueChange={setTrigger} />
           </div>
-          {trigger === "Schedule" ? <DeploymentScheduleFields expression={scheduleExpression} /> : null}
+          {trigger === "Schedule" ? <DeploymentScheduleFields expression={scheduleExpression} onExpressionChange={setScheduleExpression} /> : null}
         </div>
         <div className="sticky bottom-0 -mx-6 mt-[19px] flex justify-end bg-white px-6 pb-[25px] pt-0">
           <Button className="h-8 w-[71px] rounded-[8px] px-0 [font-weight:550]" onClick={submit} disabled={!canCreate}>Create</Button>
@@ -3163,9 +3164,8 @@ function DeploymentTriggerPicker({ value, onValueChange }: { value: string; onVa
   );
 }
 
-function DeploymentScheduleFields({ expression }: { expression: string }) {
+function DeploymentScheduleFields({ expression, onExpressionChange }: { expression: string; onExpressionChange: (expression: string) => void }) {
   const [customCron, setCustomCron] = useState(false);
-  const [cronExpression, setCronExpression] = useState(expression);
   const nextRuns = ["Mon, Jun 22, 2026, 9:00 AM", "Tue, Jun 23, 2026, 9:00 AM", "Wed, Jun 24, 2026, 9:00 AM", "Thu, Jun 25, 2026, 9:00 AM", "Fri, Jun 26, 2026, 9:00 AM"];
 
   return (
@@ -3193,8 +3193,8 @@ function DeploymentScheduleFields({ expression }: { expression: string }) {
             data-cds="TextInput"
             className="cds-focus h-8 rounded-[8px] border-0 bg-white/50 px-2 font-mono text-sm font-normal leading-5 text-ink"
             placeholder={expression}
-            value={cronExpression}
-            onChange={(event) => setCronExpression(event.target.value)}
+            value={expression}
+            onChange={(event) => onExpressionChange(event.target.value)}
           />
           <span className="text-[13px] font-normal leading-[18px] text-muted">minute · hour · day · month · weekday — * any, */5 every 5th, 1-5 range</span>
         </label>
@@ -3864,6 +3864,13 @@ function deploymentTone(status: string): "neutral" | "green" | "blue" | "red" {
   if (status === "Active" || status === "Running") return "green";
   if (status === "Queued" || status === "Ready") return "blue";
   return "neutral";
+}
+
+function deploymentTriggerLabel(deployment: Deployment) {
+  if (deployment.trigger !== "Schedule") return deployment.trigger;
+  if (deployment.schedule === "0 1 * * *") return "Daily at 1:00 AM GMT+8";
+  if (deployment.schedule === "0 9 * * 1-5") return "Weekdays at 9:00 AM GMT+8";
+  return deployment.schedule || "Schedule";
 }
 
 function environmentTone(status: string): "neutral" | "green" | "blue" | "red" {
