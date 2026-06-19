@@ -459,16 +459,39 @@ function SessionsPage() {
 
 function SessionDetailPage() {
   const { id } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [session, setSession] = useState<Session | null>(null);
   const [eventFilter, setEventFilter] = useState("All events");
   const [eventSearchOpen, setEventSearchOpen] = useState(false);
   const [eventSearch, setEventSearch] = useState("");
   const [detailEvent, setDetailEvent] = useState<string | null>(null);
+  const [detailClosed, setDetailClosed] = useState(false);
   const [askOpen, setAskOpen] = useState(false);
+  const eventParam = searchParams.get("event");
 
   useEffect(() => {
     if (id) getSession(id).then(setSession).catch(() => setSession(null));
   }, [id]);
+
+  useEffect(() => {
+    if (!session) {
+      setDetailEvent(null);
+      setDetailClosed(false);
+      return;
+    }
+    const events = session.events ?? [];
+    if (detailClosed) {
+      return;
+    }
+    if (eventParam && events.some((event) => event.id === eventParam)) {
+      setDetailEvent(eventParam);
+      setDetailClosed(false);
+      return;
+    }
+    if (!eventParam && !detailEvent && !detailClosed && events.length) {
+      setDetailEvent(events[0].id);
+    }
+  }, [detailClosed, detailEvent, eventParam, session]);
 
   async function cancelCurrentSession() {
     if (!session) return;
@@ -479,8 +502,20 @@ function SessionDetailPage() {
   if (!session) return <EmptyState title="Session not found" description="The selected session could not be loaded." />;
 
   const filteredEvents = filterSessionEvents(session.events ?? [], eventFilter, eventSearch);
-  const selectedEvent = session.events?.find((event) => event.id === detailEvent) ?? filteredEvents[0] ?? session.events?.[0];
+  const selectedEvent = detailEvent ? session.events?.find((event) => event.id === detailEvent) ?? null : null;
   const transcriptText = (session.events ?? []).map((event) => `${event.offset} ${event.role} ${event.kind}: ${event.summary}`).join("\n");
+
+  function selectEvent(eventID: string) {
+    setDetailEvent(eventID);
+    setDetailClosed(false);
+    setSearchParams({ event: eventID });
+  }
+
+  function closeEventDetail() {
+    setDetailEvent(null);
+    setDetailClosed(true);
+    setSearchParams({});
+  }
 
   return (
     <section className="flex max-w-[952px] flex-col">
@@ -568,14 +603,14 @@ function SessionDetailPage() {
             </Button>
           </div>
         </div>
-        <CdsTabs.Content value="transcript" className="-ml-8 grid w-[1016px] flex-1 grid-cols-[496px_520px]">
+        <CdsTabs.Content value="transcript" className={`-ml-8 grid w-[1016px] flex-1 ${selectedEvent ? "grid-cols-[496px_520px]" : "grid-cols-1"}`}>
           <div className="pt-[31px]">
             <div className="flex flex-col">
               {filteredEvents.map((event) => (
                 <button
                   key={event.id}
-                  className="grid h-9 grid-cols-[64px_minmax(0,1fr)_215px] items-center rounded-control px-8 text-left text-sm leading-[21px] hover:bg-fill"
-                  onClick={() => setDetailEvent(event.id)}
+                  className={`grid h-9 grid-cols-[64px_minmax(0,1fr)_215px] items-center px-8 text-left text-sm leading-[21px] hover:bg-fill ${detailEvent === event.id ? "bg-fill" : ""}`}
+                  onClick={() => selectEvent(event.id)}
                 >
                   <span className="font-semibold text-muted">{event.role}</span>
                   <span className="truncate">
@@ -593,11 +628,11 @@ function SessionDetailPage() {
               {filteredEvents.length === 0 ? <EmptyState compact title="No matching events" description="" /> : null}
             </div>
           </div>
-          <aside className="relative mt-[53px] bg-canvas px-6 pt-3">
-            <Button variant="ghost" className="absolute right-3 top-3 h-7 w-7 px-0" aria-label="Close detail panel" onClick={() => setDetailEvent(null)}>
-              ×
-            </Button>
-            {selectedEvent ? (
+          {selectedEvent ? (
+            <aside className="relative mt-[53px] border-l border-line bg-canvas px-6 pt-3">
+              <Button variant="ghost" className="absolute right-3 top-3 h-7 w-7 px-0" aria-label="Close detail panel" onClick={closeEventDetail}>
+                ×
+              </Button>
               <div className="text-sm">
                 <div className="pr-10">
                   <h2 className="text-sm leading-6 text-ink">{selectedEvent.role} {selectedEvent.kind}</h2>
@@ -616,8 +651,8 @@ function SessionDetailPage() {
                   <pre className="whitespace-pre-wrap font-sans text-sm leading-[22.75px] text-[#4e4a45]">{selectedEvent.summary}</pre>
                 </div>
               </div>
-            ) : null}
-          </aside>
+            </aside>
+          ) : null}
         </CdsTabs.Content>
         <CdsTabs.Content value="debug" className="py-8">
           <DetailSection title="Mounted resources">

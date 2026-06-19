@@ -46,3 +46,12 @@ Session detail is the main run-debugging surface. This pass focuses on the heade
 ### Files
 
 - `apps/console/src/App.tsx`
+
+### Follow-up: Transcript event deep links
+
+- Re-captured Claude and local Session detail transcript surfaces with OBU, including event row, selected-event panel, and `?event=...` URL behavior.
+- Added `event` query parameter support so Session detail deep links open the matching event panel.
+- Updated transcript row clicks to write `?event=<event-id>` and highlight the active row.
+- Fixed the close-detail action so it clears the query parameter and actually removes the right-side event panel instead of reopening the fallback event.
+- Flattened transcript rows and added the observed left border to the event detail panel while preserving the previously aligned header and toolbar geometry.
+- Saved comparison screenshots under `/tmp/managed-agents-session-detail-source.jpg` and `/tmp/managed-agents-session-detail-local.jpg`.
