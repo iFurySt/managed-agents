@@ -2120,6 +2120,39 @@ function AgentDetailPage() {
   );
 }
 
+const agentStartingTemplates = [
+  {
+    name: "Blank agent",
+    description: "Start from scratch with just the core toolset and a generic prompt.",
+    system: "You are a general-purpose agent that can research, write code, run commands, and use connected tools to complete the user's task end to end."
+  },
+  {
+    name: "Deep researcher",
+    description: "Conducts multi-step web research with source synthesis and citations.",
+    system: "You are a deep research agent. Plan the investigation, gather evidence, compare sources, and produce a concise answer with citations."
+  },
+  {
+    name: "Structured extractor",
+    description: "Parses unstructured text into a typed JSON schema.",
+    system: "You extract structured data from messy inputs. Return valid JSON that follows the requested schema and flag ambiguous fields."
+  },
+  {
+    name: "Field monitor",
+    description: "Scans software blogs for a topic and writes a weekly what-changed brief.",
+    system: "You monitor a technical field for meaningful changes. Compare recent sources and write a short weekly brief with links and impact."
+  },
+  {
+    name: "Support agent",
+    description: "Answers customer questions from your docs and knowledge base, and escalates when needed.",
+    system: "You are a support agent. Answer from the provided knowledge base, ask clarifying questions when needed, and escalate unresolved issues."
+  },
+  {
+    name: "Incident commander",
+    description: "Triages a Sentry alert, opens a Linear incident ticket, and runs the Slack war room.",
+    system: "You coordinate incident response. Triage alerts, summarize impact, assign next actions, and keep the incident channel updated."
+  }
+];
+
 function CreateAgentDialog({
   open,
   onOpenChange,
@@ -2130,9 +2163,16 @@ function CreateAgentDialog({
   onCreated: (agent: Agent) => void;
 }) {
   const [description, setDescription] = useState("");
+  const [startingPointMode, setStartingPointMode] = useState<"describe" | "template">("describe");
+  const [selectedTemplate, setSelectedTemplate] = useState(agentStartingTemplates[0]);
   const [format, setFormat] = useState<"YAML" | "JSON">("YAML");
   const [configYaml, setConfigYaml] = useState(defaultAgentYaml());
   const jsonConfig = useMemo(() => JSON.stringify(agentConfigFromYaml(configYaml), null, 2), [configYaml]);
+
+  function selectTemplate(template: (typeof agentStartingTemplates)[number]) {
+    setSelectedTemplate(template);
+    setConfigYaml(agentTemplateYaml(template));
+  }
 
   async function submit() {
     const config = agentConfigFromYaml(configYaml);
@@ -2146,6 +2186,8 @@ function CreateAgentDialog({
     onCreated(agent);
     onOpenChange(false);
     setDescription("");
+    setStartingPointMode("describe");
+    setSelectedTemplate(agentStartingTemplates[0]);
     setConfigYaml(defaultAgentYaml());
   }
 
@@ -2164,29 +2206,61 @@ function CreateAgentDialog({
       <div className="h-[calc(650px-80px)] overflow-y-auto px-6 pb-0 pt-[10px]">
         <button className="mb-[11px] flex h-5 w-full items-center gap-2 rounded-[8px] text-sm" type="button">
           <ChevronDown className="h-4 w-4" />
-          Starting point
+          <span className="[font-weight:580]">Starting point</span>
           <span className="text-muted">·</span>
-          <span className="font-normal text-muted">Blank agent</span>
+          <span className="font-normal text-muted">{selectedTemplate.name}</span>
         </button>
-        <div className="rounded-cds bg-fill">
-          <div className="grid h-[31px] grid-cols-2 rounded-cds bg-fill p-px text-sm">
-            <button className="h-[29px] rounded-control bg-white font-medium shadow-sm">Describe your agent</button>
-            <button className="h-[29px] text-muted">Template</button>
+        <div className={`rounded-cds bg-fill ${startingPointMode === "template" ? "h-[167px] overflow-hidden" : ""}`}>
+          <div className="grid h-[31px] grid-cols-2 rounded-cds bg-fill p-px text-sm" role="radiogroup" aria-label="Starting point">
+            <button
+              aria-checked={startingPointMode === "describe"}
+              className={`h-[29px] rounded-control ${startingPointMode === "describe" ? "bg-white font-medium shadow-sm" : "text-muted"}`}
+              role="radio"
+              type="button"
+              onClick={() => setStartingPointMode("describe")}
+            >
+              Describe your agent
+            </button>
+            <button
+              aria-checked={startingPointMode === "template"}
+              className={`h-[29px] rounded-control ${startingPointMode === "template" ? "bg-white font-medium shadow-sm" : "text-muted"}`}
+              role="radio"
+              type="button"
+              onClick={() => setStartingPointMode("template")}
+            >
+              Template
+            </button>
           </div>
-          <div className="mt-[23px] min-h-[105px] rounded-control bg-white px-3 pb-3 pt-0">
-            <textarea
-              className="mt-[2px] h-[45px] w-full resize-none border-0 text-sm leading-[22.75px] outline-none placeholder:text-muted"
-              aria-label="Describe your agent"
-              placeholder="Summarizes new GitHub PRs and posts a digest to Slack."
-              value={description}
-              onChange={(event) => setDescription(event.target.value)}
-            />
-            <div className="mt-[10px] flex justify-end">
-              <Button variant="secondary" className="h-[27px] w-[82px] rounded-control px-0" disabled={!description.trim()}>
-                Generate
-              </Button>
+          {startingPointMode === "describe" ? (
+            <div className="mt-[23px] min-h-[105px] rounded-control bg-white px-3 pb-3 pt-0">
+              <textarea
+                className="mt-[2px] h-[45px] w-full resize-none border-0 text-sm leading-[22.75px] outline-none placeholder:text-muted"
+                aria-label="Describe your agent"
+                placeholder="Summarizes new GitHub PRs and posts a digest to Slack."
+                value={description}
+                onChange={(event) => setDescription(event.target.value)}
+              />
+              <div className="mt-[10px] flex justify-end">
+                <Button variant="secondary" className="h-[27px] w-[82px] rounded-control px-0" disabled={!description.trim()}>
+                  Generate
+                </Button>
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="mt-3 grid h-[245px] grid-cols-3 gap-x-[11px] gap-y-[11px] bg-white">
+              {agentStartingTemplates.map((template) => (
+                <button
+                  key={template.name}
+                  className={`flex h-[95px] w-[212px] flex-col items-start rounded-cds bg-white p-3 text-left ${selectedTemplate.name === template.name ? "border-2 border-[#c9c6be]" : "border border-line"}`}
+                  type="button"
+                  onClick={() => selectTemplate(template)}
+                >
+                  <span className="text-sm leading-5 text-ink">{template.name}</span>
+                  <span className="mt-px text-xs leading-4 text-muted">{template.description}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
         <div className="mt-[14px]">
           <h2 className="mb-[11px] text-sm leading-5 [font-weight:580]">Agent config</h2>
@@ -3729,6 +3803,23 @@ function defaultAgentYaml(agent?: Agent) {
 description: ${agent?.description ?? "A blank starting point with the core toolset."}
 model: ${agent?.model ?? "claude-sonnet-4-6"}
 system: ${JSON.stringify(agent?.systemPrompt ?? "You are a general-purpose agent that can research, write code, run commands, and use connected tools to complete the user's task end to end.")}
+mcp_servers: []
+tools:
+  - configs: []
+    default_config:
+      enabled: true
+      permission_policy:
+        type: always_allow
+    type: agent_toolset_20260401
+skills: []
+metadata: {}`;
+}
+
+function agentTemplateYaml(template: (typeof agentStartingTemplates)[number]) {
+  return `name: ${template.name === "Blank agent" ? "Untitled agent" : template.name}
+description: ${template.description}
+model: claude-sonnet-4-6
+system: ${JSON.stringify(template.system)}
 mcp_servers: []
 tools:
   - configs: []
