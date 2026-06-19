@@ -2369,7 +2369,7 @@ function FilesEmptyState({ language, onLanguageChange }: { language: string; onL
           <div className="ml-auto flex items-center gap-1">
             <a className="inline-flex h-6 w-[96px] items-center gap-1.5 rounded-md px-2 text-[13px] leading-5 [font-weight:550] hover:bg-[#eeeeeb]" href="https://docs.claude.com/en/docs/build-with-claude/files">
               View docs
-              <span className="text-muted">↗</span>
+              <ExternalLink className="h-3.5 w-3.5 text-muted" />
             </a>
             <Button variant="ghost" size="sm" className="!-mr-1 !h-6 !w-6 !rounded-md !px-0 [font-weight:550]" aria-label="Copy code" onClick={() => copyText(code)}>
               <Copy className="h-3.5 w-3.5" />
