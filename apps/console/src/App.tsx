@@ -3190,7 +3190,7 @@ function CreateSessionDialog({
   const [resource, setResource] = useState("");
   const canCreate = true;
   const fieldLabelClass = "text-sm leading-none [font-weight:550]";
-  const manageLinkClass = "text-sm leading-none text-ink [font-weight:550] hover:underline";
+  const manageLinkClass = "inline-flex items-center gap-1 text-xs leading-4 text-[#184f95] hover:underline";
 
   async function submit() {
     const session = await createSession({
@@ -3235,7 +3235,11 @@ function CreateSessionDialog({
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
               <label className={fieldLabelClass}>Agent</label>
-              <a className={manageLinkClass} href="/agents" target="_blank" rel="noreferrer">Manage agents</a>
+              <a className={manageLinkClass} href="/agents" target="_blank" rel="noreferrer">
+                Manage agents
+                <ExternalLink className="h-3 w-3" />
+                <span className="sr-only">(opens in new tab)</span>
+              </a>
             </div>
             <FieldSelect
               label=""
@@ -3248,7 +3252,11 @@ function CreateSessionDialog({
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
               <label className={fieldLabelClass}>Environment</label>
-              <a className={manageLinkClass} href="/environments" target="_blank" rel="noreferrer">Manage environments</a>
+              <a className={manageLinkClass} href="/environments" target="_blank" rel="noreferrer">
+                Manage environments
+                <ExternalLink className="h-3 w-3" />
+                <span className="sr-only">(opens in new tab)</span>
+              </a>
             </div>
             <FieldSelect
               label=""
@@ -3261,7 +3269,11 @@ function CreateSessionDialog({
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
               <label className={fieldLabelClass}>Credential vaults</label>
-              <a className={manageLinkClass} href="/vaults" target="_blank" rel="noreferrer">Manage credential vaults</a>
+              <a className={manageLinkClass} href="/vaults" target="_blank" rel="noreferrer">
+                Manage credential vaults
+                <ExternalLink className="h-3 w-3" />
+                <span className="sr-only">(opens in new tab)</span>
+              </a>
             </div>
             <FieldSelect
               label=""
