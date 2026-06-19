@@ -1937,28 +1937,27 @@ function SkillsPage() {
         title="Skills"
         description="Skills are repeatable and customizable instructions that Claude API can follow. Only skills from the Default workspace are shown. To see other workspace's skills, select a workspace."
         action={
-          <Button onClick={() => setDialogOpen(true)}>
+          <Button className="!w-[120px] !gap-1.5 !rounded-[8px] [font-weight:550]" onClick={() => setDialogOpen(true)}>
             <Plus className="h-4 w-4" />
             Create skill
           </Button>
         }
       />
-      <div className="flex max-w-[952px] flex-col">
+      <div className="flex max-w-[952px] flex-col border-t border-line">
         {skills.map((skill) => (
           <article key={skill.id} className="grid min-h-[137px] grid-cols-[minmax(0,1fr)_28px] gap-4 border-b border-line px-3 py-3">
             <div className="min-w-0">
               <h2 className="mb-0 text-base font-semibold leading-6">{skill.name}</h2>
               <p className="cds-line-clamp-2 max-w-[720px] whitespace-pre-wrap text-sm leading-5 text-[#3f3a35]">{skill.description}</p>
-              <div className="mt-[22px] flex h-[22px] flex-wrap items-center gap-2 text-xs leading-4 text-muted">
+              <div className="mt-[26px] flex h-[22px] flex-wrap items-center gap-2 text-xs leading-4 text-[#898781]">
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-[22px] gap-1 px-0 pr-1 font-mono text-xs font-normal text-muted hover:bg-transparent"
+                  className="h-[22px] rounded-[5.5px] bg-fill px-2 font-mono text-xs text-[#52514e] [font-weight:550] hover:bg-fill"
                   aria-label={`Copy ${skill.slug}`}
                   onClick={() => copyText(skill.slug)}
                 >
                   <span>{skill.slug}</span>
-                  <Copy className="h-3.5 w-3.5" />
                 </Button>
                 <span>•</span>
                 <span>{skill.owner}</span>
@@ -3825,12 +3824,12 @@ function CollectionPage({ route }: { route: { path: CollectionName; title: strin
 
 function PageHeader({ title, description, action }: { title: string; description: React.ReactNode; action?: React.ReactNode }) {
   return (
-    <div className="flex items-start justify-between gap-4">
-      <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-2">
+      <div className="flex h-8 items-center justify-between gap-4">
         <h1 className="text-2xl leading-8 [font-weight:550]">{title}</h1>
-        <div className="text-sm text-muted">{description}</div>
+        {action ? <div className="shrink-0">{action}</div> : null}
       </div>
-      {action ? <div className="shrink-0">{action}</div> : null}
+      <div className="pr-32 text-sm leading-5 text-[#898781]">{description}</div>
     </div>
   );
 }
