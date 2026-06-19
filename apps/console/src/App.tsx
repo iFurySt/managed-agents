@@ -3445,44 +3445,53 @@ function DeploymentTriggerPicker({ value, onValueChange }: { value: string; onVa
   const selected = options.find((option) => option.value === value);
 
   return (
-    <div className="relative">
-      <Button
-        variant="ghost"
-        className="h-8 w-full justify-between rounded-[8px] px-2 font-normal"
-        aria-expanded={open}
-        aria-label="Select deployment trigger"
-        onClick={() => setOpen((current) => !current)}
-      >
-        <span className="inline-flex min-w-0 items-center gap-2 truncate">
-          {selected ? <selected.icon className="h-4 w-4 text-muted" /> : null}
-          <span className="truncate">{selected?.value ?? "Select a trigger"}</span>
-        </span>
-        <ChevronDown className="h-4 w-4 text-muted" />
-      </Button>
+    <div data-cds="Field" className="relative">
+      <div className="h-8 rounded-[8px] bg-white/50">
+        <button
+          type="button"
+          role="combobox"
+          aria-expanded={open}
+          aria-label="Select deployment trigger"
+          className="flex h-8 w-[464px] items-center justify-between rounded-[8px] bg-transparent px-2 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-[#c6613f]/35"
+          onClick={() => setOpen((current) => !current)}
+        >
+          <span className="inline-flex min-w-0 items-center gap-2 truncate">
+            {selected ? <selected.icon className="h-4 w-4 text-muted" /> : null}
+            <span className="truncate">{selected?.value ?? "Select a trigger"}</span>
+          </span>
+          <ChevronDown className="h-4 w-4 shrink-0 text-muted" />
+        </button>
+      </div>
       {open ? (
-        <div role="listbox" className="absolute left-1 top-10 z-50 w-[464px] rounded-[10px] border border-line bg-white p-1 shadow-lg">
-          {options.map((option) => {
-            const Icon = option.icon;
-            return (
-              <button
-                key={option.value}
-                role="option"
-                aria-selected={value === option.value}
-                className="flex h-11 w-full cursor-pointer items-center gap-3 rounded-[8px] px-2 text-left outline-none hover:bg-fill"
-                type="button"
-                onClick={() => {
-                  onValueChange(option.value);
-                  setOpen(false);
-                }}
-              >
-                <Icon className="h-4 w-4 text-muted" />
-                <span className="grid min-w-0 gap-0.5">
-                  <span className="text-sm leading-4 text-ink">{option.value}</span>
-                  <span className="truncate text-[13px] leading-4 text-muted">{option.description}</span>
-                </span>
-              </button>
-            );
-          })}
+        <div
+          data-cds="Combobox"
+          role="dialog"
+          className="absolute left-0 top-[38px] z-50 w-[472px] rounded-[12px] bg-white p-1 shadow-[0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
+        >
+          <div role="listbox" className="grid gap-0">
+            {options.map((option) => {
+              const Icon = option.icon;
+              return (
+                <button
+                  key={option.value}
+                  role="option"
+                  aria-selected={value === option.value}
+                  className="flex h-11 w-full cursor-pointer items-center gap-3 rounded-[8px] px-3 text-left outline-none hover:bg-fill aria-selected:bg-black/[0.05]"
+                  type="button"
+                  onClick={() => {
+                    onValueChange(option.value);
+                    setOpen(false);
+                  }}
+                >
+                  <Icon className="h-4 w-4 shrink-0 text-muted" />
+                  <span className="grid min-w-0 gap-0.5">
+                    <span className="text-sm leading-4 text-ink">{option.value}</span>
+                    <span className="truncate text-[13px] leading-4 text-muted">{option.description}</span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       ) : null}
     </div>
