@@ -2747,8 +2747,15 @@ function AgentDetailPage() {
                 <div className="text-sm font-semibold">Built-in tools</div>
                 <div className="font-mono text-sm text-muted">{agent.tools}</div>
               </div>
-              <Badge>Tool permissions · 8</Badge>
-              <Badge tone="green">Always allow</Badge>
+              <Badge>
+                <Shield className="mr-1 h-3.5 w-3.5" />
+                Tool permissions
+              </Badge>
+              <Badge>8</Badge>
+              <Badge tone="green">
+                <Check className="mr-1 h-3.5 w-3.5" />
+                Always allow
+              </Badge>
             </div>
           </DetailSection>
           <DetailSection title="Skills" headingClassName={agentDetailHeadingClass}>
