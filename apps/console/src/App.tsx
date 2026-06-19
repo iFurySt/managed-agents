@@ -5156,7 +5156,7 @@ function CreateSkillDialog({
       closeLabel="Close"
     >
       <div className="px-6 pb-0 pt-3">
-        <div className="grid gap-2">
+        <div className="flex flex-col">
           <div
             className={`flex h-[112px] flex-col items-center justify-center rounded-lg border border-dashed border-line bg-transparent px-4 py-6 transition-colors ${draggingUpload ? "border-[#b7b2aa] bg-[#fbfaf7]" : ""}`}
             onDragEnter={(event) => {
@@ -5176,7 +5176,7 @@ function CreateSkillDialog({
               {selectedName ? <p className="mt-3 font-mono text-sm text-ink">{selectedName}</p> : null}
             </div>
           </div>
-          <p className="text-xs leading-4 text-[#898781]">
+          <p className="pt-2 text-xs leading-4 text-[#898781]">
             Total file size limit: 8MB.{" "}
             <a className="underline" href="https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview" target="_blank" rel="noopener noreferrer">
               File format
