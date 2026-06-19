@@ -245,12 +245,12 @@ function AgentsPage() {
   }
 
   return (
-    <section className="flex flex-col gap-4">
+    <section className="-mx-2 flex flex-col gap-4">
       <PageHeader
         title="Agents"
         description="Create and manage autonomous agents."
         action={
-          <Button onClick={() => setDialogOpen(true)}>
+          <Button className="!w-[132px] !gap-1.5 !rounded-[8px] [font-weight:550]" onClick={() => setDialogOpen(true)}>
             <Plus className="h-4 w-4" />
             Create agent
           </Button>
@@ -271,45 +271,53 @@ function AgentsPage() {
           value={created}
           options={["All time", "Last 24 hours", "Last 7 days", "Last 30 days"]}
           onValueChange={setCreated}
-          triggerClassName="w-[142px]"
+          triggerClassName="w-[142px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2"
         />
-        <FieldSelect label="Status" value={status} options={["Active", "Archived", "All"]} onValueChange={setStatus} triggerClassName="ml-2 w-[123px]" />
+        <FieldSelect
+          label="Status"
+          value={status}
+          options={["Active", "Archived", "All"]}
+          onValueChange={setStatus}
+          triggerClassName="ml-2 w-[123px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2"
+        />
       </div>
-      <DataTable
-        rows={agents}
-        getKey={(agent) => agent.id}
-        columns={[
-          {
-            key: "id",
-            header: "ID",
-            width: "180px",
-            render: (agent) => (
-              <div className="flex items-center gap-2 font-mono font-semibold">
-                <span>{shortId(agent.id)}</span>
-                <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${agent.id}`} onClick={() => copyText(agent.id)}>
-                  <Copy className="h-3.5 w-3.5" />
-                </Button>
-              </div>
-            )
-          },
-          {
-            key: "name",
-            header: "Name",
-            width: "240px",
-            render: (agent) => (
-              <Link className="block truncate font-medium hover:underline" to={`/agents/${agent.id}`}>
-                {agent.name}
-              </Link>
-            )
-          },
-          { key: "model", header: "Model", width: "170px", render: (agent) => <span className="font-mono text-muted">{agent.model}</span> },
-          { key: "status", header: "Status", width: "120px", render: (agent) => <Badge tone={agent.status === "Archived" ? "neutral" : "green"}>{agent.status}</Badge> },
-          { key: "created", header: "Created", width: "150px", render: (agent) => <span className="text-muted">{agent.createdLabel || "2 days ago"}</span> },
-          { key: "updated", header: "Last updated", width: "150px", render: (agent) => <span className="text-muted">{agent.updatedLabel || "2 days ago"}</span> }
-        ]}
-        actionsWidth="56px"
-        renderActions={(agent) => <AgentRowActions agent={agent} onArchive={() => archiveCurrent(agent)} />}
-      />
+      <div className="-mx-2 overflow-x-auto p-2">
+        <DataTable
+          rows={agents}
+          getKey={(agent) => agent.id}
+          columns={[
+            {
+              key: "id",
+              header: "ID",
+              width: "180px",
+              render: (agent) => (
+                <div className="flex items-center gap-2 font-mono font-semibold">
+                  <span>{shortId(agent.id)}</span>
+                  <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${agent.id}`} onClick={() => copyText(agent.id)}>
+                    <Copy className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              )
+            },
+            {
+              key: "name",
+              header: "Name",
+              width: "240px",
+              render: (agent) => (
+                <Link className="block truncate font-medium hover:underline" to={`/agents/${agent.id}`}>
+                  {agent.name}
+                </Link>
+              )
+            },
+            { key: "model", header: "Model", width: "170px", render: (agent) => <span className="font-mono text-muted">{agent.model}</span> },
+            { key: "status", header: "Status", width: "120px", render: (agent) => <Badge tone={agent.status === "Archived" ? "neutral" : "green"}>{agent.status}</Badge> },
+            { key: "created", header: "Created", width: "150px", render: (agent) => <span className="text-muted">{agent.createdLabel || "2 days ago"}</span> },
+            { key: "updated", header: "Last updated", width: "150px", render: (agent) => <span className="text-muted">{agent.updatedLabel || "2 days ago"}</span> }
+          ]}
+          actionsWidth="56px"
+          renderActions={(agent) => <AgentRowActions agent={agent} onArchive={() => archiveCurrent(agent)} />}
+        />
+      </div>
       <CreateAgentDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}

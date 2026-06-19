@@ -131,19 +131,19 @@ export function DataTable<T>({
     <div data-cds="DataTable" className="w-full overflow-hidden">
       <table data-cds="Table" className="w-full table-fixed border-collapse text-left text-sm">
         <thead>
-          <tr className="h-8 border-b border-line text-[13px] font-medium leading-4 text-[#52514e]">
+          <tr className="h-8 border-b border-line text-[13px] leading-4 text-[#52514e] [font-weight:550]">
             {showSelection ? (
               <th className="w-10 py-0">
                 <span className="block h-4 w-4 rounded border border-[#cfcac2]" />
               </th>
             ) : null}
             {columns.map((column) => (
-              <th key={column.key} className="px-3 py-0 font-medium" style={{ width: column.width }}>
+              <th key={column.key} className="px-3 py-0 [font-weight:550]" style={{ width: column.width }}>
                 {column.header}
               </th>
             ))}
             {showActions ? (
-              <th className="px-3 py-0 font-medium" style={{ width: actionsWidth }}>
+              <th className="px-3 py-0 [font-weight:550]" style={{ width: actionsWidth }}>
                 {actionsHeader}
               </th>
             ) : null}
