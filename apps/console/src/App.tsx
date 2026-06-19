@@ -1813,7 +1813,7 @@ function FilesPage() {
 function FilesEmptyState({ language, onLanguageChange }: { language: string; onLanguageChange: (value: string) => void }) {
   const code = language === "Python" ? filesPythonTemplate : filesCurlTemplate;
   return (
-    <div className="mt-2 max-w-[952px]">
+    <div className="mt-4 max-w-[952px]">
       <p className="mb-3 text-sm text-ink">No files have been uploaded to the Default workspace. Copy the template below to upload your first file:</p>
       <div className="overflow-hidden rounded-cds bg-fill">
         <div className="flex h-9 items-center gap-2 px-3">
@@ -1834,7 +1834,7 @@ function FilesEmptyState({ language, onLanguageChange }: { language: string; onL
             </Button>
           </div>
         </div>
-        <pre className="overflow-x-auto px-3 pb-3 pt-3 font-mono text-[13px] leading-[21px] text-ink">
+        <pre className="overflow-x-auto px-3 pb-3 pt-3 font-mono text-[13px] leading-[21.125px] text-ink">
           {code.split("\n").map((line, index) => (
             <span key={`${line}-${index}`} className="relative block min-h-[21px] whitespace-pre-wrap pl-10">
               <span className="absolute left-0 w-6 select-none text-right text-muted">{index + 1}</span>
