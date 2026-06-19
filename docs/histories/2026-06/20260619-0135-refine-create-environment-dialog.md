@@ -11,6 +11,8 @@ Continue cloning the Claude Platform managed-agents console, including clicked d
 - Matched the compact dialog title styling and close label.
 - Reduced form spacing and textarea height to align with the captured Claude layout.
 - Allowed the Create button to remain enabled when the name is empty, relying on the existing apiserver default `Untitled environment` behavior.
+- Revisited the dialog with fresh OBU measurements and aligned the shell to `510x429`, `12px` radius, borderless content, `22px` title, `31px` controls, and source-matched footer button positions.
+- Split text labels from their input wrappers so the rendered label geometry matches Claude's `14px` label rows instead of stretching over whole field groups.
 
 ### Intent
 
@@ -19,7 +21,7 @@ The environment create flow already had the right fields and API behavior. This 
 ### Verification
 
 - OBU captured Claude `Create environment` at `510x429`.
-- OBU confirmed the local dialog after changes at `510x424`, with Create enabled and a `74px` description textarea.
+- OBU confirmed the local dialog after the latest refinement at `510x429`, with label/input/footer coordinates matching the captured Claude dialog.
 - `npm run build:console`
 - `go test ./...`
 

@@ -2636,6 +2636,8 @@ function CreateEnvironmentDialog({
   const [hostingType, setHostingType] = useState("Cloud");
   const [description, setDescription] = useState("");
   const canCreate = name.trim().length <= 50;
+  const fieldLabelClass = "text-sm leading-none [font-weight:550]";
+  const helperClass = "text-[13px] font-normal leading-[18px] text-muted";
 
   async function submit() {
     if (!canCreate) return;
@@ -2656,35 +2658,49 @@ function CreateEnvironmentDialog({
       title="Create environment"
       open={open}
       onOpenChange={onOpenChange}
-      contentClassName="w-[510px] max-w-[calc(100vw-32px)]"
-      titleClassName="text-lg font-semibold text-ink"
+      contentClassName="h-[429px] w-[510px] max-w-[calc(100vw-32px)] !rounded-[12px] border-0"
+      headerClassName="flex items-start justify-between pl-6 pr-4 pt-4"
+      titleClassName="mt-1 w-[431px] text-[22px] leading-[26px] text-ink [font-weight:580]"
+      closeButtonClassName="h-[31px] w-[31px] rounded-[8px] px-0"
       closeLabel="Close"
     >
-      <div className="px-6 pb-0 pt-4">
-        <div className="grid gap-3">
-          <label className="grid gap-1 text-sm font-medium">
-            Name
-            <TextInput placeholder="E.g. My Environment" value={name} maxLength={50} onChange={(event) => setName(event.target.value)} />
-            <span className="text-sm font-normal text-muted">50 characters or fewer.</span>
-          </label>
-          <div className="grid gap-1">
-            <label className="text-sm font-medium">Hosting type</label>
-            <FieldSelect label="" value={hostingType} options={["Cloud", "Self-hosted"]} onValueChange={setHostingType} />
-            <p className="text-sm text-muted">This cannot be changed after creation.</p>
+      <div className="px-6 pb-0 pt-[27px]">
+        <div className="grid gap-[15px]">
+          <div className="grid gap-2">
+            <label className={fieldLabelClass}>Name</label>
+            <TextInput
+              className="h-[31px] rounded-[8px] border-0 bg-white/50 px-3 font-normal"
+              placeholder="E.g. My Environment"
+              value={name}
+              maxLength={50}
+              onChange={(event) => setName(event.target.value)}
+            />
+            <span className={helperClass}>50 characters or fewer.</span>
           </div>
-          <label className="grid gap-1 text-sm font-medium">
-            Description
+          <div className="grid gap-2">
+            <label className={fieldLabelClass}>Hosting type</label>
+            <FieldSelect
+              label=""
+              value={hostingType}
+              options={["Cloud", "Self-hosted"]}
+              onValueChange={setHostingType}
+              triggerClassName="!h-[31px] w-full rounded-[8px] border-0 bg-white/50 px-2"
+            />
+            <p className={helperClass}>This cannot be changed after creation.</p>
+          </div>
+          <div className="grid gap-2">
+            <label className={fieldLabelClass}>Description</label>
             <textarea
-              className="cds-focus min-h-[74px] resize-none rounded-cds border border-line bg-white px-3 py-3 text-sm leading-6"
+              className="cds-focus h-[74px] resize-none rounded-[8px] border-0 bg-white/50 px-3 py-2 text-sm font-normal leading-5"
               placeholder="Optional description for this environment"
               value={description}
               onChange={(event) => setDescription(event.target.value)}
             />
-          </label>
+          </div>
         </div>
-        <div className="sticky bottom-0 -mx-6 mt-3 flex justify-end gap-2 bg-white px-6 py-3">
-          <Button variant="secondary" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={submit} disabled={!canCreate}>Create</Button>
+        <div className="sticky bottom-0 -mx-6 mt-4 flex justify-end gap-[7px] bg-white px-6 py-0">
+          <Button variant="ghost" className="h-[31px] w-[70px] rounded-[8px] px-0 [font-weight:550]" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button className="h-[31px] w-[69px] rounded-[8px] px-0 [font-weight:550]" onClick={submit} disabled={!canCreate}>Create</Button>
         </div>
       </div>
     </ConsoleDialog>
