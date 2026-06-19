@@ -2919,7 +2919,7 @@ function CreateMemoryStoreDialog({
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const canCreate = name.trim().length > 0;
-  const fieldLabelClass = "text-sm font-medium leading-none";
+  const fieldLabelClass = "text-sm leading-none [font-weight:550]";
 
   async function submit() {
     if (!canCreate) return;
@@ -2935,29 +2935,36 @@ function CreateMemoryStoreDialog({
       title="Create memory store"
       open={open}
       onOpenChange={onOpenChange}
-      contentClassName="w-[510px] max-w-[calc(100vw-32px)]"
-      titleClassName="text-lg font-semibold text-ink"
+      contentClassName="h-[337px] w-[510px] max-w-[calc(100vw-32px)] !rounded-[12px] border-0"
+      headerClassName="flex items-start justify-between pl-6 pr-4 pt-4"
+      titleClassName="mt-1 w-[431px] text-[22px] leading-[26px] text-ink [font-weight:580]"
+      closeButtonClassName="h-[31px] w-[31px] rounded-[8px] px-0"
       closeLabel="Close"
     >
-      <div className="px-6 pb-0 pt-1">
-        <div className="grid gap-4">
-          <label className={`grid gap-2 ${fieldLabelClass}`}>
-            Name
-            <TextInput placeholder="My memory store" value={name} onChange={(event) => setName(event.target.value)} />
-          </label>
-          <label className={`grid gap-2 ${fieldLabelClass}`}>
-            Description (optional)
+      <div className="px-6 pb-0 pt-3">
+        <div>
+          <div className="grid gap-[7px]">
+            <label className={fieldLabelClass}>Name</label>
+            <TextInput
+              className="h-[31px] rounded-[8px] border-0 bg-white/50 px-3 font-normal"
+              placeholder="My memory store"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+            />
+          </div>
+          <div className="mt-4 grid gap-2">
+            <label className={fieldLabelClass}>Description (optional)</label>
             <textarea
-              className="cds-focus min-h-[74px] resize-none rounded-control border border-line bg-white px-3 py-2 text-sm leading-5"
+              className="cds-focus h-[74px] resize-none rounded-[8px] border-0 bg-white/50 px-3 py-2 text-sm font-normal leading-5"
               placeholder="What this store contains and how agents should use it"
               value={description}
               onChange={(event) => setDescription(event.target.value)}
             />
-          </label>
-          <p className="text-[13px] leading-[18px] text-muted">Name and description are rendered in the agent system prompt when this store is attached.</p>
+          </div>
+          <p className="mt-2 text-[13px] leading-[18px] text-muted">Name and description are rendered in the agent system prompt when this store is attached.</p>
         </div>
-        <div className="sticky bottom-0 -mx-6 mt-2 flex justify-end bg-white px-6 pb-[21px] pt-0">
-          <Button onClick={submit} disabled={!canCreate}>Create</Button>
+        <div className="sticky bottom-0 -mx-6 mt-[15px] flex justify-end bg-white px-6 py-0">
+          <Button className="h-[31px] w-[69px] rounded-[8px] px-0 [font-weight:550]" onClick={submit} disabled={!canCreate}>Create</Button>
         </div>
       </div>
     </ConsoleDialog>

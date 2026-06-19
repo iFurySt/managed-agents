@@ -18,6 +18,7 @@
   - Changed the local memory store creation dialog from the generic 706px modal to the captured 510px modal size.
   - Tightened label line-height, description textarea height, helper copy, and footer spacing.
   - Preserved the existing disabled `Create` state when the name is empty, matching the captured dialog and current `apiserver` validation.
+  - Revisited the dialog with fresh source/local OBU measurements and aligned the shell to `510x337`, `12px` borderless radius, `22px` title, `31px` controls, split compact labels, half-white fields, and source-matched helper/footer positions.
 
 ### Design Intent
 
@@ -25,8 +26,8 @@ Keep memory stores as a logical `apiserver` module while improving the core crea
 
 OBU evidence:
 
-- Claude dialog: 510px wide by about 337px high, disabled `Create` button, 74px description textarea.
-- Local final dialog: 510px wide by about 341px high, disabled `Create` button, 74px description textarea and matching field order.
+- Claude dialog: 510px wide by 337px high, disabled `Create` button, 74px description textarea.
+- Local final dialog: 510px wide by 337px high, with title, close, labels, input, textarea, helper, and Create button coordinates matching the captured Claude dialog.
 
 Verification:
 
