@@ -457,9 +457,9 @@ function SessionDetailPage() {
   const transcriptText = (session.events ?? []).map((event) => `${event.offset} ${event.role} ${event.kind}: ${event.summary}`).join("\n");
 
   return (
-    <section className="flex flex-col gap-4">
-      <div className="flex h-[52px] items-center justify-between">
-        <nav className="flex items-center gap-2 text-sm text-muted">
+    <section className="flex max-w-[952px] flex-col">
+      <div className="-ml-8 -mt-3 mb-4 flex h-9 w-[984px] items-center justify-between">
+        <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm text-muted">
           <Link className="rounded-control px-3 py-1.5 hover:bg-fill" to="/sessions">
             Sessions
           </Link>
@@ -472,25 +472,27 @@ function SessionDetailPage() {
             transcriptText={transcriptText}
             onCancel={cancelCurrentSession}
           />
-          <Button onClick={() => setAskOpen(true)}>
+          <Button className="w-[116px]" onClick={() => setAskOpen(true)}>
             <MessageSquare className="h-4 w-4" />
             Ask Claude
           </Button>
         </div>
       </div>
 
-      <div className="flex flex-col gap-3 border-b border-line pb-4">
-        <div className="flex items-center gap-3">
-          <h1 className="text-2xl font-medium tracking-[-0.01em]">{session.name}</h1>
-          <Badge tone={sessionTone(session.status)}>{session.status}</Badge>
+      <div>
+        <div className="flex items-center gap-4">
+          <h1 className="text-[22px] font-semibold leading-7 tracking-[-0.01em]">{session.name}</h1>
+          <span className={`inline-flex h-5 items-center rounded-md px-2 text-xs font-semibold ${session.status === "Idle" ? "bg-fill text-[#52514e]" : "bg-[#caeac7] text-[#006300]"}`}>
+            {session.status}
+          </span>
         </div>
-        <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
-          <Button variant="ghost" className="h-[25px] px-2">
+        <div className="mt-2 flex h-[25px] flex-wrap items-center gap-2 text-sm text-muted">
+          <Button variant="ghost" className="h-[25px] px-2 font-normal text-[#4e4a45]">
             <Braces className="h-4 w-4" />
             {session.agentName}
           </Button>
           <span>·</span>
-          <Button variant="ghost" className="h-[25px] px-2">
+          <Button variant="ghost" className="h-[25px] px-2 font-normal text-[#4e4a45]">
             <Database className="h-4 w-4" />
             {session.environmentName}
           </Button>
@@ -502,27 +504,25 @@ function SessionDetailPage() {
           <span>·</span>
           <span>{session.tokens}</span>
           <span>·</span>
-          <span>{session.cost}</span>
-          <span>·</span>
           <span>{session.createdLabel}</span>
         </div>
       </div>
 
-      <CdsTabs.Root defaultValue="transcript" className="flex min-h-[620px] flex-col">
-        <div className="flex h-[52px] items-center justify-between border-b border-line">
+      <CdsTabs.Root defaultValue="transcript" className="mt-5 flex min-h-[620px] flex-col">
+        <div className="flex h-7 items-center justify-between">
           <div className="flex items-center gap-6">
-            <CdsTabs.List className="flex h-7 rounded-control bg-fill p-0.5" data-cds="SegmentedControl">
+            <CdsTabs.List className="flex h-7 w-[152px] rounded-control bg-fill p-0.5" data-cds="SegmentedControl">
               {["Transcript", "Debug"].map((tab) => (
                 <CdsTabs.Trigger
                   key={tab}
                   value={tab.toLowerCase()}
-                  className="h-6 rounded-[6px] px-3 text-sm font-medium text-muted data-[state=active]:bg-white data-[state=active]:text-ink data-[state=active]:shadow-sm"
+                  className="h-6 flex-1 rounded-[6px] px-2 text-sm font-medium text-muted data-[state=active]:bg-white data-[state=active]:text-ink data-[state=active]:shadow-sm"
                 >
                   {tab}
                 </CdsTabs.Trigger>
               ))}
             </CdsTabs.List>
-            <FieldSelect label="" value={eventFilter} options={["All events", "User", "Agent", "Tool", "System"]} onValueChange={setEventFilter} />
+            <FieldSelect label="" value={eventFilter} options={["All events", "User", "Agent", "Tool", "System"]} onValueChange={setEventFilter} triggerClassName="!h-7 w-[97px] px-2" />
             <Button variant="icon" aria-label="Open search filter" onClick={() => setEventSearchOpen((open) => !open)}>
               <Search className="h-4 w-4" />
             </Button>
@@ -3420,7 +3420,7 @@ function SessionDetailActions({
   return (
     <CdsDropdownMenu.Root>
       <CdsDropdownMenu.Trigger asChild>
-        <Button variant="secondary">
+        <Button variant="secondary" className="w-[96px]">
           Actions
           <ChevronDown className="h-4 w-4" />
         </Button>
