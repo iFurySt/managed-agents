@@ -55,3 +55,24 @@ Keep deployment lifecycle behavior inside `apiserver` because it is part of the 
 - Matched the Deployments list shell to the Claude geometry: content x=280, header y=128, filter y=196, table shell x=272/y=260/w=984, table x=280/y=268/w=1146, and first row y=300.
 - Restyled the search field and Agent/Status selects to use the source `bg-white/50`, borderless 32px controls, including the source search input box at x=316/w=272.
 - Wrapped the Deployments table in the same horizontal overflow shell pattern used by the Claude table so the fixed 1146px columns align while the page viewport remains 968px wide.
+
+### Follow-up: Deployment Detail Header and Schedule Rhythm
+
+- Re-captured the Claude deployment detail Configuration tab with OBU at a 1272px viewport.
+- Moved the local deployment detail header up to the captured rhythm while keeping the action row and URL-driven tabs behavior intact.
+- Added a deployment-specific detail section component so Configuration headings use the observed `h3`, `14px/20px`, `550` weight without changing shared detail sections on other pages.
+- Tightened the Configuration content to the source `792px` width, `388/16/388` two-column grid, and `x=284` section origin.
+- Restyled scheduled next-runs as compact `12px` pills with the captured muted `+1` overflow and right-aligned last scheduled run label.
+- Updated the seeded deployment schedule metadata to match the current source detail page copy.
+- OBU source geometry:
+  - title `x=284 y=164 h=28`
+  - Run now `x=1106.6 y=164 w=101.4 h=32`
+  - tabs `x=280 y=236 h=32`
+  - sections `x=284/688 y=284 w=388`, full-width sections `x=284 w=792`
+  - next-run pills `y=578 h=21`, last scheduled run `x=899.6 y=580.5`
+- OBU local geometry after the change:
+  - title `x=288 y=164 h=28`
+  - Run now `x=1094.5 y=164 w=105.5 h=32`
+  - tabs `x=280 y=236 h=32`
+  - sections `x=284/688 y=285 w=388`, full-width sections `x=284 w=792`
+  - next-run pills `y=581 h=22`, last scheduled run `x=898.6 y=584`

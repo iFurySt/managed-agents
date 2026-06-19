@@ -847,8 +847,8 @@ function DeploymentDetailPage() {
   });
 
   return (
-    <section className="flex flex-col gap-4">
-      <div className="flex h-[52px] items-center justify-between">
+    <section className="flex max-w-[952px] flex-col">
+      <div className="-ml-8 -mt-3 mb-3 flex h-9 w-[984px] items-center justify-between">
         <nav className="flex items-center gap-2 text-sm text-muted">
           <Link className="rounded-control px-3 py-1.5 hover:bg-fill" to="/deployments">
             Deployments
@@ -890,9 +890,9 @@ function DeploymentDetailPage() {
       <CdsTabs.Root
         value={activeTab}
         onValueChange={(value) => setSearchParams(value === "runs" ? { tab: "runs" } : {})}
-        className="flex flex-col gap-4"
+        className="mt-[18px] flex flex-col gap-4"
       >
-        <CdsTabs.List data-cds="NavigationTabs" className="flex border-b border-line">
+        <CdsTabs.List data-cds="NavigationTabs" className="-ml-2 flex border-b border-line">
           {["Configuration", "Runs"].map((tab) => (
             <CdsTabs.Trigger
               key={tab}
@@ -903,35 +903,35 @@ function DeploymentDetailPage() {
             </CdsTabs.Trigger>
           ))}
         </CdsTabs.List>
-        <CdsTabs.Content value="configuration" className="grid max-w-[800px] gap-4 px-1 pb-6">
+        <CdsTabs.Content value="configuration" className="-ml-1 grid max-w-[792px] gap-4 pb-6">
           <div className="grid grid-cols-2 gap-4">
-            <DetailSection title="Agent">
+            <DeploymentDetailSection title="Agent">
               <Button variant="ghost" className="h-[25px] px-2">
                 <Braces className="h-4 w-4" />
                 {deployment.agentName}
                 <span className="text-muted">{deployment.agentVersion}</span>
               </Button>
-            </DetailSection>
-            <DetailSection title="Environment">
+            </DeploymentDetailSection>
+            <DeploymentDetailSection title="Environment">
               <Button variant="ghost" className="h-[25px] px-2">
                 <Database className="h-4 w-4" />
                 {deployment.environmentName}
               </Button>
-            </DetailSection>
+            </DeploymentDetailSection>
           </div>
-          <DetailSection title="Credential vaults">
+          <DeploymentDetailSection title="Credential vaults">
             <Button variant="ghost" className="h-[25px] px-2">
               <KeyRound className="h-4 w-4" />
               {deployment.vaults || "No credential vault"}
             </Button>
-          </DetailSection>
-          <DetailSection title="Memory stores">
+          </DeploymentDetailSection>
+          <DeploymentDetailSection title="Memory stores">
             <Button variant="ghost" className="h-[25px] px-2">
               <Database className="h-4 w-4" />
               {deployment.memoryStores || "No memory store"}
             </Button>
-          </DetailSection>
-          <DetailSection title="Schedule">
+          </DeploymentDetailSection>
+          <DeploymentDetailSection title="Schedule">
             <div className="flex items-center justify-between">
               <pre className="font-mono text-sm leading-[21px]">{deployment.schedule}</pre>
               <Button variant="ghost" className="h-[22px] w-[22px] px-0 text-muted" aria-label="Copy" onClick={() => copyText(deployment.schedule)}>
@@ -939,25 +939,32 @@ function DeploymentDetailPage() {
               </Button>
             </div>
             <div className="mt-2 text-sm leading-[21px] text-muted">Timezone: {deployment.timezone}</div>
-            <div className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm leading-[21px] text-muted">
+            <div className="mt-3 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs leading-4 text-muted">
               <span>Next (when resumed):</span>
               <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0 text-muted" aria-label="About scheduling jitter">
                 <Info className="h-3.5 w-3.5" />
               </Button>
               {deployment.nextRuns.split(", ").map((run) => (
-                <span key={run} className="text-ink">{run}</span>
+                <span
+                  key={run}
+                  className={run.startsWith("+") ? "px-2 py-0.5 text-muted" : "rounded-[8px] border border-line bg-[#fcfcfb] px-2.5 py-0.5 text-[#4e4a45]"}
+                >
+                  {run}
+                </span>
               ))}
-              <span className="ml-2">Last scheduled run: {deployment.lastRunLabel}</span>
+              <span className="ml-auto text-ink">
+                <span className="text-[#4e4a45]">Last scheduled run:</span> {deployment.lastRunLabel}
+              </span>
             </div>
-          </DetailSection>
-          <DetailSection title="Initial message">
+          </DeploymentDetailSection>
+          <DeploymentDetailSection title="Initial message">
             <div className="flex items-start justify-between gap-4">
               <pre className="whitespace-pre-wrap text-sm leading-[21px] text-[#3f3a35]">{deployment.initialMessage}</pre>
               <Button variant="ghost" className="h-[22px] w-[22px] px-0 text-muted" aria-label="Copy" onClick={() => copyText(deployment.initialMessage)}>
                 <Copy className="h-3.5 w-3.5" />
               </Button>
             </div>
-          </DetailSection>
+          </DeploymentDetailSection>
         </CdsTabs.Content>
         <CdsTabs.Content value="runs" className="flex flex-col gap-4">
           <div className="flex gap-4">
@@ -4025,6 +4032,15 @@ function DetailSection({ title, children }: { title: string; children: React.Rea
   return (
     <section>
       <h2 className="mb-1.5 text-sm font-semibold leading-5">{title}</h2>
+      {children}
+    </section>
+  );
+}
+
+function DeploymentDetailSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section>
+      <h3 className="mb-1.5 text-sm leading-5 [font-weight:550]">{title}</h3>
       {children}
     </section>
   );
