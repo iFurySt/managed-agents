@@ -30,6 +30,7 @@ import {
   Trash2,
   Wrench
 } from "lucide-react";
+import * as Dialog from "@radix-ui/react-dialog";
 import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate, Route, Routes, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
@@ -793,6 +794,7 @@ function DeploymentsPage() {
   const [status, setStatus] = useState("All");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingDeployment, setEditingDeployment] = useState<Deployment | null>(null);
+  const [archivingDeployment, setArchivingDeployment] = useState<Deployment | null>(null);
 
   useEffect(() => {
     listDeployments({ q: search, status, agentId: agent }).then(setDeployments).catch(() => setDeployments([]));
@@ -916,7 +918,7 @@ function DeploymentsPage() {
               onPause={() => applyStatus(deployment, "pause")}
               onResume={() => applyStatus(deployment, "resume")}
               onEdit={() => setEditingDeployment(deployment)}
-              onArchive={() => applyStatus(deployment, "archive")}
+              onArchive={() => setArchivingDeployment(deployment)}
             />
           )}
         />
@@ -935,6 +937,17 @@ function DeploymentsPage() {
         deployment={editingDeployment}
         onUpdated={(input) => (editingDeployment ? updateCurrent(editingDeployment, input) : Promise.resolve())}
       />
+      <DeploymentArchiveDialog
+        open={Boolean(archivingDeployment)}
+        onOpenChange={(open) => {
+          if (!open) setArchivingDeployment(null);
+        }}
+        onConfirm={async () => {
+          if (!archivingDeployment) return;
+          await applyStatus(archivingDeployment, "archive");
+          setArchivingDeployment(null);
+        }}
+      />
     </section>
   );
 }
@@ -946,6 +959,7 @@ function DeploymentDetailPage() {
   const [trigger, setTrigger] = useState("All");
   const [result, setResult] = useState("All");
   const [editOpen, setEditOpen] = useState(false);
+  const [archiveOpen, setArchiveOpen] = useState(false);
 
   useEffect(() => {
     if (id) getDeployment(id).then(setDeployment).catch(() => setDeployment(null));
@@ -1020,7 +1034,7 @@ function DeploymentDetailPage() {
             onPause={() => applyStatus("pause")}
             onResume={() => applyStatus("resume")}
             onEdit={() => setEditOpen(true)}
-            onArchive={() => applyStatus("archive")}
+            onArchive={() => setArchiveOpen(true)}
           />
         </div>
       </div>
@@ -1030,6 +1044,14 @@ function DeploymentDetailPage() {
         onOpenChange={setEditOpen}
         deployment={deployment}
         onUpdated={updateCurrent}
+      />
+      <DeploymentArchiveDialog
+        open={archiveOpen}
+        onOpenChange={setArchiveOpen}
+        onConfirm={async () => {
+          await applyStatus("archive");
+          setArchiveOpen(false);
+        }}
       />
 
       <CdsTabs.Root
@@ -2590,6 +2612,7 @@ function AgentDeploymentsPanel({ agent }: { agent: Agent }) {
   const [deployments, setDeployments] = useState<Deployment[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingDeployment, setEditingDeployment] = useState<Deployment | null>(null);
+  const [archivingDeployment, setArchivingDeployment] = useState<Deployment | null>(null);
 
   useEffect(() => {
     listDeployments({ agentId: agent.id }).then(setDeployments).catch(() => setDeployments([]));
@@ -2654,7 +2677,7 @@ function AgentDeploymentsPanel({ agent }: { agent: Agent }) {
               onPause={() => applyStatus(deployment, "pause")}
               onResume={() => applyStatus(deployment, "resume")}
               onEdit={() => setEditingDeployment(deployment)}
-              onArchive={() => applyStatus(deployment, "archive")}
+              onArchive={() => setArchivingDeployment(deployment)}
             />
           )}
         />
@@ -2686,6 +2709,17 @@ function AgentDeploymentsPanel({ agent }: { agent: Agent }) {
         }}
         deployment={editingDeployment}
         onUpdated={(input) => (editingDeployment ? updateCurrent(editingDeployment, input) : Promise.resolve())}
+      />
+      <DeploymentArchiveDialog
+        open={Boolean(archivingDeployment)}
+        onOpenChange={(open) => {
+          if (!open) setArchivingDeployment(null);
+        }}
+        onConfirm={async () => {
+          if (!archivingDeployment) return;
+          await applyStatus(archivingDeployment, "archive");
+          setArchivingDeployment(null);
+        }}
       />
     </>
   );
@@ -5190,6 +5224,43 @@ function SessionRowActions({ session, onCancel }: { session: Session; onCancel: 
         </CdsDropdownMenu.Content>
       </CdsDropdownMenu.Portal>
     </CdsDropdownMenu.Root>
+  );
+}
+
+function DeploymentArchiveDialog({
+  open,
+  onOpenChange,
+  onConfirm
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onConfirm: () => Promise<void> | void;
+}) {
+  return (
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+      <Dialog.Portal>
+        <Dialog.Content
+          data-cds="ConfirmationDialog"
+          role="alertdialog"
+          className="fixed left-1/2 top-1/2 z-50 flex w-[510px] max-w-[calc(100vw-32px)] -translate-x-1/2 -translate-y-1/2 flex-col rounded-[12px] bg-white p-6 text-sm text-ink shadow-[0_16px_48px_rgba(0,0,0,0.18),0_4px_14px_rgba(0,0,0,0.1)] outline-none"
+        >
+          <Dialog.Title className="-mt-1 text-[17px] leading-[26px] text-ink [font-weight:620]">Archive deployment?</Dialog.Title>
+          <Dialog.Description className="mt-1 text-sm leading-5 text-[#696762]">
+            Archived deployments stop firing scheduled runs. Run history is kept.
+          </Dialog.Description>
+          <div className="mt-3 flex justify-end gap-2">
+            <Dialog.Close asChild>
+              <Button variant="secondary" className="h-8 w-[70px] rounded-[8px] border-0 bg-[#f1f0ec] px-0 text-sm [font-weight:550] hover:bg-[#e8e6df]">
+                Cancel
+              </Button>
+            </Dialog.Close>
+            <Button className="h-8 w-[75px] rounded-[8px] bg-[#b33f31] px-0 text-sm text-white [font-weight:550] hover:bg-[#a5362a]" onClick={onConfirm}>
+              Archive
+            </Button>
+          </div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }
 
