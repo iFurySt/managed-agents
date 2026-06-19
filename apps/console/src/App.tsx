@@ -3503,11 +3503,11 @@ function DeploymentScheduleFields({ expression, onExpressionChange }: { expressi
   const nextRuns = ["Mon, Jun 22, 2026, 9:00 AM", "Tue, Jun 23, 2026, 9:00 AM", "Wed, Jun 24, 2026, 9:00 AM", "Thu, Jun 25, 2026, 9:00 AM", "Fri, Jun 26, 2026, 9:00 AM"];
 
   return (
-    <div className="flex flex-col gap-4 rounded-[12px] border border-black/10 p-4">
+    <div className="flex flex-col gap-4 rounded-[12px] border-[0.5px] border-black/10 p-4">
       <div className="flex flex-col gap-4">
         <div className="grid grid-cols-2 gap-3">
           <div data-cds="Field" className="flex min-w-0 flex-col gap-2">
-          <label className="text-sm leading-none [font-weight:550]">Frequency</label>
+            <label className="text-sm leading-none [font-weight:550]">Frequency</label>
             <div className="h-8 rounded-[8px] bg-white/50">
               <button
                 type="button"
@@ -3521,7 +3521,7 @@ function DeploymentScheduleFields({ expression, onExpressionChange }: { expressi
             </div>
           </div>
           <div data-cds="Field" className="flex min-w-0 flex-col gap-2">
-          <label className="text-sm leading-none [font-weight:550]">Timezone</label>
+            <label className="text-sm leading-none [font-weight:550]">Timezone</label>
             <div className="h-8 rounded-[8px] bg-white/50">
               <button
                 type="button"
@@ -3572,7 +3572,7 @@ function DeploymentScheduleFields({ expression, onExpressionChange }: { expressi
               value={expression}
               onChange={(event) => onExpressionChange(event.target.value)}
             />
-            <span className="text-[13px] font-normal leading-[18px] text-muted">minute · hour · day · month · weekday - * any, */5 every 5th, 1-5 range</span>
+            <span className="text-[13px] font-normal leading-[18px] text-muted">minute · hour · day · month · weekday — * any, */5 every 5th, 1-5 range</span>
           </label>
         ) : (
           <div className="flex h-9 items-center justify-between rounded-[8px] bg-canvas px-3 py-2">
@@ -3588,8 +3588,8 @@ function DeploymentScheduleFields({ expression, onExpressionChange }: { expressi
           </div>
         )}
       </div>
-      <div className="rounded-[12px] border border-black/10 bg-canvas p-4">
-        <div className="mb-3 flex items-center gap-2 text-sm [font-weight:550]">
+      <div className="rounded-[12px] border-[0.5px] border-black/10 bg-canvas p-4">
+        <div className="mb-1.5 flex items-center gap-2 text-sm [font-weight:550]">
           Next 5 runs
           <button type="button" aria-label="About next runs" className="grid h-3 w-3 place-items-center text-muted hover:text-ink">
             <Info className="h-3 w-3" />
