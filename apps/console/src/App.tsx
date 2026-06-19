@@ -4,6 +4,7 @@ import {
   Box,
   Boxes,
   Braces,
+  Check,
   ChevronDown,
   Clock,
   Copy,
@@ -3498,9 +3499,166 @@ function DeploymentTriggerPicker({ value, onValueChange }: { value: string; onVa
   );
 }
 
+type DeploymentFrequency = "Every minute" | "Every hour" | "Daily" | "Weekdays" | "Weekly" | "Custom cron";
+
+const deploymentFrequencyOptions: { value: DeploymentFrequency; expression?: string }[] = [
+  { value: "Every minute", expression: "* * * * *" },
+  { value: "Every hour", expression: "0 * * * *" },
+  { value: "Daily", expression: "0 9 * * *" },
+  { value: "Weekdays", expression: "0 9 * * 1-5" },
+  { value: "Weekly", expression: "0 9 * * 1" },
+  { value: "Custom cron" }
+];
+
+const deploymentScheduleRuns: Record<DeploymentFrequency, string[]> = {
+  "Every minute": [
+    "Fri, Jun 19, 2026, 11:02 PM",
+    "Fri, Jun 19, 2026, 11:03 PM",
+    "Fri, Jun 19, 2026, 11:04 PM",
+    "Fri, Jun 19, 2026, 11:05 PM",
+    "Fri, Jun 19, 2026, 11:06 PM"
+  ],
+  "Every hour": [
+    "Sat, Jun 20, 2026, 12:00 AM",
+    "Sat, Jun 20, 2026, 1:00 AM",
+    "Sat, Jun 20, 2026, 2:00 AM",
+    "Sat, Jun 20, 2026, 3:00 AM",
+    "Sat, Jun 20, 2026, 4:00 AM"
+  ],
+  Daily: [
+    "Sat, Jun 20, 2026, 9:00 AM",
+    "Sun, Jun 21, 2026, 9:00 AM",
+    "Mon, Jun 22, 2026, 9:00 AM",
+    "Tue, Jun 23, 2026, 9:00 AM",
+    "Wed, Jun 24, 2026, 9:00 AM"
+  ],
+  Weekdays: [
+    "Mon, Jun 22, 2026, 9:00 AM",
+    "Tue, Jun 23, 2026, 9:00 AM",
+    "Wed, Jun 24, 2026, 9:00 AM",
+    "Thu, Jun 25, 2026, 9:00 AM",
+    "Fri, Jun 26, 2026, 9:00 AM"
+  ],
+  Weekly: [
+    "Mon, Jun 22, 2026, 9:00 AM",
+    "Mon, Jun 29, 2026, 9:00 AM",
+    "Mon, Jul 6, 2026, 9:00 AM",
+    "Mon, Jul 13, 2026, 9:00 AM",
+    "Mon, Jul 20, 2026, 9:00 AM"
+  ],
+  "Custom cron": [
+    "Mon, Jun 22, 2026, 9:00 AM",
+    "Tue, Jun 23, 2026, 9:00 AM",
+    "Wed, Jun 24, 2026, 9:00 AM",
+    "Thu, Jun 25, 2026, 9:00 AM",
+    "Fri, Jun 26, 2026, 9:00 AM"
+  ]
+};
+
+function DeploymentFrequencyPicker({ value, onValueChange }: { value: DeploymentFrequency; onValueChange: (value: DeploymentFrequency) => void }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="relative h-8 rounded-[8px] bg-white/50">
+      <button
+        type="button"
+        role="combobox"
+        aria-expanded={open}
+        aria-label="Select schedule frequency"
+        className="flex h-8 w-[calc(100%-8px)] items-center justify-between rounded-[8px] bg-transparent px-2 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-[#c6613f]/35"
+        onClick={() => setOpen((current) => !current)}
+      >
+        <span className="truncate">{value}</span>
+        <ChevronDown className="h-4 w-4 shrink-0 text-muted" />
+      </button>
+      {open ? (
+        <div
+          data-cds="Combobox"
+          role="dialog"
+          data-side="top"
+          data-align="start"
+          className="absolute bottom-[38px] left-0 z-50 w-[213.5px] rounded-[12px] bg-white p-1 shadow-[0_10px_28px_rgba(0,0,0,0.12)]"
+        >
+          <div role="listbox" className="grid gap-0">
+            {deploymentFrequencyOptions.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                role="option"
+                aria-selected={value === option.value}
+                className="flex h-8 w-full items-center justify-between rounded-[8px] px-3 text-left text-sm leading-5 text-ink outline-none hover:bg-fill aria-selected:bg-black/[0.05]"
+                onClick={() => {
+                  onValueChange(option.value);
+                  setOpen(false);
+                }}
+              >
+                <span>{option.value}</span>
+                {value === option.value ? <Check className="h-4 w-4 shrink-0 text-muted" /> : null}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function DeploymentTimeField() {
+  return (
+    <div data-cds="Field" className="flex min-w-0 flex-col gap-2">
+      <label className="text-sm leading-none [font-weight:550]">At</label>
+      <div className="flex h-8 items-center gap-2">
+        <input
+          data-cds="TextInput"
+          className="cds-focus h-8 w-[110px] rounded-[8px] border-0 bg-white/50 px-3 text-sm font-normal leading-5 text-ink"
+          value="9:00"
+          readOnly
+          aria-label="Scheduled time"
+        />
+        <div
+          data-cds="SegmentedControl"
+          role="radiogroup"
+          aria-label="AM or PM"
+          className="relative inline-flex h-8 w-fit shrink-0 items-stretch rounded-[8px] bg-black/[0.05] p-px text-sm"
+        >
+          <div className="absolute bottom-px left-px top-px w-[47px] rounded-[7px] bg-white shadow-sm" aria-hidden />
+          <button type="button" role="radio" aria-checked="true" className="relative z-10 h-[30px] px-3 text-ink">AM</button>
+          <button type="button" role="radio" aria-checked="false" className="relative z-10 h-[30px] px-3 text-muted">PM</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DeploymentTimezoneField({ label = "Timezone" }: { label?: string }) {
+  return (
+    <div data-cds="Field" className="flex min-w-0 flex-col gap-2">
+      <label className="text-sm leading-none [font-weight:550]">{label}</label>
+      <div className="h-8 rounded-[8px] bg-white/50">
+        <button
+          type="button"
+          role="combobox"
+          aria-expanded="false"
+          className="flex h-8 w-[calc(100%-8px)] items-center justify-between rounded-[8px] bg-transparent px-2 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-[#c6613f]/35"
+        >
+          <span className="truncate">{label === "On" ? "Monday" : "(GMT+08:00) Asia/Shanghai"}</span>
+          <ChevronDown className="h-4 w-4 shrink-0 text-muted" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function DeploymentScheduleFields({ expression, onExpressionChange }: { expression: string; onExpressionChange: (expression: string) => void }) {
-  const [customCron, setCustomCron] = useState(false);
-  const nextRuns = ["Mon, Jun 22, 2026, 9:00 AM", "Tue, Jun 23, 2026, 9:00 AM", "Wed, Jun 24, 2026, 9:00 AM", "Thu, Jun 25, 2026, 9:00 AM", "Fri, Jun 26, 2026, 9:00 AM"];
+  const [frequency, setFrequency] = useState<DeploymentFrequency>("Weekdays");
+  const customCron = frequency === "Custom cron";
+  const nextRuns = deploymentScheduleRuns[customCron ? "Custom cron" : frequency];
+
+  function selectFrequency(nextFrequency: DeploymentFrequency) {
+    setFrequency(nextFrequency);
+    const option = deploymentFrequencyOptions.find((item) => item.value === nextFrequency);
+    if (option?.expression) onExpressionChange(option.expression);
+  }
 
   return (
     <div className="flex flex-col gap-4 rounded-[12px] border-[0.5px] border-black/10 p-4">
@@ -3508,57 +3666,19 @@ function DeploymentScheduleFields({ expression, onExpressionChange }: { expressi
         <div className="grid grid-cols-2 gap-3">
           <div data-cds="Field" className="flex min-w-0 flex-col gap-2">
             <label className="text-sm leading-none [font-weight:550]">Frequency</label>
-            <div className="h-8 rounded-[8px] bg-white/50">
-              <button
-                type="button"
-                role="combobox"
-                aria-expanded="false"
-                className="flex h-8 w-full items-center justify-between rounded-[8px] bg-transparent px-2 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-[#c6613f]/35"
-              >
-                {customCron ? "Custom cron" : "Weekdays"}
-                <ChevronDown className="h-4 w-4 shrink-0 text-muted" />
-              </button>
-            </div>
+            <DeploymentFrequencyPicker value={frequency} onValueChange={selectFrequency} />
           </div>
-          <div data-cds="Field" className="flex min-w-0 flex-col gap-2">
-            <label className="text-sm leading-none [font-weight:550]">Timezone</label>
-            <div className="h-8 rounded-[8px] bg-white/50">
-              <button
-                type="button"
-                role="combobox"
-                aria-expanded="false"
-                className="flex h-8 w-full items-center justify-between rounded-[8px] bg-transparent px-2 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-[#c6613f]/35"
-              >
-                <span className="truncate">(GMT+08:00) Asia/Shanghai</span>
-                <ChevronDown className="h-4 w-4 shrink-0 text-muted" />
-              </button>
-            </div>
-          </div>
-          {!customCron ? (
+          {frequency === "Weekly" ? <DeploymentTimezoneField label="On" /> : <DeploymentTimezoneField />}
+          {frequency === "Daily" || frequency === "Weekdays" ? (
             <>
-              <div data-cds="Field" className="flex min-w-0 flex-col gap-2">
-                <label className="text-sm leading-none [font-weight:550]">At</label>
-                <div className="flex h-8 items-center gap-2">
-                  <input
-                    data-cds="TextInput"
-                    className="cds-focus h-8 w-[110px] rounded-[8px] border-0 bg-white/50 px-3 text-sm font-normal leading-5 text-ink"
-                    value="9:00"
-                    readOnly
-                    aria-label="Scheduled time"
-                  />
-                  <div
-                    data-cds="SegmentedControl"
-                    role="radiogroup"
-                    aria-label="AM or PM"
-                    className="relative inline-flex h-8 w-fit shrink-0 items-stretch rounded-[8px] bg-black/[0.05] p-px text-sm"
-                  >
-                    <div className="absolute bottom-px left-px top-px w-[47px] rounded-[7px] bg-white shadow-sm" aria-hidden />
-                    <button type="button" role="radio" aria-checked="true" className="relative z-10 h-[30px] px-3 text-ink">AM</button>
-                    <button type="button" role="radio" aria-checked="false" className="relative z-10 h-[30px] px-3 text-muted">PM</button>
-                  </div>
-                </div>
-              </div>
+              <DeploymentTimeField />
               <div className="h-[54px]" aria-hidden />
+            </>
+          ) : null}
+          {frequency === "Weekly" ? (
+            <>
+              <DeploymentTimeField />
+              <DeploymentTimezoneField />
             </>
           ) : null}
         </div>
@@ -3581,7 +3701,7 @@ function DeploymentScheduleFields({ expression, onExpressionChange }: { expressi
               type="button"
               data-cds="TextLink"
               className="rounded-[2px] text-sm leading-5 text-[#184f95] underline decoration-current/40 underline-offset-[3px] hover:decoration-current"
-              onClick={() => setCustomCron(true)}
+              onClick={() => setFrequency("Custom cron")}
             >
               Edit cron
             </button>
