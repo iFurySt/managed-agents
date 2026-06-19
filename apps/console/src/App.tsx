@@ -431,8 +431,9 @@ function SessionsPage() {
           triggerClassName="ml-2 w-[123px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2"
         />
       </div>
-      <div className="mt-2">
+      <div className="-mt-4">
         <DataTable
+          className="-mx-2 w-[calc(100%+16px)] p-2"
           rows={sessions}
           getKey={(session) => session.id}
           columns={[
