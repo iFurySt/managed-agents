@@ -251,6 +251,8 @@ function AgentsPage() {
   const [created, setCreated] = useState("All time");
   const [status, setStatus] = useState("Active");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [archivingStore, setArchivingStore] = useState<MemoryStore | null>(null);
+  const [deletingStore, setDeletingStore] = useState<MemoryStore | null>(null);
 
   useEffect(() => {
     listAgents({ q: search, status, created }).then(setAgents).catch(() => setAgents([]));
@@ -1917,6 +1919,8 @@ function MemoryStoresPage() {
   const [created, setCreated] = useState("All time");
   const [status, setStatus] = useState("Active");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [archivingStore, setArchivingStore] = useState<MemoryStore | null>(null);
+  const [deletingStore, setDeletingStore] = useState<MemoryStore | null>(null);
 
   useEffect(() => {
     listMemoryStores({ q: query, status, created }).then(setStores).catch(() => setStores([]));
@@ -1925,11 +1929,13 @@ function MemoryStoresPage() {
   async function archiveStore(store: MemoryStore) {
     const updated = await archiveMemoryStore(store.id);
     setStores((items) => items.map((item) => item.id === store.id ? updated : item));
+    setArchivingStore(null);
   }
 
   async function deleteStore(store: MemoryStore) {
     await deleteMemoryStore(store.id);
     setStores((items) => items.filter((item) => item.id !== store.id));
+    setDeletingStore(null);
   }
 
   return (
@@ -2006,13 +2012,35 @@ function MemoryStoresPage() {
             { key: "status", header: "Status", width: "120px", render: (store) => <Badge tone={memoryTone(store.status)}>{store.status}</Badge> },
             { key: "created", header: "Created", width: "200px", render: (store) => <span className="text-muted">{store.createdLabel}</span> }
           ]}
-          renderActions={(store) => <MemoryStoreActions store={store} onArchive={() => archiveStore(store)} onDelete={() => deleteStore(store)} />}
+          renderActions={(store) => (
+            <MemoryStoreActions
+              store={store}
+              onArchive={() => setArchivingStore(store)}
+              onDelete={() => setDeletingStore(store)}
+            />
+          )}
         />
       </div>
       <CreateMemoryStoreDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         onCreated={(store) => setStores((items) => [store, ...items])}
+      />
+      <MemoryStoreConfirmationDialog
+        action="archive"
+        open={Boolean(archivingStore)}
+        onOpenChange={(open) => {
+          if (!open) setArchivingStore(null);
+        }}
+        onConfirm={() => archivingStore ? archiveStore(archivingStore) : undefined}
+      />
+      <MemoryStoreConfirmationDialog
+        action="delete"
+        open={Boolean(deletingStore)}
+        onOpenChange={(open) => {
+          if (!open) setDeletingStore(null);
+        }}
+        onConfirm={() => deletingStore ? deleteStore(deletingStore) : undefined}
       />
     </section>
   );
@@ -2025,6 +2053,8 @@ function MemoryStoreDetailPage() {
   const [store, setStore] = useState<MemoryStore | null>(null);
   const [selectedMemoryId, setSelectedMemoryId] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [archiveOpen, setArchiveOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const memoryParam = searchParams.get("memory");
 
   useEffect(() => {
@@ -2054,11 +2084,13 @@ function MemoryStoreDetailPage() {
     if (!store) return;
     const updated = await archiveMemoryStore(store.id);
     setStore({ ...store, ...updated });
+    setArchiveOpen(false);
   }
 
   async function deleteCurrentStore() {
     if (!store) return;
     await deleteMemoryStore(store.id);
+    setDeleteOpen(false);
     navigate("/memory-stores");
   }
 
@@ -2113,6 +2145,7 @@ function MemoryStoreDetailPage() {
             <Plus className="h-4 w-4" />
             Add memory
           </Button>
+          <MemoryStoreActions store={store} onArchive={() => setArchiveOpen(true)} onDelete={() => setDeleteOpen(true)} />
         </div>
       </div>
 
@@ -2206,6 +2239,18 @@ function MemoryStoreDetailPage() {
           setSearchParams({ memory: memory.id });
         }}
         create={(input) => createMemory(store.id, input)}
+      />
+      <MemoryStoreConfirmationDialog
+        action="archive"
+        open={archiveOpen}
+        onOpenChange={setArchiveOpen}
+        onConfirm={archiveCurrentStore}
+      />
+      <MemoryStoreConfirmationDialog
+        action="delete"
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        onConfirm={deleteCurrentStore}
       />
     </section>
   );
@@ -5302,7 +5347,6 @@ function CredentialActions({ credential, onArchive, onDelete }: { credential: Va
 }
 
 function MemoryStoreActions({ store, onArchive, onDelete }: { store: MemoryStore; onArchive: () => void; onDelete: () => void }) {
-  const navigate = useNavigate();
   const archived = store.status === "Archived";
   return (
     <CdsDropdownMenu.Root>
@@ -5312,18 +5356,9 @@ function MemoryStoreActions({ store, onArchive, onDelete }: { store: MemoryStore
         </Button>
       </CdsDropdownMenu.Trigger>
       <CdsDropdownMenu.Portal>
-        <CdsDropdownMenu.Content className="z-50 min-w-[170px] rounded-cds border border-line bg-white p-1 shadow-lg" align="end">
-          <CdsDropdownMenu.Item className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill" onSelect={() => navigate(`/memory-stores/${store.id}`)}>
-            <Database className="h-4 w-4" />
-            Open store
-          </CdsDropdownMenu.Item>
-          <CdsDropdownMenu.Item className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill" onSelect={() => copyText(store.id)}>
-            <Copy className="h-4 w-4" />
-            Copy ID
-          </CdsDropdownMenu.Item>
-          <CdsDropdownMenu.Separator className="my-1 h-px bg-line" />
+        <CdsDropdownMenu.Content data-cds="Menu" className="z-50 min-w-[145px] max-w-[320px] rounded-cds bg-white p-1 text-sm text-ink shadow-lg" align="end">
           <CdsDropdownMenu.Item
-            className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill"
+            className="flex h-8 w-full cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-fill"
             onSelect={onArchive}
             disabled={archived}
           >
@@ -5331,7 +5366,7 @@ function MemoryStoreActions({ store, onArchive, onDelete }: { store: MemoryStore
             {archived ? "Archived" : "Archive store"}
           </CdsDropdownMenu.Item>
           <CdsDropdownMenu.Item
-            className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm text-[#a33a29] outline-none data-[highlighted]:bg-[#fff1ef]"
+            className="flex h-8 w-full cursor-pointer items-center gap-2 rounded-md px-2 text-sm text-[#a33a29] outline-none data-[highlighted]:bg-[#fff1ef]"
             onSelect={onDelete}
           >
             <Trash2 className="h-4 w-4" />
@@ -5340,6 +5375,53 @@ function MemoryStoreActions({ store, onArchive, onDelete }: { store: MemoryStore
         </CdsDropdownMenu.Content>
       </CdsDropdownMenu.Portal>
     </CdsDropdownMenu.Root>
+  );
+}
+
+function MemoryStoreConfirmationDialog({
+  action,
+  open,
+  onOpenChange,
+  onConfirm
+}: {
+  action: "archive" | "delete";
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onConfirm: () => Promise<void> | void;
+}) {
+  const isDelete = action === "delete";
+  const title = isDelete ? "Delete memory store" : "Archive memory store";
+  const confirmLabel = isDelete ? "Delete" : "Archive";
+  const description = isDelete
+    ? "This will permanently delete the memory store and all memories inside it. This can’t be undone."
+    : "This memory store will be hidden from the default view. Sessions that reference it keep working.";
+
+  return (
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+      <Dialog.Portal>
+        <Dialog.Content
+          data-cds="ConfirmationDialog"
+          role="alertdialog"
+          className="fixed left-1/2 top-1/2 z-50 flex w-[510px] max-w-[calc(100vw-32px)] -translate-x-1/2 -translate-y-1/2 flex-col rounded-[12px] bg-white p-6 text-sm text-ink shadow-[0_16px_48px_rgba(0,0,0,0.18),0_4px_14px_rgba(0,0,0,0.1)] outline-none"
+        >
+          <Dialog.Title className="-mt-1 text-[17px] leading-[26px] text-ink [font-weight:620]">{title}</Dialog.Title>
+          <Dialog.Description className="mt-1 text-sm leading-5 text-[#696762]">{description}</Dialog.Description>
+          <div className="mt-3 flex justify-end gap-2">
+            <Dialog.Close asChild>
+              <Button variant="secondary" className="h-8 w-[70px] rounded-[8px] border-0 bg-[#f1f0ec] px-0 text-sm [font-weight:550] hover:bg-[#e8e6df]">
+                Cancel
+              </Button>
+            </Dialog.Close>
+            <Button
+              className={`h-8 rounded-[8px] bg-[#b33f31] px-0 text-sm text-white [font-weight:550] hover:bg-[#a5362a] ${isDelete ? "w-[67px]" : "w-[75px]"}`}
+              onClick={onConfirm}
+            >
+              {confirmLabel}
+            </Button>
+          </div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }
 
