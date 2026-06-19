@@ -276,10 +276,11 @@ function AgentsPage() {
         }
       />
       <div className="flex items-center gap-2">
-        <div className="relative w-[320px]">
+        <div data-cds="TextInput" className="relative flex h-8 w-[320px] items-center rounded-[8px] bg-white/50 px-3">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-          <TextInput
-            className="pl-9"
+          <input
+            className="ml-6 h-full min-w-0 flex-1 border-0 bg-transparent p-0 text-sm text-ink outline-none placeholder:text-muted"
+            aria-label="Search by name or exact ID"
             placeholder="Search by name or exact ID"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
