@@ -1496,7 +1496,7 @@ function MemoryStoresPage() {
           onValueChange={setCreated}
           triggerClassName="w-[142px]"
         />
-        <FieldSelect label="Status" value={status} options={["Active", "Archived", "All"]} onValueChange={setStatus} triggerClassName="w-[123px]" />
+        <FieldSelect label="Status" value={status} options={["Active", "Archived", "All"]} onValueChange={setStatus} triggerClassName="ml-2 w-[123px]" />
       </div>
       <DataTable
         rows={stores}

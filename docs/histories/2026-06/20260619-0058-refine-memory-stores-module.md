@@ -29,3 +29,9 @@ Keep memory stores as an `apiserver` control-plane module while improving consol
 - Re-captured the Claude Platform Memory stores list with OBU.
 - Aligned the list filter row to the observed 320px search input, 142px Created filter, and 123px Status filter.
 - Retuned the memory stores table to the observed 968px shape with 40/200/352/120/200/56px selection, ID, Name, Status, Created, and Actions columns.
+
+### Follow-up: Memory Stores Filter Spacing
+
+- Re-captured the Claude Platform Memory stores list with OBU at a 1272px viewport.
+- Added the missing 8px extra gap before the Status filter so the local controls match Claude's 608px Created x-position and 766px Status x-position.
+- Verified the local `/memory-stores` page with OBU after the change; filter, table, row, and actions button x/width/height values match the Claude reference, while global shell vertical positioning remains a separate follow-up.
