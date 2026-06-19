@@ -2030,65 +2030,77 @@ function AgentDetailPage() {
   }
 
   return (
-    <section className="flex flex-col gap-6">
-      <div className="text-sm text-muted">
-        <Link className="hover:underline" to="/agents">
+    <section className="flex max-w-[952px] flex-col">
+      <div className="-ml-5 -mt-2 mb-4 flex h-7 items-center text-sm text-muted">
+        <Link className="rounded-control px-3 py-1 hover:bg-fill" to="/agents">
           Agents
-        </Link>{" "}
-        / {agent.name}
+        </Link>
+        <span>/</span>
+        <span className="ml-2 text-ink">{agent.name}</span>
       </div>
-      <PageHeader
-        title={agent.name}
-        description={
-          <span>
-            <Badge tone={agent.status === "Archived" ? "neutral" : "green"}>{agent.status}</Badge>
-            <span className="ml-3 font-mono">{agent.id}</span>
-            <Button variant="ghost" size="sm" className="ml-1 h-[22px] w-[22px] px-0" aria-label={`Copy ${agent.id}`} onClick={() => copyText(agent.id)}>
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-4">
+            <h1 className="truncate text-2xl font-semibold tracking-[-0.01em]">{agent.name}</h1>
+            <span className={`inline-flex h-5 items-center rounded-md px-2 text-xs font-semibold ${agent.status === "Archived" ? "bg-fill text-muted" : "bg-[#caeac7] text-[#006300]"}`}>
+              {agent.status}
+            </span>
+          </div>
+          <div className="mt-[9px] flex h-5 flex-wrap items-center gap-2 text-sm text-muted">
+            <span className="font-mono">{agent.id}</span>
+            <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${agent.id}`} onClick={() => copyText(agent.id)}>
               <Copy className="h-3.5 w-3.5" />
             </Button>
-            <span className="mx-2">·</span>
-            Last updated {agent.updatedLabel || "2 days ago"}
-          </span>
-        }
-        action={
-          <div className="flex gap-2">
-            <Button variant="secondary" onClick={() => setEditOpen(true)}>
-              <Settings className="h-4 w-4" />
-              Edit
-            </Button>
-            <AgentRowActions agent={agent} onArchive={archiveCurrent} />
+            <span>·</span>
+            <span>Last updated {agent.updatedLabel || "2 days ago"}</span>
           </div>
-        }
-      />
-      <p className="max-w-3xl text-sm text-muted">{agent.description}</p>
-      <CdsTabs.Root defaultValue="agent" className="flex flex-col gap-5">
-        <CdsTabs.List className="flex gap-1 border-b border-line">
+        </div>
+        <div className="flex shrink-0 gap-2">
+          <Button variant="secondary" className="!w-[71px] !border-0 !bg-transparent" onClick={() => setEditOpen(true)}>
+            <Settings className="h-4 w-4" />
+            Edit
+          </Button>
+          <AgentRowActions agent={agent} onArchive={archiveCurrent} />
+        </div>
+      </div>
+      <p className="mt-[9px] text-sm leading-5 text-[#4e4a45]">{agent.description}</p>
+      <CdsTabs.Root defaultValue="agent" className="mt-4 flex flex-col gap-5">
+        <CdsTabs.List data-cds="NavigationTabs" className="flex h-8 gap-1">
           {["Agent", "Sessions", "Deployments"].map((tab) => (
             <CdsTabs.Trigger
               key={tab}
               value={tab.toLowerCase()}
-              className="h-9 border-b-2 border-transparent px-3 text-sm font-medium text-muted data-[state=active]:border-ink data-[state=active]:text-ink"
+              className="h-8 border-b-2 border-transparent px-3 text-sm font-medium text-muted data-[state=active]:border-ink data-[state=active]:text-ink"
             >
               {tab}
             </CdsTabs.Trigger>
           ))}
         </CdsTabs.List>
-        <CdsTabs.Content value="agent" className="grid max-w-4xl gap-6">
+        <CdsTabs.Content value="agent" className="grid max-w-[952px] gap-5">
           <div>
-            <FieldSelect label="Version:" value={agent.version || "v1"} options={[agent.version || "v1"]} onValueChange={() => undefined} />
+            <FieldSelect label="Version:" value={agent.version || "v1"} options={[agent.version || "v1"]} onValueChange={() => undefined} triggerClassName="w-[105px]" />
           </div>
-          <DetailSection title="Model">
-            <div className="font-mono text-sm">{agent.model}</div>
-          </DetailSection>
-          <DetailSection title="System prompt">
-            <p className="max-w-4xl text-sm leading-6 text-[#3f3a35]">{agent.systemPrompt}</p>
-            <div className="mt-3 flex">
-              <Button variant="ghost" size="sm" onClick={() => copyText(agent.systemPrompt)}>
+          <div className="mb-[31px]">
+            <DetailSection title="Model">
+              <div className="font-mono text-sm">{agent.model}</div>
+            </DetailSection>
+          </div>
+          <section>
+            <h2 className="text-sm font-semibold leading-5">System prompt</h2>
+            <div className="relative mt-6 max-w-[952px]">
+              <pre className="ml-4 mr-4 max-h-[120px] overflow-hidden whitespace-pre-wrap font-mono text-sm leading-5 text-ink">{agent.systemPrompt}</pre>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="absolute -top-2 right-2 h-[29px] w-[22px] px-0 text-muted"
+                aria-label="Copy to clipboard"
+                onClick={() => copyText(agent.systemPrompt)}
+              >
                 <Copy className="h-4 w-4" />
-                Copy to clipboard
               </Button>
             </div>
-          </DetailSection>
+          </section>
+          <div className="h-6" aria-hidden="true" />
           <DetailSection title="MCPs and tools">
             <div className="flex items-center gap-3 rounded-cds border border-line bg-white p-4">
               <Bot className="h-5 w-5 text-muted" />
