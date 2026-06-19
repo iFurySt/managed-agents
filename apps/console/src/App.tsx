@@ -2555,32 +2555,34 @@ function EditAgentDialog({
       titleClassName="mt-1 text-[22px] leading-[26px] text-ink [font-weight:580]"
       closeButtonClassName="h-8 w-8 rounded-[8px] px-0"
     >
-      <div className="max-h-[calc(86vh-92px)] overflow-y-auto px-6 pb-0 pt-4">
-        <div className="rounded-cds border border-line bg-white p-3">
-          <div className="mb-3 flex items-center justify-between">
-            <div className="inline-flex rounded-full bg-fill p-1 text-sm">
-              <button className={`rounded-full px-3 py-1 ${format === "YAML" ? "bg-white font-semibold shadow-sm" : "text-muted"}`} onClick={() => setFormat("YAML")}>YAML</button>
-              <button className={`rounded-full px-3 py-1 ${format === "JSON" ? "bg-white font-semibold shadow-sm" : "text-muted"}`} onClick={() => setFormat("JSON")}>JSON</button>
+      <div className="max-h-[calc(100dvh-106px)] overflow-y-auto px-6 pb-0 pt-[11px]">
+        <div className="flex h-[548px] flex-col overflow-hidden rounded-[8px] border-[0.5px] border-line bg-white">
+          <div className="flex h-11 shrink-0 items-center justify-between gap-2 pl-3 pr-2">
+            <div className="flex min-w-0 flex-1 items-center text-sm">
+              <button className={`h-7 w-[60px] rounded-full px-[10px] [font-weight:550] ${format === "YAML" ? "text-ink" : "text-muted"}`} onClick={() => setFormat("YAML")}>YAML</button>
+              <button className={`h-7 w-[59px] rounded-full px-[10px] [font-weight:550] ${format === "JSON" ? "text-ink" : "text-muted"}`} onClick={() => setFormat("JSON")}>JSON</button>
             </div>
-            <Button variant="ghost" className="h-7 w-7 px-0" aria-label="Copy code" onClick={() => copyText(format === "YAML" ? configYaml : jsonConfig)}>
+            <Button variant="ghost" className="!h-7 !w-7 !gap-1.5 rounded-[7px] !px-0 [font-weight:550]" aria-label="Copy code" onClick={() => copyText(format === "YAML" ? configYaml : jsonConfig)}>
               <Copy className="h-4 w-4" />
             </Button>
           </div>
-          <p className="mb-2 text-xs text-muted">Tab inserts indentation. Press Escape then Tab to move focus out of the editor.</p>
-          {format === "YAML" ? (
-            <textarea
-              className="min-h-[360px] w-full resize-y border-0 bg-white font-mono text-sm leading-6 outline-none"
-              value={configYaml}
-              onChange={(event) => setConfigYaml(event.target.value)}
-            />
-          ) : (
-            <pre className="min-h-[360px] whitespace-pre-wrap font-mono text-sm leading-6">
-              {jsonConfig}
-            </pre>
-          )}
+          <div className="relative flex-1 overflow-auto text-ink">
+            <p className="sr-only">Tab inserts indentation. Press Escape then Tab to move focus out of the editor.</p>
+            {format === "YAML" ? (
+              <textarea
+                className="min-h-full w-full resize-none border-0 bg-transparent px-3 py-3 font-mono text-[13px] leading-[19px] outline-none"
+                value={configYaml}
+                onChange={(event) => setConfigYaml(event.target.value)}
+              />
+            ) : (
+              <pre className="min-h-full whitespace-pre-wrap px-3 py-3 font-mono text-[13px] leading-[19px]">
+                {jsonConfig}
+              </pre>
+            )}
+          </div>
         </div>
-        <div className="sticky bottom-0 -mx-6 mt-5 flex justify-end border-t border-transparent bg-white px-6 py-5">
-          <Button onClick={submit}>Save new version</Button>
+        <div className="mt-4 flex justify-end">
+          <Button className="h-8 w-[139px] rounded-[8px] px-3 [font-weight:550]" onClick={submit}>Save new version</Button>
         </div>
       </div>
     </ConsoleDialog>
