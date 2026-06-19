@@ -2392,7 +2392,7 @@ function FilesEmptyState({ language, onLanguageChange }: { language: string; onL
             itemClassName="!rounded-[8px]"
           />
           <div className="ml-auto flex items-center gap-1">
-            <a className="inline-flex h-6 w-[96px] items-center gap-1.5 rounded-md px-2 text-[13px] leading-5 [font-weight:550] hover:bg-[#eeeeeb]" href="https://docs.claude.com/en/docs/build-with-claude/files">
+            <a data-cds="Button" className="inline-flex h-6 w-[96px] items-center gap-1.5 rounded-md px-2 text-[13px] leading-5 [font-weight:550] hover:bg-[#eeeeeb]" href="https://docs.claude.com/en/docs/build-with-claude/files">
               View docs
               <ExternalLink className="h-3.5 w-3.5 text-muted" />
             </a>
