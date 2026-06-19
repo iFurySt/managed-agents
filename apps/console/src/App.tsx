@@ -2720,6 +2720,8 @@ function CreateVaultDialog({
   const [vault, setVault] = useState<Vault | null>(null);
   const [name, setName] = useState("");
   const canContinue = name.trim().length <= 50;
+  const fieldLabelClass = "text-sm leading-none [font-weight:550]";
+  const helperClass = "text-[13px] font-normal leading-[18px] text-muted";
 
   async function continueToCredential() {
     if (!canContinue) return;
@@ -2743,13 +2745,15 @@ function CreateVaultDialog({
       title={step === "vault" ? "Create vault" : "Add a credential"}
       open={open}
       onOpenChange={closeDialog}
-      contentClassName={step === "vault" ? "w-[510px] max-w-[calc(100vw-32px)]" : undefined}
-      titleClassName={step === "vault" ? "text-[22px] font-semibold leading-[26px] text-ink" : undefined}
+      contentClassName={step === "vault" ? "h-[306px] w-[510px] max-w-[calc(100vw-32px)] !rounded-[12px] border-0" : undefined}
+      headerClassName={step === "vault" ? "flex items-start justify-between pl-6 pr-4 pt-4" : undefined}
+      titleClassName={step === "vault" ? "mt-1 w-[431px] -translate-y-px text-[22px] leading-[26px] text-ink [font-weight:580]" : undefined}
+      closeButtonClassName={step === "vault" ? "h-[31px] w-[31px] -translate-y-px rounded-[8px] px-0" : undefined}
       closeLabel={step === "vault" ? "Close" : undefined}
     >
       {step === "vault" ? (
-        <div className="px-6 pb-0 pt-3">
-          <div className="mb-3 flex gap-2 rounded-[12px] border border-line bg-[#f9dca4] px-4 py-3 text-sm leading-5 text-[#734500]">
+        <div className="px-6 pb-0 pt-[11px]">
+          <div className="mb-4 flex h-[82px] gap-2 rounded-[12px] border-0 bg-[#f9dca4] px-4 py-3 text-sm leading-5 text-[#734500]">
             <Info className="h-5 w-5 shrink-0 text-[#734500]" />
             <p>
               Vaults are shared across this workspace. Credentials added to this vault will be usable by anyone with API key access.{" "}
@@ -2757,13 +2761,19 @@ function CreateVaultDialog({
               <span> (opens in new tab).</span>
             </p>
           </div>
-          <label className="grid gap-1 text-sm font-medium">
-            Name
-            <TextInput placeholder="Production vault" value={name} maxLength={50} onChange={(event) => setName(event.target.value)} />
-            <span className="text-sm font-normal text-muted">50 characters or fewer.</span>
-          </label>
-          <div className="sticky bottom-0 -mx-6 mt-3 flex justify-end bg-white px-6 py-2.5">
-            <Button onClick={continueToCredential} disabled={!canContinue}>Continue</Button>
+          <div className="grid gap-2">
+            <label className={fieldLabelClass}>Name</label>
+            <TextInput
+              className="h-[31px] rounded-[8px] border-0 bg-white/50 px-3 font-normal"
+              placeholder="Production vault"
+              value={name}
+              maxLength={50}
+              onChange={(event) => setName(event.target.value)}
+            />
+            <span className={helperClass}>50 characters or fewer.</span>
+          </div>
+          <div className="sticky bottom-0 -mx-6 mt-[15px] flex justify-end bg-white px-6 py-0">
+            <Button className="h-[31px] w-[84px] rounded-[8px] px-0 [font-weight:550]" onClick={continueToCredential} disabled={!canContinue}>Continue</Button>
           </div>
         </div>
       ) : vault ? (
