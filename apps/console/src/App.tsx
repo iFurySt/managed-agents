@@ -347,89 +347,107 @@ function SessionsPage() {
   }
 
   return (
-    <section className="flex flex-col gap-4">
+    <section className="-mx-2 flex flex-col gap-4">
       <PageHeader
         title="Sessions"
         description="Trace and debug Claude Managed Agents sessions."
         action={
-          <Button onClick={() => setDialogOpen(true)}>
+          <Button className="!w-[144px] !gap-1.5 !rounded-[8px] [font-weight:550]" onClick={() => setDialogOpen(true)}>
             <Plus className="h-4 w-4" />
             Create session
           </Button>
         }
       />
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="relative w-[320px]">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-          <TextInput className="pl-9" aria-label="Search by session ID" placeholder="Search by session ID" value={search} onChange={(event) => setSearch(event.target.value)} />
+      <div className="flex flex-wrap items-start gap-2">
+        <div className="flex h-10 w-[320px] flex-col gap-1">
+          <div className="flex h-8 items-center gap-2 rounded-[8px] bg-white/50 px-3">
+            <span className="text-xs text-[#898781] [font-weight:580]">ID</span>
+            <input
+              data-cds="TextInput"
+              className="h-full min-w-0 flex-1 border-0 bg-transparent p-0 text-sm text-ink outline-none placeholder:text-muted"
+              aria-label="Search by session ID"
+              placeholder="Search by session ID"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+            />
+          </div>
+          <span aria-hidden="true" className="h-1 px-1 text-xs text-transparent" />
         </div>
         <FieldSelect
           label="Created"
           value={created}
           options={["All time", "Last 24 hours", "Last 7 days", "Last 30 days"]}
           onValueChange={setCreated}
-          triggerClassName="w-[142px]"
+          triggerClassName="w-[142px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2"
         />
         <FieldSelect
           label="Agent"
           value={agent}
           options={["All", "agent_013mi1SmR2hJ6Hk6wNTeJvF9", "agent_017k8CPYuCFRD9AmupUeXd2Z"]}
           onValueChange={setAgent}
-          triggerClassName="ml-2 w-[112px]"
+          triggerClassName="ml-2 w-[112px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2"
         />
         <FieldSelect
           label="Deployment"
           value={deployment}
           options={["All", "depl_01ERmHnRJWQSLyxk7pVCMZXs"]}
           onValueChange={setDeployment}
-          triggerClassName="ml-2 w-[136px]"
+          triggerClassName="ml-2 w-[136px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2"
         />
-        <FieldSelect label="Status" value={status} options={["Active", "Idle", "Cancelled", "All"]} onValueChange={setStatus} triggerClassName="ml-2 w-[123px]" />
+        <FieldSelect
+          label="Status"
+          value={status}
+          options={["Active", "Idle", "Cancelled", "All"]}
+          onValueChange={setStatus}
+          triggerClassName="ml-2 w-[123px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2"
+        />
       </div>
-      <DataTable
-        rows={sessions}
-        getKey={(session) => session.id}
-        columns={[
-          {
-            key: "id",
-            header: "ID",
-            width: "160px",
-            render: (session) => (
-              <div className="flex items-center gap-2">
-                <span className="font-mono font-semibold">{shortId(session.id)}</span>
-                <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${session.id}`} onClick={() => copyText(session.id)}>
-                  <Copy className="h-3.5 w-3.5" />
+      <div className="mt-2">
+        <DataTable
+          rows={sessions}
+          getKey={(session) => session.id}
+          columns={[
+            {
+              key: "id",
+              header: "ID",
+              width: "160px",
+              render: (session) => (
+                <div className="flex items-center gap-2">
+                  <span className="font-mono font-semibold">{shortId(session.id)}</span>
+                  <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${session.id}`} onClick={() => copyText(session.id)}>
+                    <Copy className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              )
+            },
+            {
+              key: "name",
+              header: "Name",
+              width: "191px",
+              render: (session) => (
+                <Link className="block truncate font-medium hover:underline" to={`/sessions/${session.id}`}>
+                  {session.name}
+                </Link>
+              )
+            },
+            { key: "status", header: "Status", width: "130px", render: (session) => <Badge tone={sessionTone(session.status)}>{session.status}</Badge> },
+            {
+              key: "agent",
+              header: "Agent",
+              width: "191px",
+              render: (session) => (
+                <Button variant="ghost" className="h-[25px] max-w-[170px] justify-start px-2">
+                  <Braces className="h-4 w-4 text-muted" />
+                  <span className="truncate">{session.agentName}</span>
                 </Button>
-              </div>
-            )
-          },
-          {
-            key: "name",
-            header: "Name",
-            width: "191px",
-            render: (session) => (
-              <Link className="block truncate font-medium hover:underline" to={`/sessions/${session.id}`}>
-                {session.name}
-              </Link>
-            )
-          },
-          { key: "status", header: "Status", width: "130px", render: (session) => <Badge tone={sessionTone(session.status)}>{session.status}</Badge> },
-          {
-            key: "agent",
-            header: "Agent",
-            width: "191px",
-            render: (session) => (
-              <Button variant="ghost" className="h-[25px] max-w-[170px] justify-start px-2">
-                <Braces className="h-4 w-4 text-muted" />
-                <span className="truncate">{session.agentName}</span>
-              </Button>
-            )
-          },
-          { key: "created", header: "Created", width: "200px", render: (session) => <span className="text-muted">{session.createdLabel}</span> }
-        ]}
-        actionsWidth="56px"
-        renderActions={(session) => <SessionRowActions session={session} onCancel={() => cancelCurrent(session)} />}
-      />
+              )
+            },
+            { key: "created", header: "Created", width: "200px", render: (session) => <span className="text-muted">{session.createdLabel}</span> }
+          ]}
+          actionsWidth="56px"
+          renderActions={(session) => <SessionRowActions session={session} onCancel={() => cancelCurrent(session)} />}
+        />
+      </div>
       <CreateSessionDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
