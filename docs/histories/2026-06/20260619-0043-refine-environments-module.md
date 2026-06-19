@@ -45,3 +45,10 @@ Keep the environment persistence model unchanged while improving the console fid
 - Updated the local filter row to the current Claude geometry: 320px search field and 98px Status select at x=608.
 - Nudged the Environments row actions trigger 4px to match the captured action button position inside the 56px actions column.
 - Verified the local `/environments` page with OBU after the change; filter, table, row, and actions button x/width/height values match the Claude reference, while global shell vertical positioning remains a separate follow-up.
+
+### Follow-up: Environments List Shell Rhythm
+
+- Re-captured Claude and local `/environments` with OBU at a 1272px viewport.
+- Matched the list shell to the Claude geometry: content x=280, filter x=280/y=204/w=968, search input x=316/w=272, Status select x=608/w=98, table shell x=272/y=252/w=984, table x=280/y=260/w=968, and first row y=292.
+- Restyled the search field and Status select to the source borderless `bg-white/50` 32px controls.
+- Wrapped the Environments table in the same `-mx-2 -my-2 p-2` horizontal overflow shell used by the source table.
