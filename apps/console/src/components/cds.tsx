@@ -3,20 +3,20 @@ import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import * as Select from "@radix-ui/react-select";
 import * as Tabs from "@radix-ui/react-tabs";
 import { Check, ChevronDown } from "lucide-react";
-import type { ReactNode } from "react";
+import { forwardRef, type ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 
-export function Button({
+export const Button = forwardRef<HTMLButtonElement, React.ButtonHTMLAttributes<HTMLButtonElement> & {
+  variant?: "primary" | "secondary" | "ghost" | "icon";
+  size?: "md" | "sm";
+}>(function Button({
   children,
   variant = "primary",
   size = "md",
   className = "",
   type = "button",
   ...props
-}: React.ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: "primary" | "secondary" | "ghost" | "icon";
-  size?: "md" | "sm";
-}) {
+}, ref) {
   const variants = {
     primary: "bg-ink text-white hover:bg-black",
     secondary: "border border-line bg-canvas text-ink hover:bg-fill",
@@ -29,6 +29,7 @@ export function Button({
   };
   return (
     <button
+      ref={ref}
       data-cds="Button"
       type={type}
       className={`cds-focus inline-flex shrink-0 items-center justify-center gap-2 rounded-control font-medium opacity-100 transition-shadow disabled:pointer-events-none disabled:opacity-50 ${variants[variant]} ${variant === "icon" ? "h-7 w-7 px-0" : sizes[size]} ${className}`}
@@ -37,7 +38,7 @@ export function Button({
       {children}
     </button>
   );
-}
+});
 
 export function Badge({ children, tone = "neutral", className = "" }: { children: ReactNode; tone?: "neutral" | "green" | "blue" | "red"; className?: string }) {
   const tones = {
