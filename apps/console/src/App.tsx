@@ -5131,7 +5131,7 @@ function CreateSkillDialog({
           </p>
         </div>
         <div className="sticky bottom-0 -mx-6 mt-[15px] flex justify-end bg-white px-6 py-0">
-          <Button variant="ghost" className="h-[31px] w-[84px] rounded-[8px] px-0 [font-weight:550]" onClick={submit} disabled={!canContinue}>Continue</Button>
+          <Button className="h-[31px] w-[84px] rounded-[8px] px-0 [font-weight:550]" onClick={submit} disabled={!canContinue}>Continue</Button>
         </div>
       </div>
     </ConsoleDialog>
