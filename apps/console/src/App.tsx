@@ -1789,7 +1789,7 @@ function MemoryStoreDetailPage() {
   const folders = memoryFolders(memories);
 
   return (
-    <section className="-mt-3 flex h-[calc(100vh-88px)] flex-col overflow-hidden">
+    <section className="-mt-2 flex h-[calc(100vh-88px)] flex-col overflow-hidden">
       <div className="flex h-9 items-center justify-between">
         <nav className="flex items-center gap-2 text-sm text-muted">
           <Link className="rounded-control px-3 py-1.5 hover:bg-fill" to="/memory-stores">
@@ -1803,10 +1803,10 @@ function MemoryStoreDetailPage() {
       <div className="mt-4 flex h-14 items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
           <div className="flex h-7 min-w-0 items-center gap-2">
-            <h1 className="truncate text-xl font-semibold leading-7">{store.name}</h1>
-            <Badge className="h-[22px]" tone={memoryTone(store.status)}>{store.status}</Badge>
+            <h1 className="truncate text-xl leading-7 [font-weight:550]">{store.name}</h1>
+            <Badge className="h-5 rounded-[5px] [font-weight:550]" tone={memoryTone(store.status)}>{store.status}</Badge>
           </div>
-          <div className="mt-2 flex h-4 flex-wrap items-center gap-2 text-xs text-muted">
+          <div className="mt-3 flex h-4 flex-wrap items-center gap-2 text-xs text-muted">
             <button className="-mx-1 -my-0.5 rounded-md px-1 py-0.5 font-mono hover:bg-fill" onClick={() => copyText(store.id)}>
               <span>{shortId(store.id)}</span>
               <span className="hidden">{store.id}</span>
@@ -1817,7 +1817,7 @@ function MemoryStoreDetailPage() {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button className="!gap-1.5 !rounded-[8px] [font-weight:550]" onClick={() => setDialogOpen(true)}>
+          <Button variant="ghost" className="h-8 !gap-1.5 rounded-[8px] bg-transparent px-3 [font-weight:550] hover:bg-fill" onClick={() => setDialogOpen(true)}>
             <Plus className="h-4 w-4" />
             Add memory
           </Button>
@@ -3243,7 +3243,7 @@ function AddMemoryDialog({
           </div>
         </div>
         <div className="sticky bottom-0 -mx-6 mt-[15px] flex justify-end bg-white px-6 py-0">
-          <Button className="h-[31px] w-[69px] rounded-[8px] px-0 [font-weight:550]" onClick={submit} disabled={!canCreate}>Create</Button>
+          <Button variant="ghost" className="h-[31px] w-[69px] rounded-[8px] px-0 [font-weight:550]" onClick={submit} disabled={!canCreate}>Create</Button>
         </div>
       </div>
     </ConsoleDialog>
