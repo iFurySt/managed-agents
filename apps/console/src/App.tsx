@@ -3164,6 +3164,8 @@ function DeploymentTriggerPicker({ value, onValueChange }: { value: string; onVa
 }
 
 function DeploymentScheduleFields({ expression }: { expression: string }) {
+  const [customCron, setCustomCron] = useState(false);
+  const [cronExpression, setCronExpression] = useState(expression);
   const nextRuns = ["Mon, Jun 22, 2026, 9:00 AM", "Tue, Jun 23, 2026, 9:00 AM", "Wed, Jun 24, 2026, 9:00 AM", "Thu, Jun 25, 2026, 9:00 AM", "Fri, Jun 26, 2026, 9:00 AM"];
 
   return (
@@ -3172,7 +3174,7 @@ function DeploymentScheduleFields({ expression }: { expression: string }) {
         <div className="grid gap-2">
           <label className="text-sm leading-none [font-weight:550]">Frequency</label>
           <Button variant="ghost" className="h-8 w-full justify-between rounded-[8px] px-2 font-normal">
-            Weekdays
+            {customCron ? "Custom cron" : "Weekdays"}
             <ChevronDown className="h-4 w-4 text-muted" />
           </Button>
         </div>
@@ -3184,17 +3186,31 @@ function DeploymentScheduleFields({ expression }: { expression: string }) {
           </Button>
         </div>
       </div>
-      <div className="grid gap-2">
-        <label className="text-sm leading-none [font-weight:550]">At</label>
-        <div className="flex h-8 items-center gap-2">
-          <div className="inline-flex h-8 rounded-[8px] bg-white/50 p-0.5 text-sm">
-            <button className="h-7 rounded-[7px] px-3 text-muted" type="button">AM</button>
-            <button className="h-7 rounded-[7px] bg-white px-3 text-ink shadow-sm" type="button">PM</button>
+      {customCron ? (
+        <label className="grid gap-2 text-sm leading-none [font-weight:550]">
+          Cron expression
+          <input
+            data-cds="TextInput"
+            className="cds-focus h-8 rounded-[8px] border-0 bg-white/50 px-2 font-mono text-sm font-normal leading-5 text-ink"
+            placeholder={expression}
+            value={cronExpression}
+            onChange={(event) => setCronExpression(event.target.value)}
+          />
+          <span className="text-[13px] font-normal leading-[18px] text-muted">minute · hour · day · month · weekday — * any, */5 every 5th, 1-5 range</span>
+        </label>
+      ) : (
+        <div className="grid gap-2">
+          <label className="text-sm leading-none [font-weight:550]">At</label>
+          <div className="flex h-8 items-center gap-2">
+            <div className="inline-flex h-8 rounded-[8px] bg-white/50 p-0.5 text-sm">
+              <button className="h-7 rounded-[7px] px-3 text-muted" type="button">AM</button>
+              <button className="h-7 rounded-[7px] bg-white px-3 text-ink shadow-sm" type="button">PM</button>
+            </div>
+            <div className="flex h-8 min-w-0 flex-1 items-center rounded-[8px] bg-white/50 px-2 font-mono text-sm">{expression}</div>
+            <Button variant="ghost" className="h-8 w-[76px] rounded-[8px] px-0 [font-weight:550]" onClick={() => setCustomCron(true)}>Edit cron</Button>
           </div>
-          <div className="flex h-8 min-w-0 flex-1 items-center rounded-[8px] bg-white/50 px-2 font-mono text-sm">{expression}</div>
-          <Button variant="ghost" className="h-8 w-[76px] rounded-[8px] px-0 [font-weight:550]">Edit cron</Button>
         </div>
-      </div>
+      )}
       <div className="grid gap-2">
         <div className="flex items-center gap-2 text-sm [font-weight:550]">
           Next 5 runs
