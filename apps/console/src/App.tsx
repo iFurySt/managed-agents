@@ -2931,6 +2931,7 @@ function CreateDeploymentDialog({
   const [vault, setVault] = useState("");
   const [memoryStore, setMemoryStore] = useState("");
   const [trigger, setTrigger] = useState("");
+  const scheduleExpression = "0 9 * * 1-5";
 
   const canCreate = name && agentId && initialMessage && environmentId && trigger;
   const fieldLabelClass = "text-sm leading-none [font-weight:550]";
@@ -2953,7 +2954,7 @@ function CreateDeploymentDialog({
       vaults: vault ? [vault] : [],
       memoryStores: memoryStore ? [memoryStore] : [],
       trigger,
-      schedule: trigger === "Schedule" ? "0 1 * * *" : "Manual",
+      schedule: trigger === "Schedule" ? scheduleExpression : "Manual",
       timezone: "Asia/Shanghai"
     });
     onCreated(deployment);
@@ -3097,20 +3098,118 @@ function CreateDeploymentDialog({
           </div>
           <div className="grid gap-2">
             <label className={fieldLabelClass}>Trigger</label>
-            <FieldSelect
-              label=""
-              value={trigger || "Select a trigger"}
-              options={["Select a trigger", "Manual", "Schedule"]}
-              onValueChange={(value) => setTrigger(value === "Select a trigger" ? "" : value)}
-              triggerClassName="!h-8 w-full border-0 bg-white/50 px-2"
-            />
+            <DeploymentTriggerPicker value={trigger} onValueChange={setTrigger} />
           </div>
+          {trigger === "Schedule" ? <DeploymentScheduleFields expression={scheduleExpression} /> : null}
         </div>
         <div className="sticky bottom-0 -mx-6 mt-[19px] flex justify-end bg-white px-6 pb-[25px] pt-0">
           <Button className="h-8 w-[71px] rounded-[8px] px-0 [font-weight:550]" onClick={submit} disabled={!canCreate}>Create</Button>
         </div>
       </div>
     </ConsoleDialog>
+  );
+}
+
+function DeploymentTriggerPicker({ value, onValueChange }: { value: string; onValueChange: (value: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const options = [
+    { value: "Manual", description: "Run on demand from the dashboard or API", icon: Play },
+    { value: "Schedule", description: "Run automatically on a cron schedule", icon: Clock }
+  ];
+  const selected = options.find((option) => option.value === value);
+
+  return (
+    <div className="relative">
+      <Button
+        variant="ghost"
+        className="h-8 w-full justify-between rounded-[8px] px-2 font-normal"
+        aria-expanded={open}
+        aria-label="Select deployment trigger"
+        onClick={() => setOpen((current) => !current)}
+      >
+        <span className="inline-flex min-w-0 items-center gap-2 truncate">
+          {selected ? <selected.icon className="h-4 w-4 text-muted" /> : null}
+          <span className="truncate">{selected?.value ?? "Select a trigger"}</span>
+        </span>
+        <ChevronDown className="h-4 w-4 text-muted" />
+      </Button>
+      {open ? (
+        <div role="listbox" className="absolute left-1 top-10 z-50 w-[464px] rounded-[10px] border border-line bg-white p-1 shadow-lg">
+          {options.map((option) => {
+            const Icon = option.icon;
+            return (
+              <button
+                key={option.value}
+                role="option"
+                aria-selected={value === option.value}
+                className="flex h-11 w-full cursor-pointer items-center gap-3 rounded-[8px] px-2 text-left outline-none hover:bg-fill"
+                type="button"
+                onClick={() => {
+                  onValueChange(option.value);
+                  setOpen(false);
+                }}
+              >
+                <Icon className="h-4 w-4 text-muted" />
+                <span className="grid min-w-0 gap-0.5">
+                  <span className="text-sm leading-4 text-ink">{option.value}</span>
+                  <span className="truncate text-[13px] leading-4 text-muted">{option.description}</span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function DeploymentScheduleFields({ expression }: { expression: string }) {
+  const nextRuns = ["Mon, Jun 22, 2026, 9:00 AM", "Tue, Jun 23, 2026, 9:00 AM", "Wed, Jun 24, 2026, 9:00 AM", "Thu, Jun 25, 2026, 9:00 AM", "Fri, Jun 26, 2026, 9:00 AM"];
+
+  return (
+    <div className="grid gap-4">
+      <div className="grid grid-cols-[214px_214px] gap-5">
+        <div className="grid gap-2">
+          <label className="text-sm leading-none [font-weight:550]">Frequency</label>
+          <Button variant="ghost" className="h-8 w-full justify-between rounded-[8px] px-2 font-normal">
+            Weekdays
+            <ChevronDown className="h-4 w-4 text-muted" />
+          </Button>
+        </div>
+        <div className="grid gap-2">
+          <label className="text-sm leading-none [font-weight:550]">Timezone</label>
+          <Button variant="ghost" className="h-8 w-full justify-between rounded-[8px] px-2 font-normal">
+            <span className="truncate">(GMT+08:00) Asia/Shanghai</span>
+            <ChevronDown className="h-4 w-4 text-muted" />
+          </Button>
+        </div>
+      </div>
+      <div className="grid gap-2">
+        <label className="text-sm leading-none [font-weight:550]">At</label>
+        <div className="flex h-8 items-center gap-2">
+          <div className="inline-flex h-8 rounded-[8px] bg-white/50 p-0.5 text-sm">
+            <button className="h-7 rounded-[7px] px-3 text-muted" type="button">AM</button>
+            <button className="h-7 rounded-[7px] bg-white px-3 text-ink shadow-sm" type="button">PM</button>
+          </div>
+          <div className="flex h-8 min-w-0 flex-1 items-center rounded-[8px] bg-white/50 px-2 font-mono text-sm">{expression}</div>
+          <Button variant="ghost" className="h-8 w-[76px] rounded-[8px] px-0 [font-weight:550]">Edit cron</Button>
+        </div>
+      </div>
+      <div className="grid gap-2">
+        <div className="flex items-center gap-2 text-sm [font-weight:550]">
+          Next 5 runs
+          <Info className="h-4 w-4 text-muted" />
+        </div>
+        <div className="grid gap-1.5 text-sm text-[#4e4a45]">
+          {nextRuns.map((run) => (
+            <div key={run} className="flex h-5 items-center gap-2">
+              <Clock className="h-3.5 w-3.5 text-muted" />
+              {run}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 }
 
