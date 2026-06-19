@@ -2188,34 +2188,34 @@ function CreateAgentDialog({
             </div>
           </div>
         </div>
-        <div className="mt-5">
-          <h2 className="mb-3 text-base font-semibold">Agent config</h2>
-          <div className="rounded-cds border border-line bg-white p-3">
-            <div className="mb-3 flex items-center justify-between">
-              <div className="inline-flex rounded-full bg-fill p-1 text-sm">
-                <button className={`rounded-full px-3 py-1 ${format === "YAML" ? "bg-white font-semibold shadow-sm" : "text-muted"}`} onClick={() => setFormat("YAML")}>YAML</button>
-                <button className={`rounded-full px-3 py-1 ${format === "JSON" ? "bg-white font-semibold shadow-sm" : "text-muted"}`} onClick={() => setFormat("JSON")}>JSON</button>
+        <div className="mt-[14px]">
+          <h2 className="mb-[11px] text-sm leading-5 [font-weight:580]">Agent config</h2>
+          <div className="h-[264px] overflow-hidden rounded-cds border border-line bg-white">
+            <div className="flex h-[43px] items-center justify-between pb-0 pl-3 pr-2 pt-0">
+              <div className="flex h-[27px] -translate-x-px text-sm leading-5">
+                <button className={`h-[27px] w-[59px] rounded-full px-[10px] [font-weight:550] ${format === "YAML" ? "bg-fill text-ink" : "text-muted"}`} onClick={() => setFormat("YAML")}>YAML</button>
+                <button className={`h-[27px] w-[58px] rounded-full px-[10px] [font-weight:550] ${format === "JSON" ? "bg-fill text-ink" : "text-muted"}`} onClick={() => setFormat("JSON")}>JSON</button>
               </div>
-              <Button variant="ghost" className="h-7 w-7 px-0" aria-label="Copy code" onClick={() => copyText(format === "YAML" ? configYaml : jsonConfig)}>
+              <Button variant="ghost" className="h-[27px] w-[27px] translate-x-px rounded-control px-0" aria-label="Copy code" onClick={() => copyText(format === "YAML" ? configYaml : jsonConfig)}>
                 <Copy className="h-4 w-4" />
               </Button>
             </div>
-            <p className="mb-2 text-xs text-muted">Tab inserts indentation. Press Escape then Tab to move focus out of the editor.</p>
             {format === "YAML" ? (
               <textarea
-                className="min-h-[260px] w-full resize-y border-0 bg-white font-mono text-sm leading-6 outline-none"
+                className="h-[219px] w-full resize-none overflow-auto border-0 bg-transparent px-[11px] py-3 font-mono text-[13px] leading-[19px] outline-none"
+                aria-label="Agent config YAML. Tab inserts indentation. Press Escape then Tab to move focus out of the editor."
                 value={configYaml}
                 onChange={(event) => setConfigYaml(event.target.value)}
               />
             ) : (
-              <pre className="min-h-[260px] whitespace-pre-wrap font-mono text-sm leading-6">
+              <pre className="h-[219px] overflow-auto whitespace-pre-wrap px-[11px] py-3 font-mono text-[13px] leading-[19px]">
                 {jsonConfig}
               </pre>
             )}
           </div>
         </div>
-        <div className="sticky bottom-0 -mx-6 mt-5 flex justify-end border-t border-transparent bg-white px-6 py-5">
-          <Button onClick={submit}>Create agent</Button>
+        <div className="mt-[15px] flex justify-end">
+          <Button className="h-[31px] w-[110px] translate-x-px rounded-[8px] px-0 [font-weight:550]" onClick={submit}>Create agent</Button>
         </div>
       </div>
     </ConsoleDialog>
@@ -3726,10 +3726,8 @@ function filterSessionEvents(events: SessionEvent[], roleFilter: string, search:
 
 function defaultAgentYaml(agent?: Agent) {
   return `name: ${agent?.name ?? "Untitled agent"}
-model:
-  id: ${agent?.model ?? "claude-sonnet-4-6"}
-  speed: standard
 description: ${agent?.description ?? "A blank starting point with the core toolset."}
+model: ${agent?.model ?? "claude-sonnet-4-6"}
 system: ${JSON.stringify(agent?.systemPrompt ?? "You are a general-purpose agent that can research, write code, run commands, and use connected tools to complete the user's task end to end.")}
 mcp_servers: []
 tools:
