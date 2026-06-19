@@ -3509,17 +3509,18 @@ function DeploymentTriggerPicker({ value, onValueChange }: { value: string; onVa
 }
 
 type DeploymentFrequency = "Every minute" | "Every hour" | "Daily" | "Weekdays" | "Weekly" | "Custom cron";
+type ScheduleMeridiem = "AM" | "PM";
 
-const deploymentFrequencyOptions: { value: DeploymentFrequency; expression?: string }[] = [
-  { value: "Every minute", expression: "* * * * *" },
-  { value: "Every hour", expression: "0 * * * *" },
-  { value: "Daily", expression: "0 9 * * *" },
-  { value: "Weekdays", expression: "0 9 * * 1-5" },
-  { value: "Weekly", expression: "0 9 * * 1" },
+const deploymentFrequencyOptions: { value: DeploymentFrequency }[] = [
+  { value: "Every minute" },
+  { value: "Every hour" },
+  { value: "Daily" },
+  { value: "Weekdays" },
+  { value: "Weekly" },
   { value: "Custom cron" }
 ];
 
-const deploymentScheduleRuns: Record<DeploymentFrequency, string[]> = {
+const deploymentScheduleRunDates: Record<Exclude<DeploymentFrequency, "Custom cron">, string[]> = {
   "Every minute": [
     "Fri, Jun 19, 2026, 11:02 PM",
     "Fri, Jun 19, 2026, 11:03 PM",
@@ -3554,15 +3555,47 @@ const deploymentScheduleRuns: Record<DeploymentFrequency, string[]> = {
     "Mon, Jul 6, 2026, 9:00 AM",
     "Mon, Jul 13, 2026, 9:00 AM",
     "Mon, Jul 20, 2026, 9:00 AM"
-  ],
-  "Custom cron": [
-    "Mon, Jun 22, 2026, 9:00 AM",
-    "Tue, Jun 23, 2026, 9:00 AM",
-    "Wed, Jun 24, 2026, 9:00 AM",
-    "Thu, Jun 25, 2026, 9:00 AM",
-    "Fri, Jun 26, 2026, 9:00 AM"
   ]
 };
+
+function parseScheduleTime(value: string) {
+  const match = value.trim().match(/^(\d{1,2})(?::(\d{1,2}))?$/);
+  if (!match) return null;
+  const hour = Number(match[1]);
+  const minute = match[2] === undefined ? 0 : Number(match[2]);
+  if (hour < 1 || hour > 12 || minute < 0 || minute > 59) return null;
+  return { hour, minute };
+}
+
+function getScheduleHour24(hour: number, meridiem: ScheduleMeridiem) {
+  if (meridiem === "AM") return hour === 12 ? 0 : hour;
+  return hour === 12 ? 12 : hour + 12;
+}
+
+function formatScheduleTimeForRuns(value: string, meridiem: ScheduleMeridiem) {
+  const parsed = parseScheduleTime(value);
+  if (!parsed) return `${value || "9:00"} ${meridiem}`;
+  return `${parsed.hour}:${String(parsed.minute).padStart(2, "0")} ${meridiem}`;
+}
+
+function getScheduleExpressionForFrequency(frequency: DeploymentFrequency, time: string, meridiem: ScheduleMeridiem) {
+  if (frequency === "Every minute") return "* * * * *";
+  if (frequency === "Every hour") return "0 * * * *";
+  if (frequency === "Custom cron") return null;
+  const parsed = parseScheduleTime(time);
+  if (!parsed) return null;
+  const hour24 = getScheduleHour24(parsed.hour, meridiem);
+  if (frequency === "Daily") return `${parsed.minute} ${hour24} * * *`;
+  if (frequency === "Weekly") return `${parsed.minute} ${hour24} * * 1`;
+  return `${parsed.minute} ${hour24} * * 1-5`;
+}
+
+function getDeploymentScheduleRuns(frequency: DeploymentFrequency, time: string, meridiem: ScheduleMeridiem) {
+  const runs = frequency === "Custom cron" ? deploymentScheduleRunDates.Weekdays : deploymentScheduleRunDates[frequency];
+  if (frequency === "Every minute" || frequency === "Every hour") return runs;
+  const displayTime = formatScheduleTimeForRuns(time, meridiem);
+  return runs.map((run) => run.replace(/\d{1,2}:\d{2} [AP]M$/, displayTime));
+}
 
 type DeploymentTimezoneOption = {
   value: string;
@@ -3699,7 +3732,17 @@ function DeploymentFrequencyPicker({ value, onValueChange }: { value: Deployment
   );
 }
 
-function DeploymentTimeField() {
+function DeploymentTimeField({
+  value,
+  meridiem,
+  onValueChange,
+  onMeridiemChange
+}: {
+  value: string;
+  meridiem: ScheduleMeridiem;
+  onValueChange: (value: string) => void;
+  onMeridiemChange: (meridiem: ScheduleMeridiem) => void;
+}) {
   return (
     <div data-cds="Field" className="flex min-w-0 flex-col gap-2">
       <label className="text-sm leading-none [font-weight:550]">At</label>
@@ -3707,9 +3750,10 @@ function DeploymentTimeField() {
         <input
           data-cds="TextInput"
           className="cds-focus h-8 w-[110px] rounded-[8px] border-0 bg-white/50 px-3 text-sm font-normal leading-5 text-ink"
-          value="9:00"
-          readOnly
-          aria-label="Scheduled time"
+          placeholder="9:00"
+          value={value}
+          aria-label="Time"
+          onChange={(event) => onValueChange(event.target.value)}
         />
         <div
           data-cds="SegmentedControl"
@@ -3717,9 +3761,25 @@ function DeploymentTimeField() {
           aria-label="AM or PM"
           className="relative inline-flex h-8 w-fit shrink-0 items-stretch rounded-[8px] bg-black/[0.05] p-px text-sm"
         >
-          <div className="absolute bottom-px left-px top-px w-[47px] rounded-[7px] bg-white shadow-sm" aria-hidden />
-          <button type="button" role="radio" aria-checked="true" className="relative z-10 h-[30px] px-3 text-ink">AM</button>
-          <button type="button" role="radio" aria-checked="false" className="relative z-10 h-[30px] px-3 text-muted">PM</button>
+          <div className={`absolute bottom-px top-px w-[47px] rounded-[7px] bg-white shadow-sm ${meridiem === "AM" ? "left-px" : "left-[48px]"}`} aria-hidden />
+          <button
+            type="button"
+            role="radio"
+            aria-checked={meridiem === "AM"}
+            className={`relative z-10 h-[30px] px-3 ${meridiem === "AM" ? "text-ink" : "text-muted"}`}
+            onClick={() => onMeridiemChange("AM")}
+          >
+            AM
+          </button>
+          <button
+            type="button"
+            role="radio"
+            aria-checked={meridiem === "PM"}
+            className={`relative z-10 h-[30px] px-3 ${meridiem === "PM" ? "text-ink" : "text-muted"}`}
+            onClick={() => onMeridiemChange("PM")}
+          >
+            PM
+          </button>
         </div>
       </div>
     </div>
@@ -3831,13 +3891,29 @@ function DeploymentScheduleFields({
   onTimezoneChange: (timezone: string) => void;
 }) {
   const [frequency, setFrequency] = useState<DeploymentFrequency>("Weekdays");
+  const [scheduleTime, setScheduleTime] = useState("9:00");
+  const [meridiem, setMeridiem] = useState<ScheduleMeridiem>("AM");
   const customCron = frequency === "Custom cron";
-  const nextRuns = deploymentScheduleRuns[customCron ? "Custom cron" : frequency];
+  const nextRuns = getDeploymentScheduleRuns(frequency, scheduleTime, meridiem);
+
+  function syncExpression(nextFrequency: DeploymentFrequency, nextTime: string, nextMeridiem: ScheduleMeridiem) {
+    const nextExpression = getScheduleExpressionForFrequency(nextFrequency, nextTime, nextMeridiem);
+    if (nextExpression) onExpressionChange(nextExpression);
+  }
 
   function selectFrequency(nextFrequency: DeploymentFrequency) {
     setFrequency(nextFrequency);
-    const option = deploymentFrequencyOptions.find((item) => item.value === nextFrequency);
-    if (option?.expression) onExpressionChange(option.expression);
+    syncExpression(nextFrequency, scheduleTime, meridiem);
+  }
+
+  function changeTime(nextTime: string) {
+    setScheduleTime(nextTime);
+    syncExpression(frequency, nextTime, meridiem);
+  }
+
+  function changeMeridiem(nextMeridiem: ScheduleMeridiem) {
+    setMeridiem(nextMeridiem);
+    syncExpression(frequency, scheduleTime, nextMeridiem);
   }
 
   return (
@@ -3851,13 +3927,13 @@ function DeploymentScheduleFields({
           {frequency === "Weekly" ? <DeploymentDayField /> : <DeploymentTimezoneField value={timezone} onValueChange={onTimezoneChange} />}
           {frequency === "Daily" || frequency === "Weekdays" ? (
             <>
-              <DeploymentTimeField />
+              <DeploymentTimeField value={scheduleTime} meridiem={meridiem} onValueChange={changeTime} onMeridiemChange={changeMeridiem} />
               <div className="h-[54px]" aria-hidden />
             </>
           ) : null}
           {frequency === "Weekly" ? (
             <>
-              <DeploymentTimeField />
+              <DeploymentTimeField value={scheduleTime} meridiem={meridiem} onValueChange={changeTime} onMeridiemChange={changeMeridiem} />
               <DeploymentTimezoneField value={timezone} onValueChange={onTimezoneChange} />
             </>
           ) : null}
