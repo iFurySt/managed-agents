@@ -542,14 +542,13 @@ function SessionDetailPage() {
             </Button>
           </div>
         </div>
-        <CdsTabs.Content value="transcript" className="grid flex-1 grid-cols-[minmax(0,1fr)_320px]">
-          <div className="py-4">
-            <div className="mb-3 text-xs font-semibold text-muted">30m 9s</div>
+        <CdsTabs.Content value="transcript" className="-ml-8 grid w-[1016px] flex-1 grid-cols-[496px_520px]">
+          <div className="pt-[31px]">
             <div className="flex flex-col">
               {filteredEvents.map((event) => (
                 <button
                   key={event.id}
-                  className="grid h-9 grid-cols-[64px_minmax(0,1fr)_280px] items-center rounded-control px-8 text-left text-sm hover:bg-fill"
+                  className="grid h-9 grid-cols-[64px_minmax(0,1fr)_215px] items-center rounded-control px-8 text-left text-sm leading-[21px] hover:bg-fill"
                   onClick={() => setDetailEvent(event.id)}
                 >
                   <span className="font-semibold text-muted">{event.role}</span>
@@ -568,42 +567,27 @@ function SessionDetailPage() {
               {filteredEvents.length === 0 ? <EmptyState compact title="No matching events" description="" /> : null}
             </div>
           </div>
-          <aside className="border-l border-line bg-white px-5 py-5">
-            <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-sm font-semibold">Event detail</h2>
-              <Button variant="ghost" className="h-7 w-7 px-0" aria-label="Close detail panel" onClick={() => setDetailEvent(null)}>
-                ×
-              </Button>
-            </div>
+          <aside className="relative mt-[53px] bg-canvas px-6 pt-3">
+            <Button variant="ghost" className="absolute right-3 top-3 h-7 w-7 px-0" aria-label="Close detail panel" onClick={() => setDetailEvent(null)}>
+              ×
+            </Button>
             {selectedEvent ? (
-              <div className="grid gap-4 text-sm">
-                <div>
-                  <div className="text-xs font-semibold text-muted">Event</div>
-                  <div className="mt-1 flex items-center gap-2">
+              <div className="text-sm">
+                <div className="pr-10">
+                  <h2 className="text-sm leading-6 text-ink">{selectedEvent.role} {selectedEvent.kind}</h2>
+                  <div className="mt-1 flex h-5 items-center gap-2 text-xs text-muted">
                     <span className="font-mono">{shortId(selectedEvent.id)}</span>
-                    <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${selectedEvent.id}`} onClick={() => copyText(selectedEvent.id)}>
-                      <Copy className="h-3.5 w-3.5" />
+                    <span className="hidden font-mono">{selectedEvent.id}</span>
+                    <Button variant="ghost" size="sm" className="h-[20px] w-[20px] px-0" aria-label={`Copy ${selectedEvent.id}`} onClick={() => copyText(selectedEvent.id)}>
+                      <Copy className="h-3 w-3" />
                     </Button>
+                    <span>·</span>
+                    <span>{selectedEvent.offset}</span>
                   </div>
-                  <div className="mt-1 text-xs text-muted">{selectedEvent.offset}</div>
                 </div>
-                <div>
-                  <div className="text-xs font-semibold text-muted">Type</div>
-                  <div className="mt-1">{selectedEvent.role} · {selectedEvent.kind}</div>
-                </div>
-                <div>
-                  <div className="text-xs font-semibold text-muted">Summary</div>
-                  <p className="mt-1 leading-6 text-[#3f3a35]">{selectedEvent.summary}</p>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <div className="text-xs font-semibold text-muted">Tokens</div>
-                    <div className="mt-1">{selectedEvent.tokens || "–"}</div>
-                  </div>
-                  <div>
-                    <div className="text-xs font-semibold text-muted">Cost</div>
-                    <div className="mt-1">{selectedEvent.cost || "–"}</div>
-                  </div>
+                <div className="mt-[29px]">
+                  <div className="mb-2 text-xs leading-4 text-muted">Content</div>
+                  <pre className="whitespace-pre-wrap font-sans text-sm leading-[22.75px] text-[#4e4a45]">{selectedEvent.summary}</pre>
                 </div>
               </div>
             ) : null}
