@@ -2445,7 +2445,7 @@ function CreateAgentDialog({
                 onChange={(event) => setDescription(event.target.value)}
               />
               <div className="mt-[10px] flex justify-end">
-                <Button variant="secondary" className="h-[27px] w-[82px] rounded-control px-0" disabled={!description.trim()}>
+                <Button variant="ghost" className="h-[27px] w-[82px] rounded-control bg-transparent !px-[10px] [font-weight:550]" disabled={!description.trim()}>
                   Generate
                 </Button>
               </div>
