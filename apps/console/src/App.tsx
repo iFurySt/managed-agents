@@ -2150,30 +2150,42 @@ function CreateAgentDialog({
   }
 
   return (
-    <ConsoleDialog title="Create agent" description="Start from a template or describe what you need." open={open} onOpenChange={onOpenChange}>
-      <div className="max-h-[calc(86vh-92px)] overflow-y-auto px-6 pb-0 pt-4">
-        <div className="mb-3 flex items-center gap-2 text-sm font-semibold">
+    <ConsoleDialog
+      title="Create agent"
+      description="Start from a template or describe what you need."
+      open={open}
+      onOpenChange={onOpenChange}
+      contentClassName="h-[650px] w-[706px] max-w-[calc(100vw-32px)] !rounded-[12px] border-0"
+      headerClassName="flex items-start justify-between pl-6 pr-4 pt-4"
+      titleClassName="mt-1 text-[22px] leading-[26px] text-ink [font-weight:580]"
+      closeButtonClassName="h-[31px] w-[31px] rounded-[8px] px-0"
+      closeLabel="Close"
+    >
+      <div className="h-[calc(650px-80px)] overflow-y-auto px-6 pb-0 pt-[10px]">
+        <button className="mb-[11px] flex h-5 w-full items-center gap-2 rounded-[8px] text-sm" type="button">
           <ChevronDown className="h-4 w-4" />
           Starting point
           <span className="text-muted">·</span>
           <span className="font-normal text-muted">Blank agent</span>
-        </div>
-        <div className="rounded-cds border border-line bg-fill p-1">
-          <div className="grid grid-cols-2 rounded-control bg-fill text-sm">
-            <button className="h-9 rounded-control bg-white font-medium shadow-sm">Describe your agent</button>
-            <button className="h-9 text-muted">Template</button>
+        </button>
+        <div className="rounded-cds bg-fill">
+          <div className="grid h-[31px] grid-cols-2 rounded-cds bg-fill p-px text-sm">
+            <button className="h-[29px] rounded-control bg-white font-medium shadow-sm">Describe your agent</button>
+            <button className="h-[29px] text-muted">Template</button>
           </div>
-          <div className="mt-3 flex min-h-[116px] rounded-control border border-line bg-white p-3">
+          <div className="mt-[23px] min-h-[105px] rounded-control bg-white px-3 pb-3 pt-0">
             <textarea
-              className="min-h-[84px] flex-1 resize-none border-0 text-sm outline-none placeholder:text-muted"
+              className="mt-[2px] h-[45px] w-full resize-none border-0 text-sm leading-[22.75px] outline-none placeholder:text-muted"
               aria-label="Describe your agent"
               placeholder="Summarizes new GitHub PRs and posts a digest to Slack."
               value={description}
               onChange={(event) => setDescription(event.target.value)}
             />
-            <Button variant="secondary" className="self-end" disabled={!description.trim()}>
-              Generate
-            </Button>
+            <div className="mt-[10px] flex justify-end">
+              <Button variant="secondary" className="h-[27px] w-[82px] rounded-control px-0" disabled={!description.trim()}>
+                Generate
+              </Button>
+            </div>
           </div>
         </div>
         <div className="mt-5">
