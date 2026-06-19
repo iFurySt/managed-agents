@@ -2941,6 +2941,7 @@ function CreateDeploymentDialog({
   useEffect(() => {
     if (!open) return;
     if (initialAgentId) setAgentId(initialAgentId);
+    else setAgentId("agent_013mi1SmR2hJ6Hk6wNTeJvF9");
     if (initialEnvironmentId) setEnvironmentId(initialEnvironmentId);
   }, [initialAgentId, initialEnvironmentId, open]);
 
@@ -2993,7 +2994,7 @@ function CreateDeploymentDialog({
             />
           </label>
           {scopedAgent ? (
-            <div className="grid grid-cols-[292px_160px] gap-5">
+            <div className="grid grid-cols-[300px_160px] gap-3">
               <div className="grid gap-2">
                 <div className="flex items-center justify-between">
                   <label className={fieldLabelClass}>Agent</label>
@@ -3014,22 +3015,25 @@ function CreateDeploymentDialog({
               </div>
             </div>
           ) : (
-            <div className="grid gap-2">
-              <div className="flex items-center justify-between">
-                <label className={fieldLabelClass}>Agent</label>
-                <a className={manageLinkClass} href="/agents" target="_blank" rel="noreferrer">
-                  Manage agents
-                  <ExternalLink className="h-3 w-3" />
-                  <span className="sr-only">(opens in new tab)</span>
-                </a>
+            <div className="grid grid-cols-[292px_160px] gap-5">
+              <div className="grid gap-2">
+                <div className="flex items-center justify-between">
+                  <label className={fieldLabelClass}>Agent</label>
+                  <a className={manageLinkClass} href="/agents" target="_blank" rel="noreferrer">
+                    Manage agents
+                    <ExternalLink className="h-3 w-3" />
+                    <span className="sr-only">(opens in new tab)</span>
+                  </a>
+                </div>
+                <DeploymentAgentPicker value={agentId} onValueChange={setAgentId} />
               </div>
-              <FieldSelect
-                label=""
-                value={agentId || "Select an agent"}
-                options={["Select an agent", "agent_017k8CPYuCFRD9AmupUeXd2Z", "agent_013mi1SmR2hJ6Hk6wNTeJvF9", "agent_01AVRPTGyYareCeoUasn66q5"]}
-                onValueChange={(value) => setAgentId(value === "Select an agent" ? "" : value)}
-                triggerClassName="!h-8 w-full border-0 bg-white/50 px-2"
-              />
+              <div className="grid gap-2">
+                <label className={fieldLabelClass}>Version</label>
+                <Button variant="ghost" className="h-8 w-[152px] justify-between rounded-[8px] px-2 font-normal">
+                  v1 · latest
+                  <ChevronDown className="h-4 w-4 text-muted" />
+                </Button>
+              </div>
             </div>
           )}
           <label className={`grid gap-2 ${fieldLabelClass}`}>
@@ -3091,6 +3095,65 @@ function CreateDeploymentDialog({
         </div>
       </div>
     </ConsoleDialog>
+  );
+}
+
+function DeploymentAgentPicker({ value, onValueChange }: { value: string; onValueChange: (value: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const options = [
+    { value: "agent_013mi1SmR2hJ6Hk6wNTeJvF9", name: "Managed SSH Reverse Tunnel Bootstrapper", updated: "3 days ago" },
+    { value: "agent_01AVRPTGyYareCeoUasn66q5", name: "Incident commander", updated: "3 days ago" },
+    { value: "agent_019BdsR2v3NW1DiEG62wpu3e", name: "World Cup Daily Digest (self-hosted clone)", updated: "3 days ago" },
+    { value: "agent_017k8CPYuCFRD9AmupUeXd2Z", name: "World Cup Daily Digest", updated: "3 days ago" },
+    { value: "agent_01MNpVPKyrSECHGA6HqAmREZ", name: "Untitled agent", updated: "3 days ago" }
+  ];
+  const selected = options.find((option) => option.value === value);
+
+  return (
+    <div data-cds="Field" className="relative w-[300px]">
+      <div className="h-8 rounded-[8px] bg-white/50">
+        <button
+          type="button"
+          role="combobox"
+          aria-expanded={open}
+          aria-label="Select deployment agent"
+          className="flex h-8 w-[292px] items-center justify-between rounded-[8px] bg-transparent px-2 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-[#c6613f]/35"
+          onClick={() => setOpen((current) => !current)}
+        >
+          <span className="truncate">{selected?.name ?? "Select an agent"}</span>
+          <ChevronDown className="h-4 w-4 shrink-0 text-muted" />
+        </button>
+      </div>
+      {open ? (
+        <div
+          data-cds="Combobox"
+          role="dialog"
+          className="absolute left-0 top-[39px] z-50 w-[472px] rounded-[12px] bg-white p-1 shadow-[0_10px_28px_rgba(0,0,0,0.12)]"
+        >
+          <div role="listbox" className="grid gap-0">
+            {options.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                role="option"
+                aria-selected={value === option.value}
+                className="flex h-12 w-full items-center justify-between rounded-[8px] px-3 text-left outline-none hover:bg-fill aria-selected:bg-black/[0.05]"
+                onClick={() => {
+                  onValueChange(option.value);
+                  setOpen(false);
+                }}
+              >
+                <span className="grid min-w-0 gap-0.5">
+                  <span className="truncate text-sm leading-4 text-ink">{option.name}</span>
+                  <span className="truncate text-xs leading-4 text-muted">{option.updated}</span>
+                </span>
+                {value === option.value ? <span className="h-2 w-2 shrink-0 rounded-full bg-[#c6613f]" aria-hidden /> : null}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </div>
   );
 }
 
