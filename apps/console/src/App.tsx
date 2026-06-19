@@ -3104,9 +3104,9 @@ function CreateAgentDialog({
             </button>
           </div>
           {startingPointMode === "describe" ? (
-            <div className="mt-[23px] min-h-[105px] rounded-control bg-white px-3 pb-3 pt-0">
+            <div className="mt-[12px] min-h-[113px] rounded-[8px] border border-[#d4d0c8] bg-white px-3 pb-3 pt-3">
               <textarea
-                className="mt-[2px] h-[45px] w-full resize-none border-0 text-sm leading-[22.75px] outline-none placeholder:text-muted"
+                className="h-[45px] w-full resize-none border-0 bg-transparent p-0 text-sm leading-[22.75px] outline-none placeholder:text-muted"
                 aria-label="Describe your agent"
                 placeholder="Summarizes new GitHub PRs and posts a digest to Slack."
                 value={description}
