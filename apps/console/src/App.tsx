@@ -554,6 +554,12 @@ function SessionDetailPage() {
     setSearchParams({});
   }
 
+  async function sendInterrupt() {
+    if (!session) return;
+    const updated = await createSessionMessage(session.id, "Interrupt the current run.");
+    setSession(updated);
+  }
+
   return (
     <section className="flex max-w-[952px] flex-col">
       <div className="-ml-8 -mt-3 mb-4 flex h-9 w-[984px] items-center justify-between">
@@ -567,7 +573,8 @@ function SessionDetailPage() {
         <div className="flex gap-2">
           <SessionDetailActions
             session={session}
-            transcriptText={transcriptText}
+            onSendInterrupt={sendInterrupt}
+            onSendEvent={() => setAskOpen(true)}
             onArchive={() => setArchiveOpen(true)}
           />
           <Button className="w-[116px]" onClick={() => setAskOpen(true)}>
@@ -5711,11 +5718,13 @@ function DeploymentActions({
 
 function SessionDetailActions({
   session,
-  transcriptText,
+  onSendInterrupt,
+  onSendEvent,
   onArchive
 }: {
   session: Session;
-  transcriptText: string;
+  onSendInterrupt: () => void;
+  onSendEvent: () => void;
   onArchive: () => void;
 }) {
   const archived = session.status === "Archived";
@@ -5728,22 +5737,28 @@ function SessionDetailActions({
         </Button>
       </CdsDropdownMenu.Trigger>
       <CdsDropdownMenu.Portal>
-        <CdsDropdownMenu.Content className="z-50 min-w-[180px] rounded-cds border border-line bg-white p-1 shadow-lg" align="end">
-          <CdsDropdownMenu.Item className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill" onSelect={() => copyText(session.id)}>
-            <Copy className="h-4 w-4" />
-            Copy session ID
+        <CdsDropdownMenu.Content data-cds="Menu" className="z-50 min-w-[160px] max-w-[320px] rounded-cds bg-white p-1 text-sm text-ink shadow-lg" align="end">
+          <CdsDropdownMenu.Item
+            className="flex h-8 w-full cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill"
+            onSelect={onSendInterrupt}
+          >
+            <Pause className="h-4 w-4 text-muted" />
+            Send interrupt
           </CdsDropdownMenu.Item>
-          <CdsDropdownMenu.Item className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill" onSelect={() => downloadText(`${session.id}-transcript.txt`, transcriptText)}>
-            <Download className="h-4 w-4" />
-            Download transcript
+          <CdsDropdownMenu.Item
+            className="flex h-8 w-full cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill"
+            onSelect={onSendEvent}
+          >
+            <Terminal className="h-4 w-4 text-muted" />
+            Send event…
           </CdsDropdownMenu.Item>
           <CdsDropdownMenu.Separator className="my-1 h-px bg-line" />
           <CdsDropdownMenu.Item
-            className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm text-[#a33a29] outline-none data-[highlighted]:bg-[#fff1ef]"
+            className="flex h-8 w-full cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-fill"
             onSelect={onArchive}
             disabled={archived}
           >
-            <Archive className="h-4 w-4" />
+            <Archive className="h-4 w-4 text-muted" />
             {archived ? "Archived" : "Archive session"}
           </CdsDropdownMenu.Item>
         </CdsDropdownMenu.Content>
