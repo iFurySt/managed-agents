@@ -3503,57 +3503,102 @@ function DeploymentScheduleFields({ expression, onExpressionChange }: { expressi
   const nextRuns = ["Mon, Jun 22, 2026, 9:00 AM", "Tue, Jun 23, 2026, 9:00 AM", "Wed, Jun 24, 2026, 9:00 AM", "Thu, Jun 25, 2026, 9:00 AM", "Fri, Jun 26, 2026, 9:00 AM"];
 
   return (
-    <div className="grid gap-4">
-      <div className="grid grid-cols-[214px_214px] gap-5">
-        <div className="grid gap-2">
+    <div className="flex flex-col gap-4 rounded-[12px] border border-black/10 p-4">
+      <div className="flex flex-col gap-4">
+        <div className="grid grid-cols-2 gap-3">
+          <div data-cds="Field" className="flex min-w-0 flex-col gap-2">
           <label className="text-sm leading-none [font-weight:550]">Frequency</label>
-          <Button variant="ghost" className="h-8 w-full justify-between rounded-[8px] px-2 font-normal">
-            {customCron ? "Custom cron" : "Weekdays"}
-            <ChevronDown className="h-4 w-4 text-muted" />
-          </Button>
-        </div>
-        <div className="grid gap-2">
-          <label className="text-sm leading-none [font-weight:550]">Timezone</label>
-          <Button variant="ghost" className="h-8 w-full justify-between rounded-[8px] px-2 font-normal">
-            <span className="truncate">(GMT+08:00) Asia/Shanghai</span>
-            <ChevronDown className="h-4 w-4 text-muted" />
-          </Button>
-        </div>
-      </div>
-      {customCron ? (
-        <label className="grid gap-2 text-sm leading-none [font-weight:550]">
-          Cron expression
-          <input
-            data-cds="TextInput"
-            className="cds-focus h-8 rounded-[8px] border-0 bg-white/50 px-2 font-mono text-sm font-normal leading-5 text-ink"
-            placeholder={expression}
-            value={expression}
-            onChange={(event) => onExpressionChange(event.target.value)}
-          />
-          <span className="text-[13px] font-normal leading-[18px] text-muted">minute · hour · day · month · weekday — * any, */5 every 5th, 1-5 range</span>
-        </label>
-      ) : (
-        <div className="grid gap-2">
-          <label className="text-sm leading-none [font-weight:550]">At</label>
-          <div className="flex h-8 items-center gap-2">
-            <div className="inline-flex h-8 rounded-[8px] bg-white/50 p-0.5 text-sm">
-              <button className="h-7 rounded-[7px] px-3 text-muted" type="button">AM</button>
-              <button className="h-7 rounded-[7px] bg-white px-3 text-ink shadow-sm" type="button">PM</button>
+            <div className="h-8 rounded-[8px] bg-white/50">
+              <button
+                type="button"
+                role="combobox"
+                aria-expanded="false"
+                className="flex h-8 w-full items-center justify-between rounded-[8px] bg-transparent px-2 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-[#c6613f]/35"
+              >
+                {customCron ? "Custom cron" : "Weekdays"}
+                <ChevronDown className="h-4 w-4 shrink-0 text-muted" />
+              </button>
             </div>
-            <div className="flex h-8 min-w-0 flex-1 items-center rounded-[8px] bg-white/50 px-2 font-mono text-sm">{expression}</div>
-            <Button variant="ghost" className="h-8 w-[76px] rounded-[8px] px-0 [font-weight:550]" onClick={() => setCustomCron(true)}>Edit cron</Button>
           </div>
+          <div data-cds="Field" className="flex min-w-0 flex-col gap-2">
+          <label className="text-sm leading-none [font-weight:550]">Timezone</label>
+            <div className="h-8 rounded-[8px] bg-white/50">
+              <button
+                type="button"
+                role="combobox"
+                aria-expanded="false"
+                className="flex h-8 w-full items-center justify-between rounded-[8px] bg-transparent px-2 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-[#c6613f]/35"
+              >
+                <span className="truncate">(GMT+08:00) Asia/Shanghai</span>
+                <ChevronDown className="h-4 w-4 shrink-0 text-muted" />
+              </button>
+            </div>
+          </div>
+          {!customCron ? (
+            <>
+              <div data-cds="Field" className="flex min-w-0 flex-col gap-2">
+                <label className="text-sm leading-none [font-weight:550]">At</label>
+                <div className="flex h-8 items-center gap-2">
+                  <input
+                    data-cds="TextInput"
+                    className="cds-focus h-8 w-[110px] rounded-[8px] border-0 bg-white/50 px-3 text-sm font-normal leading-5 text-ink"
+                    value="9:00"
+                    readOnly
+                    aria-label="Scheduled time"
+                  />
+                  <div
+                    data-cds="SegmentedControl"
+                    role="radiogroup"
+                    aria-label="AM or PM"
+                    className="relative inline-flex h-8 w-fit shrink-0 items-stretch rounded-[8px] bg-black/[0.05] p-px text-sm"
+                  >
+                    <div className="absolute bottom-px left-px top-px w-[47px] rounded-[7px] bg-white shadow-sm" aria-hidden />
+                    <button type="button" role="radio" aria-checked="true" className="relative z-10 h-[30px] px-3 text-ink">AM</button>
+                    <button type="button" role="radio" aria-checked="false" className="relative z-10 h-[30px] px-3 text-muted">PM</button>
+                  </div>
+                </div>
+              </div>
+              <div className="h-[54px]" aria-hidden />
+            </>
+          ) : null}
         </div>
-      )}
-      <div className="grid gap-2">
-        <div className="flex items-center gap-2 text-sm [font-weight:550]">
+        {customCron ? (
+          <label className="grid gap-2 text-sm leading-none [font-weight:550]">
+            Cron expression
+            <input
+              data-cds="TextInput"
+              className="cds-focus h-8 rounded-[8px] border-0 bg-white/50 px-2 font-mono text-sm font-normal leading-5 text-ink"
+              placeholder={expression}
+              value={expression}
+              onChange={(event) => onExpressionChange(event.target.value)}
+            />
+            <span className="text-[13px] font-normal leading-[18px] text-muted">minute · hour · day · month · weekday - * any, */5 every 5th, 1-5 range</span>
+          </label>
+        ) : (
+          <div className="flex h-9 items-center justify-between rounded-[8px] bg-canvas px-3 py-2">
+            <span className="font-mono text-sm leading-5 text-ink">{expression}</span>
+            <button
+              type="button"
+              data-cds="TextLink"
+              className="rounded-[2px] text-sm leading-5 text-[#184f95] underline decoration-current/40 underline-offset-[3px] hover:decoration-current"
+              onClick={() => setCustomCron(true)}
+            >
+              Edit cron
+            </button>
+          </div>
+        )}
+      </div>
+      <div className="rounded-[12px] border border-black/10 bg-canvas p-4">
+        <div className="mb-3 flex items-center gap-2 text-sm [font-weight:550]">
           Next 5 runs
-          <Info className="h-4 w-4 text-muted" />
+          <button type="button" aria-label="About next runs" className="grid h-3 w-3 place-items-center text-muted hover:text-ink">
+            <Info className="h-3 w-3" />
+          </button>
         </div>
-        <div className="grid gap-1.5 text-sm text-[#4e4a45]">
+        <div className="flex flex-col gap-1 text-sm text-[#4e4a45]">
           {nextRuns.map((run) => (
             <div key={run} className="flex h-5 items-center gap-2">
-              <Clock className="h-3.5 w-3.5 text-muted" />
+              <Clock className="h-4 w-4 shrink-0 text-muted" />
               {run}
             </div>
           ))}
