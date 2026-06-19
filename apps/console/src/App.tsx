@@ -2586,7 +2586,7 @@ function SkillsPage() {
           </div>
         }
       />
-      <div className="flex max-w-[952px] flex-col border-t border-line">
+      <div className="mt-2 flex max-w-[952px] flex-col border-t border-line">
         {skills.map((skill) => (
           <article key={skill.id} className="grid min-h-[137px] grid-cols-[minmax(0,1fr)_28px] gap-4 border-b border-line px-3 py-3">
             <div className="min-w-0">
