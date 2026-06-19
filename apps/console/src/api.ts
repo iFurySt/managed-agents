@@ -118,6 +118,10 @@ export async function cancelSession(id: string): Promise<Session> {
   return postJSON<Session>(`/api/sessions/${id}/cancel`, {});
 }
 
+export async function archiveSession(id: string): Promise<Session> {
+  return postJSON<Session>(`/api/sessions/${id}/archive`, {});
+}
+
 export async function createSessionMessage(id: string, message: string): Promise<Session> {
   return postJSON<Session>(`/api/sessions/${id}/messages`, { message });
 }

@@ -361,6 +361,7 @@ func run() error {
 	router.GET("/api/sessions/:id", getSession(db))
 	router.POST("/api/sessions", createSession(db))
 	router.POST("/api/sessions/:id/cancel", cancelSession(db))
+	router.POST("/api/sessions/:id/archive", archiveSession(db))
 	router.POST("/api/sessions/:id/messages", createSessionMessage(db))
 	router.GET("/api/deployments", listDeployments(db))
 	router.GET("/api/deployments/:id", getDeployment(db))
@@ -672,6 +673,30 @@ func cancelSession(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 		event := sessionEvent(session.ID, fmt.Sprintf("sevt_%s%09d", now.Format("20060102150405"), now.Nanosecond()), "System", "Lifecycle", "Cancellation requested from the console.", "Cancelled", session.Tokens, session.Cost, session.Duration, now)
+		_ = db.Create(&event).Error
+		c.JSON(http.StatusOK, session)
+	}
+}
+
+func archiveSession(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var session Session
+		if err := db.First(&session, "id = ?", c.Param("id")).Error; err != nil {
+			status := http.StatusInternalServerError
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				status = http.StatusNotFound
+			}
+			c.JSON(status, gin.H{"error": err.Error()})
+			return
+		}
+		now := time.Now().UTC()
+		session.Status = "Archived"
+		session.UpdatedAt = now
+		if err := db.Save(&session).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		event := sessionEvent(session.ID, fmt.Sprintf("sevt_%s%09d", now.Format("20060102150405"), now.Nanosecond()), "System", "Lifecycle", "Session archived from the console.", "Archived", session.Tokens, session.Cost, session.Duration, now)
 		_ = db.Create(&event).Error
 		c.JSON(http.StatusOK, session)
 	}

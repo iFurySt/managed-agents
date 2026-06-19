@@ -36,7 +36,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import { useEffect, useMemo, useState } from "react";
 import { Link, Navigate, Route, Routes, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
-  cancelSession,
+  archiveSession,
   archiveAgent,
   archiveDeployment,
   createAgent,
@@ -362,14 +362,16 @@ function SessionsPage() {
   const [deployment, setDeployment] = useState(searchParams.get("deploymentId") ?? "All");
   const [status, setStatus] = useState(searchParams.get("status") ?? "Active");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [archivingSession, setArchivingSession] = useState<Session | null>(null);
 
   useEffect(() => {
     listSessions({ q: search, status, agentId: agent, deploymentId: deployment, created }).then(setSessions).catch(() => setSessions([]));
   }, [agent, created, deployment, search, status]);
 
-  async function cancelCurrent(session: Session) {
-    const updated = await cancelSession(session.id);
-    setSessions((items) => items.map((item) => (item.id === updated.id ? updated : item)));
+  async function archiveCurrent(session: Session) {
+    const updated = await archiveSession(session.id);
+    setSessions((items) => status === "Archived" ? items.map((item) => (item.id === updated.id ? updated : item)) : items.filter((item) => item.id !== updated.id));
+    setArchivingSession(null);
   }
 
   return (
@@ -423,7 +425,7 @@ function SessionsPage() {
         <FieldSelect
           label="Status"
           value={status}
-          options={["Active", "Idle", "Cancelled", "All"]}
+          options={["Active", "Idle", "Archived", "All"]}
           onValueChange={setStatus}
           triggerClassName="ml-2 w-[123px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2"
         />
@@ -471,13 +473,20 @@ function SessionsPage() {
             { key: "created", header: "Created", width: "200px", render: (session) => <span className="text-muted">{session.createdLabel}</span> }
           ]}
           actionsWidth="56px"
-          renderActions={(session) => <SessionRowActions session={session} onCancel={() => cancelCurrent(session)} />}
+          renderActions={(session) => <SessionRowActions session={session} onArchive={() => setArchivingSession(session)} />}
         />
       </div>
       <CreateSessionDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         onCreated={(session) => setSessions((items) => [session, ...items])}
+      />
+      <SessionArchiveDialog
+        open={Boolean(archivingSession)}
+        onOpenChange={(open) => {
+          if (!open) setArchivingSession(null);
+        }}
+        onConfirm={() => archivingSession ? archiveCurrent(archivingSession) : undefined}
       />
     </section>
   );
@@ -493,6 +502,7 @@ function SessionDetailPage() {
   const [detailEvent, setDetailEvent] = useState<string | null>(null);
   const [detailClosed, setDetailClosed] = useState(false);
   const [askOpen, setAskOpen] = useState(false);
+  const [archiveOpen, setArchiveOpen] = useState(false);
   const eventParam = searchParams.get("event");
 
   useEffect(() => {
@@ -519,10 +529,11 @@ function SessionDetailPage() {
     }
   }, [detailClosed, detailEvent, eventParam, session]);
 
-  async function cancelCurrentSession() {
+  async function archiveCurrentSession() {
     if (!session) return;
-    const updated = await cancelSession(session.id);
+    const updated = await archiveSession(session.id);
     setSession({ ...session, ...updated });
+    setArchiveOpen(false);
   }
 
   if (!session) return <EmptyState title="Session not found" description="The selected session could not be loaded." />;
@@ -557,7 +568,7 @@ function SessionDetailPage() {
           <SessionDetailActions
             session={session}
             transcriptText={transcriptText}
-            onCancel={cancelCurrentSession}
+            onArchive={() => setArchiveOpen(true)}
           />
           <Button className="w-[116px]" onClick={() => setAskOpen(true)}>
             <MessageSquare className="h-4 w-4" />
@@ -695,6 +706,7 @@ function SessionDetailPage() {
           setAskOpen(false);
         }}
       />
+      <SessionArchiveDialog open={archiveOpen} onOpenChange={setArchiveOpen} onConfirm={archiveCurrentSession} />
     </section>
   );
 }
@@ -2703,14 +2715,16 @@ function AgentSessionsPanel({ agent }: { agent: Agent }) {
   const [version, setVersion] = useState("All");
   const [deployment, setDeployment] = useState("All");
   const [status, setStatus] = useState("All");
+  const [archivingSession, setArchivingSession] = useState<Session | null>(null);
 
   useEffect(() => {
     listSessions({ agentId: agent.id, created, deploymentId: deployment, status }).then(setSessions).catch(() => setSessions([]));
   }, [agent.id, created, deployment, status]);
 
-  async function cancelCurrent(session: Session) {
-    const updated = await cancelSession(session.id);
-    setSessions((items) => items.map((item) => (item.id === updated.id ? updated : item)));
+  async function archiveCurrent(session: Session) {
+    const updated = await archiveSession(session.id);
+    setSessions((items) => status === "Archived" || status === "All" ? items.map((item) => (item.id === updated.id ? updated : item)) : items.filter((item) => item.id !== updated.id));
+    setArchivingSession(null);
   }
 
   const agentVersion = agent.version || "v1";
@@ -2745,7 +2759,7 @@ function AgentSessionsPanel({ agent }: { agent: Agent }) {
         <FieldSelect
           label="Status"
           value={status}
-          options={["All", "Active", "Idle", "Cancelled"]}
+          options={["All", "Active", "Idle", "Archived"]}
           onValueChange={setStatus}
           triggerClassName="w-[106px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2"
         />
@@ -2782,7 +2796,14 @@ function AgentSessionsPanel({ agent }: { agent: Agent }) {
           { key: "created", header: "Created", width: "160px", render: (session) => <span className="text-muted">{agentSessionCreatedLabel(session)}</span> }
         ]}
         actionsWidth="56px"
-        renderActions={(session) => <SessionRowActions session={session} onCancel={() => cancelCurrent(session)} />}
+        renderActions={(session) => <SessionRowActions session={session} onArchive={() => setArchivingSession(session)} />}
+      />
+      <SessionArchiveDialog
+        open={Boolean(archivingSession)}
+        onOpenChange={(open) => {
+          if (!open) setArchivingSession(null);
+        }}
+        onConfirm={() => archivingSession ? archiveCurrent(archivingSession) : undefined}
       />
     </div>
   );
@@ -5140,6 +5161,7 @@ function CodeYaml({ source }: { source: string }) {
 }
 
 function sessionTone(status: string): "neutral" | "green" | "blue" | "red" {
+  if (status === "Archived") return "neutral";
   if (status === "Failed" || status === "Error" || status === "Cancelled") return "red";
   if (status === "Running" || status === "Active") return "green";
   if (status === "Queued" || status === "Created") return "blue";
@@ -5534,8 +5556,45 @@ function FileActions({ file, onDelete }: { file: WorkspaceFile; onDelete: () => 
   );
 }
 
-function SessionRowActions({ session, onCancel }: { session: Session; onCancel: () => void }) {
-  const navigate = useNavigate();
+function SessionArchiveDialog({
+  open,
+  onOpenChange,
+  onConfirm
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onConfirm: () => Promise<void> | void;
+}) {
+  return (
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+      <Dialog.Portal>
+        <Dialog.Content
+          data-cds="ConfirmationDialog"
+          role="alertdialog"
+          className="fixed left-1/2 top-1/2 z-50 flex w-[510px] max-w-[calc(100vw-32px)] -translate-x-1/2 -translate-y-1/2 flex-col rounded-[12px] bg-white p-6 text-sm text-ink shadow-[0_16px_48px_rgba(0,0,0,0.18),0_4px_14px_rgba(0,0,0,0.1)] outline-none"
+        >
+          <Dialog.Title className="-mt-1 text-[17px] leading-[26px] text-ink [font-weight:620]">Archive session</Dialog.Title>
+          <Dialog.Description className="mt-1 text-sm leading-5 text-[#696762]">
+            This session won't accept new events and will be hidden. This can't be undone.
+          </Dialog.Description>
+          <div className="mt-3 flex justify-end gap-2">
+            <Dialog.Close asChild>
+              <Button variant="secondary" className="h-8 w-[70px] rounded-[8px] border-0 bg-[#f1f0ec] px-0 text-sm [font-weight:550] hover:bg-[#e8e6df]">
+                Cancel
+              </Button>
+            </Dialog.Close>
+            <Button className="h-8 w-[75px] rounded-[8px] bg-[#b33f31] px-0 text-sm text-white [font-weight:550] hover:bg-[#a5362a]" onClick={onConfirm}>
+              Archive
+            </Button>
+          </div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
+  );
+}
+
+function SessionRowActions({ session, onArchive }: { session: Session; onArchive: () => void }) {
+  const archived = session.status === "Archived";
   return (
     <CdsDropdownMenu.Root>
       <CdsDropdownMenu.Trigger asChild>
@@ -5544,22 +5603,14 @@ function SessionRowActions({ session, onCancel }: { session: Session; onCancel: 
         </Button>
       </CdsDropdownMenu.Trigger>
       <CdsDropdownMenu.Portal>
-        <CdsDropdownMenu.Content className="z-50 min-w-[160px] rounded-cds border border-line bg-white p-1 shadow-lg" align="end">
-          <CdsDropdownMenu.Item className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill" onSelect={() => navigate(`/sessions/${session.id}`)}>
-            <MessageSquare className="h-4 w-4" />
-            Open session
-          </CdsDropdownMenu.Item>
-          <CdsDropdownMenu.Item className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill" onSelect={() => copyText(session.id)}>
-            <Copy className="h-4 w-4" />
-            Copy ID
-          </CdsDropdownMenu.Item>
+        <CdsDropdownMenu.Content data-cds="Menu" className="z-50 min-w-[160px] max-w-[320px] rounded-cds bg-white p-1 text-sm text-ink shadow-lg" align="end">
           <CdsDropdownMenu.Item
-            className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm text-[#a33a29] outline-none data-[highlighted]:bg-[#fff1ef]"
-            onSelect={onCancel}
-            disabled={session.status === "Cancelled"}
+            className="flex h-8 w-full cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-fill"
+            onSelect={onArchive}
+            disabled={archived}
           >
-            <Archive className="h-4 w-4" />
-            {session.status === "Cancelled" ? "Cancelled" : "Cancel"}
+            <Archive className="h-4 w-4 text-muted" />
+            {archived ? "Archived" : "Archive session"}
           </CdsDropdownMenu.Item>
         </CdsDropdownMenu.Content>
       </CdsDropdownMenu.Portal>
@@ -5661,12 +5712,13 @@ function DeploymentActions({
 function SessionDetailActions({
   session,
   transcriptText,
-  onCancel
+  onArchive
 }: {
   session: Session;
   transcriptText: string;
-  onCancel: () => void;
+  onArchive: () => void;
 }) {
+  const archived = session.status === "Archived";
   return (
     <CdsDropdownMenu.Root>
       <CdsDropdownMenu.Trigger asChild>
@@ -5688,11 +5740,11 @@ function SessionDetailActions({
           <CdsDropdownMenu.Separator className="my-1 h-px bg-line" />
           <CdsDropdownMenu.Item
             className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm text-[#a33a29] outline-none data-[highlighted]:bg-[#fff1ef]"
-            onSelect={onCancel}
-            disabled={session.status === "Cancelled"}
+            onSelect={onArchive}
+            disabled={archived}
           >
             <Archive className="h-4 w-4" />
-            {session.status === "Cancelled" ? "Cancelled" : "Cancel session"}
+            {archived ? "Archived" : "Archive session"}
           </CdsDropdownMenu.Item>
         </CdsDropdownMenu.Content>
       </CdsDropdownMenu.Portal>
