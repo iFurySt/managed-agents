@@ -11,6 +11,7 @@ export function Button({
   variant = "primary",
   size = "md",
   className = "",
+  type = "button",
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: "primary" | "secondary" | "ghost" | "icon";
@@ -29,6 +30,7 @@ export function Button({
   return (
     <button
       data-cds="Button"
+      type={type}
       className={`cds-focus inline-flex shrink-0 items-center justify-center gap-2 rounded-control font-medium opacity-100 transition-shadow disabled:pointer-events-none disabled:opacity-50 ${variants[variant]} ${variant === "icon" ? "h-7 w-7 px-0" : sizes[size]} ${className}`}
       {...props}
     >
