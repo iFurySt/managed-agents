@@ -82,6 +82,7 @@ import { Badge, Button, CdsDropdownMenu, CdsTabs, ConsoleDialog, DataTable, Fiel
 import type { Agent, CollectionName, Deployment, Environment, MemoryRecord, MemoryStore, Resource, Session, SessionEvent, SkillPackage, SkillVersion, Vault, VaultCredential, WorkspaceFile } from "./types";
 
 const managedRoutes: { path: CollectionName; title: string; description: string; action: string }[] = [];
+const defaultDeploymentEnvironmentId = "env_01UTaKkbFknSkQNEsZjUARMh";
 
 export default function App() {
   return (
@@ -2938,6 +2939,13 @@ function CreateDeploymentDialog({
   const manageLinkClass = "inline-flex items-center gap-1 text-xs leading-4 text-[#184f95] hover:underline";
   const scopedAgent = Boolean(initialAgentId);
 
+  function selectAgent(nextAgentId: string) {
+    setAgentId(nextAgentId);
+    if (nextAgentId && !environmentId && !initialEnvironmentId) {
+      setEnvironmentId(defaultDeploymentEnvironmentId);
+    }
+  }
+
   useEffect(() => {
     if (!open) return;
     if (initialAgentId) setAgentId(initialAgentId);
@@ -3022,7 +3030,7 @@ function CreateDeploymentDialog({
                     <span className="sr-only">(opens in new tab)</span>
                   </a>
                 </div>
-                <DeploymentAgentPicker value={agentId} onValueChange={setAgentId} />
+                <DeploymentAgentPicker value={agentId} onValueChange={selectAgent} />
               </div>
               <div className="grid gap-2">
                 <label className={fieldLabelClass}>Version</label>
@@ -3039,7 +3047,7 @@ function CreateDeploymentDialog({
                   <span className="sr-only">(opens in new tab)</span>
                 </a>
               </div>
-              <DeploymentAgentPicker value={agentId} onValueChange={setAgentId} wide />
+              <DeploymentAgentPicker value={agentId} onValueChange={selectAgent} wide />
             </div>
           )}
           <label className={`grid gap-2 ${fieldLabelClass}`}>
@@ -3227,7 +3235,7 @@ function DeploymentEnvironmentPicker({
 }) {
   const [open, setOpen] = useState(false);
   const options = [
-    { value: initialEnvironmentId || "env_01ManagedDebug", name: initialEnvironmentName || "managed-ssh-debug-env", updated: "3 days ago", host: "Cloud" },
+    { value: initialEnvironmentId || defaultDeploymentEnvironmentId, name: initialEnvironmentName || "managed-ssh-debug-env", updated: "3 days ago", host: "Cloud" },
     { value: "env_01LiiuDCwZBtqZd5EYMk9D9x", name: "123", updated: "3 days ago", host: "Self-hosted" },
     { value: "env_01AzQWp3SXQEATgdCFUNwteR", name: "myenv", updated: "3 days ago", host: "Self-hosted" },
     { value: "env_01UNo9NMB1ZQLKCZk21qryb8", name: "world-cup-digest-env", updated: "3 days ago", host: "Cloud" }
