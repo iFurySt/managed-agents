@@ -2963,6 +2963,9 @@ function CreateDeploymentDialog({
     setAgentId(initialAgentId);
     setEnvironmentId(initialEnvironmentId);
     setInitialMessage("");
+    setVault("");
+    setMemoryStore("");
+    setTrigger("");
     setScheduleExpression("0 9 * * 1-5");
   }
 
@@ -3072,13 +3075,7 @@ function CreateDeploymentDialog({
                 <span className="sr-only">(opens in new tab)</span>
               </a>
             </div>
-            <FieldSelect
-              label="+"
-              value={vault || "Add vault"}
-              options={["Add vault", "test_secret", "vault_01GitHub"]}
-              onValueChange={(value) => setVault(value === "Add vault" ? "" : value)}
-              triggerClassName="!h-8 w-full border-0 bg-white/50 px-2"
-            />
+            <DeploymentVaultPicker value={vault} onValueChange={setVault} />
           </div>
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
@@ -3108,6 +3105,68 @@ function CreateDeploymentDialog({
         </div>
       </div>
     </ConsoleDialog>
+  );
+}
+
+function DeploymentVaultPicker({ value, onValueChange }: { value: string; onValueChange: (value: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const options = [
+    { value: "test_secret", name: "test_secret", updated: "3 days ago", summary: "3 credentials" },
+    { value: "vault_01GitHub", name: "GitHub source access", updated: "2 days ago", summary: "1 credential" }
+  ];
+  const selected = options.find((option) => option.value === value);
+
+  return (
+    <div data-cds="Field" className="relative">
+      <div className="h-8 rounded-[8px] bg-white/50">
+        <button
+          type="button"
+          role="combobox"
+          aria-expanded={open}
+          aria-label="Add credential vault"
+          className="flex h-8 w-full items-center justify-between rounded-[8px] bg-transparent px-2 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-[#c6613f]/35"
+          onClick={() => setOpen((current) => !current)}
+        >
+          <span className="inline-flex min-w-0 items-center gap-2 truncate">
+            {selected ? <Shield className="h-4 w-4 shrink-0 text-muted" /> : <Plus className="h-4 w-4 shrink-0 text-muted" />}
+            <span className="truncate">{selected?.name ?? "Add vault"}</span>
+          </span>
+          <ChevronDown className="h-4 w-4 shrink-0 text-muted" />
+        </button>
+      </div>
+      {open ? (
+        <div
+          data-cds="Combobox"
+          role="dialog"
+          className="absolute left-0 top-[39px] z-50 w-full rounded-[12px] bg-white p-1 shadow-[0_10px_28px_rgba(0,0,0,0.12)]"
+        >
+          <div role="listbox" className="grid gap-0">
+            {options.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                role="option"
+                aria-selected={value === option.value}
+                className="flex h-[46px] w-full items-center justify-between rounded-[8px] px-3 text-left outline-none hover:bg-fill"
+                onClick={() => {
+                  onValueChange(option.value);
+                  setOpen(false);
+                }}
+              >
+                <span className="grid min-w-0 gap-0.5">
+                  <span className="truncate text-sm leading-4 text-ink">{option.name}</span>
+                  <span className="truncate text-xs leading-4 text-muted">{option.updated}</span>
+                </span>
+                <span className="inline-flex shrink-0 items-center gap-1.5 text-xs leading-4 text-muted">
+                  <KeyRound className="h-3.5 w-3.5" />
+                  {option.summary}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </div>
   );
 }
 
