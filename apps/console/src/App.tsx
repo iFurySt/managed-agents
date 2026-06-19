@@ -2497,8 +2497,8 @@ function CreateDeploymentDialog({
   const [trigger, setTrigger] = useState("");
 
   const canCreate = name && agentId && initialMessage && environmentId && trigger;
-  const fieldLabelClass = "text-sm font-medium leading-none";
-  const manageLinkClass = "text-sm font-medium leading-none text-ink hover:underline";
+  const fieldLabelClass = "text-sm leading-none [font-weight:550]";
+  const manageLinkClass = "text-xs leading-4 text-[#184f95] hover:underline";
 
   async function submit() {
     if (!canCreate) return;
@@ -2525,15 +2525,22 @@ function CreateDeploymentDialog({
       description="Deploy an agent with a trigger, environment, and credentials."
       open={open}
       onOpenChange={onOpenChange}
-      contentClassName="w-[520px] max-w-[calc(100vw-32px)] max-h-[calc(100dvh-32px)]"
-      titleClassName="text-lg font-semibold text-ink"
+      contentClassName="h-[718px] w-[520px] max-w-[calc(100vw-32px)] max-h-[calc(100dvh-32px)] !rounded-[12px] border-0"
+      headerClassName="flex items-start justify-between pl-6 pr-4 pt-4"
+      titleClassName="mt-1 text-[22px] leading-[26px] text-ink [font-weight:580]"
+      closeButtonClassName="h-8 w-8 rounded-[8px] px-0"
       closeLabel="Close"
     >
-      <div className="max-h-[calc(100dvh-116px)] overflow-y-auto px-6 pb-0 pt-5">
+      <div className="max-h-[calc(100dvh-116px)] overflow-y-auto px-6 pb-0 pt-4">
         <div className="grid gap-5">
           <label className={`grid gap-2 ${fieldLabelClass}`}>
             Name
-            <TextInput placeholder="Nightly inbox triage" value={name} onChange={(event) => setName(event.target.value)} />
+            <TextInput
+              className="h-8 border-0 bg-white/50 rounded-[8px] px-3 font-normal"
+              placeholder="Nightly inbox triage"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+            />
           </label>
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
@@ -2545,12 +2552,13 @@ function CreateDeploymentDialog({
               value={agentId || "Select an agent"}
               options={["Select an agent", "agent_017k8CPYuCFRD9AmupUeXd2Z", "agent_013mi1SmR2hJ6Hk6wNTeJvF9", "agent_01AVRPTGyYareCeoUasn66q5"]}
               onValueChange={(value) => setAgentId(value === "Select an agent" ? "" : value)}
+              triggerClassName="!h-8 w-full border-0 bg-white/50 px-2"
             />
           </div>
           <label className={`grid gap-2 ${fieldLabelClass}`}>
             Initial message
             <textarea
-              className="cds-focus min-h-14 resize-none rounded-control border border-line bg-white px-3 py-2 text-sm"
+              className="cds-focus h-14 resize-none rounded-[8px] border-0 bg-white/50 px-3 py-2 text-sm font-normal leading-5"
               placeholder="Summarize today's support tickets and post to #digest"
               value={initialMessage}
               onChange={(event) => setInitialMessage(event.target.value)}
@@ -2567,6 +2575,7 @@ function CreateDeploymentDialog({
               value={environmentId || "Select an environment"}
               options={["Select an environment", "env_01WorldCupDigest", "env_01ManagedDebug", "env_01PythonBrowser"]}
               onValueChange={(value) => setEnvironmentId(value === "Select an environment" ? "" : value)}
+              triggerClassName="!h-8 w-full border-0 bg-white/50 px-2"
             />
           </div>
           <div className="grid gap-2">
@@ -2574,22 +2583,40 @@ function CreateDeploymentDialog({
               <label className={fieldLabelClass}>Credential vaults(optional)</label>
               <a className={manageLinkClass} href="/vaults" target="_blank" rel="noreferrer">Manage credential vaults</a>
             </div>
-            <FieldSelect label="" value={vault || "Add vault"} options={["Add vault", "test_secret", "vault_01GitHub"]} onValueChange={(value) => setVault(value === "Add vault" ? "" : value)} />
+            <FieldSelect
+              label="+"
+              value={vault || "Add vault"}
+              options={["Add vault", "test_secret", "vault_01GitHub"]}
+              onValueChange={(value) => setVault(value === "Add vault" ? "" : value)}
+              triggerClassName="!h-8 w-full border-0 bg-white/50 px-2"
+            />
           </div>
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
               <label className={fieldLabelClass}>Memory stores(optional)</label>
               <a className={manageLinkClass} href="/memory-stores" target="_blank" rel="noreferrer">Manage memory stores</a>
             </div>
-            <FieldSelect label="" value={memoryStore || "Add memory store"} options={["Add memory store", "world cup"]} onValueChange={(value) => setMemoryStore(value === "Add memory store" ? "" : value)} />
+            <FieldSelect
+              label="+"
+              value={memoryStore || "Add memory store"}
+              options={["Add memory store", "world cup"]}
+              onValueChange={(value) => setMemoryStore(value === "Add memory store" ? "" : value)}
+              triggerClassName="!h-8 w-full border-0 bg-white/50 px-2"
+            />
           </div>
           <div className="grid gap-2">
             <label className={fieldLabelClass}>Trigger</label>
-            <FieldSelect label="" value={trigger || "Select a trigger"} options={["Select a trigger", "Manual", "Schedule"]} onValueChange={(value) => setTrigger(value === "Select a trigger" ? "" : value)} />
+            <FieldSelect
+              label=""
+              value={trigger || "Select a trigger"}
+              options={["Select a trigger", "Manual", "Schedule"]}
+              onValueChange={(value) => setTrigger(value === "Select a trigger" ? "" : value)}
+              triggerClassName="!h-8 w-full border-0 bg-white/50 px-2"
+            />
           </div>
         </div>
-        <div className="sticky bottom-0 -mx-6 mt-5 flex justify-end bg-white px-6 pb-[25px] pt-0">
-          <Button onClick={submit} disabled={!canCreate}>Create</Button>
+        <div className="sticky bottom-0 -mx-6 mt-[19px] flex justify-end bg-white px-6 pb-[25px] pt-0">
+          <Button className="h-8 w-[71px] rounded-[8px] px-0 [font-weight:550]" onClick={submit} disabled={!canCreate}>Create</Button>
         </div>
       </div>
     </ConsoleDialog>
