@@ -87,29 +87,31 @@ export default function App() {
       <div className="flex min-h-screen">
         <Sidebar />
         <main className="min-w-0 flex-1">
-          <div className="mx-auto w-full max-w-[1600px] px-6 pb-8 pt-4">
+          <div className="mx-auto w-full max-w-[1600px] px-3 pb-8 pt-3">
             <Banner />
-            <Routes>
-              <Route path="/" element={<Navigate to="/agents" replace />} />
-              <Route path="/agents" element={<AgentsPage />} />
-              <Route path="/agents/:id" element={<AgentDetailPage />} />
-              <Route path="/sessions" element={<SessionsPage />} />
-              <Route path="/sessions/:id" element={<SessionDetailPage />} />
-              <Route path="/deployments" element={<DeploymentsPage />} />
-              <Route path="/deployments/:id" element={<DeploymentDetailPage />} />
-              <Route path="/environments" element={<EnvironmentsPage />} />
-              <Route path="/environments/:id" element={<EnvironmentDetailPage />} />
-              <Route path="/vaults" element={<VaultsPage />} />
-              <Route path="/vaults/:id" element={<VaultDetailPage />} />
-              <Route path="/memory-stores" element={<MemoryStoresPage />} />
-              <Route path="/memory-stores/:id" element={<MemoryStoreDetailPage />} />
-              <Route path="/files" element={<FilesPage />} />
-              <Route path="/files/:id" element={<FileDetailPage />} />
-              <Route path="/skills" element={<SkillsPage />} />
-              {managedRoutes.map((route) => (
-                <Route key={route.path} path={`/${route.path}`} element={<CollectionPage route={route} />} />
-              ))}
-            </Routes>
+            <div className="px-5">
+              <Routes>
+                <Route path="/" element={<Navigate to="/agents" replace />} />
+                <Route path="/agents" element={<AgentsPage />} />
+                <Route path="/agents/:id" element={<AgentDetailPage />} />
+                <Route path="/sessions" element={<SessionsPage />} />
+                <Route path="/sessions/:id" element={<SessionDetailPage />} />
+                <Route path="/deployments" element={<DeploymentsPage />} />
+                <Route path="/deployments/:id" element={<DeploymentDetailPage />} />
+                <Route path="/environments" element={<EnvironmentsPage />} />
+                <Route path="/environments/:id" element={<EnvironmentDetailPage />} />
+                <Route path="/vaults" element={<VaultsPage />} />
+                <Route path="/vaults/:id" element={<VaultDetailPage />} />
+                <Route path="/memory-stores" element={<MemoryStoresPage />} />
+                <Route path="/memory-stores/:id" element={<MemoryStoreDetailPage />} />
+                <Route path="/files" element={<FilesPage />} />
+                <Route path="/files/:id" element={<FileDetailPage />} />
+                <Route path="/skills" element={<SkillsPage />} />
+                {managedRoutes.map((route) => (
+                  <Route key={route.path} path={`/${route.path}`} element={<CollectionPage route={route} />} />
+                ))}
+              </Routes>
+            </div>
           </div>
         </main>
       </div>
@@ -209,12 +211,12 @@ function Banner() {
   const [visible, setVisible] = useState(true);
   if (!visible) return null;
   return (
-    <div data-cds="Banner" className="mb-12 flex items-start gap-4 rounded-cds border border-line bg-white px-4 py-4">
-      <Info className="mt-0.5 h-4 w-4 text-muted" />
-      <div className="flex-1 text-sm">
+    <div data-cds="Banner" className="mb-10 flex min-h-[76px] items-start gap-4 rounded-cds border border-line bg-white px-6 py-[11px]">
+      <Info className="mt-0.5 h-4 w-4 shrink-0 text-muted" />
+      <div className="flex-1 text-sm leading-5">
         <span>Update June 12: We've suspended access to Claude Fable 5 and Claude Mythos 5. Please use Opus 4.8 or another model.</span>
         <div>
-          <Button className="mt-3" size="md">
+          <Button className="mt-1" size="sm">
             Learn more here
           </Button>
         </div>
@@ -1748,7 +1750,7 @@ function FilesPage() {
   }
 
   return (
-    <section className="ml-2 flex flex-col gap-2">
+    <section className="flex flex-col gap-2">
       <PageHeader
         title="Files"
         description="Only files from the Default workspace are shown. To see other workspace's files, select a workspace."
@@ -1957,13 +1959,13 @@ function SkillsPage() {
           </Button>
         }
       />
-      <div className="ml-5 flex max-w-[928px] flex-col gap-5">
+      <div className="flex max-w-[952px] flex-col">
         {skills.map((skill) => (
-          <article key={skill.id} className="grid grid-cols-[minmax(0,1fr)_36px] gap-4 border-b border-line pb-5">
+          <article key={skill.id} className="grid min-h-[137px] grid-cols-[minmax(0,1fr)_28px] gap-4 border-b border-line px-3 py-3">
             <div className="min-w-0">
-              <h2 className="mb-2 text-base font-semibold leading-6">{skill.name}</h2>
-              <p className="max-w-[820px] whitespace-pre-wrap text-sm leading-6 text-[#3f3a35]">{skill.description}</p>
-              <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-muted">
+              <h2 className="mb-0 text-base font-semibold leading-6">{skill.name}</h2>
+              <p className="cds-line-clamp-2 max-w-[720px] whitespace-pre-wrap text-sm leading-5 text-[#3f3a35]">{skill.description}</p>
+              <div className="mt-[22px] flex h-[22px] flex-wrap items-center gap-2 text-xs leading-4 text-muted">
                 <Button
                   variant="ghost"
                   size="sm"
@@ -3635,7 +3637,7 @@ function CollectionPage({ route }: { route: { path: CollectionName; title: strin
 
 function PageHeader({ title, description, action }: { title: string; description: React.ReactNode; action?: React.ReactNode }) {
   return (
-    <div className="mb-2 flex items-start justify-between gap-4">
+    <div className="flex items-start justify-between gap-4">
       <div className="flex flex-col gap-2">
         <h1 className="text-2xl font-medium tracking-[-0.01em]">{title}</h1>
         <div className="text-sm text-muted">{description}</div>

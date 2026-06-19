@@ -36,3 +36,10 @@ textarea {
 .cds-focus:focus-visible {
   outline-color: #0b0b0b;
 }
+
+.cds-line-clamp-2 {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
