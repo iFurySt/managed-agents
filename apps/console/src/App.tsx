@@ -2546,7 +2546,15 @@ function EditAgentDialog({
   }
 
   return (
-    <ConsoleDialog title="Edit agent" open={open} onOpenChange={onOpenChange}>
+    <ConsoleDialog
+      title="Edit agent"
+      open={open}
+      onOpenChange={onOpenChange}
+      contentClassName="h-[680px] w-[720px] max-w-[calc(100vw-32px)] !max-h-[calc(100dvh-32px)] !rounded-[12px] border-0"
+      headerClassName="flex items-start justify-between pl-6 pr-4 pt-4"
+      titleClassName="mt-1 text-[22px] leading-[26px] text-ink [font-weight:580]"
+      closeButtonClassName="h-8 w-8 rounded-[8px] px-0"
+    >
       <div className="max-h-[calc(86vh-92px)] overflow-y-auto px-6 pb-0 pt-4">
         <div className="rounded-cds border border-line bg-white p-3">
           <div className="mb-3 flex items-center justify-between">
