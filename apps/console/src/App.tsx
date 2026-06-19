@@ -5234,10 +5234,10 @@ function SkillVersionDialog({ skillId, onOpenChange }: { skillId: string | null;
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-black/35 backdrop-blur-[1px]" />
+        <Dialog.Overlay className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[2px]" />
         <Dialog.Content
           data-cds="Dialog"
-          className="fixed left-1/2 top-1/2 z-50 flex h-[396px] w-[520px] max-w-[calc(100vw-32px)] -translate-x-1/2 -translate-y-1/2 flex-col overflow-y-auto rounded-[12px] bg-white p-6 text-sm text-ink shadow-[0_16px_48px_rgba(0,0,0,0.18),0_4px_14px_rgba(0,0,0,0.1)] outline-none"
+          className="fixed left-1/2 top-1/2 z-50 flex h-[396px] w-[520px] max-w-[calc(100vw-32px)] -translate-x-1/2 -translate-y-1/2 flex-col overflow-y-auto rounded-[12px] bg-white p-6 text-sm text-ink shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)] outline-none"
         >
           <div className="mb-4 flex min-h-0 items-start gap-2">
             <div className="-mt-1 flex min-w-0 flex-1 flex-col gap-1">
@@ -5251,13 +5251,13 @@ function SkillVersionDialog({ skillId, onOpenChange }: { skillId: string | null;
           </div>
           {skill ? (
             <>
-              <div className="mb-6 flex h-5 items-center gap-2 text-sm text-muted">
+              <div className="mb-6 flex h-5 items-center gap-2 text-sm text-[#898781]">
                 <span>{skill.owner}</span>
                 <span>•</span>
                 <span>{skill.createdLabel}</span>
               </div>
               <section>
-                <h2 className="mb-3 text-[15px] leading-5 [font-weight:550]">Version history</h2>
+                <h3 className="mb-3 text-[15px] leading-5 [font-weight:550]">Version history</h3>
                 <div className="divide-y divide-line border-y border-line">
                   {(skill.versions ?? []).map((version) => (
                     <div key={version.id} className="flex min-h-[47px] items-center justify-between px-3 py-3 text-sm hover:bg-fill">
@@ -5274,7 +5274,7 @@ function SkillVersionDialog({ skillId, onOpenChange }: { skillId: string | null;
                         >
                           <span data-cds="Badge" className="inline-flex h-[22px] items-center rounded-[5.5px] bg-fill px-2 align-bottom font-mono text-xs leading-[15px] text-[#52514e] [font-weight:550]">{version.version}</span>
                         </span>
-                        <span className="text-muted">{version.releasedAt}</span>
+                        <span className="text-[#898781]">{version.releasedAt}</span>
                         {version.latest ? <span data-cds="Badge" className="inline-flex h-[22px] items-center rounded-[5.5px] bg-[#cde2fb] px-2 text-xs leading-[15px] text-[#184f95] [font-weight:550]">Latest</span> : null}
                       </div>
                     </div>
