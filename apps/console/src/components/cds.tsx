@@ -215,7 +215,8 @@ export function ConsoleDialog({
   titleClassName = "text-2xl font-semibold text-ink",
   headerClassName = "flex items-start justify-between px-6 pt-6",
   closeButtonClassName = "h-8 w-8 px-0",
-  closeLabel = "Close dialog"
+  closeLabel = "Close dialog",
+  overlayClassName = "fixed inset-0 z-40 bg-black/35 backdrop-blur-[1px]"
 }: {
   title: string;
   description?: string;
@@ -227,11 +228,12 @@ export function ConsoleDialog({
   headerClassName?: string;
   closeButtonClassName?: string;
   closeLabel?: string;
+  overlayClassName?: string;
 }) {
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-40 bg-black/35 backdrop-blur-[1px]" />
+        <Dialog.Overlay className={overlayClassName} />
         <Dialog.Content data-cds="Dialog" className={`fixed left-1/2 top-1/2 z-50 max-h-[86vh] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-cds border border-line bg-white shadow-xl ${contentClassName}`}>
           <div className={headerClassName}>
             <div>

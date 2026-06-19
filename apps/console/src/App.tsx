@@ -5148,9 +5148,10 @@ function CreateSkillDialog({
       title="Create skill"
       open={open}
       onOpenChange={onOpenChange}
-      contentClassName="min-h-[265px] w-[510px] max-w-[calc(100vw-32px)] !rounded-[12px] border-0"
+      overlayClassName="fixed inset-0 z-40 bg-black/40 backdrop-blur-[2px]"
+      contentClassName="min-h-[265px] w-[510px] max-w-[calc(100vw-32px)] !rounded-[12px] border-0 shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]"
       headerClassName="flex items-start justify-between pl-6 pr-4 pt-4"
-      titleClassName="mt-1 text-[22px] font-semibold leading-[26px] text-ink"
+      titleClassName="mt-1 text-[22px] leading-[26px] text-ink [font-weight:580]"
       closeButtonClassName="h-[31px] w-[31px] rounded-[8px] px-0"
       closeLabel="Close"
     >
@@ -5171,11 +5172,11 @@ function CreateSkillDialog({
             onDrop={handleDrop}
           >
             <div>
-              <p className="text-sm text-ink">Drag and drop a .zip, .skill file, or directory to upload</p>
+              <p className="text-sm text-[#898781]">Drag and drop a .zip, .skill file, or directory to upload</p>
               {selectedName ? <p className="mt-3 font-mono text-sm text-ink">{selectedName}</p> : null}
             </div>
           </div>
-          <p className="text-xs leading-4 text-muted">
+          <p className="text-xs leading-4 text-[#898781]">
             Total file size limit: 8MB.{" "}
             <a className="underline" href="https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview" target="_blank" rel="noopener noreferrer">
               File format
