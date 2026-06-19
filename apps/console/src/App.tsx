@@ -2813,8 +2813,10 @@ function CreateCredentialDialog({
       description={description}
       open={open}
       onOpenChange={onOpenChange}
-      contentClassName="w-[510px] max-w-[calc(100vw-32px)]"
-      titleClassName="text-lg font-semibold text-ink"
+      contentClassName="h-[349px] w-[510px] max-w-[calc(100vw-32px)] !rounded-[12px] border-0"
+      headerClassName="flex items-start justify-between pl-6 pr-4 pt-4"
+      titleClassName="mt-1 w-[431px] text-[22px] leading-[26px] text-ink [font-weight:580]"
+      closeButtonClassName="h-[31px] w-[31px] rounded-[8px] px-0"
       closeLabel="Close"
     >
       <CreateCredentialForm
@@ -2860,30 +2862,46 @@ function CreateCredentialForm({
   const targetLabel = authType === "Environment variable" ? "Environment variable" : authType === "Bearer token" ? "Endpoint" : "MCP server";
   const targetPlaceholder = authType === "Environment variable" ? "ENV_VAR_NAME" : authType === "Bearer token" ? "https://api.example.com/" : "https://mcp.example.com";
   const canSubmit = target.trim().length > 0;
-  const fieldLabelClass = "text-sm font-medium leading-none";
+  const fieldLabelClass = "text-sm leading-none [font-weight:550]";
 
   return (
-    <div className="px-6 pb-0 pt-1">
+    <div className="px-6 pb-0 pt-[10px]">
       {title ? <p className="mb-5 text-sm leading-6 text-muted">{title}</p> : null}
       <div className="grid gap-4">
-        <label className={`grid gap-2 ${fieldLabelClass}`}>
-          <span className="flex items-center gap-2">
-            Name <span className="inline-flex h-[22px] items-center rounded-[5.5px] bg-fill px-2 text-xs font-semibold leading-none text-muted">Optional</span>
-          </span>
-          <TextInput placeholder="Example credential" value={name} onChange={(event) => setName(event.target.value)} />
-        </label>
         <div className="grid gap-2">
-          <label className={fieldLabelClass}>Type</label>
-          <FieldSelect label="" value={authType} options={["MCP OAuth", "Bearer token", "Environment variable"]} onValueChange={setAuthType} />
+          <label className={`${fieldLabelClass} flex h-[22px] items-center gap-2`}>
+            Name <span className="inline-flex h-[22px] items-center rounded-[5.5px] bg-fill px-2 text-xs leading-[15px] text-[#52514e] [font-weight:550]">Optional</span>
+          </label>
+          <TextInput
+            className="h-[31px] rounded-[8px] border-0 bg-white/50 px-3 font-normal"
+            placeholder="Example credential"
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+          />
         </div>
-        <label className={`grid gap-2 ${fieldLabelClass}`}>
-          {targetLabel}
-          <TextInput placeholder={targetPlaceholder} value={target} onChange={(event) => setTarget(event.target.value)} />
-        </label>
+        <div className="grid gap-[7px]">
+          <label className={fieldLabelClass}>Type</label>
+          <FieldSelect
+            label=""
+            value={authType}
+            options={["MCP OAuth", "Bearer token", "Environment variable"]}
+            onValueChange={setAuthType}
+            triggerClassName="!h-[31px] w-full rounded-[8px] border-0 bg-white/50 px-2"
+          />
+        </div>
+        <div className="grid gap-2">
+          <label className={fieldLabelClass}>{targetLabel}</label>
+          <TextInput
+            className="h-[31px] rounded-[8px] border-0 bg-white/50 px-3 font-normal"
+            placeholder={targetPlaceholder}
+            value={target}
+            onChange={(event) => setTarget(event.target.value)}
+          />
+        </div>
       </div>
-      <div className="sticky bottom-0 -mx-6 mt-4 flex justify-end gap-2 bg-white px-6 pb-[25px] pt-0">
-        {secondaryLabel ? <Button variant="secondary" onClick={onSecondary}>{secondaryLabel}</Button> : null}
-        <Button onClick={submit} disabled={!canSubmit}>{submitLabel}</Button>
+      <div className="sticky bottom-0 -mx-6 mt-4 flex justify-end gap-2 bg-white px-6 py-0">
+        {secondaryLabel ? <Button variant="ghost" className="h-[31px] rounded-[8px] px-3 [font-weight:550]" onClick={onSecondary}>{secondaryLabel}</Button> : null}
+        <Button className="h-[31px] w-[81px] rounded-[8px] px-0 [font-weight:550]" onClick={submit} disabled={!canSubmit}>{submitLabel}</Button>
       </div>
     </div>
   );

@@ -18,6 +18,7 @@
   - Changed the local add credential dialog from the generic 706px modal to the captured 510px modal size.
   - Tightened credential form spacing, label line-height, footer spacing, and title sizing.
   - Changed the `Optional` name marker into a compact badge matching the captured dialog treatment.
+  - Revisited the dialog with fresh source and local OBU measurements, then aligned the shell to `510x349`, `12px` borderless radius, `22px` title, `31px` close/connect controls, `31px` inputs, half-white field backgrounds, and compact split labels.
 
 ### Design Intent
 
@@ -25,8 +26,8 @@ Keep credential CRUD inside `apiserver` while improving the console's vault deta
 
 OBU evidence:
 
-- Claude dialog: 510px wide by about 349px high, disabled `Connect` button, compact `Optional` badge.
-- Local final dialog: 510px wide by about 357px high, disabled `Connect` button, matching field order and compact `Optional` badge.
+- Claude dialog: 510px wide by 349px high, disabled `Connect` button, compact `Optional` badge.
+- Local final dialog: 510px wide by 349px high, with title, close, labels, inputs, type select, target field, and Connect button coordinates matching the captured Claude dialog.
 
 Verification:
 
