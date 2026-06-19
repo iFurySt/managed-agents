@@ -3510,6 +3510,7 @@ function DeploymentTriggerPicker({ value, onValueChange }: { value: string; onVa
 
 type DeploymentFrequency = "Every minute" | "Every hour" | "Daily" | "Weekdays" | "Weekly" | "Custom cron";
 type ScheduleMeridiem = "AM" | "PM";
+type ScheduleWeekday = "Sunday" | "Monday" | "Tuesday" | "Wednesday" | "Thursday" | "Friday" | "Saturday";
 
 const deploymentFrequencyOptions: { value: DeploymentFrequency }[] = [
   { value: "Every minute" },
@@ -3518,6 +3519,44 @@ const deploymentFrequencyOptions: { value: DeploymentFrequency }[] = [
   { value: "Weekdays" },
   { value: "Weekly" },
   { value: "Custom cron" }
+];
+
+const deploymentWeekdayOptions: { value: ScheduleWeekday; cron: number; runs: string[] }[] = [
+  {
+    value: "Sunday",
+    cron: 0,
+    runs: ["Sun, Jun 21, 2026, 9:00 AM", "Sun, Jun 28, 2026, 9:00 AM", "Sun, Jul 5, 2026, 9:00 AM", "Sun, Jul 12, 2026, 9:00 AM", "Sun, Jul 19, 2026, 9:00 AM"]
+  },
+  {
+    value: "Monday",
+    cron: 1,
+    runs: ["Mon, Jun 22, 2026, 9:00 AM", "Mon, Jun 29, 2026, 9:00 AM", "Mon, Jul 6, 2026, 9:00 AM", "Mon, Jul 13, 2026, 9:00 AM", "Mon, Jul 20, 2026, 9:00 AM"]
+  },
+  {
+    value: "Tuesday",
+    cron: 2,
+    runs: ["Tue, Jun 23, 2026, 9:00 AM", "Tue, Jun 30, 2026, 9:00 AM", "Tue, Jul 7, 2026, 9:00 AM", "Tue, Jul 14, 2026, 9:00 AM", "Tue, Jul 21, 2026, 9:00 AM"]
+  },
+  {
+    value: "Wednesday",
+    cron: 3,
+    runs: ["Wed, Jun 24, 2026, 9:00 AM", "Wed, Jul 1, 2026, 9:00 AM", "Wed, Jul 8, 2026, 9:00 AM", "Wed, Jul 15, 2026, 9:00 AM", "Wed, Jul 22, 2026, 9:00 AM"]
+  },
+  {
+    value: "Thursday",
+    cron: 4,
+    runs: ["Thu, Jun 25, 2026, 9:00 AM", "Thu, Jul 2, 2026, 9:00 AM", "Thu, Jul 9, 2026, 9:00 AM", "Thu, Jul 16, 2026, 9:00 AM", "Thu, Jul 23, 2026, 9:00 AM"]
+  },
+  {
+    value: "Friday",
+    cron: 5,
+    runs: ["Fri, Jun 26, 2026, 9:00 AM", "Fri, Jul 3, 2026, 9:00 AM", "Fri, Jul 10, 2026, 9:00 AM", "Fri, Jul 17, 2026, 9:00 AM", "Fri, Jul 24, 2026, 9:00 AM"]
+  },
+  {
+    value: "Saturday",
+    cron: 6,
+    runs: ["Sat, Jun 20, 2026, 9:00 AM", "Sat, Jun 27, 2026, 9:00 AM", "Sat, Jul 4, 2026, 9:00 AM", "Sat, Jul 11, 2026, 9:00 AM", "Sat, Jul 18, 2026, 9:00 AM"]
+  }
 ];
 
 const deploymentScheduleRunDates: Record<Exclude<DeploymentFrequency, "Custom cron">, string[]> = {
@@ -3549,13 +3588,7 @@ const deploymentScheduleRunDates: Record<Exclude<DeploymentFrequency, "Custom cr
     "Thu, Jun 25, 2026, 9:00 AM",
     "Fri, Jun 26, 2026, 9:00 AM"
   ],
-  Weekly: [
-    "Mon, Jun 22, 2026, 9:00 AM",
-    "Mon, Jun 29, 2026, 9:00 AM",
-    "Mon, Jul 6, 2026, 9:00 AM",
-    "Mon, Jul 13, 2026, 9:00 AM",
-    "Mon, Jul 20, 2026, 9:00 AM"
-  ]
+  Weekly: deploymentWeekdayOptions[1].runs
 };
 
 function parseScheduleTime(value: string) {
@@ -3578,7 +3611,7 @@ function formatScheduleTimeForRuns(value: string, meridiem: ScheduleMeridiem) {
   return `${parsed.hour}:${String(parsed.minute).padStart(2, "0")} ${meridiem}`;
 }
 
-function getScheduleExpressionForFrequency(frequency: DeploymentFrequency, time: string, meridiem: ScheduleMeridiem) {
+function getScheduleExpressionForFrequency(frequency: DeploymentFrequency, time: string, meridiem: ScheduleMeridiem, weekday: ScheduleWeekday) {
   if (frequency === "Every minute") return "* * * * *";
   if (frequency === "Every hour") return "0 * * * *";
   if (frequency === "Custom cron") return null;
@@ -3586,12 +3619,16 @@ function getScheduleExpressionForFrequency(frequency: DeploymentFrequency, time:
   if (!parsed) return null;
   const hour24 = getScheduleHour24(parsed.hour, meridiem);
   if (frequency === "Daily") return `${parsed.minute} ${hour24} * * *`;
-  if (frequency === "Weekly") return `${parsed.minute} ${hour24} * * 1`;
+  if (frequency === "Weekly") {
+    const selectedWeekday = deploymentWeekdayOptions.find((option) => option.value === weekday) ?? deploymentWeekdayOptions[1];
+    return `${parsed.minute} ${hour24} * * ${selectedWeekday.cron}`;
+  }
   return `${parsed.minute} ${hour24} * * 1-5`;
 }
 
-function getDeploymentScheduleRuns(frequency: DeploymentFrequency, time: string, meridiem: ScheduleMeridiem) {
-  const runs = frequency === "Custom cron" ? deploymentScheduleRunDates.Weekdays : deploymentScheduleRunDates[frequency];
+function getDeploymentScheduleRuns(frequency: DeploymentFrequency, time: string, meridiem: ScheduleMeridiem, weekday: ScheduleWeekday) {
+  const selectedWeekday = deploymentWeekdayOptions.find((option) => option.value === weekday) ?? deploymentWeekdayOptions[1];
+  const runs = frequency === "Custom cron" ? deploymentScheduleRunDates.Weekdays : frequency === "Weekly" ? selectedWeekday.runs : deploymentScheduleRunDates[frequency];
   if (frequency === "Every minute" || frequency === "Every hour") return runs;
   const displayTime = formatScheduleTimeForRuns(time, meridiem);
   return runs.map((run) => run.replace(/\d{1,2}:\d{2} [AP]M$/, displayTime));
@@ -3786,21 +3823,59 @@ function DeploymentTimeField({
   );
 }
 
-function DeploymentDayField() {
+function DeploymentDayPicker({ value, onValueChange }: { value: ScheduleWeekday; onValueChange: (value: ScheduleWeekday) => void }) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="relative h-8 rounded-[8px] bg-white/50">
+      <button
+        type="button"
+        role="combobox"
+        aria-expanded={open}
+        aria-label="Select weekly day"
+        className="flex h-8 w-[calc(100%-8px)] items-center justify-between rounded-[8px] bg-transparent px-2 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-[#c6613f]/35"
+        onClick={() => setOpen((current) => !current)}
+      >
+        <span className="truncate">{value}</span>
+        <ChevronDown className="h-4 w-4 shrink-0 text-muted" />
+      </button>
+      {open ? (
+        <div
+          data-cds="Combobox"
+          role="dialog"
+          data-side="top"
+          data-align="start"
+          className="absolute bottom-[38px] left-0 z-50 h-[232px] w-[213.5px] rounded-[12px] bg-white p-1 shadow-[0_10px_28px_rgba(0,0,0,0.12)]"
+        >
+          <div role="listbox" className="grid gap-0">
+            {deploymentWeekdayOptions.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                role="option"
+                aria-selected={value === option.value}
+                className="flex h-8 w-full items-center justify-between rounded-[8px] px-3 text-left text-sm leading-5 text-ink outline-none hover:bg-fill aria-selected:bg-black/[0.05]"
+                onClick={() => {
+                  onValueChange(option.value);
+                  setOpen(false);
+                }}
+              >
+                <span>{option.value}</span>
+                {value === option.value ? <Check className="h-4 w-4 shrink-0 text-muted" /> : null}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function DeploymentDayField({ value, onValueChange }: { value: ScheduleWeekday; onValueChange: (value: ScheduleWeekday) => void }) {
   return (
     <div data-cds="Field" className="flex min-w-0 flex-col gap-2">
       <label className="text-sm leading-none [font-weight:550]">On</label>
-      <div className="h-8 rounded-[8px] bg-white/50">
-        <button
-          type="button"
-          role="combobox"
-          aria-expanded="false"
-          className="flex h-8 w-[calc(100%-8px)] items-center justify-between rounded-[8px] bg-transparent px-2 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-[#c6613f]/35"
-        >
-          <span className="truncate">Monday</span>
-          <ChevronDown className="h-4 w-4 shrink-0 text-muted" />
-        </button>
-      </div>
+      <DeploymentDayPicker value={value} onValueChange={onValueChange} />
     </div>
   );
 }
@@ -3893,27 +3968,33 @@ function DeploymentScheduleFields({
   const [frequency, setFrequency] = useState<DeploymentFrequency>("Weekdays");
   const [scheduleTime, setScheduleTime] = useState("9:00");
   const [meridiem, setMeridiem] = useState<ScheduleMeridiem>("AM");
+  const [weekday, setWeekday] = useState<ScheduleWeekday>("Monday");
   const customCron = frequency === "Custom cron";
-  const nextRuns = getDeploymentScheduleRuns(frequency, scheduleTime, meridiem);
+  const nextRuns = getDeploymentScheduleRuns(frequency, scheduleTime, meridiem, weekday);
 
-  function syncExpression(nextFrequency: DeploymentFrequency, nextTime: string, nextMeridiem: ScheduleMeridiem) {
-    const nextExpression = getScheduleExpressionForFrequency(nextFrequency, nextTime, nextMeridiem);
+  function syncExpression(nextFrequency: DeploymentFrequency, nextTime: string, nextMeridiem: ScheduleMeridiem, nextWeekday: ScheduleWeekday) {
+    const nextExpression = getScheduleExpressionForFrequency(nextFrequency, nextTime, nextMeridiem, nextWeekday);
     if (nextExpression) onExpressionChange(nextExpression);
   }
 
   function selectFrequency(nextFrequency: DeploymentFrequency) {
     setFrequency(nextFrequency);
-    syncExpression(nextFrequency, scheduleTime, meridiem);
+    syncExpression(nextFrequency, scheduleTime, meridiem, weekday);
   }
 
   function changeTime(nextTime: string) {
     setScheduleTime(nextTime);
-    syncExpression(frequency, nextTime, meridiem);
+    syncExpression(frequency, nextTime, meridiem, weekday);
   }
 
   function changeMeridiem(nextMeridiem: ScheduleMeridiem) {
     setMeridiem(nextMeridiem);
-    syncExpression(frequency, scheduleTime, nextMeridiem);
+    syncExpression(frequency, scheduleTime, nextMeridiem, weekday);
+  }
+
+  function changeWeekday(nextWeekday: ScheduleWeekday) {
+    setWeekday(nextWeekday);
+    syncExpression(frequency, scheduleTime, meridiem, nextWeekday);
   }
 
   return (
@@ -3924,7 +4005,7 @@ function DeploymentScheduleFields({
             <label className="text-sm leading-none [font-weight:550]">Frequency</label>
             <DeploymentFrequencyPicker value={frequency} onValueChange={selectFrequency} />
           </div>
-          {frequency === "Weekly" ? <DeploymentDayField /> : <DeploymentTimezoneField value={timezone} onValueChange={onTimezoneChange} />}
+          {frequency === "Weekly" ? <DeploymentDayField value={weekday} onValueChange={changeWeekday} /> : <DeploymentTimezoneField value={timezone} onValueChange={onTimezoneChange} />}
           {frequency === "Daily" || frequency === "Weekdays" ? (
             <>
               <DeploymentTimeField value={scheduleTime} meridiem={meridiem} onValueChange={changeTime} onMeridiemChange={changeMeridiem} />
