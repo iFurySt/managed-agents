@@ -5054,7 +5054,7 @@ function CreateSkillDialog({
     >
       <div className="px-6 pb-0 pt-3">
         <div className="grid gap-2">
-          <label className="flex h-[112px] cursor-pointer items-end justify-center rounded-cds border border-dashed border-line bg-transparent px-4 pb-6 pt-6 text-center">
+          <label className="flex h-[112px] cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-line bg-transparent px-4 py-6 text-center transition-colors">
             <input
               className="hidden"
               type="file"
@@ -5062,7 +5062,7 @@ function CreateSkillDialog({
               onChange={(event) => setSelectedName(event.target.files?.[0]?.name ?? "")}
             />
             <div>
-              <p className="text-sm">Drag and drop a .zip, .skill file, or directory to upload</p>
+              <p className="text-sm text-muted">Drag and drop a .zip, .skill file, or directory to upload</p>
               {selectedName ? <p className="mt-3 font-mono text-sm text-ink">{selectedName}</p> : null}
             </div>
           </label>
