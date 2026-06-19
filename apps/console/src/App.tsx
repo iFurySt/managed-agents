@@ -2384,8 +2384,8 @@ function FilesPage() {
 function FilesEmptyState({ language, onLanguageChange }: { language: string; onLanguageChange: (value: string) => void }) {
   const code = language === "Python" ? filesPythonTemplate : filesCurlTemplate;
   return (
-    <div className="mt-2 max-w-[952px]">
-      <p className="mb-3 text-sm text-ink">No files have been uploaded to the Default workspace. Copy the template below to upload your first file:</p>
+    <div className="mt-4 max-w-[952px]">
+      <p className="mb-3 text-sm text-[#898781]">No files have been uploaded to the Default workspace. Copy the template below to upload your first file:</p>
       <div className="overflow-hidden rounded-cds bg-fill">
         <div className="flex h-9 items-center gap-2 px-3">
           <FilesLanguageMenu language={language} onLanguageChange={onLanguageChange} />
