@@ -2397,13 +2397,50 @@ function FilesEmptyState({ language, onLanguageChange }: { language: string; onL
           {code.split("\n").map((line, index) => (
             <span key={`${line}-${index}`} className="relative block min-h-[21px] whitespace-pre-wrap pl-10">
               <span className="absolute left-0 w-10 select-none pr-4 text-right text-muted">{index + 1}</span>
-              <span>{line || " "}</span>
+              <span>{renderFilesCodeLine(line, language)}</span>
             </span>
           ))}
         </pre>
       </div>
     </div>
   );
+}
+
+function renderFilesCodeLine(line: string, language: string) {
+  if (!line) return " ";
+
+  const tokenPattern = language === "Python"
+    ? /(".*?"|\bimport\b|\b(?:beta|files)\b|\b(?:Anthropic|upload|open)\b|[.=(),])/g
+    : /(".*?"|\b(?:curl)\b|-[A-Z]|[=:\\])/g;
+
+  const nodes: React.ReactNode[] = [];
+  let cursor = 0;
+  let index = 0;
+
+  for (const match of line.matchAll(tokenPattern)) {
+    const token = match[0];
+    const start = match.index ?? 0;
+    if (start > cursor) nodes.push(line.slice(cursor, start));
+    nodes.push(
+      <span key={`${token}-${index}`} className={filesCodeTokenClass(token, language)}>
+        {token}
+      </span>
+    );
+    cursor = start + token.length;
+    index += 1;
+  }
+
+  if (cursor < line.length) nodes.push(line.slice(cursor));
+  return nodes.length ? nodes : line;
+}
+
+function filesCodeTokenClass(token: string, language: string) {
+  if (/^".*"$/.test(token)) return "text-[#008000]";
+  if (language === "Python" && token === "import") return "text-[#8100c2]";
+  if (language === "Python" && (token === "beta" || token === "files")) return "text-[#b80a18]";
+  if (language === "Python" && (token === "Anthropic" || token === "upload" || token === "open")) return "text-[#0044cc]";
+  if (language === "cURL" && (token === "curl" || token.startsWith("-"))) return "text-[#8100c2]";
+  return "text-[#2b303b]";
 }
 
 function FilesLanguageMenu({ language, onLanguageChange }: { language: string; onLanguageChange: (value: string) => void }) {
