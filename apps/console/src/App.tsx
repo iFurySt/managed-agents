@@ -3123,7 +3123,7 @@ function CreateAgentDialog({
               {agentStartingTemplates.map((template) => (
                 <button
                   key={template.name}
-                  className={`flex w-full cursor-pointer flex-col items-start overflow-hidden rounded-[8px] bg-white p-3 text-left text-sm transition hover:bg-fill ${selectedTemplate.name === template.name ? "border-2 border-[#c9c6be]" : "border border-line"}`}
+                  className={`flex w-full cursor-pointer flex-col items-start overflow-hidden rounded-[8px] bg-white p-3 text-left text-sm transition hover:bg-fill ${selectedTemplate.name === template.name ? "border-[1.5px] border-black/20" : "border border-line"}`}
                   type="button"
                   onClick={() => selectTemplate(template)}
                 >
