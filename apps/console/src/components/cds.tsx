@@ -37,7 +37,7 @@ export function Button({
   );
 }
 
-export function Badge({ children, tone = "neutral" }: { children: ReactNode; tone?: "neutral" | "green" | "blue" | "red" }) {
+export function Badge({ children, tone = "neutral", className = "" }: { children: ReactNode; tone?: "neutral" | "green" | "blue" | "red"; className?: string }) {
   const tones = {
     neutral: "bg-fill text-muted",
     green: "bg-[#cdf0ce] text-[#13751f]",
@@ -45,7 +45,7 @@ export function Badge({ children, tone = "neutral" }: { children: ReactNode; ton
     red: "bg-[#ffe0dc] text-[#a33a29]"
   };
   return (
-    <span data-cds="Badge" className={`inline-flex h-6 items-center rounded-md px-2 text-xs font-semibold ${tones[tone]}`}>
+    <span data-cds="Badge" className={`inline-flex h-6 items-center rounded-md px-2 text-xs font-semibold ${tones[tone]} ${className}`}>
       {children}
     </span>
   );

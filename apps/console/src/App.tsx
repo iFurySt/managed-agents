@@ -2986,26 +2986,29 @@ function SkillVersionDialog({ skillId, onOpenChange }: { skillId: string | null;
       title={skill?.name ?? "Skill"}
       open={open}
       onOpenChange={onOpenChange}
-      contentClassName="w-[520px] max-w-[calc(100vw-32px)]"
-      titleClassName="text-lg font-semibold text-ink"
+      contentClassName="min-h-[396px] w-[520px] max-w-[calc(100vw-32px)] !rounded-[12px] border-0"
+      headerClassName="flex items-start justify-between pl-6 pr-4 pt-4"
+      titleClassName="mt-1 text-[22px] leading-[26px] text-ink [font-weight:580]"
+      closeButtonClassName="h-8 w-8 rounded-[8px] px-0"
       closeLabel="Close"
     >
-      <div className="px-6 pb-0 pt-2">
+      <div className="px-6 pb-0 pt-3">
         {skill ? (
-          <div className="grid gap-5">
+          <div className="grid gap-6">
             <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
               <span>{skill.owner}</span>
               <span>•</span>
               <span>{skill.createdLabel}</span>
             </div>
-            <DetailSection title="Version history">
+            <section>
+              <h2 className="mb-3 text-[15px] leading-5 [font-weight:550]">Version history</h2>
               <div className="grid gap-1">
                 {(skill.versions ?? []).map((version) => (
-                  <div key={version.id} className="grid min-h-[47px] grid-cols-[minmax(0,1fr)_130px_72px] items-center rounded-control px-2 text-sm hover:bg-fill">
+                  <div key={version.id} className="grid min-h-[47px] grid-cols-[74px_auto_1fr] items-center gap-3 rounded-control px-3 text-sm hover:bg-fill">
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="h-[22px] w-[74px] justify-start gap-0.5 px-0 font-mono font-semibold text-ink"
+                      className="h-[22px] w-[74px] justify-start gap-0.5 rounded-[5.5px] bg-fill px-0 font-mono font-semibold text-ink hover:bg-fill"
                       aria-label={`Copy ${version.version}`}
                       onClick={() => copyText(version.version)}
                     >
@@ -3013,11 +3016,11 @@ function SkillVersionDialog({ skillId, onOpenChange }: { skillId: string | null;
                       <Copy className="h-3.5 w-3.5" />
                     </Button>
                     <span className="text-muted">{version.releasedAt}</span>
-                    <span>{version.latest ? <Badge>Latest</Badge> : null}</span>
+                    <span>{version.latest ? <Badge tone="blue" className="h-[22px] rounded-[5.5px] bg-[#cde2fb] text-ink">Latest</Badge> : null}</span>
                   </div>
                 ))}
               </div>
-            </DetailSection>
+            </section>
           </div>
         ) : (
           <EmptyState compact title="Loading version history" description="" />
