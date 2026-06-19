@@ -2590,18 +2590,15 @@ function SkillsPage() {
         {skills.map((skill) => (
           <article key={skill.id} className="grid min-h-[137px] grid-cols-[minmax(0,1fr)_28px] gap-4 border-b border-line px-3 py-3">
             <div className="min-w-0">
-              <h2 className="mb-0 text-base font-semibold leading-6">{skill.name}</h2>
-              <p className="cds-line-clamp-2 max-w-[720px] whitespace-pre-wrap text-sm leading-5 text-[#3f3a35]">{skill.description}</p>
+              <h3 className="mb-0 text-base leading-6 [font-weight:550]">{skill.name}</h3>
+              <p className="cds-line-clamp-2 max-w-[720px] whitespace-pre-wrap text-sm leading-5 text-[#898781]">{skill.description}</p>
               <div className="mt-[26px] flex h-[22px] flex-wrap items-center gap-2 text-xs leading-4 text-[#898781]">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-[22px] rounded-[5.5px] bg-fill px-2 font-mono text-xs text-[#52514e] [font-weight:550] hover:bg-fill"
-                  aria-label={`Copy ${skill.slug}`}
-                  onClick={() => copyText(skill.slug)}
+                <span
+                  data-cds="Badge"
+                  className="inline-flex h-[22px] items-center rounded-[5.5px] bg-fill px-2 font-mono text-xs leading-[15px] text-[#52514e] [font-weight:550]"
                 >
                   <span>{skill.slug}</span>
-                </Button>
+                </span>
                 <span>•</span>
                 <span>{skill.owner}</span>
                 <span>•</span>
