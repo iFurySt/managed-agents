@@ -19,6 +19,7 @@ import {
   KeyRound,
   MessageSquare,
   Pause,
+  Pencil,
   Play,
   Plus,
   Search,
@@ -77,10 +78,11 @@ import {
   resumeDeployment,
   runDeployment,
   updateAgent,
+  updateDeployment,
   updateEnvironment
 } from "./api";
 import { Badge, Button, CdsDropdownMenu, CdsTabs, ConsoleDialog, DataTable, FieldSelect, SidebarItem, TextInput } from "./components/cds";
-import type { Agent, CollectionName, Deployment, Environment, MemoryRecord, MemoryStore, Resource, Session, SessionEvent, SkillPackage, SkillVersion, Vault, VaultCredential, WorkspaceFile } from "./types";
+import type { Agent, CollectionName, Deployment, Environment, MemoryRecord, MemoryStore, Resource, Session, SessionEvent, SkillPackage, SkillVersion, UpdateDeploymentInput, Vault, VaultCredential, WorkspaceFile } from "./types";
 
 const managedRoutes: { path: CollectionName; title: string; description: string; action: string }[] = [];
 const defaultDeploymentEnvironmentId = "env_01UTaKkbFknSkQNEsZjUARMh";
@@ -790,6 +792,7 @@ function DeploymentsPage() {
   const [agent, setAgent] = useState("All");
   const [status, setStatus] = useState("All");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingDeployment, setEditingDeployment] = useState<Deployment | null>(null);
 
   useEffect(() => {
     listDeployments({ q: search, status, agentId: agent }).then(setDeployments).catch(() => setDeployments([]));
@@ -805,9 +808,10 @@ function DeploymentsPage() {
     setDeployments((items) => items.map((item) => (item.id === updated.id ? updated : item)));
   }
 
-  async function runCurrent(deployment: Deployment) {
-    const run = await runDeployment(deployment.id);
-    setDeployments((items) => items.map((item) => (item.id === deployment.id ? { ...item, lastRunLabel: "just now", runs: [run, ...(item.runs ?? [])] } : item)));
+  async function updateCurrent(deployment: Deployment, input: UpdateDeploymentInput) {
+    const updated = await updateDeployment(deployment.id, input);
+    setDeployments((items) => items.map((item) => (item.id === updated.id ? updated : item)));
+    setEditingDeployment(null);
   }
 
   return (
@@ -909,9 +913,9 @@ function DeploymentsPage() {
           renderActions={(deployment) => (
             <DeploymentActions
               deployment={deployment}
-              onRun={() => runCurrent(deployment)}
               onPause={() => applyStatus(deployment, "pause")}
               onResume={() => applyStatus(deployment, "resume")}
+              onEdit={() => setEditingDeployment(deployment)}
               onArchive={() => applyStatus(deployment, "archive")}
             />
           )}
@@ -921,6 +925,15 @@ function DeploymentsPage() {
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         onCreated={(deployment) => setDeployments((items) => [deployment, ...items])}
+      />
+      <CreateDeploymentDialog
+        mode="edit"
+        open={Boolean(editingDeployment)}
+        onOpenChange={(open) => {
+          if (!open) setEditingDeployment(null);
+        }}
+        deployment={editingDeployment}
+        onUpdated={(input) => (editingDeployment ? updateCurrent(editingDeployment, input) : Promise.resolve())}
       />
     </section>
   );
@@ -932,6 +945,7 @@ function DeploymentDetailPage() {
   const [deployment, setDeployment] = useState<Deployment | null>(null);
   const [trigger, setTrigger] = useState("All");
   const [result, setResult] = useState("All");
+  const [editOpen, setEditOpen] = useState(false);
 
   useEffect(() => {
     if (id) getDeployment(id).then(setDeployment).catch(() => setDeployment(null));
@@ -952,6 +966,13 @@ function DeploymentDetailPage() {
           ? await resumeDeployment(deployment.id)
           : await archiveDeployment(deployment.id);
     setDeployment(updated);
+  }
+
+  async function updateCurrent(input: UpdateDeploymentInput) {
+    if (!deployment) return;
+    const updated = await updateDeployment(deployment.id, input);
+    setDeployment(updated);
+    setEditOpen(false);
   }
 
   if (!deployment) return <EmptyState title="Deployment not found" description="The selected deployment could not be loaded." />;
@@ -996,13 +1017,20 @@ function DeploymentDetailPage() {
           </Button>
           <DeploymentActions
             deployment={deployment}
-            onRun={runNow}
             onPause={() => applyStatus("pause")}
             onResume={() => applyStatus("resume")}
+            onEdit={() => setEditOpen(true)}
             onArchive={() => applyStatus("archive")}
           />
         </div>
       </div>
+      <CreateDeploymentDialog
+        mode="edit"
+        open={editOpen}
+        onOpenChange={setEditOpen}
+        deployment={deployment}
+        onUpdated={updateCurrent}
+      />
 
       <CdsTabs.Root
         value={activeTab}
@@ -2561,6 +2589,7 @@ function AgentSessionsPanel({ agent }: { agent: Agent }) {
 function AgentDeploymentsPanel({ agent }: { agent: Agent }) {
   const [deployments, setDeployments] = useState<Deployment[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingDeployment, setEditingDeployment] = useState<Deployment | null>(null);
 
   useEffect(() => {
     listDeployments({ agentId: agent.id }).then(setDeployments).catch(() => setDeployments([]));
@@ -2576,9 +2605,10 @@ function AgentDeploymentsPanel({ agent }: { agent: Agent }) {
     setDeployments((items) => items.map((item) => (item.id === updated.id ? updated : item)));
   }
 
-  async function runCurrent(deployment: Deployment) {
-    const run = await runDeployment(deployment.id);
-    setDeployments((items) => items.map((item) => (item.id === deployment.id ? { ...item, lastRunLabel: "just now", runs: [run, ...(item.runs ?? [])] } : item)));
+  async function updateCurrent(deployment: Deployment, input: UpdateDeploymentInput) {
+    const updated = await updateDeployment(deployment.id, input);
+    setDeployments((items) => items.map((item) => (item.id === updated.id ? updated : item)).filter((item) => item.agentId === agent.id));
+    setEditingDeployment(null);
   }
 
   return (
@@ -2621,9 +2651,9 @@ function AgentDeploymentsPanel({ agent }: { agent: Agent }) {
           renderActions={(deployment) => (
             <DeploymentActions
               deployment={deployment}
-              onRun={() => runCurrent(deployment)}
               onPause={() => applyStatus(deployment, "pause")}
               onResume={() => applyStatus(deployment, "resume")}
+              onEdit={() => setEditingDeployment(deployment)}
               onArchive={() => applyStatus(deployment, "archive")}
             />
           )}
@@ -2647,6 +2677,15 @@ function AgentDeploymentsPanel({ agent }: { agent: Agent }) {
         initialEnvironmentId="env_01ManagedDebug"
         initialEnvironmentName="managed-ssh-debug-env"
         onCreated={(deployment) => setDeployments((items) => (deployment.agentId === agent.id ? [deployment, ...items] : items))}
+      />
+      <CreateDeploymentDialog
+        mode="edit"
+        open={Boolean(editingDeployment)}
+        onOpenChange={(open) => {
+          if (!open) setEditingDeployment(null);
+        }}
+        deployment={editingDeployment}
+        onUpdated={(input) => (editingDeployment ? updateCurrent(editingDeployment, input) : Promise.resolve())}
       />
     </>
   );
@@ -3022,23 +3061,29 @@ function CreateSessionDialog({
 }
 
 function CreateDeploymentDialog({
+  mode = "create",
   open,
   onOpenChange,
+  deployment,
   initialAgentId = "",
   initialAgentName = "",
   initialAgentVersion = "v1",
   initialEnvironmentId = "",
   initialEnvironmentName = "",
-  onCreated
+  onCreated,
+  onUpdated
 }: {
+  mode?: "create" | "edit";
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  deployment?: Deployment | null;
   initialAgentId?: string;
   initialAgentName?: string;
   initialAgentVersion?: string;
   initialEnvironmentId?: string;
   initialEnvironmentName?: string;
-  onCreated: (deployment: Deployment) => void;
+  onCreated?: (deployment: Deployment) => void;
+  onUpdated?: (input: UpdateDeploymentInput) => Promise<void> | void;
 }) {
   const [name, setName] = useState("");
   const [agentId, setAgentId] = useState("");
@@ -3053,7 +3098,12 @@ function CreateDeploymentDialog({
   const canCreate = name && agentId && initialMessage && environmentId && trigger;
   const fieldLabelClass = "text-sm leading-none [font-weight:550]";
   const manageLinkClass = "inline-flex items-center gap-1 text-xs leading-4 text-[#184f95] hover:underline";
-  const scopedAgent = Boolean(initialAgentId);
+  const lockedAgentId = mode === "edit" && deployment ? deployment.agentId : initialAgentId;
+  const lockedAgentName = mode === "edit" && deployment ? deployment.agentName : initialAgentName;
+  const lockedAgentVersion = mode === "edit" && deployment ? deployment.agentVersion : initialAgentVersion;
+  const pickerEnvironmentId = mode === "edit" && deployment ? deployment.environmentId : initialEnvironmentId;
+  const pickerEnvironmentName = mode === "edit" && deployment ? deployment.environmentName : initialEnvironmentName;
+  const scopedAgent = Boolean(lockedAgentId);
 
   function selectAgent(nextAgentId: string) {
     setAgentId(nextAgentId);
@@ -3064,14 +3114,34 @@ function CreateDeploymentDialog({
 
   useEffect(() => {
     if (!open) return;
+    if (mode === "edit" && deployment) {
+      setName(deployment.name);
+      setAgentId(deployment.agentId);
+      setInitialMessage(deployment.initialMessage);
+      setEnvironmentId(deployment.environmentId);
+      setVault(firstDeploymentBinding(deployment.vaults));
+      setMemoryStore(firstDeploymentBinding(deployment.memoryStores));
+      setTrigger(deployment.trigger || "Manual");
+      setScheduleExpression(deployment.schedule && deployment.schedule !== "Manual" ? deployment.schedule : "0 9 * * 1-5");
+      setTimezone(deployment.timezone || "Asia/Shanghai");
+      return;
+    }
+    setName("");
+    setInitialMessage("");
+    setVault("");
+    setMemoryStore("");
+    setTrigger("");
+    setScheduleExpression("0 9 * * 1-5");
+    setTimezone("Asia/Shanghai");
     if (initialAgentId) setAgentId(initialAgentId);
     else setAgentId("");
     if (initialEnvironmentId) setEnvironmentId(initialEnvironmentId);
-  }, [initialAgentId, initialEnvironmentId, open]);
+    else setEnvironmentId("");
+  }, [deployment, initialAgentId, initialEnvironmentId, mode, open]);
 
   async function submit() {
     if (!canCreate) return;
-    const deployment = await createDeployment({
+    const input: UpdateDeploymentInput = {
       name,
       agentId,
       initialMessage,
@@ -3081,8 +3151,14 @@ function CreateDeploymentDialog({
       trigger,
       schedule: trigger === "Schedule" ? scheduleExpression : "Manual",
       timezone
-    });
-    onCreated(deployment);
+    };
+    if (mode === "edit") {
+      await onUpdated?.(input);
+      onOpenChange(false);
+      return;
+    }
+    const created = await createDeployment(input);
+    onCreated?.(created);
     onOpenChange(false);
     setName("");
     setAgentId(initialAgentId);
@@ -3097,11 +3173,11 @@ function CreateDeploymentDialog({
 
   return (
     <ConsoleDialog
-      title="Create deployment"
-      description="Deploy an agent with a trigger, environment, and credentials."
+      title={mode === "edit" ? "Edit deployment" : "Create deployment"}
+      description={mode === "edit" ? "Update this deployment's trigger, environment, and credentials. Changes apply to future runs." : "Deploy an agent with a trigger, environment, and credentials."}
       open={open}
       onOpenChange={onOpenChange}
-      contentClassName="h-[718px] w-[520px] max-w-[calc(100vw-32px)] max-h-[calc(100dvh-32px)] !rounded-[12px] border-0"
+      contentClassName={`${mode === "edit" ? "h-[calc(100dvh-32px)]" : "h-[718px]"} w-[520px] max-w-[calc(100vw-32px)] max-h-[calc(100dvh-32px)] !rounded-[12px] border-0`}
       headerClassName="flex items-start justify-between pl-6 pr-4 pt-4"
       titleClassName="mt-1 text-[22px] leading-[26px] text-ink [font-weight:580]"
       closeButtonClassName="h-8 w-8 rounded-[8px] px-0"
@@ -3123,17 +3199,17 @@ function CreateDeploymentDialog({
               <div className="grid gap-2">
                 <div className="flex items-center justify-between">
                   <label className={fieldLabelClass}>Agent</label>
-                  <a className={manageLinkClass} href={`/agents/${initialAgentId}`} target="_blank" rel="noreferrer">
+                  <a className={manageLinkClass} href={`/agents/${lockedAgentId}`} target="_blank" rel="noreferrer">
                     View agent
                     <ExternalLink className="h-3 w-3" />
                     <span className="sr-only">(opens in new tab)</span>
                   </a>
                 </div>
-                <div className="flex h-8 items-center truncate text-sm">{initialAgentName || initialAgentId}</div>
+                <div className="flex h-8 items-center truncate text-sm">{lockedAgentName || lockedAgentId}</div>
               </div>
               <div className="grid gap-2">
                 <label className={fieldLabelClass}>Version</label>
-                <DeploymentVersionPicker value={initialAgentVersion} />
+                <DeploymentVersionPicker value={lockedAgentVersion} />
               </div>
             </div>
           ) : agentId ? (
@@ -3189,8 +3265,8 @@ function CreateDeploymentDialog({
             <DeploymentEnvironmentPicker
               value={environmentId}
               onValueChange={setEnvironmentId}
-              initialEnvironmentId={initialEnvironmentId}
-              initialEnvironmentName={initialEnvironmentName}
+              initialEnvironmentId={pickerEnvironmentId}
+              initialEnvironmentName={pickerEnvironmentName}
             />
           </div>
           <div className="grid gap-2">
@@ -3229,7 +3305,7 @@ function CreateDeploymentDialog({
           ) : null}
         </div>
         <div className="sticky bottom-0 -mx-6 mt-[19px] flex justify-end bg-white px-6 pb-[25px] pt-0">
-          <Button className="h-8 w-[71px] rounded-[8px] px-0 [font-weight:550]" onClick={submit} disabled={!canCreate}>Create</Button>
+          <Button className={`h-8 rounded-[8px] px-0 [font-weight:550] ${mode === "edit" ? "w-[51px]" : "w-[71px]"}`} onClick={submit} disabled={!canCreate}>{mode === "edit" ? "Save" : "Create"}</Button>
         </div>
       </div>
     </ConsoleDialog>
@@ -3698,6 +3774,14 @@ const deploymentScheduleRunDates: Record<Exclude<DeploymentFrequency, "Custom cr
   Weekly: deploymentWeekdayOptions[1].runs
 };
 
+const deploymentDailyOneAmRuns = [
+  "Sat, Jun 20, 2026, 1:00 AM",
+  "Sun, Jun 21, 2026, 1:00 AM",
+  "Mon, Jun 22, 2026, 1:00 AM",
+  "Tue, Jun 23, 2026, 1:00 AM",
+  "Wed, Jun 24, 2026, 1:00 AM"
+];
+
 function parseScheduleTime(value: string) {
   const match = value.trim().match(/^(\d{1,2})(?::(\d{1,2}))?$/);
   if (!match) return null;
@@ -3733,12 +3817,20 @@ function getScheduleExpressionForFrequency(frequency: DeploymentFrequency, time:
   return `${parsed.minute} ${hour24} * * 1-5`;
 }
 
-function getDeploymentScheduleRuns(frequency: DeploymentFrequency, time: string, meridiem: ScheduleMeridiem, weekday: ScheduleWeekday) {
+function getDeploymentScheduleRuns(frequency: DeploymentFrequency, time: string, meridiem: ScheduleMeridiem, weekday: ScheduleWeekday, expression: string) {
   const selectedWeekday = deploymentWeekdayOptions.find((option) => option.value === weekday) ?? deploymentWeekdayOptions[1];
+  if (frequency === "Custom cron" && expression === "0 1 * * *") return deploymentDailyOneAmRuns;
   const runs = frequency === "Custom cron" ? deploymentScheduleRunDates.Weekdays : frequency === "Weekly" ? selectedWeekday.runs : deploymentScheduleRunDates[frequency];
   if (frequency === "Every minute" || frequency === "Every hour") return runs;
   const displayTime = formatScheduleTimeForRuns(time, meridiem);
   return runs.map((run) => run.replace(/\d{1,2}:\d{2} [AP]M$/, displayTime));
+}
+
+function getDeploymentInitialFrequency(expression: string): DeploymentFrequency {
+  if (expression === "* * * * *") return "Every minute";
+  if (expression === "0 * * * *") return "Every hour";
+  if (expression === "0 9 * * 1-5") return "Weekdays";
+  return "Custom cron";
 }
 
 type DeploymentTimezoneOption = {
@@ -4072,12 +4164,12 @@ function DeploymentScheduleFields({
   timezone: string;
   onTimezoneChange: (timezone: string) => void;
 }) {
-  const [frequency, setFrequency] = useState<DeploymentFrequency>("Weekdays");
+  const [frequency, setFrequency] = useState<DeploymentFrequency>(() => getDeploymentInitialFrequency(expression));
   const [scheduleTime, setScheduleTime] = useState("9:00");
   const [meridiem, setMeridiem] = useState<ScheduleMeridiem>("AM");
   const [weekday, setWeekday] = useState<ScheduleWeekday>("Monday");
   const customCron = frequency === "Custom cron";
-  const nextRuns = getDeploymentScheduleRuns(frequency, scheduleTime, meridiem, weekday);
+  const nextRuns = getDeploymentScheduleRuns(frequency, scheduleTime, meridiem, weekday, expression);
 
   function syncExpression(nextFrequency: DeploymentFrequency, nextTime: string, nextMeridiem: ScheduleMeridiem, nextWeekday: ScheduleWeekday) {
     const nextExpression = getScheduleExpressionForFrequency(nextFrequency, nextTime, nextMeridiem, nextWeekday);
@@ -4816,6 +4908,13 @@ function deploymentTriggerLabel(deployment: Deployment) {
   return deployment.schedule || "Schedule";
 }
 
+function firstDeploymentBinding(value: string) {
+  return value
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean)[0] ?? "";
+}
+
 function environmentTone(status: string): "neutral" | "green" | "blue" | "red" {
   if (status === "Archived") return "neutral";
   if (status === "Failed") return "red";
@@ -5096,19 +5195,20 @@ function SessionRowActions({ session, onCancel }: { session: Session; onCancel: 
 
 function DeploymentActions({
   deployment,
-  onRun,
   onPause,
   onResume,
+  onEdit,
   onArchive
 }: {
   deployment: Deployment;
-  onRun: () => void;
   onPause: () => void;
   onResume: () => void;
+  onEdit: () => void;
   onArchive: () => void;
 }) {
   const paused = deployment.status === "Paused";
   const archived = deployment.status === "Archived";
+  const itemClass = "flex h-8 w-[120px] cursor-pointer items-center gap-2 rounded-[7px] px-2.5 text-sm outline-none data-[highlighted]:bg-fill disabled:pointer-events-none disabled:opacity-50";
   return (
     <CdsDropdownMenu.Root>
       <CdsDropdownMenu.Trigger asChild>
@@ -5117,33 +5217,28 @@ function DeploymentActions({
         </Button>
       </CdsDropdownMenu.Trigger>
       <CdsDropdownMenu.Portal>
-        <CdsDropdownMenu.Content className="z-50 min-w-[170px] rounded-cds border border-line bg-white p-1 shadow-lg" align="end">
-          <CdsDropdownMenu.Item className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill" onSelect={onRun} disabled={archived}>
-            <Play className="h-4 w-4" />
-            Run now
-          </CdsDropdownMenu.Item>
-          <CdsDropdownMenu.Item className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill" onSelect={() => copyText(deployment.id)}>
-            <Copy className="h-4 w-4" />
-            Copy ID
-          </CdsDropdownMenu.Item>
+        <CdsDropdownMenu.Content data-cds="Menu" className="z-50 w-[128px] rounded-[12px] bg-white p-1 shadow-[0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]" align="end" sideOffset={6}>
           {paused ? (
-            <CdsDropdownMenu.Item className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill" onSelect={onResume} disabled={archived}>
-              <Play className="h-4 w-4" />
+            <CdsDropdownMenu.Item className={itemClass} onSelect={onResume} disabled={archived}>
+              <Play className="h-5 w-5 text-muted" />
               Resume
             </CdsDropdownMenu.Item>
           ) : (
-            <CdsDropdownMenu.Item className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill" onSelect={onPause} disabled={archived}>
-              <Pause className="h-4 w-4" />
+            <CdsDropdownMenu.Item className={itemClass} onSelect={onPause} disabled={archived}>
+              <Pause className="h-5 w-5 text-muted" />
               Pause
             </CdsDropdownMenu.Item>
           )}
-          <CdsDropdownMenu.Separator className="my-1 h-px bg-line" />
+          <CdsDropdownMenu.Item className={itemClass} onSelect={onEdit} disabled={archived}>
+            <Pencil className="h-5 w-5 text-muted" />
+            Edit
+          </CdsDropdownMenu.Item>
           <CdsDropdownMenu.Item
-            className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm text-[#a33a29] outline-none data-[highlighted]:bg-[#fff1ef]"
+            className={itemClass}
             onSelect={onArchive}
             disabled={archived}
           >
-            <Archive className="h-4 w-4" />
+            <Archive className="h-5 w-5 text-muted" />
             {archived ? "Archived" : "Archive"}
           </CdsDropdownMenu.Item>
         </CdsDropdownMenu.Content>

@@ -263,6 +263,8 @@ type CreateDeploymentRequest struct {
 	Timezone       string   `json:"timezone"`
 }
 
+type UpdateDeploymentRequest = CreateDeploymentRequest
+
 type CreateEnvironmentRequest struct {
 	Name        string `json:"name"`
 	HostingType string `json:"hostingType"`
@@ -363,6 +365,7 @@ func run() error {
 	router.GET("/api/deployments", listDeployments(db))
 	router.GET("/api/deployments/:id", getDeployment(db))
 	router.POST("/api/deployments", createDeployment(db))
+	router.PATCH("/api/deployments/:id", updateDeployment(db))
 	router.POST("/api/deployments/:id/run", runDeployment(db))
 	router.POST("/api/deployments/:id/pause", pauseDeployment(db))
 	router.POST("/api/deployments/:id/resume", resumeDeployment(db))
@@ -806,6 +809,61 @@ func createDeployment(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 		c.JSON(http.StatusCreated, deployment)
+	}
+}
+
+func updateDeployment(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var req UpdateDeploymentRequest
+		if err := c.ShouldBindJSON(&req); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		var deployment Deployment
+		if err := db.Preload("Runs", func(tx *gorm.DB) *gorm.DB {
+			return tx.Order("created_at desc")
+		}).First(&deployment, "id = ?", c.Param("id")).Error; err != nil {
+			status := http.StatusInternalServerError
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				status = http.StatusNotFound
+			}
+			c.JSON(status, gin.H{"error": err.Error()})
+			return
+		}
+		agentID := defaultString(req.AgentID, deployment.AgentID)
+		agentName := deployment.AgentName
+		var agent Agent
+		if err := db.First(&agent, "id = ?", agentID).Error; err == nil {
+			agentName = agent.Name
+		}
+		envID := defaultString(req.EnvironmentID, deployment.EnvironmentID)
+		envName := lookupEnvironmentName(db, envID, deployment.EnvironmentName)
+		trigger := defaultString(req.Trigger, deployment.Trigger)
+		schedule := defaultString(req.Schedule, deployment.Schedule)
+		if strings.EqualFold(trigger, "Manual") {
+			schedule = "Manual"
+		}
+		deployment.Name = defaultString(strings.TrimSpace(req.Name), deployment.Name)
+		deployment.AgentID = agentID
+		deployment.AgentName = agentName
+		deployment.EnvironmentID = envID
+		deployment.EnvironmentName = envName
+		deployment.Vaults = strings.Join(req.Vaults, ", ")
+		deployment.MemoryStores = strings.Join(req.MemoryStores, ", ")
+		deployment.Trigger = trigger
+		deployment.Schedule = schedule
+		deployment.Timezone = defaultString(req.Timezone, deployment.Timezone)
+		deployment.InitialMessage = defaultString(req.InitialMessage, deployment.InitialMessage)
+		deployment.NextRuns = "On demand"
+		if strings.EqualFold(trigger, "Schedule") {
+			deployment.NextRuns = "Fri 1:00 AM, Sat 1:00 AM, Sun 1:00 AM, Mon 1:00 AM"
+		}
+		deployment.UpdatedAt = time.Now().UTC()
+		if err := db.Save(&deployment).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, deployment)
 	}
 }
 

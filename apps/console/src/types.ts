@@ -280,4 +280,6 @@ export type CreateDeploymentInput = {
   timezone: string;
 };
 
+export type UpdateDeploymentInput = CreateDeploymentInput;
+
 export type CollectionName = never;

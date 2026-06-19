@@ -19,6 +19,7 @@ import type {
   Session,
   SkillPackage,
   UpdateAgentInput,
+  UpdateDeploymentInput,
   UpdateEnvironmentInput,
   Vault,
   VaultCredential,
@@ -137,6 +138,10 @@ export async function getDeployment(id: string): Promise<Deployment> {
 
 export async function createDeployment(input: CreateDeploymentInput): Promise<Deployment> {
   return postJSON<Deployment>("/api/deployments", input);
+}
+
+export async function updateDeployment(id: string, input: UpdateDeploymentInput): Promise<Deployment> {
+  return patchJSON<Deployment>(`/api/deployments/${id}`, input);
 }
 
 export async function runDeployment(id: string): Promise<DeploymentRun> {
