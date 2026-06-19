@@ -55,3 +55,22 @@ Session detail is the main run-debugging surface. This pass focuses on the heade
 - Fixed the close-detail action so it clears the query parameter and actually removes the right-side event panel instead of reopening the fallback event.
 - Flattened transcript rows and added the observed left border to the event detail panel while preserving the previously aligned header and toolbar geometry.
 - Saved comparison screenshots under `/tmp/managed-agents-session-detail-source.jpg` and `/tmp/managed-agents-session-detail-local.jpg`.
+
+### Follow-up: Ask Claude side panel
+
+- Re-captured the Claude Session detail Ask Claude surface with OBU and replaced the local centered modal with the observed fixed right-side assistant panel.
+- Added the `How can I help?` empty state, four suggestion cards, bottom session prompt input, close button, and clay send action matching the captured copy and layout.
+- Preserved the existing session follow-up API behavior: sending still appends the message through the Session API and refreshes local session state.
+- OBU source geometry used for the clone:
+  - panel `x=904 y=0 w=368 h=783`
+  - close button `x=1232 y=12 w=28 h=28`
+  - suggestion cards `x=920 y=207/301/395/489 w=336 h=82`
+  - input shell `x=916 y=702 w=344 h=69`
+  - send button `x=1219.5 y=730.5 w=32 h=32`
+- OBU post-change local geometry:
+  - panel `x=904 y=0 w=368 h=783`
+  - close button `x=1232 y=12 w=28 h=32`
+  - suggestion cards `x=921 y=206.5/300.5/394.5/488.5 w=335 h=82`
+  - input shell `x=917 y=701 w=343 h=70`
+  - send button `x=1219 y=730 w=32 h=32`
+- OBU interaction check confirmed suggestion cards populate the prompt textarea and the page no longer opens a centered `role=dialog` modal for Ask Claude.
