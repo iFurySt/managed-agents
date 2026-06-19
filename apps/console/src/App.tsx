@@ -6,6 +6,8 @@ import {
   Braces,
   Check,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Clock,
   Copy,
   CircleDollarSign,
@@ -1179,6 +1181,14 @@ function DeploymentDetailPage() {
               { key: "sessionStatus", header: "Session status", width: "140px", render: (run) => <Badge tone={sessionTone(run.sessionStatus)}>{run.sessionStatus}</Badge> }
             ]}
           />
+          <div className="flex gap-2">
+            <Button variant="icon" className="h-8 w-8 rounded-[8px] text-muted" aria-label="Previous page" disabled>
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button variant="icon" className="h-8 w-8 rounded-[8px] text-muted" aria-label="Next page" disabled>
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
         </CdsTabs.Content>
       </CdsTabs.Root>
     </section>
