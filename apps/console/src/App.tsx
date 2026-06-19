@@ -3119,11 +3119,11 @@ function CreateAgentDialog({
               </div>
             </div>
           ) : (
-            <div className="mt-3 grid h-[245px] grid-cols-3 gap-x-[11px] gap-y-[11px] bg-white">
+            <div className="mt-3 grid h-[245px] auto-rows-min grid-cols-3 gap-3 bg-white">
               {agentStartingTemplates.map((template) => (
                 <button
                   key={template.name}
-                  className={`flex h-[95px] w-[212px] flex-col items-start rounded-cds bg-white p-3 text-left ${selectedTemplate.name === template.name ? "border-2 border-[#c9c6be]" : "border border-line"}`}
+                  className={`flex w-full cursor-pointer flex-col items-start overflow-hidden rounded-[8px] bg-white p-3 text-left text-sm transition hover:bg-fill ${selectedTemplate.name === template.name ? "border-2 border-[#c9c6be]" : "border border-line"}`}
                   type="button"
                   onClick={() => selectTemplate(template)}
                 >
