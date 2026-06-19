@@ -2,7 +2,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import * as Select from "@radix-ui/react-select";
 import * as Tabs from "@radix-ui/react-tabs";
-import { Check, ChevronDown, X } from "lucide-react";
+import { Check, ChevronDown } from "lucide-react";
 import type { ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 
@@ -240,7 +240,9 @@ export function ConsoleDialog({
             </div>
             <Dialog.Close asChild>
               <Button variant="ghost" className={closeButtonClassName} aria-label={closeLabel}>
-                <X className="h-5 w-5" />
+                <span aria-hidden="true" className="text-[20px] leading-none">
+                  {"\u00d7"}
+                </span>
               </Button>
             </Dialog.Close>
           </div>
