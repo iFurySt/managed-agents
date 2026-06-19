@@ -2273,7 +2273,13 @@ function AgentDetailPage() {
         </CdsTabs.List>
         <CdsTabs.Content value="agent" className="grid max-w-[952px] gap-5">
           <div>
-            <FieldSelect label="Version:" value={agent.version || "v1"} options={[agent.version || "v1"]} onValueChange={() => undefined} triggerClassName="w-[105px]" />
+            <FieldSelect
+              label="Version:"
+              value={agent.version || "v1"}
+              options={[agent.version || "v1"]}
+              onValueChange={() => undefined}
+              triggerClassName="w-[113px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2"
+            />
           </div>
           <div className="mb-[31px]">
             <DetailSection title="Model" headingClassName={agentDetailHeadingClass}>
