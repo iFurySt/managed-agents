@@ -1633,6 +1633,8 @@ function VaultsPage() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [archivingVault, setArchivingVault] = useState<Vault | null>(null);
+  const [deletingVault, setDeletingVault] = useState<Vault | null>(null);
 
   useEffect(() => {
     listVaults({ q: search, status }).then(setVaults).catch(() => setVaults([]));
@@ -1641,11 +1643,13 @@ function VaultsPage() {
   async function archiveCurrent(vault: Vault) {
     const updated = await archiveVault(vault.id);
     setVaults((items) => items.map((item) => (item.id === updated.id ? updated : item)));
+    setArchivingVault(null);
   }
 
   async function deleteCurrent(vault: Vault) {
     await deleteVault(vault.id);
     setVaults((items) => items.filter((item) => item.id !== vault.id));
+    setDeletingVault(null);
   }
 
   return (
@@ -1716,13 +1720,37 @@ function VaultsPage() {
             { key: "status", header: "Status", width: "200px", render: (vault) => <Badge tone={vaultTone(vault.status)}>{vault.status}</Badge> },
             { key: "created", header: "Created", width: "200px", render: (vault) => <span className="text-muted">{vault.createdLabel}</span> }
           ]}
-          renderActions={(vault) => <VaultRowActions vault={vault} onArchive={() => archiveCurrent(vault)} onDelete={() => deleteCurrent(vault)} />}
+          renderActions={(vault) => (
+            <VaultRowActions
+              vault={vault}
+              onArchive={() => setArchivingVault(vault)}
+              onDelete={() => setDeletingVault(vault)}
+            />
+          )}
         />
       </div>
       <CreateVaultDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         onCreated={(vault) => setVaults((items) => [vault, ...items])}
+      />
+      <VaultConfirmationDialog
+        action="archive"
+        vault={archivingVault}
+        open={Boolean(archivingVault)}
+        onOpenChange={(open) => {
+          if (!open) setArchivingVault(null);
+        }}
+        onConfirm={() => archivingVault ? archiveCurrent(archivingVault) : undefined}
+      />
+      <VaultConfirmationDialog
+        action="delete"
+        vault={deletingVault}
+        open={Boolean(deletingVault)}
+        onOpenChange={(open) => {
+          if (!open) setDeletingVault(null);
+        }}
+        onConfirm={() => deletingVault ? deleteCurrent(deletingVault) : undefined}
       />
     </section>
   );
@@ -1734,6 +1762,8 @@ function VaultDetailPage() {
   const [vault, setVault] = useState<Vault | null>(null);
   const [status, setStatus] = useState("All");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [archiveOpen, setArchiveOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   useEffect(() => {
     if (id) getVault(id).then(setVault).catch(() => setVault(null));
@@ -1743,11 +1773,13 @@ function VaultDetailPage() {
     if (!vault) return;
     const updated = await archiveVault(vault.id);
     setVault({ ...vault, ...updated });
+    setArchiveOpen(false);
   }
 
   async function deleteCurrentVault() {
     if (!vault) return;
     await deleteVault(vault.id);
+    setDeleteOpen(false);
     navigate("/vaults");
   }
 
@@ -1801,7 +1833,7 @@ function VaultDetailPage() {
             <Plus className="h-4 w-4" />
             Add credential
           </Button>
-          <VaultRowActions vault={vault} onArchive={archiveCurrentVault} onDelete={deleteCurrentVault} />
+          <VaultRowActions vault={vault} onArchive={() => setArchiveOpen(true)} onDelete={() => setDeleteOpen(true)} />
         </div>
       </div>
 
@@ -1860,6 +1892,20 @@ function VaultDetailPage() {
         description="Add a credential to this vault for agents to use."
         onCreated={(credential) => setVault({ ...vault, credentials: [credential, ...(vault.credentials ?? [])] })}
         create={(input) => createVaultCredential(vault.id, input)}
+      />
+      <VaultConfirmationDialog
+        action="archive"
+        vault={vault}
+        open={archiveOpen}
+        onOpenChange={setArchiveOpen}
+        onConfirm={archiveCurrentVault}
+      />
+      <VaultConfirmationDialog
+        action="delete"
+        vault={vault}
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        onConfirm={deleteCurrentVault}
       />
     </section>
   );
@@ -5138,7 +5184,6 @@ function EnvironmentConfirmationDialog({
 }
 
 function VaultRowActions({ vault, onArchive, onDelete }: { vault: Vault; onArchive: () => void; onDelete: () => void }) {
-  const navigate = useNavigate();
   const archived = vault.status === "Archived";
   return (
     <CdsDropdownMenu.Root>
@@ -5148,18 +5193,9 @@ function VaultRowActions({ vault, onArchive, onDelete }: { vault: Vault; onArchi
         </Button>
       </CdsDropdownMenu.Trigger>
       <CdsDropdownMenu.Portal>
-        <CdsDropdownMenu.Content className="z-50 min-w-[170px] rounded-cds border border-line bg-white p-1 shadow-lg" align="end">
-          <CdsDropdownMenu.Item className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill" onSelect={() => navigate(`/vaults/${vault.id}`)}>
-            <KeyRound className="h-4 w-4" />
-            Open vault
-          </CdsDropdownMenu.Item>
-          <CdsDropdownMenu.Item className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill" onSelect={() => copyText(vault.id)}>
-            <Copy className="h-4 w-4" />
-            Copy ID
-          </CdsDropdownMenu.Item>
-          <CdsDropdownMenu.Separator className="my-1 h-px bg-line" />
+        <CdsDropdownMenu.Content data-cds="Menu" className="z-50 min-w-[128px] max-w-[320px] rounded-cds bg-white p-1 text-sm text-ink shadow-lg" align="end">
           <CdsDropdownMenu.Item
-            className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill"
+            className="flex h-8 w-full cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-fill"
             onSelect={onArchive}
             disabled={archived}
           >
@@ -5167,7 +5203,7 @@ function VaultRowActions({ vault, onArchive, onDelete }: { vault: Vault; onArchi
             {archived ? "Archived" : "Archive"}
           </CdsDropdownMenu.Item>
           <CdsDropdownMenu.Item
-            className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm text-[#a33a29] outline-none data-[highlighted]:bg-[#fff1ef]"
+            className="flex h-8 w-full cursor-pointer items-center gap-2 rounded-md px-2 text-sm text-[#a33a29] outline-none data-[highlighted]:bg-[#fff1ef]"
             onSelect={onDelete}
           >
             <Trash2 className="h-4 w-4" />
@@ -5176,6 +5212,55 @@ function VaultRowActions({ vault, onArchive, onDelete }: { vault: Vault; onArchi
         </CdsDropdownMenu.Content>
       </CdsDropdownMenu.Portal>
     </CdsDropdownMenu.Root>
+  );
+}
+
+function VaultConfirmationDialog({
+  action,
+  vault,
+  open,
+  onOpenChange,
+  onConfirm
+}: {
+  action: "archive" | "delete";
+  vault: Vault | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onConfirm: () => Promise<void> | void;
+}) {
+  const isDelete = action === "delete";
+  const title = isDelete ? "Delete vault" : "Archive vault";
+  const confirmLabel = isDelete ? "Delete" : "Archive";
+  const description = isDelete
+    ? `Are you sure you want to delete "${vault?.name ?? "this vault"}"? This will also delete all credentials in this vault. This action cannot be undone.`
+    : `Are you sure you want to archive "${vault?.name ?? "this vault"}"? Any active sessions using this vault will lose their credentials, and it can no longer be used to create new sessions.`;
+
+  return (
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+      <Dialog.Portal>
+        <Dialog.Content
+          data-cds="ConfirmationDialog"
+          role="alertdialog"
+          className="fixed left-1/2 top-1/2 z-50 flex w-[510px] max-w-[calc(100vw-32px)] -translate-x-1/2 -translate-y-1/2 flex-col rounded-[12px] bg-white p-6 text-sm text-ink shadow-[0_16px_48px_rgba(0,0,0,0.18),0_4px_14px_rgba(0,0,0,0.1)] outline-none"
+        >
+          <Dialog.Title className="-mt-1 text-[17px] leading-[26px] text-ink [font-weight:620]">{title}</Dialog.Title>
+          <Dialog.Description className="mt-1 text-sm leading-5 text-[#696762]">{description}</Dialog.Description>
+          <div className="mt-3 flex justify-end gap-2">
+            <Dialog.Close asChild>
+              <Button variant="secondary" className="h-8 w-[70px] rounded-[8px] border-0 bg-[#f1f0ec] px-0 text-sm [font-weight:550] hover:bg-[#e8e6df]">
+                Cancel
+              </Button>
+            </Dialog.Close>
+            <Button
+              className={`h-8 rounded-[8px] bg-[#b33f31] px-0 text-sm text-white [font-weight:550] hover:bg-[#a5362a] ${isDelete ? "w-[67px]" : "w-[75px]"}`}
+              onClick={onConfirm}
+            >
+              {confirmLabel}
+            </Button>
+          </div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }
 
