@@ -2142,7 +2142,7 @@ function SkillsPage() {
         title="Skills"
         description="Skills are repeatable and customizable instructions that Claude API can follow. Only skills from the Default workspace are shown. To see other workspace's skills, select a workspace."
         action={
-          <Button className="!w-[120px] !gap-1.5 !rounded-[8px] [font-weight:550]" onClick={() => setDialogOpen(true)}>
+          <Button variant="ghost" className="!h-8 !w-[120px] !gap-1.5 !rounded-[8px] bg-transparent [font-weight:550] hover:bg-fill" onClick={() => setDialogOpen(true)}>
             <Plus className="h-4 w-4" />
             Create skill
           </Button>
@@ -3364,7 +3364,7 @@ function CreateSkillDialog({
           </p>
         </div>
         <div className="sticky bottom-0 -mx-6 mt-[15px] flex justify-end bg-white px-6 py-0">
-          <Button className="h-[31px] w-[84px] rounded-[8px] px-0" onClick={submit} disabled={!canContinue}>Continue</Button>
+          <Button variant="ghost" className="h-[31px] w-[84px] rounded-[8px] px-0 [font-weight:550]" onClick={submit} disabled={!canContinue}>Continue</Button>
         </div>
       </div>
     </ConsoleDialog>
