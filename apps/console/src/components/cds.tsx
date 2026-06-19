@@ -66,13 +66,15 @@ export function FieldSelect({
   value,
   options,
   onValueChange,
-  triggerClassName = ""
+  triggerClassName = "",
+  showLabel = true
 }: {
   label: string;
   value: string;
   options: string[];
   onValueChange: (value: string) => void;
   triggerClassName?: string;
+  showLabel?: boolean;
 }) {
   return (
     <Select.Root value={value} onValueChange={onValueChange}>
@@ -80,7 +82,7 @@ export function FieldSelect({
         data-cds="Button"
         className={`cds-focus inline-flex h-8 items-center gap-2 rounded-control border border-line bg-white px-3 text-sm text-ink ${triggerClassName}`}
       >
-        <span className="text-muted">{label}</span>
+        {showLabel ? <span className="text-muted">{label}</span> : null}
         <Select.Value />
         <Select.Icon>
           <ChevronDown className="h-4 w-4 text-muted" />

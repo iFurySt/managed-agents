@@ -1201,27 +1201,32 @@ function EnvironmentDetailPage() {
         <div className="min-w-0 flex-1">
           <div className="mb-2 flex items-center gap-3">
             {editing ? (
-              <TextInput className="max-w-[420px] text-base font-semibold" placeholder="Environment name" value={name} maxLength={50} onChange={(event) => setName(event.target.value)} />
+              <TextInput
+                className="h-9 w-[256px] max-w-none rounded-[8px] !text-[22px] leading-[26px] [font-weight:580]"
+                placeholder="Environment name"
+                value={name}
+                maxLength={50}
+                onChange={(event) => setName(event.target.value)}
+              />
             ) : (
               <h1 className="truncate text-[22px] leading-[26px] [font-weight:580]">{environment.name}</h1>
             )}
-            <Badge tone="blue">{environment.type}</Badge>
+            {editing ? null : <Badge tone="blue">{environment.type}</Badge>}
           </div>
-          <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
-            <span className="font-mono">{shortId(environment.id)}</span>
-            <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${environment.id}`} onClick={() => copyText(environment.id)}>
-              <Copy className="h-3.5 w-3.5" />
-            </Button>
-            <span>·</span>
-            <span>Last updated {environment.updatedLabel}</span>
-          </div>
+          {editing ? null : (
+            <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
+              <span className="font-mono">{shortId(environment.id)}</span>
+              <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${environment.id}`} onClick={() => copyText(environment.id)}>
+                <Copy className="h-3.5 w-3.5" />
+              </Button>
+              <span>·</span>
+              <span>Last updated {environment.updatedLabel}</span>
+            </div>
+          )}
         </div>
         <div className="flex gap-2">
           {editing ? (
-            <>
-              <Button onClick={saveChanges}>Save changes</Button>
-              <Button variant="secondary" onClick={() => setEditing(false)}>Cancel</Button>
-            </>
+            <EnvironmentActions environment={environment} onArchive={archiveCurrent} />
           ) : (
             <>
               <Button variant="ghost" className="h-8 bg-transparent px-3 [font-weight:550] hover:bg-fill" onClick={startEdit}>Edit</Button>
@@ -1232,82 +1237,118 @@ function EnvironmentDetailPage() {
       </div>
 
       {editing ? (
-        <div className="grid max-w-[820px] gap-8">
-          <label className="grid gap-2 text-sm font-medium">
-            Description
+        <div className="ml-1 -mt-[18px] grid max-w-[800px] gap-4">
+          <div>
+            <label className="mb-1 block text-sm leading-5 [font-weight:550]">Description</label>
             <textarea
-              className="cds-focus min-h-[104px] resize-none rounded-cds border border-line bg-white px-3 py-3 text-sm leading-6"
+              className="cds-focus h-[66px] min-h-[66px] w-full resize-none rounded-[9px] border border-line bg-white px-3 py-2 text-sm leading-5"
               placeholder="Add a description for this environment (optional)"
               value={description}
               onChange={(event) => setDescription(event.target.value)}
             />
-          </label>
-          <DetailSection title="Networking">
-            <p className="mb-3 text-sm text-muted">Configure network access policies for this environment.</p>
-            <FieldSelect label="Type" value={networkingType} options={["Unrestricted", "No internet", "Allowlist"]} onValueChange={setNetworkingType} />
-          </DetailSection>
-          <DetailSection title="Packages">
-            <p className="mb-3 text-sm text-muted">Specify packages and their versions available in this environment. Separate multiple values with spaces.</p>
-            <div className="grid gap-3 rounded-cds border border-line bg-white p-3">
-              <FieldSelect label="Manager" value={packageManager} options={["apt", "pip", "npm"]} onValueChange={setPackageManager} />
-              <div className="flex min-h-10 flex-wrap items-center gap-2 rounded-control border border-line bg-fill px-2 py-2">
-                {packages.map((item) => (
-                  <span key={item} className="inline-flex h-7 items-center gap-2 rounded-md border border-line bg-white px-2 font-mono text-sm">
-                    {item}
-                    <button className="text-muted hover:text-ink" aria-label={`Remove ${item}`} onClick={() => setPackages((values) => values.filter((value) => value !== item))}>
-                      ×
-                    </button>
-                  </span>
-                ))}
-                <input
-                  className="min-w-[180px] flex-1 bg-transparent font-mono text-sm outline-none placeholder:text-muted"
-                  aria-label="package package==1.0.0"
-                  placeholder="package package==1.0.0"
-                  value={packageDraft}
-                  onChange={(event) => setPackageDraft(event.target.value)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter") {
-                      event.preventDefault();
-                      addPackage();
-                    }
-                  }}
-                />
-                <Button variant="icon" aria-label="Add package" onClick={addPackage}>
-                  <Plus className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </DetailSection>
-          <section>
-            <div className="mb-3 flex items-center gap-2">
-              <h2 className="text-base font-semibold">Metadata</h2>
-              <Button variant="icon" aria-label="Add metadata entry" onClick={addMetadataRow}>
+          </div>
+          <EnvironmentEditSection title="Networking">
+            <p className="mb-4 text-sm leading-5 text-muted">Configure network access policies for this environment.</p>
+            <label className="mb-2 block text-sm leading-[14px] [font-weight:550]">Type</label>
+            <FieldSelect
+              label="Type"
+              showLabel={false}
+              value={networkingType}
+              options={["Unrestricted", "No internet", "Allowlist"]}
+              onValueChange={setNetworkingType}
+              triggerClassName="w-[792px] rounded-none !border-transparent !bg-transparent px-0 hover:!bg-transparent"
+            />
+          </EnvironmentEditSection>
+          <EnvironmentEditSection
+            title="Packages"
+            separated
+            action={
+              <Button variant="icon" className="h-8 w-8 rounded-[8px]" aria-label="Add package" onClick={addPackage}>
                 <Plus className="h-4 w-4" />
               </Button>
+            }
+          >
+            <p className="mb-4 text-sm leading-5 text-muted">Specify packages and their versions available in this environment. Separate multiple values with spaces.</p>
+            <div className="flex min-h-8 items-center gap-2">
+              <FieldSelect
+                label="Manager"
+                showLabel={false}
+                value={packageManager}
+                options={["apt", "pip", "npm"]}
+                onValueChange={setPackageManager}
+                triggerClassName="w-[142px] rounded-none !border-transparent !bg-transparent px-0 hover:!bg-transparent"
+              />
+              {packages.map((item) => (
+                <span key={item} className="inline-flex h-6 items-center gap-1.5 rounded-md border border-line bg-white px-2 font-mono text-[13px] leading-5">
+                  {item}
+                  <button className="text-muted hover:text-ink" aria-label={`Remove ${item}`} onClick={() => setPackages((values) => values.filter((value) => value !== item))}>
+                    ×
+                  </button>
+                </span>
+              ))}
+              <input
+                className="ml-auto h-5 w-[85px] bg-transparent font-mono text-[13px] leading-5 outline-none placeholder:text-muted"
+                aria-label="package package==1.0.0"
+                placeholder="package package==1.0.0"
+                value={packageDraft}
+                onChange={(event) => setPackageDraft(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    addPackage();
+                  }
+                }}
+              />
+              <Button
+                variant="icon"
+                className="h-8 w-8 rounded-[8px] text-sm leading-5 [font-weight:550]"
+                aria-label="Remove package"
+                onClick={() => setPackages((values) => values.slice(0, -1))}
+                disabled={packages.length === 0}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
             </div>
-            <p className="mb-3 text-sm text-muted">Add custom key-value pairs to tag and organize this environment. Keys must be lowercase.</p>
+          </EnvironmentEditSection>
+          <EnvironmentEditSection
+            title="Metadata"
+            separated
+            className="!mt-[13px]"
+            action={
+              <Button variant="icon" className="h-8 w-8 rounded-[8px] text-sm leading-5 [font-weight:550]" aria-label="Add metadata entry" onClick={addMetadataRow}>
+                <Plus className="h-4 w-4" />
+              </Button>
+            }
+          >
+            <p className="mb-4 text-sm leading-5 text-muted">Add custom key-value pairs to tag and organize this environment. Keys must be lowercase.</p>
             <div className="grid gap-2">
               {metadataRows.map((row, index) => (
-                <div key={row.id} className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_28px] items-center gap-2">
+                <div key={row.id} className="grid grid-cols-[376px_376px_32px] items-center gap-2">
                   <TextInput
+                    className="h-9 rounded-[8px] !text-base leading-[22.4px] [font-weight:430]"
                     aria-label={`Metadata key ${index + 1}`}
                     placeholder="client_key..."
                     value={row.key}
                     onChange={(event) => updateMetadataRow(row.id, "key", event.target.value)}
                   />
                   <TextInput
+                    className="h-9 rounded-[8px] !text-base leading-[22.4px] [font-weight:430]"
                     aria-label={`Metadata value ${index + 1}`}
                     placeholder="Value"
                     value={row.value}
                     onChange={(event) => updateMetadataRow(row.id, "value", event.target.value)}
                   />
-                  <Button variant="icon" aria-label={`Remove metadata row ${index + 1}`} onClick={() => removeMetadataRow(row.id)} disabled={metadataRows.length === 1}>
+                  <Button variant="icon" className="h-8 w-8 rounded-[8px] text-sm leading-5 [font-weight:550]" aria-label={`Remove metadata row ${index + 1}`} onClick={() => removeMetadataRow(row.id)} disabled={metadataRows.length === 1}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
               ))}
             </div>
-          </section>
+          </EnvironmentEditSection>
+          <div className="-mt-2 flex gap-2">
+            <Button variant="ghost" className="h-8 rounded-[8px] px-3 [font-weight:550]" onClick={saveChanges}>Save changes</Button>
+            <Button variant="ghost" className="h-8 rounded-[8px] px-3 [font-weight:550]" onClick={() => setEditing(false)}>Cancel</Button>
+          </div>
         </div>
       ) : (
         <div className="ml-1 mt-6 grid max-w-[800px] gap-4">
@@ -4070,6 +4111,30 @@ function EnvironmentDetailSection({ title, children, separated = false }: { titl
   return (
     <section className={separated ? "mt-1 border-t border-line pb-2 pt-3" : "pb-2"}>
       <h2 className="mb-1 text-base leading-6 [font-weight:550]">{title}</h2>
+      {children}
+    </section>
+  );
+}
+
+function EnvironmentEditSection({
+  title,
+  children,
+  action,
+  separated = false,
+  className = ""
+}: {
+  title: string;
+  children: React.ReactNode;
+  action?: React.ReactNode;
+  separated?: boolean;
+  className?: string;
+}) {
+  return (
+    <section className={`${separated ? "mt-1 border-t border-line pb-2 pt-3" : "pb-2"} ${className}`}>
+      <div className="mb-1 flex h-6 items-center justify-between">
+        <h2 className="text-base leading-6 [font-weight:550]">{title}</h2>
+        {action}
+      </div>
       {children}
     </section>
   );
