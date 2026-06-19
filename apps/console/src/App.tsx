@@ -2941,7 +2941,7 @@ function CreateDeploymentDialog({
   useEffect(() => {
     if (!open) return;
     if (initialAgentId) setAgentId(initialAgentId);
-    else setAgentId("agent_013mi1SmR2hJ6Hk6wNTeJvF9");
+    else setAgentId("");
     if (initialEnvironmentId) setEnvironmentId(initialEnvironmentId);
   }, [initialAgentId, initialEnvironmentId, open]);
 
@@ -3011,7 +3011,7 @@ function CreateDeploymentDialog({
                 <DeploymentVersionPicker value={initialAgentVersion} />
               </div>
             </div>
-          ) : (
+          ) : agentId ? (
             <div className="grid grid-cols-[292px_160px] gap-5">
               <div className="grid gap-2">
                 <div className="flex items-center justify-between">
@@ -3028,6 +3028,18 @@ function CreateDeploymentDialog({
                 <label className={fieldLabelClass}>Version</label>
                 <DeploymentVersionPicker value="v1" />
               </div>
+            </div>
+          ) : (
+            <div className="grid gap-2">
+              <div className="flex items-center justify-between">
+                <label className={fieldLabelClass}>Agent</label>
+                <a className={manageLinkClass} href="/agents" target="_blank" rel="noreferrer">
+                  Manage agents
+                  <ExternalLink className="h-3 w-3" />
+                  <span className="sr-only">(opens in new tab)</span>
+                </a>
+              </div>
+              <DeploymentAgentPicker value={agentId} onValueChange={setAgentId} wide />
             </div>
           )}
           <label className={`grid gap-2 ${fieldLabelClass}`}>
@@ -3135,7 +3147,15 @@ function DeploymentVersionPicker({ value }: { value: string }) {
   );
 }
 
-function DeploymentAgentPicker({ value, onValueChange }: { value: string; onValueChange: (value: string) => void }) {
+function DeploymentAgentPicker({
+  value,
+  onValueChange,
+  wide = false
+}: {
+  value: string;
+  onValueChange: (value: string) => void;
+  wide?: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const options = [
     { value: "agent_013mi1SmR2hJ6Hk6wNTeJvF9", name: "Managed SSH Reverse Tunnel Bootstrapper", updated: "3 days ago" },
@@ -3147,14 +3167,14 @@ function DeploymentAgentPicker({ value, onValueChange }: { value: string; onValu
   const selected = options.find((option) => option.value === value);
 
   return (
-    <div data-cds="Field" className="relative w-[300px]">
+    <div data-cds="Field" className={`relative ${wide ? "w-[472px]" : "w-[300px]"}`}>
       <div className="h-8 rounded-[8px] bg-white/50">
         <button
           type="button"
           role="combobox"
           aria-expanded={open}
           aria-label="Select deployment agent"
-          className="flex h-8 w-[292px] items-center justify-between rounded-[8px] bg-transparent px-2 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-[#c6613f]/35"
+          className={`flex h-8 items-center justify-between rounded-[8px] bg-transparent px-2 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-[#c6613f]/35 ${wide ? "w-[464px]" : "w-[292px]"}`}
           onClick={() => setOpen((current) => !current)}
         >
           <span className="truncate">{selected?.name ?? "Select an agent"}</span>
