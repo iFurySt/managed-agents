@@ -53,6 +53,7 @@ import {
   archiveVault,
   archiveVaultCredential,
   deleteMemory,
+  deleteEnvironment,
   deleteMemoryStore,
   deleteFile,
   deleteSkill,
@@ -1210,6 +1211,8 @@ function EnvironmentsPage() {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [archivingEnvironment, setArchivingEnvironment] = useState<Environment | null>(null);
+  const [deletingEnvironment, setDeletingEnvironment] = useState<Environment | null>(null);
 
   useEffect(() => {
     listEnvironments({ q: search, status }).then(setEnvironments).catch(() => setEnvironments([]));
@@ -1218,6 +1221,13 @@ function EnvironmentsPage() {
   async function archiveCurrent(environment: Environment) {
     const updated = await archiveEnvironment(environment.id);
     setEnvironments((items) => items.map((item) => (item.id === updated.id ? updated : item)));
+    setArchivingEnvironment(null);
+  }
+
+  async function deleteCurrent(environment: Environment) {
+    await deleteEnvironment(environment.id);
+    setEnvironments((items) => items.filter((item) => item.id !== environment.id));
+    setDeletingEnvironment(null);
   }
 
   return (
@@ -1288,7 +1298,13 @@ function EnvironmentsPage() {
             { key: "type", header: "Type", width: "120px", render: (environment) => <span>{environment.type}</span> },
             { key: "updated", header: "Updated at", width: "140px", render: (environment) => <span className="text-muted">{environment.updatedLabel}</span> }
           ]}
-          renderActions={(environment) => <EnvironmentActions environment={environment} onArchive={() => archiveCurrent(environment)} />}
+          renderActions={(environment) => (
+            <EnvironmentActions
+              environment={environment}
+              onArchive={() => setArchivingEnvironment(environment)}
+              onDelete={() => setDeletingEnvironment(environment)}
+            />
+          )}
         />
       </div>
       <CreateEnvironmentDialog
@@ -1296,12 +1312,31 @@ function EnvironmentsPage() {
         onOpenChange={setDialogOpen}
         onCreated={(environment) => setEnvironments((items) => [environment, ...items])}
       />
+      <EnvironmentConfirmationDialog
+        action="archive"
+        environment={archivingEnvironment}
+        open={Boolean(archivingEnvironment)}
+        onOpenChange={(open) => {
+          if (!open) setArchivingEnvironment(null);
+        }}
+        onConfirm={() => archivingEnvironment ? archiveCurrent(archivingEnvironment) : undefined}
+      />
+      <EnvironmentConfirmationDialog
+        action="delete"
+        environment={deletingEnvironment}
+        open={Boolean(deletingEnvironment)}
+        onOpenChange={(open) => {
+          if (!open) setDeletingEnvironment(null);
+        }}
+        onConfirm={() => deletingEnvironment ? deleteCurrent(deletingEnvironment) : undefined}
+      />
     </section>
   );
 }
 
 function EnvironmentDetailPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [environment, setEnvironment] = useState<Environment | null>(null);
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState("");
@@ -1311,6 +1346,8 @@ function EnvironmentDetailPage() {
   const [packages, setPackages] = useState<string[]>([]);
   const [packageDraft, setPackageDraft] = useState("");
   const [metadataRows, setMetadataRows] = useState<MetadataRow[]>(emptyMetadataRows());
+  const [archiveOpen, setArchiveOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   useEffect(() => {
     if (id) getEnvironment(id).then(setEnvironment).catch(() => setEnvironment(null));
@@ -1346,6 +1383,14 @@ function EnvironmentDetailPage() {
     if (!environment) return;
     const updated = await archiveEnvironment(environment.id);
     setEnvironment(updated);
+    setArchiveOpen(false);
+  }
+
+  async function deleteCurrent() {
+    if (!environment) return;
+    await deleteEnvironment(environment.id);
+    setDeleteOpen(false);
+    navigate("/environments");
   }
 
   function addPackage() {
@@ -1413,11 +1458,11 @@ function EnvironmentDetailPage() {
         </div>
         <div className="flex gap-2">
           {editing ? (
-            <EnvironmentActions environment={environment} onArchive={archiveCurrent} />
+            <EnvironmentActions environment={environment} onArchive={() => setArchiveOpen(true)} onDelete={() => setDeleteOpen(true)} />
           ) : (
             <>
               <Button variant="ghost" className="h-8 bg-transparent px-3 [font-weight:550] hover:bg-fill" onClick={startEdit}>Edit</Button>
-              <EnvironmentActions environment={environment} onArchive={archiveCurrent} />
+              <EnvironmentActions environment={environment} onArchive={() => setArchiveOpen(true)} onDelete={() => setDeleteOpen(true)} />
             </>
           )}
         </div>
@@ -1565,6 +1610,20 @@ function EnvironmentDetailPage() {
           </EnvironmentDetailSection>
         </div>
       )}
+      <EnvironmentConfirmationDialog
+        action="archive"
+        environment={environment}
+        open={archiveOpen}
+        onOpenChange={setArchiveOpen}
+        onConfirm={archiveCurrent}
+      />
+      <EnvironmentConfirmationDialog
+        action="delete"
+        environment={environment}
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        onConfirm={deleteCurrent}
+      />
     </section>
   );
 }
@@ -4997,8 +5056,7 @@ function fileTone(status: string): "neutral" | "green" | "blue" | "red" {
   return "blue";
 }
 
-function EnvironmentActions({ environment, onArchive }: { environment: Environment; onArchive: () => void }) {
-  const navigate = useNavigate();
+function EnvironmentActions({ environment, onArchive, onDelete }: { environment: Environment; onArchive: () => void; onDelete: () => void }) {
   const archived = environment.status === "Archived";
   return (
     <CdsDropdownMenu.Root>
@@ -5008,27 +5066,74 @@ function EnvironmentActions({ environment, onArchive }: { environment: Environme
         </Button>
       </CdsDropdownMenu.Trigger>
       <CdsDropdownMenu.Portal>
-        <CdsDropdownMenu.Content className="z-50 min-w-[170px] rounded-cds border border-line bg-white p-1 shadow-lg" align="end">
-          <CdsDropdownMenu.Item className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill" onSelect={() => navigate(`/environments/${environment.id}`)}>
-            <Database className="h-4 w-4" />
-            Open environment
-          </CdsDropdownMenu.Item>
-          <CdsDropdownMenu.Item className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill" onSelect={() => copyText(environment.id)}>
-            <Copy className="h-4 w-4" />
-            Copy ID
-          </CdsDropdownMenu.Item>
-          <CdsDropdownMenu.Separator className="my-1 h-px bg-line" />
+        <CdsDropdownMenu.Content data-cds="Menu" className="z-50 min-w-[128px] max-w-[320px] rounded-cds bg-white p-1 text-sm text-ink shadow-lg" align="end">
           <CdsDropdownMenu.Item
-            className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm text-[#a33a29] outline-none data-[highlighted]:bg-[#fff1ef]"
+            className="flex h-8 w-full cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-fill"
             onSelect={onArchive}
             disabled={archived}
           >
-            <Archive className="h-4 w-4" />
+            <Archive className="h-4 w-4 text-muted" />
             {archived ? "Archived" : "Archive"}
+          </CdsDropdownMenu.Item>
+          <CdsDropdownMenu.Item
+            className="flex h-8 w-full cursor-pointer items-center gap-2 rounded-md px-2 text-sm text-[#a33a29] outline-none data-[highlighted]:bg-[#fff1ef]"
+            onSelect={onDelete}
+          >
+            <Trash2 className="h-4 w-4" />
+            Delete
           </CdsDropdownMenu.Item>
         </CdsDropdownMenu.Content>
       </CdsDropdownMenu.Portal>
     </CdsDropdownMenu.Root>
+  );
+}
+
+function EnvironmentConfirmationDialog({
+  action,
+  environment,
+  open,
+  onOpenChange,
+  onConfirm
+}: {
+  action: "archive" | "delete";
+  environment: Environment | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onConfirm: () => Promise<void> | void;
+}) {
+  const isDelete = action === "delete";
+  const title = isDelete ? "Delete profile" : "Archive profile";
+  const confirmLabel = isDelete ? "Delete" : "Archive";
+  const description = isDelete
+    ? `Are you sure you want to delete "${environment?.name ?? "this profile"}"? This action cannot be undone.`
+    : `Are you sure you want to archive "${environment?.name ?? "this profile"}"? Archived profiles can no longer be used to create new sessions.`;
+
+  return (
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+      <Dialog.Portal>
+        <Dialog.Content
+          data-cds="ConfirmationDialog"
+          role="alertdialog"
+          className="fixed left-1/2 top-1/2 z-50 flex w-[510px] max-w-[calc(100vw-32px)] -translate-x-1/2 -translate-y-1/2 flex-col rounded-[12px] bg-white p-6 text-sm text-ink shadow-[0_16px_48px_rgba(0,0,0,0.18),0_4px_14px_rgba(0,0,0,0.1)] outline-none"
+        >
+          <Dialog.Title className="-mt-1 text-[17px] leading-[26px] text-ink [font-weight:620]">{title}</Dialog.Title>
+          <Dialog.Description className="mt-1 text-sm leading-5 text-[#696762]">{description}</Dialog.Description>
+          <div className="mt-3 flex justify-end gap-2">
+            <Dialog.Close asChild>
+              <Button variant="secondary" className="h-8 w-[70px] rounded-[8px] border-0 bg-[#f1f0ec] px-0 text-sm [font-weight:550] hover:bg-[#e8e6df]">
+                Cancel
+              </Button>
+            </Dialog.Close>
+            <Button
+              className={`h-8 rounded-[8px] bg-[#b33f31] px-0 text-sm text-white [font-weight:550] hover:bg-[#a5362a] ${isDelete ? "w-[67px]" : "w-[75px]"}`}
+              onClick={onConfirm}
+            >
+              {confirmLabel}
+            </Button>
+          </div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }
 

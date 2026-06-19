@@ -185,6 +185,10 @@ export async function archiveEnvironment(id: string): Promise<Environment> {
   return postJSON<Environment>(`/api/environments/${id}/archive`, {});
 }
 
+export async function deleteEnvironment(id: string): Promise<{ deleted: boolean }> {
+  return deleteJSON<{ deleted: boolean }>(`/api/environments/${id}`);
+}
+
 export async function listVaults(params: { q?: string; status?: string } = {}): Promise<Vault[]> {
   const search = new URLSearchParams();
   if (params.q) search.set("q", params.q);

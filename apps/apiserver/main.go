@@ -375,6 +375,7 @@ func run() error {
 	router.POST("/api/environments", createEnvironment(db))
 	router.PATCH("/api/environments/:id", updateEnvironment(db))
 	router.POST("/api/environments/:id/archive", archiveEnvironment(db))
+	router.DELETE("/api/environments/:id", deleteEnvironment(db))
 	router.GET("/api/vaults", listVaults(db))
 	router.GET("/api/vaults/:id", getVault(db))
 	router.POST("/api/vaults", createVault(db))
@@ -1105,6 +1106,12 @@ func archiveEnvironment(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 		c.JSON(http.StatusOK, environment)
+	}
+}
+
+func deleteEnvironment(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		deleteByID[Environment](c, db, "id = ?", c.Param("id"))
 	}
 }
 
