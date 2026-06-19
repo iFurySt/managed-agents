@@ -2396,7 +2396,7 @@ function FilesEmptyState({ language, onLanguageChange }: { language: string; onL
         <pre className="overflow-x-auto px-3 pb-3 pt-3 font-mono text-[13px] leading-[21.125px] text-ink">
           {code.split("\n").map((line, index) => (
             <span key={`${line}-${index}`} className="relative block min-h-[21px] whitespace-pre-wrap pl-10">
-              <span className="absolute left-0 w-10 select-none pr-4 text-right text-muted">{index + 1}</span>
+              <span className="absolute left-0 w-10 select-none pr-4 text-right text-[#898781]">{index + 1}</span>
               <span>{renderFilesCodeLine(line, language)}</span>
             </span>
           ))}
