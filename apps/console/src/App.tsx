@@ -2936,13 +2936,15 @@ function CreateSkillDialog({
       title="Create skill"
       open={open}
       onOpenChange={onOpenChange}
-      contentClassName="w-[510px] max-w-[calc(100vw-32px)]"
-      titleClassName="text-lg font-semibold text-ink"
+      contentClassName="min-h-[265px] w-[510px] max-w-[calc(100vw-32px)] !rounded-[12px] border-0"
+      headerClassName="flex items-start justify-between pl-6 pr-4 pt-4"
+      titleClassName="mt-1 text-[22px] font-semibold leading-[26px] text-ink"
+      closeButtonClassName="h-[31px] w-[31px] rounded-[8px] px-0"
       closeLabel="Close"
     >
       <div className="px-6 pb-0 pt-3">
         <div className="grid gap-2">
-          <label className="flex h-[112px] cursor-pointer items-center justify-center rounded-cds border border-dashed border-line bg-transparent px-4 py-6 text-center">
+          <label className="flex h-[112px] cursor-pointer items-end justify-center rounded-cds border border-dashed border-line bg-transparent px-4 pb-6 pt-6 text-center">
             <input
               className="hidden"
               type="file"
@@ -2950,7 +2952,7 @@ function CreateSkillDialog({
               onChange={(event) => setSelectedName(event.target.files?.[0]?.name ?? "")}
             />
             <div>
-              <p className="text-sm font-medium">Drag and drop a .zip, .skill file, or directory to upload</p>
+              <p className="text-sm">Drag and drop a .zip, .skill file, or directory to upload</p>
               {selectedName ? <p className="mt-3 font-mono text-sm text-ink">{selectedName}</p> : null}
             </div>
           </label>
@@ -2959,7 +2961,7 @@ function CreateSkillDialog({
           </p>
         </div>
         <div className="sticky bottom-0 -mx-6 mt-[15px] flex justify-end bg-white px-6 py-0">
-          <Button onClick={submit} disabled={!canContinue}>Continue</Button>
+          <Button className="h-[31px] w-[84px] rounded-[8px] px-0" onClick={submit} disabled={!canContinue}>Continue</Button>
         </div>
       </div>
     </ConsoleDialog>

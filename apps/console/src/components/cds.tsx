@@ -29,7 +29,7 @@ export function Button({
   return (
     <button
       data-cds="Button"
-      className={`cds-focus inline-flex shrink-0 items-center justify-center gap-2 rounded-control font-medium transition ${variants[variant]} ${variant === "icon" ? "h-7 w-7 px-0" : sizes[size]} ${className}`}
+      className={`cds-focus inline-flex shrink-0 items-center justify-center gap-2 rounded-control font-medium transition disabled:pointer-events-none disabled:opacity-50 ${variants[variant]} ${variant === "icon" ? "h-7 w-7 px-0" : sizes[size]} ${className}`}
       {...props}
     >
       {children}
@@ -203,6 +203,8 @@ export function ConsoleDialog({
   children,
   contentClassName = "w-[706px]",
   titleClassName = "text-2xl font-semibold text-ink",
+  headerClassName = "flex items-start justify-between px-6 pt-6",
+  closeButtonClassName = "h-8 w-8 px-0",
   closeLabel = "Close dialog"
 }: {
   title: string;
@@ -212,6 +214,8 @@ export function ConsoleDialog({
   children: ReactNode;
   contentClassName?: string;
   titleClassName?: string;
+  headerClassName?: string;
+  closeButtonClassName?: string;
   closeLabel?: string;
 }) {
   return (
@@ -219,13 +223,13 @@ export function ConsoleDialog({
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-40 bg-black/35 backdrop-blur-[1px]" />
         <Dialog.Content className={`fixed left-1/2 top-1/2 z-50 max-h-[86vh] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-cds border border-line bg-white shadow-xl ${contentClassName}`}>
-          <div className="flex items-start justify-between px-6 pt-6">
+          <div className={headerClassName}>
             <div>
               <Dialog.Title className={titleClassName}>{title}</Dialog.Title>
               {description ? <Dialog.Description className="mt-1 text-sm text-muted">{description}</Dialog.Description> : null}
             </div>
             <Dialog.Close asChild>
-              <Button variant="ghost" className="h-8 w-8 px-0" aria-label={closeLabel}>
+              <Button variant="ghost" className={closeButtonClassName} aria-label={closeLabel}>
                 <X className="h-5 w-5" />
               </Button>
             </Dialog.Close>
