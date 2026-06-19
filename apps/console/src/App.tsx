@@ -2217,6 +2217,8 @@ function AgentDetailPage() {
     setAgent(updated);
   }
 
+  const agentDetailHeadingClass = "text-[#52514e] [font-weight:550]";
+
   return (
     <section className="flex max-w-[952px] flex-col">
       <div className="-ml-5 -mt-2 mb-4 flex h-7 items-center text-sm text-muted">
@@ -2269,12 +2271,12 @@ function AgentDetailPage() {
             <FieldSelect label="Version:" value={agent.version || "v1"} options={[agent.version || "v1"]} onValueChange={() => undefined} triggerClassName="w-[105px]" />
           </div>
           <div className="mb-[31px]">
-            <DetailSection title="Model">
+            <DetailSection title="Model" headingClassName={agentDetailHeadingClass}>
               <div className="font-mono text-sm">{agent.model}</div>
             </DetailSection>
           </div>
           <section>
-            <h2 className="text-sm font-semibold leading-5">System prompt</h2>
+            <h2 className={`text-sm leading-5 ${agentDetailHeadingClass}`}>System prompt</h2>
             <div className="relative mt-6 max-w-[952px]">
               <pre className="ml-4 mr-4 max-h-[120px] overflow-hidden whitespace-pre-wrap font-mono text-sm leading-5 text-ink">{agent.systemPrompt}</pre>
               <Button
@@ -2289,7 +2291,7 @@ function AgentDetailPage() {
             </div>
           </section>
           <div className="h-6" aria-hidden="true" />
-          <DetailSection title="MCPs and tools">
+          <DetailSection title="MCPs and tools" headingClassName={agentDetailHeadingClass}>
             <div className="flex items-center gap-3 rounded-cds border border-line bg-white p-4">
               <Bot className="h-5 w-5 text-muted" />
               <div>
@@ -2300,7 +2302,7 @@ function AgentDetailPage() {
               <Badge tone="green">Always allow</Badge>
             </div>
           </DetailSection>
-          <DetailSection title="Skills">
+          <DetailSection title="Skills" headingClassName={agentDetailHeadingClass}>
             <EmptyState compact title="No skills configured." description="" />
           </DetailSection>
         </CdsTabs.Content>
@@ -4103,10 +4105,10 @@ function PageHeader({ title, description, action }: { title: string; description
   );
 }
 
-function DetailSection({ title, children }: { title: string; children: React.ReactNode }) {
+function DetailSection({ title, children, headingClassName = "font-semibold" }: { title: string; children: React.ReactNode; headingClassName?: string }) {
   return (
     <section>
-      <h2 className="mb-1.5 text-sm font-semibold leading-5">{title}</h2>
+      <h2 className={`mb-1.5 text-sm leading-5 ${headingClassName}`}>{title}</h2>
       {children}
     </section>
   );
