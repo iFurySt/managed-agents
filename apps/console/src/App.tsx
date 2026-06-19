@@ -1522,8 +1522,8 @@ function VaultDetailPage() {
   const visibleCredentials = status === "All" ? (vault.credentials ?? []) : (vault.credentials ?? []).filter((credential) => credential.status === status);
 
   return (
-    <section className="flex flex-col">
-      <div className="flex h-8 items-center justify-between">
+    <section className="-mt-4 flex flex-col">
+      <div className="-ml-5 flex h-[52px] items-center justify-between">
         <nav className="flex items-center gap-2 text-sm text-muted">
           <Link className="rounded-control px-3 py-1.5 hover:bg-fill" to="/vaults">
             Credential vaults
@@ -1533,14 +1533,14 @@ function VaultDetailPage() {
         </nav>
       </div>
 
-      <div className="mt-1 flex items-start justify-between gap-4">
+      <div className="ml-1 flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
           <div className="mb-2 flex items-center gap-3">
-            <h1 className="truncate text-[22px] font-semibold leading-[26px]">{vault.name}</h1>
-            <Badge tone={vaultTone(vault.status)}>{vault.status}</Badge>
+            <h1 className="truncate text-[22px] leading-[26px] [font-weight:580]">{vault.name}</h1>
+            <span className="text-sm leading-[21px] text-ink">{vault.status}</span>
           </div>
           <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
-            <span className="font-mono">{shortId(vault.id)}</span>
+            <span className="rounded-md px-1 font-mono text-xs leading-5">{vault.id}</span>
             <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${vault.id}`} onClick={() => copyText(vault.id)}>
               <Copy className="h-3.5 w-3.5" />
             </Button>
@@ -1551,7 +1551,7 @@ function VaultDetailPage() {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button className="!gap-1.5 !rounded-[8px] [font-weight:550]" onClick={() => setDialogOpen(true)}>
+          <Button variant="ghost" className="h-8 !gap-1.5 rounded-[8px] bg-transparent px-3 [font-weight:550] hover:bg-fill" onClick={() => setDialogOpen(true)}>
             <Plus className="h-4 w-4" />
             Add credential
           </Button>
@@ -1559,16 +1559,16 @@ function VaultDetailPage() {
         </div>
       </div>
 
-      <div className="mt-[18px] flex h-8 items-start gap-2">
+      <div className="ml-1 mt-[18px] flex h-8 items-start gap-2">
         <FieldSelect
           label="Status"
           value={status}
           options={["All", "Active", "Archived"]}
           onValueChange={setStatus}
-          triggerClassName="w-[98px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2"
+          triggerClassName="w-[98px] rounded-none !border-transparent !bg-transparent px-0 hover:!bg-transparent"
         />
       </div>
-      <div className="-mx-2 -my-2 mt-2 overflow-x-auto p-2">
+      <div className="-mx-1 -my-2 mt-2 overflow-x-auto p-2">
         <DataTable
           rows={visibleCredentials}
           getKey={(credential) => credential.id}
@@ -3051,7 +3051,7 @@ function CreateCredentialForm({
   const [target, setTarget] = useState("");
 
   useEffect(() => {
-    setTarget("");
+    setTarget(authType === "MCP OAuth" ? "https://mcp.example.com" : "");
   }, [authType]);
 
   async function submit() {
@@ -3085,25 +3085,37 @@ function CreateCredentialForm({
           <label className={fieldLabelClass}>Type</label>
           <FieldSelect
             label=""
+            showLabel={false}
             value={authType}
             options={["MCP OAuth", "Bearer token", "Environment variable"]}
             onValueChange={setAuthType}
-            triggerClassName="!h-[31px] w-full rounded-[8px] border-0 bg-white/50 px-2"
+            triggerClassName="!h-[31px] w-[455px] rounded-none !border-transparent !bg-transparent px-0 hover:!bg-transparent"
           />
         </div>
         <div className="grid gap-2">
           <label className={fieldLabelClass}>{targetLabel}</label>
-          <TextInput
-            className="h-[31px] rounded-[8px] border-0 bg-white/50 px-3 font-normal"
-            placeholder={targetPlaceholder}
-            value={target}
-            onChange={(event) => setTarget(event.target.value)}
-          />
+          {authType === "MCP OAuth" ? (
+            <FieldSelect
+              label=""
+              showLabel={false}
+              value={target || targetPlaceholder}
+              options={[targetPlaceholder]}
+              onValueChange={setTarget}
+              triggerClassName="!h-[31px] w-[455px] rounded-none !border-transparent !bg-transparent px-0 hover:!bg-transparent"
+            />
+          ) : (
+            <TextInput
+              className="h-[31px] rounded-[8px] border-0 bg-white/50 px-3 font-normal"
+              placeholder={targetPlaceholder}
+              value={target}
+              onChange={(event) => setTarget(event.target.value)}
+            />
+          )}
         </div>
       </div>
       <div className="sticky bottom-0 -mx-6 mt-4 flex justify-end gap-2 bg-white px-6 py-0">
         {secondaryLabel ? <Button variant="ghost" className="h-[31px] rounded-[8px] px-3 [font-weight:550]" onClick={onSecondary}>{secondaryLabel}</Button> : null}
-        <Button className="h-[31px] w-[81px] rounded-[8px] px-0 [font-weight:550]" onClick={submit} disabled={!canSubmit}>{submitLabel}</Button>
+        <Button variant="ghost" className="h-[31px] w-[81px] rounded-[8px] px-0 [font-weight:550]" onClick={submit} disabled={!canSubmit}>{submitLabel}</Button>
       </div>
     </div>
   );
