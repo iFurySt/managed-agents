@@ -43,3 +43,10 @@ Keep vaults as an `apiserver` control-plane module while tightening console fide
 - Matched the list shell to the Claude geometry: content x=280, filter x=280/y=204/w=968, search input x=316/w=272, Status select x=608/w=98, table shell x=272/y=252/w=984, table x=280/y=260/w=968, and first row y=292.
 - Restyled the search field and Status select to the source borderless `bg-white/50` 32px controls.
 - Wrapped the Vaults table in the source horizontal overflow shell and set the actions column to the captured 48px width.
+
+### Follow-up: Vault Detail Credentials Table
+
+- Re-captured Claude and local `/vaults/vlt_011Cc6ULi3DaPNjN1LZLTenB` with OBU at a 1272px viewport.
+- Matched the detail header rhythm to the reference: title and Add credential at y=164, Status filter at y=238, table shell at x=280/y=278/w=968, table at x=288/y=286/w=1108, and first row at y=318.
+- Updated the credentials table to the captured column widths: 200/180/220/100/180/180/48px for ID, Name, Auth, Status, Last used, Updated, and actions.
+- Restyled the detail Status filter and Add credential button to the same borderless/select and 8px primary button tokens used by the source detail page.

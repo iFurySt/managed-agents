@@ -1418,8 +1418,8 @@ function VaultDetailPage() {
   const visibleCredentials = status === "All" ? (vault.credentials ?? []) : (vault.credentials ?? []).filter((credential) => credential.status === status);
 
   return (
-    <section className="flex flex-col gap-5">
-      <div className="flex h-[52px] items-center justify-between">
+    <section className="flex flex-col">
+      <div className="flex h-8 items-center justify-between">
         <nav className="flex items-center gap-2 text-sm text-muted">
           <Link className="rounded-control px-3 py-1.5 hover:bg-fill" to="/vaults">
             Credential vaults
@@ -1429,10 +1429,10 @@ function VaultDetailPage() {
         </nav>
       </div>
 
-      <div className="flex items-start justify-between gap-4">
+      <div className="mt-1 flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
           <div className="mb-2 flex items-center gap-3">
-            <h1 className="truncate text-2xl font-medium tracking-[-0.01em]">{vault.name}</h1>
+            <h1 className="truncate text-[22px] font-semibold leading-[26px]">{vault.name}</h1>
             <Badge tone={vaultTone(vault.status)}>{vault.status}</Badge>
           </div>
           <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
@@ -1447,7 +1447,7 @@ function VaultDetailPage() {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button onClick={() => setDialogOpen(true)}>
+          <Button className="!gap-1.5 !rounded-[8px] [font-weight:550]" onClick={() => setDialogOpen(true)}>
             <Plus className="h-4 w-4" />
             Add credential
           </Button>
@@ -1455,45 +1455,54 @@ function VaultDetailPage() {
         </div>
       </div>
 
-      <div className="flex gap-2">
-        <FieldSelect label="Status" value={status} options={["All", "Active", "Archived"]} onValueChange={setStatus} />
+      <div className="mt-[18px] flex h-8 items-start gap-2">
+        <FieldSelect
+          label="Status"
+          value={status}
+          options={["All", "Active", "Archived"]}
+          onValueChange={setStatus}
+          triggerClassName="w-[98px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2"
+        />
       </div>
-      <DataTable
-        rows={visibleCredentials}
-        getKey={(credential) => credential.id}
-        showSelection={false}
-        columns={[
-          {
-            key: "id",
-            header: "ID",
-            width: "220px",
-            render: (credential) => (
-              <div className="flex items-center gap-2">
-                <span className="font-mono font-semibold">{shortId(credential.id)}</span>
-                <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${credential.id}`} onClick={() => copyText(credential.id)}>
-                  <Copy className="h-3.5 w-3.5" />
-                </Button>
-              </div>
-            )
-          },
-          { key: "name", header: "Name", width: "210px", render: (credential) => <span className="font-medium">{credential.name}</span> },
-          {
-            key: "auth",
-            header: "Auth",
-            width: "270px",
-            render: (credential) => (
-              <div>
-                <div>{credential.authType}</div>
-                <div className="truncate font-mono text-xs text-muted">{credential.target}</div>
-              </div>
-            )
-          },
-          { key: "status", header: "Status", width: "140px", render: (credential) => <Badge tone={vaultTone(credential.status)}>{credential.status}</Badge> },
-          { key: "lastUsed", header: "Last used", width: "150px", render: (credential) => <span className="text-muted">{credential.lastUsed}</span> },
-          { key: "updated", header: "Updated", width: "150px", render: (credential) => <span className="text-muted">{credential.updatedLabel}</span> }
-        ]}
-        renderActions={(credential) => <CredentialActions credential={credential} onArchive={() => archiveCredential(credential)} onDelete={() => deleteCredential(credential)} />}
-      />
+      <div className="-mx-2 -my-2 mt-2 overflow-x-auto p-2">
+        <DataTable
+          rows={visibleCredentials}
+          getKey={(credential) => credential.id}
+          showSelection={false}
+          actionsWidth="48px"
+          columns={[
+            {
+              key: "id",
+              header: "ID",
+              width: "200px",
+              render: (credential) => (
+                <div className="flex items-center gap-2">
+                  <span className="font-mono font-semibold">{shortId(credential.id)}</span>
+                  <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${credential.id}`} onClick={() => copyText(credential.id)}>
+                    <Copy className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              )
+            },
+            { key: "name", header: "Name", width: "180px", render: (credential) => <span className="font-medium">{credential.name}</span> },
+            {
+              key: "auth",
+              header: "Auth",
+              width: "220px",
+              render: (credential) => (
+                <div>
+                  <div>{credential.authType}</div>
+                  <div className="truncate font-mono text-xs text-muted">{credential.target}</div>
+                </div>
+              )
+            },
+            { key: "status", header: "Status", width: "100px", render: (credential) => <Badge tone={vaultTone(credential.status)}>{credential.status}</Badge> },
+            { key: "lastUsed", header: "Last used", width: "180px", render: (credential) => <span className="text-muted">{credential.lastUsed}</span> },
+            { key: "updated", header: "Updated", width: "180px", render: (credential) => <span className="text-muted">{credential.updatedLabel}</span> }
+          ]}
+          renderActions={(credential) => <CredentialActions credential={credential} onArchive={() => archiveCredential(credential)} onDelete={() => deleteCredential(credential)} />}
+        />
+      </div>
       <CreateCredentialDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
