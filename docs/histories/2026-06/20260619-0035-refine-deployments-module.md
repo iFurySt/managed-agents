@@ -76,3 +76,23 @@ Keep deployment lifecycle behavior inside `apiserver` because it is part of the 
   - tabs `x=280 y=236 h=32`
   - sections `x=284/688 y=285 w=388`, full-width sections `x=284 w=792`
   - next-run pills `y=581 h=22`, last scheduled run `x=898.6 y=584`
+
+### Follow-up: Deployment Runs Tab Rhythm
+
+- Re-captured the Claude deployment detail Runs tab with OBU at a 1272px viewport.
+- Moved the local Runs tab filter row and table shell up to the captured source rhythm without changing the already-aligned Configuration tab.
+- Restyled the Trigger and Result selects to the transparent source controls and kept their captured `101px` and `98px` widths.
+- Extended the shared `DataTable` with optional root/table class names, then used those only for Deployment runs so the shell can sit at `x=272 w=984` while the fixed `1210px` table starts at `x=280`.
+- Added run ID copy controls and the `startedLabel` relative time into the Started at column, matching the visible source row content.
+- Updated seeded deployment run relative labels from `2 days ago` to the current source copy, `3 days ago`.
+- OBU source geometry:
+  - filters `x=280/396.7 y=284 w=100.7/97.6 h=32`
+  - DataTable shell `x=272 y=324 w=984 h=224`
+  - table `x=280 y=332 w=1210`
+  - first run row `y=364 h=44`
+- OBU local geometry after the change:
+  - filters `x=280/397 y=284 w=101/98 h=32`
+  - DataTable shell `x=272 y=324 w=984`
+  - table `x=280 y=332 w=1210`
+  - first run row `y=364 h=45`
+  - Started at cell text includes `6/17/2026, 1:00 AM 3 days ago`

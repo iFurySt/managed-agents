@@ -1905,10 +1905,10 @@ func seedDeployments(now time.Time) ([]Deployment, []DeploymentRun) {
 		},
 	}
 	runs := []DeploymentRun{
-		deploymentRun("drun_01Xpr1nsr4kS74mRSumPrXRa", "depl_01ERmHnRJWQSLyxk7pVCMZXs", "6/17/2026, 1:00 AM", "2 days ago", "Schedule", "Success", "v2", "sesn_01Dvrq7VjSGUeke6b4fSjBUC", "Idle", now.Add(-37*time.Hour)),
-		deploymentRun("drun_01HBFZWuZFuaDtq4JpEZPJo5", "depl_01ERmHnRJWQSLyxk7pVCMZXs", "6/16/2026, 3:34 PM", "2 days ago", "Manual", "Success", "v2", "sesn_01NVn9pEgoscvpdrNE95mMPd", "Idle", now.Add(-46*time.Hour)),
-		deploymentRun("drun_01RJ4FdZisp6wPnGEcgt2685", "depl_01ERmHnRJWQSLyxk7pVCMZXs", "6/16/2026, 3:28 PM", "2 days ago", "Manual", "Success", "v2", "sesn_01NxEc3HZBVGJhooULZnMyM5", "Idle", now.Add(-46*time.Hour).Add(-6*time.Minute)),
-		deploymentRun("drun_01D9WXgoGESNVRW4GMcGYubB", "depl_01ERmHnRJWQSLyxk7pVCMZXs", "6/16/2026, 3:13 PM", "2 days ago", "Manual", "Success", "v2", "sesn_01R5Mm2LwFTLZtimNNTShPCP", "Idle", now.Add(-46*time.Hour).Add(-21*time.Minute)),
+		deploymentRun("drun_01Xpr1nsr4kS74mRSumPrXRa", "depl_01ERmHnRJWQSLyxk7pVCMZXs", "6/17/2026, 1:00 AM", "3 days ago", "Schedule", "Success", "v2", "sesn_01Dvrq7VjSGUeke6b4fSjBUC", "Idle", now.Add(-37*time.Hour)),
+		deploymentRun("drun_01HBFZWuZFuaDtq4JpEZPJo5", "depl_01ERmHnRJWQSLyxk7pVCMZXs", "6/16/2026, 3:34 PM", "3 days ago", "Manual", "Success", "v2", "sesn_01NVn9pEgoscvpdrNE95mMPd", "Idle", now.Add(-46*time.Hour)),
+		deploymentRun("drun_01RJ4FdZisp6wPnGEcgt2685", "depl_01ERmHnRJWQSLyxk7pVCMZXs", "6/16/2026, 3:28 PM", "3 days ago", "Manual", "Success", "v2", "sesn_01NxEc3HZBVGJhooULZnMyM5", "Idle", now.Add(-46*time.Hour).Add(-6*time.Minute)),
+		deploymentRun("drun_01D9WXgoGESNVRW4GMcGYubB", "depl_01ERmHnRJWQSLyxk7pVCMZXs", "6/16/2026, 3:13 PM", "3 days ago", "Manual", "Success", "v2", "sesn_01R5Mm2LwFTLZtimNNTShPCP", "Idle", now.Add(-46*time.Hour).Add(-21*time.Minute)),
 	}
 	return deployments, runs
 }

@@ -966,23 +966,44 @@ function DeploymentDetailPage() {
             </div>
           </DeploymentDetailSection>
         </CdsTabs.Content>
-        <CdsTabs.Content value="runs" className="flex flex-col gap-4">
+        <CdsTabs.Content value="runs" className="-ml-2 -mt-[41px] flex flex-col gap-2">
           <div className="flex gap-4">
-            <FieldSelect label="Trigger" value={trigger} options={["All", "Manual", "Schedule"]} onValueChange={setTrigger} triggerClassName="w-[101px]" />
-            <FieldSelect label="Result" value={result} options={["All", "Success", "Failed"]} onValueChange={setResult} triggerClassName="w-[98px]" />
+            <FieldSelect label="Trigger" value={trigger} options={["All", "Manual", "Schedule"]} onValueChange={setTrigger} triggerClassName="w-[101px] rounded-none !border-transparent !bg-transparent px-0 hover:!bg-transparent" />
+            <FieldSelect label="Result" value={result} options={["All", "Success", "Failed"]} onValueChange={setResult} triggerClassName="w-[98px] rounded-none !border-transparent !bg-transparent px-0 hover:!bg-transparent" />
           </div>
           <DataTable
             rows={visibleRuns}
             getKey={(run) => run.id}
             showSelection={false}
             showActions={false}
+            className="-ml-2 w-[984px]"
+            tableClassName="ml-2 mt-2"
             columns={[
-              { key: "id", header: "ID", width: "160px", render: (run) => <span className="font-mono font-semibold">{shortId(run.id)}</span> },
+              {
+                key: "id",
+                header: "ID",
+                width: "160px",
+                render: (run) => (
+                  <span className="inline-flex items-center gap-1.5">
+                    <span className="font-mono font-semibold">{shortId(run.id)}</span>
+                    <span className="hidden font-mono">{run.id}</span>
+                    <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0 text-muted" aria-label={`Copy ${run.id}`} onClick={() => copyText(run.id)}>
+                      <Copy className="h-3.5 w-3.5" />
+                    </Button>
+                  </span>
+                )
+              },
               {
                 key: "started",
                 header: "Started at (GMT+8)",
                 width: "260px",
-                render: (run) => <span>{run.startedAt}</span>
+                render: (run) => (
+                  <span>
+                    {run.startedAt}
+                    {" "}
+                    <span className="ml-2 text-muted">{run.startedLabel}</span>
+                  </span>
+                )
               },
               { key: "trigger", header: "Trigger", width: "120px", render: (run) => <span>{run.trigger}</span> },
               { key: "status", header: "Status", width: "110px", render: (run) => <Badge tone="green">{run.result}</Badge> },
