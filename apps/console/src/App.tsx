@@ -3046,6 +3046,12 @@ function CreateAgentDialog({
     setConfigYaml(agentTemplateYaml(template));
   }
 
+  function generateFromDescription() {
+    const prompt = normalizeAgentDescription(description);
+    if (!prompt) return;
+    setConfigYaml(agentDescriptionYaml(prompt));
+  }
+
   async function submit() {
     const config = agentConfigFromYaml(configYaml);
     const agent = await createAgent({
@@ -3113,7 +3119,12 @@ function CreateAgentDialog({
                 onChange={(event) => setDescription(event.target.value)}
               />
               <div className="mt-[10px] flex justify-end">
-                <Button variant="ghost" className="h-[27px] w-[82px] rounded-control bg-transparent !px-[10px] [font-weight:550]" disabled={!description.trim()}>
+                <Button
+                  variant="ghost"
+                  className={`h-[27px] w-[82px] rounded-control bg-transparent !px-[10px] [font-weight:550] ${description.trim() ? "!opacity-100" : ""}`}
+                  disabled={!description.trim()}
+                  onClick={generateFromDescription}
+                >
                   Generate
                 </Button>
               </div>
@@ -6278,6 +6289,48 @@ tools:
 skills: []`;
 }
 
+function agentDescriptionYaml(description: string) {
+  const name = agentNameFromDescription(description);
+  const sentence = /[.!?]$/.test(description) ? description : `${description}.`;
+  const system = `You are an autonomous agent created for this task: ${sentence} Plan the work, use connected tools carefully, and finish with a concise result.`;
+
+  return `name: ${yamlScalar(name)}
+description: ${yamlScalar(description)}
+model: claude-sonnet-4-6
+system: ${yamlScalar(system)}
+mcp_servers: []
+tools:
+  - type: agent_toolset_20260401
+skills: []`;
+}
+
+function normalizeAgentDescription(value: string) {
+  return value.replace(/\s+/g, " ").trim();
+}
+
+function agentNameFromDescription(description: string) {
+  const cleaned = description
+    .replace(/[`"'()[\]{}]/g, "")
+    .replace(/[^\w\s-]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  const words = cleaned.split(" ").filter(Boolean).slice(0, 5);
+  while (words.length > 1 && /^(and|or|to|for|with|from|by|in|on|at|the|a|an)$/i.test(words[words.length - 1])) {
+    words.pop();
+  }
+  if (words.length === 0) return "Generated agent";
+  return words
+    .map((word) => {
+      if (/^[A-Z0-9]{2,}$/.test(word)) return word;
+      return `${word.charAt(0).toUpperCase()}${word.slice(1)}`;
+    })
+    .join(" ");
+}
+
+function yamlScalar(value: string) {
+  return JSON.stringify(value);
+}
+
 function agentConfigFromYaml(source: string) {
   const modelId = yamlValue(source, "id", yamlValue(source, "model", "claude-sonnet-4-6"));
   return {
@@ -6310,7 +6363,16 @@ function yamlValue(source: string, key: string, fallback: string) {
   const line = source.split("\n").find((item) => item.trim().startsWith(`${key}:`));
   if (!line) return fallback;
   const value = line.trim().slice(key.length + 1).trim();
-  return value ? value.replace(/^['"]|['"]$/g, "") : fallback;
+  if (!value) return fallback;
+  if (value.startsWith("\"") && value.endsWith("\"")) {
+    try {
+      return JSON.parse(value);
+    } catch {
+      return value.slice(1, -1);
+    }
+  }
+  if (value.startsWith("'") && value.endsWith("'")) return value.slice(1, -1);
+  return value;
 }
 
 const filesPythonTemplate = `import anthropic

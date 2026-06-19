@@ -29,7 +29,7 @@ export function Button({
   return (
     <button
       data-cds="Button"
-      className={`cds-focus inline-flex shrink-0 items-center justify-center gap-2 rounded-control font-medium transition disabled:pointer-events-none disabled:opacity-50 ${variants[variant]} ${variant === "icon" ? "h-7 w-7 px-0" : sizes[size]} ${className}`}
+      className={`cds-focus inline-flex shrink-0 items-center justify-center gap-2 rounded-control font-medium opacity-100 transition disabled:pointer-events-none disabled:opacity-50 ${variants[variant]} ${variant === "icon" ? "h-7 w-7 px-0" : sizes[size]} ${className}`}
       {...props}
     >
       {children}
