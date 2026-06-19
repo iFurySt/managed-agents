@@ -2333,8 +2333,8 @@ function AgentDetailPage() {
         <CdsTabs.Content value="sessions" className="-mt-6">
           <AgentSessionsPanel agent={agent} />
         </CdsTabs.Content>
-        <CdsTabs.Content value="deployments">
-          <EmptyState title="No deployments yet" description="Deployments created by this agent will appear here." />
+        <CdsTabs.Content value="deployments" className="-mt-6">
+          <AgentDeploymentsPanel agent={agent} />
         </CdsTabs.Content>
       </CdsTabs.Root>
       <EditAgentDialog
@@ -2438,6 +2438,96 @@ function AgentSessionsPanel({ agent }: { agent: Agent }) {
         renderActions={(session) => <SessionRowActions session={session} onCancel={() => cancelCurrent(session)} />}
       />
     </div>
+  );
+}
+
+function AgentDeploymentsPanel({ agent }: { agent: Agent }) {
+  const [deployments, setDeployments] = useState<Deployment[]>([]);
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  useEffect(() => {
+    listDeployments({ agentId: agent.id }).then(setDeployments).catch(() => setDeployments([]));
+  }, [agent.id]);
+
+  async function applyStatus(deployment: Deployment, action: "pause" | "resume" | "archive") {
+    const updated =
+      action === "pause"
+        ? await pauseDeployment(deployment.id)
+        : action === "resume"
+          ? await resumeDeployment(deployment.id)
+          : await archiveDeployment(deployment.id);
+    setDeployments((items) => items.map((item) => (item.id === updated.id ? updated : item)));
+  }
+
+  async function runCurrent(deployment: Deployment) {
+    const run = await runDeployment(deployment.id);
+    setDeployments((items) => items.map((item) => (item.id === deployment.id ? { ...item, lastRunLabel: "just now", runs: [run, ...(item.runs ?? [])] } : item)));
+  }
+
+  return (
+    <>
+      {deployments.length ? (
+        <DataTable
+          rows={deployments}
+          getKey={(deployment) => deployment.id}
+          showSelection={false}
+          actionsWidth="56px"
+          columns={[
+            {
+              key: "id",
+              header: "ID",
+              width: "160px",
+              render: (deployment) => (
+                <div className="flex min-w-0 items-center gap-2">
+                  <span className="truncate font-mono font-semibold">{shortId(deployment.id)}</span>
+                  <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${deployment.id}`} onClick={() => copyText(deployment.id)}>
+                    <Copy className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              )
+            },
+            {
+              key: "name",
+              header: "Name",
+              width: "260px",
+              render: (deployment) => (
+                <Link className="block truncate font-medium hover:underline" to={`/deployments/${deployment.id}`}>
+                  {deployment.name}
+                </Link>
+              )
+            },
+            { key: "status", header: "Status", width: "120px", render: (deployment) => <Badge tone={deploymentTone(deployment.status)}>{deployment.status}</Badge> },
+            { key: "trigger", header: "Trigger", width: "210px", render: (deployment) => <span>{deployment.trigger === "Schedule" ? "Daily at 1:00 AM GMT+8" : deployment.trigger}</span> },
+            { key: "created", header: "Created", width: "160px", render: (deployment) => <span className="text-muted">{deployment.createdLabel}</span> }
+          ]}
+          actionsHeader="Actions"
+          renderActions={(deployment) => (
+            <DeploymentActions
+              deployment={deployment}
+              onRun={() => runCurrent(deployment)}
+              onPause={() => applyStatus(deployment, "pause")}
+              onResume={() => applyStatus(deployment, "resume")}
+              onArchive={() => applyStatus(deployment, "archive")}
+            />
+          )}
+        />
+      ) : (
+        <div className="flex h-[268px] flex-col items-center pt-[120px] text-center">
+          <p className="text-lg leading-7 text-ink [font-weight:550]">No deployments</p>
+          <p className="mt-1 text-sm leading-5 text-[#898781]">Deploy this agent to run it on a schedule, via webhook, or manually.</p>
+          <Button variant="ghost" className="mt-4 h-8 w-[174px] gap-1.5 rounded-[8px] px-0 [font-weight:550]" onClick={() => setDialogOpen(true)}>
+            <Plus className="h-4 w-4" />
+            Create deployment
+          </Button>
+        </div>
+      )}
+      <CreateDeploymentDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        initialAgentId={agent.id}
+        onCreated={(deployment) => setDeployments((items) => (deployment.agentId === agent.id ? [deployment, ...items] : items))}
+      />
+    </>
   );
 }
 
@@ -2813,10 +2903,12 @@ function CreateSessionDialog({
 function CreateDeploymentDialog({
   open,
   onOpenChange,
+  initialAgentId = "",
   onCreated
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  initialAgentId?: string;
   onCreated: (deployment: Deployment) => void;
 }) {
   const [name, setName] = useState("");
@@ -2830,6 +2922,10 @@ function CreateDeploymentDialog({
   const canCreate = name && agentId && initialMessage && environmentId && trigger;
   const fieldLabelClass = "text-sm leading-none [font-weight:550]";
   const manageLinkClass = "text-xs leading-4 text-[#184f95] hover:underline";
+
+  useEffect(() => {
+    if (open && initialAgentId) setAgentId(initialAgentId);
+  }, [initialAgentId, open]);
 
   async function submit() {
     if (!canCreate) return;
@@ -2847,6 +2943,7 @@ function CreateDeploymentDialog({
     onCreated(deployment);
     onOpenChange(false);
     setName("");
+    setAgentId(initialAgentId);
     setInitialMessage("");
   }
 
