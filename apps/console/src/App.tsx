@@ -6258,40 +6258,24 @@ function filterSessionEvents(events: SessionEvent[], roleFilter: string, search:
 
 function defaultAgentYaml(agent?: Agent) {
   return `name: ${agent?.name ?? "Untitled agent"}
-model:
-  id: ${agent?.model ?? "claude-sonnet-4-6"}
-  speed: standard
 description: ${agent?.description ?? "A blank starting point with the core toolset."}
-system: ${JSON.stringify(agent?.systemPrompt ?? "You are a general-purpose agent that can research, write code, run commands, and use connected tools to complete the user's task end to end.")}
+model: ${agent?.model ?? "claude-sonnet-4-6"}
+system: ${agent?.systemPrompt ?? "You are a general-purpose agent that can research, write code, run commands, and use connected tools to complete the user's task end to end."}
 mcp_servers: []
 tools:
-  - configs: []
-    default_config:
-      enabled: true
-      permission_policy:
-        type: always_allow
-    type: agent_toolset_20260401
-skills: []
-metadata: {}`;
+  - type: agent_toolset_20260401
+skills: []`;
 }
 
 function agentTemplateYaml(template: (typeof agentStartingTemplates)[number]) {
   return `name: ${template.name === "Blank agent" ? "Untitled agent" : template.name}
-model:
-  id: claude-sonnet-4-6
-  speed: standard
 description: ${template.description}
-system: ${JSON.stringify(template.system)}
+model: claude-sonnet-4-6
+system: ${template.system}
 mcp_servers: []
 tools:
-  - configs: []
-    default_config:
-      enabled: true
-      permission_policy:
-        type: always_allow
-    type: agent_toolset_20260401
-skills: []
-metadata: {}`;
+  - type: agent_toolset_20260401
+skills: []`;
 }
 
 function agentConfigFromYaml(source: string) {
