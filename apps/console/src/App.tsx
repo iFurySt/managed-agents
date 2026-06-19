@@ -2660,8 +2660,8 @@ function CreateEnvironmentDialog({
       onOpenChange={onOpenChange}
       contentClassName="h-[429px] w-[510px] max-w-[calc(100vw-32px)] !rounded-[12px] border-0"
       headerClassName="flex items-start justify-between pl-6 pr-4 pt-4"
-      titleClassName="mt-1 w-[431px] text-[22px] leading-[26px] text-ink [font-weight:580]"
-      closeButtonClassName="h-[31px] w-[31px] rounded-[8px] px-0"
+      titleClassName="relative -top-px mt-1 w-[431px] text-[22px] leading-[26px] text-ink [font-weight:580]"
+      closeButtonClassName="relative -top-px h-[31px] w-[31px] rounded-[8px] px-0"
       closeLabel="Close"
     >
       <div className="px-6 pb-0 pt-[27px]">
@@ -2985,7 +2985,7 @@ function AddMemoryDialog({
   const [path, setPath] = useState("/");
   const [content, setContent] = useState("");
   const canCreate = path.trim().length > 1 && content.trim().length > 0;
-  const fieldLabelClass = "text-sm font-medium leading-none";
+  const fieldLabelClass = "text-sm leading-none [font-weight:550]";
 
   async function submit() {
     if (!canCreate) return;
@@ -3001,28 +3001,35 @@ function AddMemoryDialog({
       title="Add memory"
       open={open}
       onOpenChange={onOpenChange}
-      contentClassName="w-[510px] max-w-[calc(100vw-32px)]"
-      titleClassName="text-lg font-semibold text-ink"
+      contentClassName="h-[496px] w-[510px] max-w-[calc(100vw-32px)] !rounded-[12px] border-0"
+      headerClassName="flex items-start justify-between pl-6 pr-4 pt-4"
+      titleClassName="mt-1 w-[431px] text-[22px] leading-[26px] text-ink [font-weight:580]"
+      closeButtonClassName="h-[31px] w-[31px] rounded-[8px] px-0"
       closeLabel="Close"
     >
-      <div className="px-6 pb-0 pt-1">
-        <div className="grid gap-4">
+      <div className="px-6 pb-0 pt-[11px]">
+        <div>
           <div className="grid gap-2">
             <label className={fieldLabelClass}>Path</label>
-            <TextInput placeholder="/notes/ideas.md" value={path} onChange={(event) => setPath(event.target.value)} />
+            <TextInput
+              className="h-[31px] rounded-[8px] border-0 bg-white/50 px-3 font-normal"
+              placeholder="/notes/ideas.md"
+              value={path}
+              onChange={(event) => setPath(event.target.value)}
+            />
             <span className="text-[13px] leading-[18px] text-muted">Folders are derived from the slashes in your path.</span>
           </div>
-          <label className={`grid gap-2 ${fieldLabelClass}`}>
-            Content
+          <div className="mt-[15px] grid gap-2">
+            <label className={fieldLabelClass}>Content</label>
             <textarea
-              className="cds-focus min-h-[251px] resize-none rounded-control border border-line bg-white px-3 py-2 font-mono text-sm leading-5"
+              className="cds-focus h-[251px] resize-none rounded-[8px] border-0 bg-white/50 px-3 py-2 font-mono text-sm font-normal leading-5"
               value={content}
               onChange={(event) => setContent(event.target.value)}
             />
-          </label>
+          </div>
         </div>
-        <div className="sticky bottom-0 -mx-6 mt-2 flex justify-end bg-white px-6 pb-[21px] pt-0">
-          <Button onClick={submit} disabled={!canCreate}>Create</Button>
+        <div className="sticky bottom-0 -mx-6 mt-[15px] flex justify-end bg-white px-6 py-0">
+          <Button className="h-[31px] w-[69px] rounded-[8px] px-0 [font-weight:550]" onClick={submit} disabled={!canCreate}>Create</Button>
         </div>
       </div>
     </ConsoleDialog>
