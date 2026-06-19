@@ -251,8 +251,7 @@ function AgentsPage() {
   const [created, setCreated] = useState("All time");
   const [status, setStatus] = useState("Active");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [archivingStore, setArchivingStore] = useState<MemoryStore | null>(null);
-  const [deletingStore, setDeletingStore] = useState<MemoryStore | null>(null);
+  const [archivingAgent, setArchivingAgent] = useState<Agent | null>(null);
 
   useEffect(() => {
     listAgents({ q: search, status, created }).then(setAgents).catch(() => setAgents([]));
@@ -261,6 +260,7 @@ function AgentsPage() {
   async function archiveCurrent(agent: Agent) {
     const updated = await archiveAgent(agent.id);
     setAgents((items) => status === "Archived" ? items.map((item) => (item.id === updated.id ? updated : item)) : items.filter((item) => item.id !== updated.id));
+    setArchivingAgent(null);
   }
 
   return (
@@ -334,13 +334,20 @@ function AgentsPage() {
             { key: "updated", header: "Last updated", width: "150px", render: (agent) => <span className="text-muted">{agent.updatedLabel || "2 days ago"}</span> }
           ]}
           actionsWidth="56px"
-          renderActions={(agent) => <AgentRowActions agent={agent} onArchive={() => archiveCurrent(agent)} />}
+          renderActions={(agent) => <AgentRowActions agent={agent} onArchive={() => setArchivingAgent(agent)} />}
         />
       </div>
       <CreateAgentDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         onCreated={(agent) => setAgents((items) => [agent, ...items])}
+      />
+      <AgentArchiveDialog
+        open={Boolean(archivingAgent)}
+        onOpenChange={(open) => {
+          if (!open) setArchivingAgent(null);
+        }}
+        onConfirm={() => archivingAgent ? archiveCurrent(archivingAgent) : undefined}
       />
     </section>
   );
@@ -2541,6 +2548,7 @@ function AgentDetailPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [agent, setAgent] = useState<Agent | null>(null);
   const [editOpen, setEditOpen] = useState(false);
+  const [archiveOpen, setArchiveOpen] = useState(false);
 
   useEffect(() => {
     if (id) getAgent(id).then(setAgent).catch(() => setAgent(null));
@@ -2553,6 +2561,7 @@ function AgentDetailPage() {
   async function archiveCurrent() {
     const updated = await archiveAgent(currentAgent.id);
     setAgent(updated);
+    setArchiveOpen(false);
   }
 
   const agentDetailHeadingClass = "text-[#52514e] [font-weight:550]";
@@ -2605,7 +2614,7 @@ function AgentDetailPage() {
             <Settings className="h-4 w-4" />
             Edit
           </Button>
-          <AgentRowActions agent={agent} onArchive={archiveCurrent} />
+          <AgentRowActions agent={agent} onArchive={() => setArchiveOpen(true)} />
         </div>
       </div>
       <p className="mt-[9px] text-sm leading-5 text-[#4e4a45]">{agent.description}</p>
@@ -2683,6 +2692,7 @@ function AgentDetailPage() {
           setEditOpen(false);
         }}
       />
+      <AgentArchiveDialog open={archiveOpen} onOpenChange={setArchiveOpen} onConfirm={archiveCurrent} />
     </section>
   );
 }
@@ -5755,8 +5765,45 @@ function AskClaudeDialog({
   );
 }
 
+function AgentArchiveDialog({
+  open,
+  onOpenChange,
+  onConfirm
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onConfirm: () => Promise<void> | void;
+}) {
+  return (
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+      <Dialog.Portal>
+        <Dialog.Content
+          data-cds="ConfirmationDialog"
+          role="alertdialog"
+          className="fixed left-1/2 top-1/2 z-50 flex w-[510px] max-w-[calc(100vw-32px)] -translate-x-1/2 -translate-y-1/2 flex-col rounded-[12px] bg-white p-6 text-sm text-ink shadow-[0_16px_48px_rgba(0,0,0,0.18),0_4px_14px_rgba(0,0,0,0.1)] outline-none"
+        >
+          <Dialog.Title className="-mt-1 text-[17px] leading-[26px] text-ink [font-weight:620]">Archive agent</Dialog.Title>
+          <Dialog.Description className="mt-1 text-sm leading-5 text-[#696762]">
+            This agent will be hidden from the default view. Sessions that reference it keep working.
+          </Dialog.Description>
+          <div className="mt-3 flex justify-end gap-2">
+            <Dialog.Close asChild>
+              <Button variant="secondary" className="h-8 w-[70px] rounded-[8px] border-0 bg-[#f1f0ec] px-0 text-sm [font-weight:550] hover:bg-[#e8e6df]">
+                Cancel
+              </Button>
+            </Dialog.Close>
+            <Button className="h-8 w-[75px] rounded-[8px] bg-[#b33f31] px-0 text-sm text-white [font-weight:550] hover:bg-[#a5362a]" onClick={onConfirm}>
+              Archive
+            </Button>
+          </div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
+  );
+}
+
 function AgentRowActions({ agent, onArchive }: { agent: Agent; onArchive: () => void }) {
-  const navigate = useNavigate();
+  const archived = agent.status === "Archived";
   return (
     <CdsDropdownMenu.Root>
       <CdsDropdownMenu.Trigger asChild>
@@ -5765,36 +5812,14 @@ function AgentRowActions({ agent, onArchive }: { agent: Agent; onArchive: () => 
         </Button>
       </CdsDropdownMenu.Trigger>
       <CdsDropdownMenu.Portal>
-        <CdsDropdownMenu.Content className="z-50 min-w-[190px] rounded-cds border border-line bg-white p-1 shadow-lg" align="end">
+        <CdsDropdownMenu.Content data-cds="Menu" className="z-50 min-w-[148px] max-w-[320px] rounded-cds bg-white p-1 text-sm text-ink shadow-lg" align="end">
           <CdsDropdownMenu.Item
-            className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill"
-            onSelect={() => navigate(`/sessions?agentId=${agent.id}`)}
-          >
-            <Play className="h-4 w-4" />
-            Start session
-          </CdsDropdownMenu.Item>
-          <CdsDropdownMenu.Item
-            className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill"
-            onSelect={() => navigate(`/agents/${agent.id}`)}
-          >
-            <MessageSquare className="h-4 w-4" />
-            Guided edit
-          </CdsDropdownMenu.Item>
-          <CdsDropdownMenu.Item
-            className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill"
-            onSelect={() => navigate(`/deployments?agentId=${agent.id}`)}
-          >
-            <Plus className="h-4 w-4" />
-            Create deployment
-          </CdsDropdownMenu.Item>
-          <CdsDropdownMenu.Separator className="my-1 h-px bg-line" />
-          <CdsDropdownMenu.Item
-            className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm text-[#a33a29] outline-none data-[highlighted]:bg-[#fff1ef]"
+            className="flex h-8 w-full cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-fill"
             onSelect={onArchive}
-            disabled={agent.status === "Archived"}
+            disabled={archived}
           >
-            <Archive className="h-4 w-4" />
-            {agent.status === "Archived" ? "Archived" : "Archive"}
+            <Archive className="h-4 w-4 text-muted" />
+            {archived ? "Archived" : "Archive agent"}
           </CdsDropdownMenu.Item>
         </CdsDropdownMenu.Content>
       </CdsDropdownMenu.Portal>
