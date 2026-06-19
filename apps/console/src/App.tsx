@@ -2570,10 +2570,20 @@ function SkillsPage() {
         title="Skills"
         description="Skills are repeatable and customizable instructions that Claude API can follow. Only skills from the Default workspace are shown. To see other workspace's skills, select a workspace."
         action={
-          <Button variant="ghost" className="!h-8 !w-[120px] !gap-1.5 !rounded-[8px] bg-transparent [font-weight:550] hover:bg-fill" onClick={() => setDialogOpen(true)}>
-            <Plus className="h-4 w-4" />
-            Create skill
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button className="!h-8 !w-[120px] !gap-1.5 !rounded-[8px] [font-weight:550]" onClick={() => setDialogOpen(true)}>
+              <Plus className="h-4 w-4" />
+              Create skill
+            </Button>
+            <a
+              data-cds="Button"
+              className="cds-focus inline-flex h-8 w-8 items-center justify-center rounded-[8px] text-ink hover:bg-fill"
+              aria-label="View documentation"
+              href="https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview"
+            >
+              <ExternalLink className="h-4 w-4" />
+            </a>
+          </div>
         }
       />
       <div className="flex max-w-[952px] flex-col border-t border-line">
