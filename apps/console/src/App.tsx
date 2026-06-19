@@ -246,11 +246,11 @@ function Banner() {
 }
 
 function AgentsPage() {
-  const navigate = useNavigate();
   const [agents, setAgents] = useState<Agent[]>([]);
   const [search, setSearch] = useState("");
   const [created, setCreated] = useState("All time");
   const [status, setStatus] = useState("Active");
+  const [dialogOpen, setDialogOpen] = useState(false);
   const [archivingAgent, setArchivingAgent] = useState<Agent | null>(null);
 
   useEffect(() => {
@@ -263,18 +263,13 @@ function AgentsPage() {
     setArchivingAgent(null);
   }
 
-  async function createDefaultAgent() {
-    const agent = await createAgent({});
-    navigate(`/agents/${agent.id}?tab=config`);
-  }
-
   return (
     <section className="-mx-2 flex flex-col gap-4">
       <PageHeader
         title="Agents"
         description="Create and manage autonomous agents."
         action={
-          <Button className="!w-[132px] !gap-1.5 !rounded-[8px] [font-weight:550]" onClick={() => void createDefaultAgent()}>
+          <Button className="!w-[132px] !gap-1.5 !rounded-[8px] [font-weight:550]" onClick={() => setDialogOpen(true)}>
             <Plus className="h-4 w-4" />
             Create agent
           </Button>
@@ -348,6 +343,11 @@ function AgentsPage() {
           if (!open) setArchivingAgent(null);
         }}
         onConfirm={() => archivingAgent ? archiveCurrent(archivingAgent) : undefined}
+      />
+      <CreateAgentDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        onCreated={(agent) => setAgents((items) => [agent, ...items])}
       />
     </section>
   );
