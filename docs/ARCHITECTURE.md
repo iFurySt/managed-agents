@@ -73,3 +73,15 @@ The first useful cut has three long-running services:
 For the MVP, `filestore`, `vault`, `events`, `skills`, `memory`, and
 `deployments` are logical modules inside `apiserver`, not separate deployed
 services.
+
+This means the service boundary is intentionally small:
+
+- `apiserver` is the product/control-plane service. Do not call it `web-api`;
+  the name would understate that it owns the UI, public API, CRUD modules,
+  metadata APIs, and control-plane product behavior.
+- `orchestrator` is the scheduler and reconciler. It decides which work should
+  run, claims leases, assigns hosts, retries, times out, cancels, and repairs
+  stuck state.
+- `sandboxd` is the worker-host daemon. It is the host-side agent by role, but
+  the service name is `sandboxd` because its job is local sandbox lifecycle,
+  monitoring, diagnostics, and cleanup.

@@ -81,7 +81,7 @@ The upstream reference corpus files used for that summary were:
 
 ```mermaid
 flowchart TB
-  user["User / UI / SDK"] --> api["Managed Agents API"]
+  user["User / UI / SDK"] --> api["apiserver"]
   api --> product["Product Services"]
   api --> ui["Admin UI"]
 
@@ -105,10 +105,10 @@ flowchart TB
   orchestrator --> scheduler["Sandbox Scheduler"]
 
   subgraph host["Host Plane"]
-    scheduler --> host_agent["sandboxd"]
-    host_agent --> image_mgr["Image / Snapshot Manager"]
-    host_agent --> netgw["Network / Egress Gateway"]
-    host_agent --> vm["Firecracker MicroVM"]
+    scheduler --> sandboxd["sandboxd"]
+    sandboxd --> image_mgr["Image / Snapshot Manager"]
+    sandboxd --> netgw["Network / Egress Gateway"]
+    sandboxd --> vm["Firecracker MicroVM"]
   end
 
   subgraph guest["Guest Agent Plane"]
@@ -254,11 +254,19 @@ sequenceDiagram
 
 ## Component Plan
 
+The first deployable shape is deliberately small: `apiserver`, `orchestrator`,
+and `sandboxd` are the only long-running platform services required for the
+MVP. The remaining product capabilities below start as modules inside
+`apiserver` unless a later load, scaling, security, or ownership boundary proves
+they need their own process.
+
 ### Control Plane
 
 - `apiserver`: UI, public API, authn/authz, OpenAPI or ConnectRPC contracts,
   object CRUD, session creation, event read APIs, admin operations, filestore,
   vault, skill registry, memory metadata, deployment records, and event ingest.
+- Do not name this service `web-api`; the API server owns the product
+  control-plane surface, not only browser-facing endpoints.
 - `session module`: session state machine, run attempts, leases, queue
   integration, retries, timeouts, finalizers, and result normalization. It starts
   inside `apiserver`; split only if load or ownership demands it.
@@ -283,11 +291,15 @@ sequenceDiagram
 
 MVP deployment keeps the control plane simple: `apiserver` owns every product
 module except scheduling/reconciliation, which belongs to `orchestrator`.
+`filestore`, `vault`, `events`, `skills`, `memory`, and `deployments` are not
+separate deployed services in the first cut.
 
 ### Host Plane
 
 - `sandboxd`: supervises Firecracker and jailer, prepares block devices,
   network, vsock, cgroups, and local diagnostics.
+- Treat `sandboxd` as the host-side agent by responsibility, but keep the
+  process name explicit. `host-agent` is a role description, not a service name.
 - `image-manager`: builds, imports, verifies, caches, and garbage-collects
   kernels, rootfs images, and snapshots.
 - `network-gateway`: enforces egress policy, records domains/targets, and

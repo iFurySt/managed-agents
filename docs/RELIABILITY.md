@@ -10,7 +10,7 @@ Define the operational bar for the repository here.
   time, end time, heartbeat, and diagnostic bundle reference.
 - The orchestrator must tolerate process crashes by reconciling leases and
   heartbeat expiry.
-- Host agents must report capacity, active VMs, image cache state, sandbox
+- `sandboxd` must report capacity, active VMs, image cache state, sandbox
   failures, OOMs, and timeout exits.
 - Guest runners must acknowledge work before execution, heartbeat during setup
   and agent runtime, and post a final outcome on success, failure, or timeout.
@@ -29,8 +29,8 @@ Define the operational bar for the repository here.
 - Metrics should cover queue depth, lease age, heartbeat lag, VM boot duration,
   source setup duration, agent runtime duration, failure class counts, and
   storage/tunnel error rates.
-- Traces can come later, but API, orchestrator, host-agent, and runner contracts
-  should pass correlation ids from the start.
+- Traces can come later, but `apiserver`, `orchestrator`, `sandboxd`, and
+  runner contracts should pass correlation ids from the start.
 
 ## Local Validation
 

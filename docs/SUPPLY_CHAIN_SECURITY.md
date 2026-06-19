@@ -40,7 +40,7 @@ the supply-chain boundary must cover more than the web/API build.
 
 Track provenance and SBOMs for:
 
-- `host-agent`;
+- `sandboxd`;
 - `process-api`;
 - `env-runner`;
 - `fs-bridge`;
@@ -60,7 +60,7 @@ Required controls once implementation starts:
   guest binary digests, agent CLI versions, and build timestamp.
 - Sign release artifacts and sandbox images before they are accepted by the
   host plane.
-- Verify artifact signatures before a host agent boots a sandbox image or runs
+- Verify artifact signatures before `sandboxd` boots a sandbox image or runs
   a guest binary.
 - Keep skill package manifests, checksums, and trust decisions in versioned
   metadata.
