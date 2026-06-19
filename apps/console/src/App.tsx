@@ -1718,8 +1718,9 @@ function VaultsPage() {
           triggerClassName="w-[98px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2"
         />
       </div>
-      <div className="-mx-2 -my-2 mt-2 overflow-x-auto p-2">
+      <div className="overflow-x-auto">
         <DataTable
+          className="-mx-2 w-[calc(100%+16px)] p-2"
           rows={vaults}
           getKey={(vault) => vault.id}
           showSelection={false}
