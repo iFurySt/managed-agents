@@ -1528,70 +1528,82 @@ function MemoryStoresPage() {
   }
 
   return (
-    <section className="flex flex-col gap-4">
+    <section className="-mx-2 flex flex-col">
       <PageHeader
         title="Memory stores"
         description="Browse and manage persistent memory for your agents."
         action={
-          <Button onClick={() => setDialogOpen(true)}>
+          <Button className="!gap-1.5 !rounded-[8px] [font-weight:550]" onClick={() => setDialogOpen(true)}>
             <Plus className="h-4 w-4" />
             Create memory store
           </Button>
         }
       />
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="relative w-[320px]">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-          <TextInput
-            className="pl-9"
-            aria-label="Search by name or exact ID"
-            placeholder="Search by name or exact ID"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-          />
+      <div className="mt-4 flex h-10 items-start gap-2">
+        <div className="flex h-10 w-[320px] flex-col gap-1">
+          <div className="relative flex h-8 items-center rounded-[8px] bg-white/50 px-3">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+            <input
+              data-cds="TextInput"
+              className="ml-6 h-full min-w-0 flex-1 border-0 bg-transparent p-0 text-sm text-ink outline-none placeholder:text-muted"
+              aria-label="Search by name or exact ID"
+              placeholder="Search by name or exact ID"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+            />
+          </div>
+          <span aria-hidden="true" className="h-1 px-1 text-xs text-transparent" />
         </div>
         <FieldSelect
           label="Created"
           value={created}
           options={["All time", "Last 24 hours", "Last 7 days", "Last 30 days"]}
           onValueChange={setCreated}
-          triggerClassName="w-[142px]"
+          triggerClassName="w-[142px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2"
         />
-        <FieldSelect label="Status" value={status} options={["Active", "Archived", "All"]} onValueChange={setStatus} triggerClassName="ml-2 w-[123px]" />
+        <FieldSelect
+          label="Status"
+          value={status}
+          options={["Active", "Archived", "All"]}
+          onValueChange={setStatus}
+          triggerClassName="ml-2 w-[123px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2"
+        />
       </div>
-      <DataTable
-        rows={stores}
-        getKey={(store) => store.id}
-        actionsWidth="56px"
-        columns={[
-          {
-            key: "id",
-            header: "ID",
-            width: "200px",
-            render: (store) => (
-              <div className="flex items-center gap-2">
-                <span className="font-mono font-semibold">{shortId(store.id)}</span>
-                <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${store.id}`} onClick={() => copyText(store.id)}>
-                  <Copy className="h-3.5 w-3.5" />
-                </Button>
-              </div>
-            )
-          },
-          {
-            key: "name",
-            header: "Name",
-            width: "352px",
-            render: (store) => (
-              <Link className="font-medium hover:underline" to={`/memory-stores/${store.id}`}>
-                {store.name}
-              </Link>
-            )
-          },
-          { key: "status", header: "Status", width: "120px", render: (store) => <Badge tone={memoryTone(store.status)}>{store.status}</Badge> },
-          { key: "created", header: "Created", width: "200px", render: (store) => <span className="text-muted">{store.createdLabel}</span> }
-        ]}
-        renderActions={(store) => <MemoryStoreActions store={store} onArchive={() => archiveStore(store)} onDelete={() => deleteStore(store)} />}
-      />
+      <div className="-mx-2 -my-2 mt-2 overflow-x-auto p-2">
+        <DataTable
+          rows={stores}
+          getKey={(store) => store.id}
+          actionsWidth="56px"
+          columns={[
+            {
+              key: "id",
+              header: "ID",
+              width: "200px",
+              render: (store) => (
+                <div className="flex items-center gap-2">
+                  <span className="font-mono font-semibold">{shortId(store.id)}</span>
+                  <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${store.id}`} onClick={() => copyText(store.id)}>
+                    <Copy className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              )
+            },
+            {
+              key: "name",
+              header: "Name",
+              width: "352px",
+              render: (store) => (
+                <Link className="font-medium hover:underline" to={`/memory-stores/${store.id}`}>
+                  {store.name}
+                </Link>
+              )
+            },
+            { key: "status", header: "Status", width: "120px", render: (store) => <Badge tone={memoryTone(store.status)}>{store.status}</Badge> },
+            { key: "created", header: "Created", width: "200px", render: (store) => <span className="text-muted">{store.createdLabel}</span> }
+          ]}
+          renderActions={(store) => <MemoryStoreActions store={store} onArchive={() => archiveStore(store)} onDelete={() => deleteStore(store)} />}
+        />
+      </div>
       <CreateMemoryStoreDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
