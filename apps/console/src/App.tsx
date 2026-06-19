@@ -860,7 +860,7 @@ function DeploymentsPage() {
           </Button>
         }
       />
-      <div className="mt-2 flex flex-wrap items-start gap-2">
+      <div className="mt-4 flex flex-wrap items-start gap-2">
         <div className="flex h-10 w-[320px] flex-col gap-1">
           <div className="relative flex h-8 items-center rounded-[8px] bg-white/50 px-3">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
@@ -897,8 +897,9 @@ function DeploymentsPage() {
           />
         </div>
       </div>
-      <div className="-mx-2 mt-6 overflow-x-auto p-2">
+      <div className="mt-2 overflow-x-auto">
         <DataTable
+          className="-mx-2 w-[calc(100%+16px)] p-2"
           rows={deployments}
           getKey={(deployment) => deployment.id}
           showSelection={false}
