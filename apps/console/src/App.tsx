@@ -84,6 +84,13 @@ import type { Agent, CollectionName, Deployment, Environment, MemoryRecord, Memo
 
 const managedRoutes: { path: CollectionName; title: string; description: string; action: string }[] = [];
 const defaultDeploymentEnvironmentId = "env_01UTaKkbFknSkQNEsZjUARMh";
+const deploymentAgentOptions = [
+  { value: "agent_013mi1SmR2hJ6Hk6wNTeJvF9", name: "Managed SSH Reverse Tunnel Bootstrapper", updated: "3 days ago" },
+  { value: "agent_01AVRPTGyYareCeoUasn66q5", name: "Incident commander", updated: "3 days ago" },
+  { value: "agent_019BdsR2v3NW1DiEG62wpu3e", name: "World Cup Daily Digest (self-hosted clone)", updated: "3 days ago" },
+  { value: "agent_017k8CPYuCFRD9AmupUeXd2Z", name: "World Cup Daily Digest", updated: "3 days ago" },
+  { value: "agent_01MNpVPKyrSECHGA6HqAmREZ", name: "Untitled agent", updated: "3 days ago" }
+];
 
 export default function App() {
   return (
@@ -677,6 +684,106 @@ function SessionDetailPage() {
   );
 }
 
+type DeploymentFilterOption = {
+  value: string;
+  label: string;
+  helper?: string;
+};
+
+function DeploymentFilterSelect({
+  label,
+  value,
+  options,
+  onValueChange,
+  triggerWidth,
+  menuWidth,
+  itemHeight = "h-8",
+  fallbackLabel,
+  showSearch = false,
+  searchPlaceholder = ""
+}: {
+  label: string;
+  value: string;
+  options: DeploymentFilterOption[];
+  onValueChange: (value: string) => void;
+  triggerWidth: string;
+  menuWidth: string;
+  itemHeight?: string;
+  fallbackLabel?: string;
+  showSearch?: boolean;
+  searchPlaceholder?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const selected = options.find((option) => option.value === value);
+  const selectedLabel = selected?.label ?? fallbackLabel ?? options[0]?.label ?? value;
+  const visibleOptions = showSearch
+    ? options.filter((option) => `${option.label} ${option.helper ?? ""}`.toLowerCase().includes(query.trim().toLowerCase()))
+    : options;
+
+  return (
+    <div data-cds="Field" className="relative h-10">
+      <div className="h-8 rounded-[8px] bg-white/50">
+        <button
+          type="button"
+          role="combobox"
+          aria-expanded={open}
+          aria-label={`${label} filter`}
+          className={`flex h-8 items-center justify-between rounded-[8px] bg-transparent px-2 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-[#c6613f]/35 ${triggerWidth}`}
+          onClick={() => setOpen((current) => !current)}
+        >
+          <span className="inline-flex min-w-0 items-center gap-1.5 truncate">
+            <span className="text-muted">{label}</span>
+            <span className="truncate">{selectedLabel}</span>
+          </span>
+          <ChevronDown className="h-4 w-4 shrink-0 text-muted" />
+        </button>
+      </div>
+      {open ? (
+        <div
+          data-cds="Combobox"
+          role="dialog"
+          className={`absolute left-0 top-[38px] z-50 rounded-[12px] bg-white p-1 shadow-[0_10px_28px_rgba(0,0,0,0.12)] ${menuWidth}`}
+        >
+          {showSearch ? (
+            <input
+              role="combobox"
+              aria-expanded="true"
+              aria-label={`${label} filter search`}
+              className="-mx-1 -mt-1 mb-1 block h-[37px] w-[calc(100%+8px)] shrink-0 border-0 border-b border-black/10 bg-transparent px-3 text-sm outline-none placeholder:text-muted"
+              placeholder={searchPlaceholder}
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+            />
+          ) : null}
+          <div role="listbox" className="grid gap-0">
+            {visibleOptions.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                role="option"
+                aria-selected={value === option.value}
+                className={`flex w-full items-center justify-between rounded-[8px] px-3 text-left text-sm leading-5 text-ink outline-none hover:bg-fill aria-selected:bg-black/[0.05] ${itemHeight}`}
+                onClick={() => {
+                  onValueChange(option.value);
+                  setOpen(false);
+                  setQuery("");
+                }}
+              >
+                <span className="grid min-w-0 gap-0.5">
+                  <span className="truncate">{option.label}</span>
+                  {option.helper ? <span className="truncate text-xs leading-4 text-muted">{option.helper}</span> : null}
+                </span>
+                {value === option.value ? <Check className="h-4 w-4 shrink-0 text-muted" /> : null}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function DeploymentsPage() {
   const [deployments, setDeployments] = useState<Deployment[]>([]);
   const [search, setSearch] = useState("");
@@ -730,20 +837,27 @@ function DeploymentsPage() {
           </div>
           <span aria-hidden="true" className="h-1 px-1 text-xs text-transparent" />
         </div>
-        <FieldSelect
+        <DeploymentFilterSelect
           label="Agent"
           value={agent}
-          options={["All", "agent_017k8CPYuCFRD9AmupUeXd2Z", "agent_013mi1SmR2hJ6Hk6wNTeJvF9"]}
+          options={deploymentAgentOptions.map((option) => ({ value: option.value, label: option.name, helper: option.updated }))}
           onValueChange={setAgent}
-          triggerClassName="w-[112px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2"
+          triggerWidth="w-[112px]"
+          menuWidth="w-[320px]"
+          itemHeight="h-12"
+          fallbackLabel="All"
+          showSearch
         />
-        <FieldSelect
-          label="Status"
-          value={status}
-          options={["All", "Paused", "Active", "Archived", "Failed"]}
-          onValueChange={setStatus}
-          triggerClassName="ml-2 w-[98px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2"
-        />
+        <div className="ml-2">
+          <DeploymentFilterSelect
+            label="Status"
+            value={status}
+            options={["All", "Active", "Paused"].map((option) => ({ value: option, label: option }))}
+            onValueChange={setStatus}
+            triggerWidth="w-[98px]"
+            menuWidth="w-[192px]"
+          />
+        </div>
       </div>
       <div className="-mx-2 mt-6 overflow-x-auto p-2">
         <DataTable
@@ -3175,14 +3289,7 @@ function DeploymentAgentPicker({
   wide?: boolean;
 }) {
   const [open, setOpen] = useState(false);
-  const options = [
-    { value: "agent_013mi1SmR2hJ6Hk6wNTeJvF9", name: "Managed SSH Reverse Tunnel Bootstrapper", updated: "3 days ago" },
-    { value: "agent_01AVRPTGyYareCeoUasn66q5", name: "Incident commander", updated: "3 days ago" },
-    { value: "agent_019BdsR2v3NW1DiEG62wpu3e", name: "World Cup Daily Digest (self-hosted clone)", updated: "3 days ago" },
-    { value: "agent_017k8CPYuCFRD9AmupUeXd2Z", name: "World Cup Daily Digest", updated: "3 days ago" },
-    { value: "agent_01MNpVPKyrSECHGA6HqAmREZ", name: "Untitled agent", updated: "3 days ago" }
-  ];
-  const selected = options.find((option) => option.value === value);
+  const selected = deploymentAgentOptions.find((option) => option.value === value);
 
   return (
     <div data-cds="Field" className={`relative ${wide ? "w-[472px]" : "w-[300px]"}`}>
@@ -3206,7 +3313,7 @@ function DeploymentAgentPicker({
           className="absolute left-0 top-[39px] z-50 w-[472px] rounded-[12px] bg-white p-1 shadow-[0_10px_28px_rgba(0,0,0,0.12)]"
         >
           <div role="listbox" className="grid gap-0">
-            {options.map((option) => (
+            {deploymentAgentOptions.map((option) => (
               <button
                 key={option.value}
                 type="button"
