@@ -3051,20 +3051,12 @@ function CreateDeploymentDialog({
                 <span className="sr-only">(opens in new tab)</span>
               </a>
             </div>
-            {scopedAgent && initialEnvironmentName ? (
-              <Button variant="ghost" className="h-8 w-full justify-between rounded-[8px] px-2 font-normal">
-                {initialEnvironmentName}
-                <ChevronDown className="h-4 w-4 text-muted" />
-              </Button>
-            ) : (
-              <FieldSelect
-                label=""
-                value={environmentId || "Select an environment"}
-                options={["Select an environment", "env_01WorldCupDigest", "env_01ManagedDebug", "env_01PythonBrowser"]}
-                onValueChange={(value) => setEnvironmentId(value === "Select an environment" ? "" : value)}
-                triggerClassName="!h-8 w-full border-0 bg-white/50 px-2"
-              />
-            )}
+            <DeploymentEnvironmentPicker
+              value={environmentId}
+              onValueChange={setEnvironmentId}
+              initialEnvironmentId={initialEnvironmentId}
+              initialEnvironmentName={initialEnvironmentName}
+            />
           </div>
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
@@ -3099,6 +3091,77 @@ function CreateDeploymentDialog({
         </div>
       </div>
     </ConsoleDialog>
+  );
+}
+
+function DeploymentEnvironmentPicker({
+  value,
+  onValueChange,
+  initialEnvironmentId,
+  initialEnvironmentName
+}: {
+  value: string;
+  onValueChange: (value: string) => void;
+  initialEnvironmentId?: string;
+  initialEnvironmentName?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const options = [
+    { value: initialEnvironmentId || "env_01ManagedDebug", name: initialEnvironmentName || "managed-ssh-debug-env", updated: "3 days ago", host: "Cloud" },
+    { value: "env_01LiiuDCwZBtqZd5EYMk9D9x", name: "123", updated: "3 days ago", host: "Self-hosted" },
+    { value: "env_01AzQWp3SXQEATgdCFUNwteR", name: "myenv", updated: "3 days ago", host: "Self-hosted" },
+    { value: "env_01UNo9NMB1ZQLKCZk21qryb8", name: "world-cup-digest-env", updated: "3 days ago", host: "Cloud" }
+  ];
+  const dedupedOptions = options.filter((option, index, all) => all.findIndex((item) => item.value === option.value) === index);
+  const selected = value ? dedupedOptions.find((option) => option.value === value) : undefined;
+
+  return (
+    <div data-cds="Field" className="relative">
+      <div className="h-8 rounded-[8px] bg-white/50">
+        <button
+          type="button"
+          role="combobox"
+          aria-expanded={open}
+          aria-label="Select deployment environment"
+          className="flex h-8 w-full items-center justify-between rounded-[8px] bg-transparent px-2 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-[#c6613f]/35"
+          onClick={() => setOpen((current) => !current)}
+        >
+          <span className="truncate">{selected?.name ?? "Select an environment"}</span>
+          <ChevronDown className="h-4 w-4 shrink-0 text-muted" />
+        </button>
+      </div>
+      {open ? (
+        <div
+          data-cds="Combobox"
+          role="dialog"
+          className="absolute left-0 top-[39px] z-50 w-full rounded-[12px] bg-white p-1 shadow-[0_10px_28px_rgba(0,0,0,0.12)]"
+        >
+          <div role="listbox" className="grid gap-0">
+            {dedupedOptions.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                role="option"
+                aria-selected={value === option.value}
+                className="flex h-12 w-full items-center justify-between rounded-[8px] px-3 text-left outline-none hover:bg-fill aria-selected:bg-black/[0.05]"
+                onClick={() => {
+                  onValueChange(option.value);
+                  setOpen(false);
+                }}
+              >
+                <span className="grid min-w-0 gap-0.5">
+                  <span className="truncate text-sm leading-4 text-ink">{option.name}</span>
+                  <span className="truncate text-xs leading-4 text-muted">
+                    {option.updated} · {option.host}
+                  </span>
+                </span>
+                {value === option.value ? <span className="h-2 w-2 shrink-0 rounded-full bg-[#c6613f]" aria-hidden /> : null}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </div>
   );
 }
 
