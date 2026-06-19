@@ -10,6 +10,7 @@ import {
   CircleDollarSign,
   Database,
   Download,
+  ExternalLink,
   FileText,
   Gauge,
   Home,
@@ -2525,6 +2526,10 @@ function AgentDeploymentsPanel({ agent }: { agent: Agent }) {
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         initialAgentId={agent.id}
+        initialAgentName={agent.name}
+        initialAgentVersion={agent.version || "v1"}
+        initialEnvironmentId="env_01ManagedDebug"
+        initialEnvironmentName="managed-ssh-debug-env"
         onCreated={(deployment) => setDeployments((items) => (deployment.agentId === agent.id ? [deployment, ...items] : items))}
       />
     </>
@@ -2904,11 +2909,19 @@ function CreateDeploymentDialog({
   open,
   onOpenChange,
   initialAgentId = "",
+  initialAgentName = "",
+  initialAgentVersion = "v1",
+  initialEnvironmentId = "",
+  initialEnvironmentName = "",
   onCreated
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   initialAgentId?: string;
+  initialAgentName?: string;
+  initialAgentVersion?: string;
+  initialEnvironmentId?: string;
+  initialEnvironmentName?: string;
   onCreated: (deployment: Deployment) => void;
 }) {
   const [name, setName] = useState("");
@@ -2921,11 +2934,14 @@ function CreateDeploymentDialog({
 
   const canCreate = name && agentId && initialMessage && environmentId && trigger;
   const fieldLabelClass = "text-sm leading-none [font-weight:550]";
-  const manageLinkClass = "text-xs leading-4 text-[#184f95] hover:underline";
+  const manageLinkClass = "inline-flex items-center gap-1 text-xs leading-4 text-[#184f95] hover:underline";
+  const scopedAgent = Boolean(initialAgentId);
 
   useEffect(() => {
-    if (open && initialAgentId) setAgentId(initialAgentId);
-  }, [initialAgentId, open]);
+    if (!open) return;
+    if (initialAgentId) setAgentId(initialAgentId);
+    if (initialEnvironmentId) setEnvironmentId(initialEnvironmentId);
+  }, [initialAgentId, initialEnvironmentId, open]);
 
   async function submit() {
     if (!canCreate) return;
@@ -2944,6 +2960,7 @@ function CreateDeploymentDialog({
     onOpenChange(false);
     setName("");
     setAgentId(initialAgentId);
+    setEnvironmentId(initialEnvironmentId);
     setInitialMessage("");
   }
 
@@ -2970,19 +2987,46 @@ function CreateDeploymentDialog({
               onChange={(event) => setName(event.target.value)}
             />
           </label>
-          <div className="grid gap-2">
-            <div className="flex items-center justify-between">
-              <label className={fieldLabelClass}>Agent</label>
-              <a className={manageLinkClass} href="/agents" target="_blank" rel="noreferrer">Manage agents</a>
+          {scopedAgent ? (
+            <div className="grid grid-cols-[292px_160px] gap-5">
+              <div className="grid gap-2">
+                <div className="flex items-center justify-between">
+                  <label className={fieldLabelClass}>Agent</label>
+                  <a className={manageLinkClass} href={`/agents/${initialAgentId}`} target="_blank" rel="noreferrer">
+                    View agent
+                    <ExternalLink className="h-3 w-3" />
+                    <span className="sr-only">(opens in new tab)</span>
+                  </a>
+                </div>
+                <div className="flex h-8 items-center truncate text-sm">{initialAgentName || initialAgentId}</div>
+              </div>
+              <div className="grid gap-2">
+                <label className={fieldLabelClass}>Version</label>
+                <Button variant="ghost" className="h-8 w-[152px] justify-between rounded-[8px] px-2 font-normal">
+                  {initialAgentVersion} · latest
+                  <ChevronDown className="h-4 w-4 text-muted" />
+                </Button>
+              </div>
             </div>
-            <FieldSelect
-              label=""
-              value={agentId || "Select an agent"}
-              options={["Select an agent", "agent_017k8CPYuCFRD9AmupUeXd2Z", "agent_013mi1SmR2hJ6Hk6wNTeJvF9", "agent_01AVRPTGyYareCeoUasn66q5"]}
-              onValueChange={(value) => setAgentId(value === "Select an agent" ? "" : value)}
-              triggerClassName="!h-8 w-full border-0 bg-white/50 px-2"
-            />
-          </div>
+          ) : (
+            <div className="grid gap-2">
+              <div className="flex items-center justify-between">
+                <label className={fieldLabelClass}>Agent</label>
+                <a className={manageLinkClass} href="/agents" target="_blank" rel="noreferrer">
+                  Manage agents
+                  <ExternalLink className="h-3 w-3" />
+                  <span className="sr-only">(opens in new tab)</span>
+                </a>
+              </div>
+              <FieldSelect
+                label=""
+                value={agentId || "Select an agent"}
+                options={["Select an agent", "agent_017k8CPYuCFRD9AmupUeXd2Z", "agent_013mi1SmR2hJ6Hk6wNTeJvF9", "agent_01AVRPTGyYareCeoUasn66q5"]}
+                onValueChange={(value) => setAgentId(value === "Select an agent" ? "" : value)}
+                triggerClassName="!h-8 w-full border-0 bg-white/50 px-2"
+              />
+            </div>
+          )}
           <label className={`grid gap-2 ${fieldLabelClass}`}>
             Initial message
             <textarea
@@ -2996,20 +3040,35 @@ function CreateDeploymentDialog({
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
               <label className={fieldLabelClass}>Environment</label>
-              <a className={manageLinkClass} href="/environments" target="_blank" rel="noreferrer">Manage environments</a>
+              <a className={manageLinkClass} href="/environments" target="_blank" rel="noreferrer">
+                Manage environments
+                <ExternalLink className="h-3 w-3" />
+                <span className="sr-only">(opens in new tab)</span>
+              </a>
             </div>
-            <FieldSelect
-              label=""
-              value={environmentId || "Select an environment"}
-              options={["Select an environment", "env_01WorldCupDigest", "env_01ManagedDebug", "env_01PythonBrowser"]}
-              onValueChange={(value) => setEnvironmentId(value === "Select an environment" ? "" : value)}
-              triggerClassName="!h-8 w-full border-0 bg-white/50 px-2"
-            />
+            {scopedAgent && initialEnvironmentName ? (
+              <Button variant="ghost" className="h-8 w-full justify-between rounded-[8px] px-2 font-normal">
+                {initialEnvironmentName}
+                <ChevronDown className="h-4 w-4 text-muted" />
+              </Button>
+            ) : (
+              <FieldSelect
+                label=""
+                value={environmentId || "Select an environment"}
+                options={["Select an environment", "env_01WorldCupDigest", "env_01ManagedDebug", "env_01PythonBrowser"]}
+                onValueChange={(value) => setEnvironmentId(value === "Select an environment" ? "" : value)}
+                triggerClassName="!h-8 w-full border-0 bg-white/50 px-2"
+              />
+            )}
           </div>
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
               <label className={fieldLabelClass}>Credential vaults(optional)</label>
-              <a className={manageLinkClass} href="/vaults" target="_blank" rel="noreferrer">Manage credential vaults</a>
+              <a className={manageLinkClass} href="/vaults" target="_blank" rel="noreferrer">
+                Manage credential vaults
+                <ExternalLink className="h-3 w-3" />
+                <span className="sr-only">(opens in new tab)</span>
+              </a>
             </div>
             <FieldSelect
               label="+"
@@ -3022,7 +3081,11 @@ function CreateDeploymentDialog({
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
               <label className={fieldLabelClass}>Memory stores(optional)</label>
-              <a className={manageLinkClass} href="/memory-stores" target="_blank" rel="noreferrer">Manage memory stores</a>
+              <a className={manageLinkClass} href="/memory-stores" target="_blank" rel="noreferrer">
+                Manage memory stores
+                <ExternalLink className="h-3 w-3" />
+                <span className="sr-only">(opens in new tab)</span>
+              </a>
             </div>
             <FieldSelect
               label="+"
