@@ -33,7 +33,7 @@ import {
   Wrench
 } from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type DragEvent } from "react";
 import { Link, Navigate, Route, Routes, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   archiveSession,
@@ -5087,7 +5087,18 @@ function CreateSkillDialog({
   onCreated: (skill: SkillPackage) => void;
 }) {
   const [selectedName, setSelectedName] = useState("");
+  const [draggingUpload, setDraggingUpload] = useState(false);
   const canContinue = selectedName.trim().length > 0;
+
+  function handleDrop(event: DragEvent<HTMLDivElement>) {
+    event.preventDefault();
+    setDraggingUpload(false);
+
+    const droppedName = getSkillUploadDropName(event);
+    if (droppedName) {
+      setSelectedName(droppedName);
+    }
+  }
 
   async function submit() {
     if (!canContinue) return;
@@ -5114,18 +5125,25 @@ function CreateSkillDialog({
     >
       <div className="px-6 pb-0 pt-3">
         <div className="grid gap-2">
-          <label className="flex h-[112px] cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-line bg-transparent px-4 py-6 text-center transition-colors">
-            <input
-              className="hidden"
-              type="file"
-              accept=".zip,.skill"
-              onChange={(event) => setSelectedName(event.target.files?.[0]?.name ?? "")}
-            />
+          <div
+            className={`flex h-[112px] flex-col items-center justify-center rounded-lg border border-dashed border-line bg-transparent px-4 py-6 text-center transition-colors ${draggingUpload ? "border-[#b7b2aa] bg-[#fbfaf7]" : ""}`}
+            onDragEnter={(event) => {
+              event.preventDefault();
+              setDraggingUpload(true);
+            }}
+            onDragOver={(event) => {
+              event.preventDefault();
+              event.dataTransfer.dropEffect = "copy";
+              setDraggingUpload(true);
+            }}
+            onDragLeave={() => setDraggingUpload(false)}
+            onDrop={handleDrop}
+          >
             <div>
               <p className="text-sm text-muted">Drag and drop a .zip, .skill file, or directory to upload</p>
               {selectedName ? <p className="mt-3 font-mono text-sm text-ink">{selectedName}</p> : null}
             </div>
-          </label>
+          </div>
           <p className="text-xs leading-4 text-muted">
             Total file size limit: 8MB.{" "}
             <a className="underline" href="https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview" target="_blank" rel="noopener noreferrer">
@@ -5144,6 +5162,29 @@ function CreateSkillDialog({
       </div>
     </ConsoleDialog>
   );
+}
+
+type SkillUploadEntry = {
+  isDirectory?: boolean;
+  name?: string;
+};
+
+type SkillUploadItem = DataTransferItem & {
+  webkitGetAsEntry?: () => SkillUploadEntry | null;
+};
+
+function getSkillUploadDropName(event: DragEvent<HTMLDivElement>) {
+  const item = event.dataTransfer.items?.[0] as SkillUploadItem | undefined;
+  const entry = item?.webkitGetAsEntry?.();
+  if (entry?.isDirectory && entry.name) {
+    return entry.name;
+  }
+
+  const file = event.dataTransfer.files?.[0] as (File & { webkitRelativePath?: string }) | undefined;
+  if (!file) return "";
+
+  const relativeRoot = file.webkitRelativePath?.split("/").filter(Boolean)[0];
+  return relativeRoot || file.name;
 }
 
 function SkillVersionDialog({ skillId, onOpenChange }: { skillId: string | null; onOpenChange: (open: boolean) => void }) {
