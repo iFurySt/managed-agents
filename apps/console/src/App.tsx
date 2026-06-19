@@ -5126,8 +5126,16 @@ function CreateSkillDialog({
               {selectedName ? <p className="mt-3 font-mono text-sm text-ink">{selectedName}</p> : null}
             </div>
           </label>
-          <p className="text-center text-xs leading-4 text-muted">
-            Total file size limit: 8MB. <span className="font-medium">File format</span> · <span className="font-medium">download an example</span>.
+          <p className="text-xs leading-4 text-muted">
+            Total file size limit: 8MB.{" "}
+            <a className="underline" href="https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview" target="_blank" rel="noopener noreferrer">
+              File format
+            </a>{" "}
+            ·{" "}
+            <a className="underline" href="https://github.com/anthropics/skills" target="_blank" rel="noopener noreferrer">
+              download an example
+            </a>
+            .
           </p>
         </div>
         <div className="sticky bottom-0 -mx-6 mt-[15px] flex justify-end bg-white px-6 py-0">
