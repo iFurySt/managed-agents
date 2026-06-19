@@ -2201,6 +2201,7 @@ function SkillsPage() {
 
 function AgentDetailPage() {
   const { id } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [agent, setAgent] = useState<Agent | null>(null);
   const [editOpen, setEditOpen] = useState(false);
 
@@ -2223,6 +2224,18 @@ function AgentDetailPage() {
     Sessions: "w-[83px]",
     Deployments: "w-[114px]"
   };
+  const tabParam = searchParams.get("tab");
+  const activeTab = tabParam === "sessions" || tabParam === "deployments" ? tabParam : "agent";
+
+  function setDetailTab(value: string) {
+    const next = new URLSearchParams(searchParams);
+    if (value === "agent") {
+      next.delete("tab");
+    } else {
+      next.set("tab", value);
+    }
+    setSearchParams(next);
+  }
 
   return (
     <section className="flex max-w-[952px] flex-col">
@@ -2259,7 +2272,7 @@ function AgentDetailPage() {
         </div>
       </div>
       <p className="mt-[9px] text-sm leading-5 text-[#4e4a45]">{agent.description}</p>
-      <CdsTabs.Root defaultValue="agent" className="mt-4 flex flex-col gap-5">
+      <CdsTabs.Root value={activeTab} onValueChange={setDetailTab} className="mt-4 flex flex-col gap-5">
         <CdsTabs.List data-cds="NavigationTabs" className="flex h-8 items-end gap-[2px] border-b border-line font-sans">
           {["Agent", "Sessions", "Deployments"].map((tab) => (
             <CdsTabs.Trigger
@@ -2317,8 +2330,8 @@ function AgentDetailPage() {
             <EmptyState compact title="No skills configured." description="" />
           </DetailSection>
         </CdsTabs.Content>
-        <CdsTabs.Content value="sessions">
-          <EmptyState title="No sessions yet" description="Sessions launched by this agent will appear here." />
+        <CdsTabs.Content value="sessions" className="-mt-6">
+          <AgentSessionsPanel agent={agent} />
         </CdsTabs.Content>
         <CdsTabs.Content value="deployments">
           <EmptyState title="No deployments yet" description="Deployments created by this agent will appear here." />
@@ -2334,6 +2347,97 @@ function AgentDetailPage() {
         }}
       />
     </section>
+  );
+}
+
+function AgentSessionsPanel({ agent }: { agent: Agent }) {
+  const [sessions, setSessions] = useState<Session[]>([]);
+  const [created, setCreated] = useState("All time");
+  const [version, setVersion] = useState("All");
+  const [deployment, setDeployment] = useState("All");
+  const [status, setStatus] = useState("All");
+
+  useEffect(() => {
+    listSessions({ agentId: agent.id, created, deploymentId: deployment, status }).then(setSessions).catch(() => setSessions([]));
+  }, [agent.id, created, deployment, status]);
+
+  async function cancelCurrent(session: Session) {
+    const updated = await cancelSession(session.id);
+    setSessions((items) => items.map((item) => (item.id === updated.id ? updated : item)));
+  }
+
+  const agentVersion = agent.version || "v1";
+  const deploymentOptions = ["All", ...Array.from(new Set([deployment === "All" ? "" : deployment, ...sessions.map((session) => session.deploymentId)].filter(Boolean)))];
+  const versionOptions = ["All", agentVersion];
+  const visibleSessions = version === "All" || version === agentVersion ? sessions : [];
+
+  return (
+    <div className="grid gap-4">
+      <div className="flex h-8 flex-wrap items-center gap-2">
+        <FieldSelect
+          label="Created"
+          value={created}
+          options={["All time", "Last 24 hours", "Last 7 days", "Last 30 days"]}
+          onValueChange={setCreated}
+          triggerClassName="w-[150px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2"
+        />
+        <FieldSelect
+          label="Version"
+          value={version}
+          options={versionOptions}
+          onValueChange={setVersion}
+          triggerClassName="w-[132px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2"
+        />
+        <FieldSelect
+          label="Deployment"
+          value={deployment}
+          options={deploymentOptions}
+          onValueChange={setDeployment}
+          triggerClassName="w-[172px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2"
+        />
+        <FieldSelect
+          label="Status"
+          value={status}
+          options={["All", "Active", "Idle", "Cancelled"]}
+          onValueChange={setStatus}
+          triggerClassName="w-[106px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2"
+        />
+      </div>
+      <DataTable
+        rows={visibleSessions}
+        getKey={(session) => session.id}
+        columns={[
+          {
+            key: "id",
+            header: "ID",
+            width: "160px",
+            render: (session) => (
+              <div className="flex items-center gap-2">
+                <span className="font-mono font-semibold">{shortId(session.id)}</span>
+                <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${session.id}`} onClick={() => copyText(session.id)}>
+                  <Copy className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            )
+          },
+          {
+            key: "name",
+            header: "Name",
+            width: "300px",
+            render: (session) => (
+              <Link className="block truncate font-medium hover:underline" to={`/sessions/${session.id}`}>
+                {session.name}
+              </Link>
+            )
+          },
+          { key: "status", header: "Status", width: "126px", render: (session) => <Badge tone={sessionTone(session.status)}>{session.status}</Badge> },
+          { key: "version", header: "Version", width: "126px", render: () => <span className="font-mono">{agentVersion}</span> },
+          { key: "created", header: "Created", width: "160px", render: (session) => <span className="text-muted">{agentSessionCreatedLabel(session)}</span> }
+        ]}
+        actionsWidth="56px"
+        renderActions={(session) => <SessionRowActions session={session} onCancel={() => cancelCurrent(session)} />}
+      />
+    </div>
   );
 }
 
@@ -4195,6 +4299,12 @@ function shortId(id: string) {
 function shortEnvironmentId(id: string) {
   if (id.length <= 12) return id;
   return `${id.slice(0, 4)}…${id.slice(-7)}`;
+}
+
+function agentSessionCreatedLabel(session: Session) {
+  const created = new Date(session.createdAt);
+  if (Number.isNaN(created.getTime())) return session.createdLabel;
+  return created.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
 function copyText(value: string) {
