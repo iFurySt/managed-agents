@@ -67,7 +67,9 @@ export function FieldSelect({
   options,
   onValueChange,
   triggerClassName = "",
-  showLabel = true
+  showLabel = true,
+  contentClassName = "",
+  itemClassName = ""
 }: {
   label: string;
   value: string;
@@ -75,6 +77,8 @@ export function FieldSelect({
   onValueChange: (value: string) => void;
   triggerClassName?: string;
   showLabel?: boolean;
+  contentClassName?: string;
+  itemClassName?: string;
 }) {
   return (
     <Select.Root value={value} onValueChange={onValueChange}>
@@ -89,13 +93,13 @@ export function FieldSelect({
         </Select.Icon>
       </Select.Trigger>
       <Select.Portal>
-        <Select.Content className="z-50 min-w-[150px] rounded-cds border border-line bg-white p-1 shadow-lg">
+        <Select.Content className={`z-50 min-w-[150px] rounded-cds border border-line bg-white p-1 shadow-lg ${contentClassName}`}>
           <Select.Viewport>
             {options.map((option) => (
               <Select.Item
                 key={option}
                 value={option}
-                className="flex h-8 cursor-pointer items-center justify-between rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill"
+                className={`flex h-8 cursor-pointer items-center justify-between rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill ${itemClassName}`}
               >
                 <Select.ItemText>{option}</Select.ItemText>
                 <Select.ItemIndicator>

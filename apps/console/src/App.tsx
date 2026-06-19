@@ -2026,6 +2026,8 @@ function FilesEmptyState({ language, onLanguageChange }: { language: string; onL
             options={["Python", "cURL"]}
             onValueChange={onLanguageChange}
             triggerClassName="!h-6 !w-[81px] !gap-1.5 !rounded-md !border-0 !bg-transparent !px-2 !text-[13px] !text-[#52514e] [font-weight:550] hover:!bg-[#eeeeeb] [&_svg]:!h-3.5 [&_svg]:!w-3.5"
+            contentClassName="!min-w-[128px]"
+            itemClassName="!rounded-[8px]"
           />
           <div className="ml-auto flex items-center gap-1">
             <a className="inline-flex h-6 w-[96px] items-center gap-1.5 rounded-md px-2 text-[13px] leading-5 [font-weight:550] hover:bg-[#eeeeeb]" href="https://docs.claude.com/en/docs/build-with-claude/files">
