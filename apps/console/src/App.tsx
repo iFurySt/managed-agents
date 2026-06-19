@@ -5026,51 +5026,60 @@ function SkillVersionDialog({ skillId, onOpenChange }: { skillId: string | null;
   const open = Boolean(skillId);
 
   return (
-    <ConsoleDialog
-      title={skill?.name ?? "Skill"}
-      open={open}
-      onOpenChange={onOpenChange}
-      contentClassName="min-h-[396px] w-[520px] max-w-[calc(100vw-32px)] !rounded-[12px] border-0"
-      headerClassName="flex items-start justify-between pl-6 pr-4 pt-4"
-      titleClassName="mt-1 text-[22px] leading-[26px] text-ink [font-weight:580]"
-      closeButtonClassName="h-8 w-8 rounded-[8px] px-0"
-      closeLabel="Close"
-    >
-      <div className="px-6 pb-0 pt-3">
-        {skill ? (
-          <div className="grid gap-6">
-            <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
-              <span>{skill.owner}</span>
-              <span>•</span>
-              <span>{skill.createdLabel}</span>
+    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+      <Dialog.Portal>
+        <Dialog.Overlay className="fixed inset-0 z-40 bg-black/35 backdrop-blur-[1px]" />
+        <Dialog.Content
+          data-cds="Dialog"
+          className="fixed left-1/2 top-1/2 z-50 flex h-[396px] w-[520px] max-w-[calc(100vw-32px)] -translate-x-1/2 -translate-y-1/2 flex-col overflow-y-auto rounded-[12px] bg-white p-6 text-sm text-ink shadow-[0_16px_48px_rgba(0,0,0,0.18),0_4px_14px_rgba(0,0,0,0.1)] outline-none"
+        >
+          <div className="mb-4 flex min-h-0 items-start gap-2">
+            <div className="-mt-1 flex min-w-0 flex-1 flex-col gap-1">
+              <Dialog.Title className="truncate text-[22px] leading-[26px] text-ink [font-weight:580]">{skill?.name ?? "Skill"}</Dialog.Title>
             </div>
-            <section>
-              <h2 className="mb-3 text-[15px] leading-5 [font-weight:550]">Version history</h2>
-              <div className="grid gap-1">
-                {(skill.versions ?? []).map((version) => (
-                  <div key={version.id} className="grid min-h-[47px] grid-cols-[74px_auto_1fr] items-center gap-3 rounded-control px-3 text-sm hover:bg-fill">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="h-[22px] w-[74px] justify-start gap-0.5 rounded-[5.5px] bg-fill px-0 font-mono font-semibold text-ink hover:bg-fill"
-                      aria-label={`Copy ${version.version}`}
-                      onClick={() => copyText(version.version)}
-                    >
-                      <span>{version.version}</span>
-                      <Copy className="h-3.5 w-3.5" />
-                    </Button>
-                    <span className="text-muted">{version.releasedAt}</span>
-                    <span>{version.latest ? <Badge tone="blue" className="h-[22px] rounded-[5.5px] bg-[#cde2fb] text-ink">Latest</Badge> : null}</span>
-                  </div>
-                ))}
-              </div>
-            </section>
+            <Dialog.Close asChild>
+              <Button variant="icon" className="-mr-2 -mt-2 h-8 w-8 rounded-[8px] px-0" aria-label="Close">
+                <span className="text-lg leading-none">×</span>
+              </Button>
+            </Dialog.Close>
           </div>
-        ) : (
-          <EmptyState compact title="Loading version history" description="" />
-        )}
-      </div>
-    </ConsoleDialog>
+          {skill ? (
+            <>
+              <div className="mb-6 flex h-5 items-center gap-2 text-sm text-muted">
+                <span>{skill.owner}</span>
+                <span>•</span>
+                <span>{skill.createdLabel}</span>
+              </div>
+              <section>
+                <h2 className="mb-3 text-[15px] leading-5 [font-weight:550]">Version history</h2>
+                <div className="divide-y divide-line border-y border-line">
+                  {(skill.versions ?? []).map((version) => (
+                    <div key={version.id} className="flex min-h-[47px] items-center justify-between px-3 py-3 text-sm hover:bg-fill">
+                      <div className="flex flex-1 items-center gap-3">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-[22px] min-w-[74px] justify-start gap-0.5 rounded-[5.5px] bg-fill px-0 font-mono font-semibold text-ink hover:bg-fill"
+                          aria-label={`Copy ${version.version}`}
+                          onClick={() => copyText(version.version)}
+                        >
+                          <span>{version.version}</span>
+                          <Copy className="h-3.5 w-3.5" />
+                        </Button>
+                        <span className="text-muted">{version.releasedAt}</span>
+                      </div>
+                      {version.latest ? <Badge tone="blue" className="h-[22px] rounded-[5.5px] bg-[#cde2fb] text-ink">Latest</Badge> : null}
+                    </div>
+                  ))}
+                </div>
+              </section>
+            </>
+          ) : (
+            <EmptyState compact title="Loading version history" description="" />
+          )}
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
   );
 }
 
