@@ -5122,19 +5122,21 @@ function SkillVersionDialog({ skillId, onOpenChange }: { skillId: string | null;
                   {(skill.versions ?? []).map((version) => (
                     <div key={version.id} className="flex min-h-[47px] items-center justify-between px-3 py-3 text-sm hover:bg-fill">
                       <div className="flex flex-1 items-center gap-3">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-[22px] min-w-[74px] justify-start gap-0.5 rounded-[5.5px] bg-fill px-0 font-mono font-semibold text-ink hover:bg-fill"
+                        <span
+                          role="button"
+                          tabIndex={0}
+                          className="relative cursor-pointer"
                           aria-label={`Copy ${version.version}`}
                           onClick={() => copyText(version.version)}
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter" || event.key === " ") copyText(version.version);
+                          }}
                         >
-                          <span>{version.version}</span>
-                          <Copy className="h-3.5 w-3.5" />
-                        </Button>
+                          <span data-cds="Badge" className="inline-flex h-[22px] items-center rounded-[5.5px] bg-fill px-2 align-bottom font-mono text-xs leading-[15px] text-[#52514e] [font-weight:550]">{version.version}</span>
+                        </span>
                         <span className="text-muted">{version.releasedAt}</span>
+                        {version.latest ? <span data-cds="Badge" className="inline-flex h-[22px] items-center rounded-[5.5px] bg-[#cde2fb] px-2 text-xs leading-[15px] text-[#184f95] [font-weight:550]">Latest</span> : null}
                       </div>
-                      {version.latest ? <Badge tone="blue" className="h-[22px] rounded-[5.5px] bg-[#cde2fb] text-ink">Latest</Badge> : null}
                     </div>
                   ))}
                 </div>
