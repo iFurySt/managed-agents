@@ -3,6 +3,14 @@
 @tailwind utilities;
 
 @font-face {
+  font-family: Anthropicons-Variable;
+  src: url("/fonts/anthropicons-variable.woff2") format("woff2-variations");
+  font-display: block;
+  font-weight: 400 700;
+  font-style: normal;
+}
+
+@font-face {
   font-family: anthropicSans;
   src: url("/fonts/anthropic-sans-normal.woff2") format("woff2");
   font-display: swap;
@@ -45,6 +53,7 @@
 }
 
 :root {
+  --font-anthropicons: Anthropicons-Variable;
   color: #0b0b0b;
   background: #fcfcfb;
   font-family: anthropicSans, "anthropicSans Fallback", system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;

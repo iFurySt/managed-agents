@@ -145,11 +145,11 @@ function Sidebar() {
       <div className="flex h-10 w-full flex-col pb-3">
         <div className="-mr-2 flex w-full translate-y-px items-center justify-between">
           <Link className="pl-2" to="/">
-            <span className="inline-flex flex-col items-start gap-[3px]">
-              <span className="ml-[-0.1em] whitespace-nowrap font-serif text-base leading-none text-ink [font-feature-settings:'dlig','ss01'] [font-optical-sizing:auto] [font-weight:550]">
+            <div className="inline-flex flex-col items-start">
+              <span className="ml-[-0.1em] whitespace-nowrap font-voice text-base leading-none text-ink [font-weight:550]">
                 Claude Console
               </span>
-            </span>
+            </div>
           </Link>
           <Button
             variant="ghost"
@@ -214,13 +214,7 @@ function Sidebar() {
 
 function SidebarCollapseIcon() {
   return (
-    <span className="inline-flex items-center gap-1">
-      <span data-cds="Icon" aria-hidden="true" className="relative flex h-5 w-5 shrink-0 select-none items-center justify-center text-[20px] leading-none text-current [font-family:var(--font-anthropicons,Anthropicons-Variable)] [font-weight:433.3]">
-        <span className="sr-only"></span>
-        <span className="absolute left-[3px] top-[3.25px] h-[13.5px] w-3.5 rounded-[2px] border-[1.6px] border-current" />
-        <span className="absolute left-[7.75px] top-[3.75px] h-[12.5px] border-l-[1.6px] border-current" />
-      </span>
-    </span>
+    <SidebarGlyph glyph="" className="h-5 w-5 text-current text-[20px] [font-weight:433.3]" />
   );
 }
 
