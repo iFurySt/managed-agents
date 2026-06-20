@@ -2075,10 +2075,9 @@ function VaultsPage() {
       />
       <div className="mt-4 flex h-10 flex-wrap items-start gap-2">
         <div className="flex h-10 w-[320px] flex-col gap-1">
-          <div className="relative flex h-8 items-center rounded-[8px] bg-white/50 px-3">
+          <div data-cds="TextInput" className="relative flex h-8 items-center rounded-[8px] bg-white/50 px-3 shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
             <input
-              data-cds="TextInput"
               className="ml-6 h-full min-w-0 flex-1 border-0 bg-transparent p-0 text-sm text-ink outline-none placeholder:text-muted"
               aria-label="Search by name or exact ID"
               placeholder="Search by name or exact ID"
@@ -2093,7 +2092,7 @@ function VaultsPage() {
           value={status}
           options={["All", "Active", "Archived"]}
           onValueChange={setStatus}
-          triggerClassName="w-[98px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2"
+          triggerClassName="w-[98px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2 !shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]"
         />
       </div>
       <div className="overflow-x-auto">
@@ -2443,10 +2442,9 @@ function MemoryStoresPage() {
       />
       <div className="mt-4 flex h-10 items-start gap-2">
         <div className="flex h-10 w-[320px] flex-col gap-1">
-          <div className="relative flex h-8 items-center rounded-[8px] bg-white/50 px-3">
+          <div data-cds="TextInput" className="relative flex h-8 items-center rounded-[8px] bg-white/50 px-3 shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
             <input
-              data-cds="TextInput"
               className="ml-6 h-full min-w-0 flex-1 border-0 bg-transparent p-0 text-sm text-ink outline-none placeholder:text-muted"
               aria-label="Search by name or exact ID"
               placeholder="Search by name or exact ID"
@@ -2461,14 +2459,14 @@ function MemoryStoresPage() {
           value={created}
           options={["All time", "Last 24 hours", "Last 7 days", "Last 30 days"]}
           onValueChange={setCreated}
-          triggerClassName="w-[142px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2"
+          triggerClassName="w-[142px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2 !shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]"
         />
         <FieldSelect
           label="Status"
           value={status}
           options={["Active", "Archived", "All"]}
           onValueChange={setStatus}
-          triggerClassName="ml-2 w-[123px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2"
+          triggerClassName="ml-2 w-[123px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2 !shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]"
         />
       </div>
       <div className="overflow-x-auto">
