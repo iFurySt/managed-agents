@@ -4011,10 +4011,11 @@ function CreateDeploymentDialog({
       description={mode === "edit" ? "Update this deployment's trigger, environment, and credentials. Changes apply to future runs." : "Deploy an agent with a trigger, environment, and credentials."}
       open={open}
       onOpenChange={onOpenChange}
-      contentClassName={`${mode === "edit" ? "h-[calc(100dvh-32px)]" : "h-[718px]"} w-[520px] max-w-[calc(100vw-32px)] max-h-[calc(100dvh-32px)] !rounded-[12px] border-0`}
+      contentClassName={`${mode === "edit" ? "h-[calc(100dvh-32px)]" : "h-[718px]"} w-[520px] max-w-[calc(100vw-32px)] max-h-[calc(100dvh-32px)] !rounded-[12px] border-0 !shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]`}
       headerClassName="flex items-start justify-between pl-6 pr-4 pt-4"
       titleClassName="mt-1 text-[22px] leading-[26px] text-ink [font-weight:580]"
-      closeButtonClassName="h-8 w-8 rounded-[8px] px-0"
+      descriptionClassName="mt-1 text-sm text-[#52514e]"
+      closeButtonClassName="h-8 w-8 !rounded-[8px] px-0"
       closeLabel="Close"
     >
       <div className="max-h-[calc(100dvh-116px)] overflow-y-auto px-6 pb-0 pt-4">
@@ -4022,7 +4023,7 @@ function CreateDeploymentDialog({
           <label className={`grid gap-2 ${fieldLabelClass}`}>
             Name
             <TextInput
-              className="h-8 border-0 bg-white/50 rounded-[8px] px-3 font-normal"
+              className="h-8 border-0 bg-white/50 !rounded-[8px] px-3 font-normal shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]"
               placeholder="Nightly inbox triage"
               value={name}
               onChange={(event) => setName(event.target.value)}
@@ -4080,7 +4081,7 @@ function CreateDeploymentDialog({
           <label className={`grid gap-2 ${fieldLabelClass}`}>
             Initial message
             <textarea
-              className="cds-focus h-14 resize-none rounded-[8px] border-0 bg-white/50 px-3 py-2 text-sm font-normal leading-5"
+              className="cds-focus h-14 resize-none rounded-[8px] border-0 bg-white/50 px-3 py-2 text-sm font-normal leading-5 shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]"
               placeholder="Summarize today's support tickets and post to #digest"
               value={initialMessage}
               onChange={(event) => setInitialMessage(event.target.value)}
@@ -4139,7 +4140,7 @@ function CreateDeploymentDialog({
           ) : null}
         </div>
         <div className="sticky bottom-0 -mx-6 mt-[19px] flex justify-end bg-white px-6 pb-[25px] pt-0">
-          <Button className={`h-8 rounded-[8px] px-0 [font-weight:550] ${mode === "edit" ? "w-[51px]" : "w-[71px]"}`} onClick={submit} disabled={!canCreate}>{mode === "edit" ? "Save" : "Create"}</Button>
+          <Button className={`h-8 !rounded-[8px] px-0 [font-weight:550] ${mode === "edit" ? "w-[51px]" : "w-[71px]"}`} onClick={submit} disabled={!canCreate}>{mode === "edit" ? "Save" : "Create"}</Button>
         </div>
       </div>
     </ConsoleDialog>
