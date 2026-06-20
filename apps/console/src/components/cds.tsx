@@ -157,8 +157,15 @@ export function DataTable<T>({
   return (
     <div data-cds="DataTable" className={`w-full overflow-hidden ${className}`}>
       <table data-cds="Table" className={`w-full table-fixed border-collapse text-left text-sm ${tableClassName}`}>
+        <colgroup>
+          {showSelection ? <col style={{ width: "40px" }} /> : null}
+          {columns.map((column) => (
+            <col key={column.key} style={{ width: column.width }} />
+          ))}
+          {showActions ? <col style={{ width: actionsWidth }} /> : null}
+        </colgroup>
         <thead>
-          <tr className="h-8 border-b border-line text-xs leading-4 text-[#52514e] [font-weight:550]">
+          <tr className="h-8 border-b border-line text-[13px] leading-4 text-[#52514e] [font-weight:550]">
             {showSelection ? (
               <th className="w-10 py-0">
                 <span className="block h-4 w-4 rounded border border-[#cfcac2]" />

@@ -512,7 +512,6 @@ function AgentsPage() {
           {
             key: "name",
             header: "Name",
-            width: "240px",
             render: (agent) => (
               <Link className="block truncate [font-weight:400]" to={`/agents/${agent.id}`}>
                 {agent.name}
