@@ -184,7 +184,13 @@ function Sidebar() {
         <div className="flex flex-col items-start gap-1 border-t-[0.5px] border-line pl-1.5 pt-2">
           <CollapsedSidebarLink glyph="" label="Documentation" to="/docs/en/home" />
           <CollapsedSidebarLink glyph="" label="Credits" to="/settings/billing" />
-          <CollapsedSidebarButton glyph="" label="Leo" />
+          <button
+            className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-ink transition-colors hover:bg-fill"
+            type="button"
+            aria-label="User menu"
+          >
+            <span className="flex h-7 w-7 shrink-0 select-none items-center justify-center rounded-full bg-[#52514e] text-[12px] leading-5 text-[#fcfcfb] [font-weight:600]">L</span>
+          </button>
         </div>
       </aside>
     );
