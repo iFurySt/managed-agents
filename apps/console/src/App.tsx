@@ -5646,7 +5646,7 @@ function SkillVersionDialog({ skillId, onOpenChange }: { skillId: string | null;
             </div>
             <Dialog.Close asChild>
               <Button variant="icon" className="-mr-2 -mt-2 h-8 w-8 rounded-[8px] px-0" aria-label="Close">
-                <span className="text-lg leading-none">×</span>
+                <CdsIconGlyph glyph="" />
               </Button>
             </Dialog.Close>
           </div>
