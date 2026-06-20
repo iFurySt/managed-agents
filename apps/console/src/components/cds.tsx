@@ -263,7 +263,7 @@ export function ConsoleDialog({
         <Dialog.Overlay className={overlayClassName} />
         <Dialog.Content data-cds="Dialog" className={`fixed left-1/2 top-1/2 z-50 max-h-[86vh] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-cds border border-line bg-white shadow-xl ${contentClassName}`}>
           <div className={headerClassName}>
-            <div>
+            <div className="mr-2 flex min-w-0 flex-1 flex-col">
               <Dialog.Title className={titleClassName}>{title}</Dialog.Title>
               {description ? <Dialog.Description className={descriptionClassName}>{description}</Dialog.Description> : null}
             </div>
