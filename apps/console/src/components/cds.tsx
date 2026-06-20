@@ -200,7 +200,7 @@ export function SidebarItem({ to, children, inset = false, badge }: { to: string
   return (
     <Link
       to={to}
-      className={`flex shrink-0 items-center gap-3 rounded-lg px-2 text-sm text-[#4e4a45] hover:bg-fill ${inset ? "pl-10" : ""} ${active ? "bg-[#eeeeeb] text-ink" : ""}`}
+      className={`flex shrink-0 items-center gap-3 rounded-lg px-2 text-sm text-[#52514e] hover:bg-fill ${inset ? "pl-10" : ""} ${active ? "bg-[rgba(11,11,11,0.05)] text-ink" : ""}`}
       style={{ height: 36 }}
     >
       <span className="min-w-0 flex-1 truncate">{children}</span>

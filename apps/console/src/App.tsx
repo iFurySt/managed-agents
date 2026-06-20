@@ -156,7 +156,7 @@ function Sidebar() {
           <SidebarCollapseIcon />
         </Button>
       </div>
-      <div className="mb-[18px] mt-[4px] inline-flex h-8 w-full items-center gap-1.5 rounded-cds border border-black/10 bg-transparent pr-2 text-sm leading-5">
+      <div className="mb-[17px] mt-[4px] inline-flex h-8 w-full items-center gap-1.5 rounded-cds border border-black/10 bg-transparent pr-2 text-sm leading-5">
         <button
           className="flex min-w-0 flex-1 items-center gap-1.5 self-stretch border-0 bg-transparent p-0 pl-2 text-left outline-none"
           role="combobox"
@@ -231,8 +231,8 @@ function WorkspaceChevronIcon() {
 
 function IconItem({ icon, label, right }: { icon: React.ReactNode; label: string; right?: string }) {
   return (
-    <div className="flex shrink-0 items-center gap-3 rounded-lg px-2 text-sm text-[#4e4a45] [font-weight:550]" style={{ height: 36 }}>
-      <span className="text-muted [&_svg]:h-4 [&_svg]:w-4">{icon}</span>
+    <div className="flex shrink-0 items-center gap-3 rounded-lg px-2 text-sm text-[#52514e] [font-weight:550]" style={{ height: 36 }}>
+      <span className="h-5 w-5 text-[#898781] [&_svg]:h-5 [&_svg]:w-5">{icon}</span>
       <span className="min-w-0 flex-1 truncate">{label}</span>
       {right ? <span className="text-muted">{right}</span> : null}
     </div>
@@ -245,12 +245,13 @@ function Group({ icon, label, items, managed = false }: { icon: React.ReactNode;
     if (item === "Quickstart") return "#";
     return `/${item.toLowerCase().replaceAll(" ", "-").replace("credential-vaults", "vaults")}`;
   };
+  const groupWeight = managed ? "[font-weight:580]" : "[font-weight:550]";
   return (
     <div className="mb-1 flex shrink-0 flex-col gap-1">
-      <div className="flex shrink-0 items-center gap-3 rounded-lg px-2 text-sm font-semibold text-[#4e4a45]" style={{ height: 36 }}>
-        <span className="text-muted [&_svg]:h-4 [&_svg]:w-4">{icon}</span>
+      <div className={`flex shrink-0 items-center gap-3 rounded-lg px-2 text-sm text-[#52514e] ${groupWeight}`} style={{ height: 36 }}>
+        <span className="h-5 w-5 text-[#898781] [&_svg]:h-5 [&_svg]:w-5">{icon}</span>
         <span className="min-w-0 flex-1 truncate">{label}</span>
-        <ChevronDown className="h-4 w-4 text-muted" />
+        <ChevronDown className="h-4 w-4 text-[#898781]" />
       </div>
       <div className="flex flex-col gap-1">
         {items.map((item) =>
@@ -259,7 +260,7 @@ function Group({ icon, label, items, managed = false }: { icon: React.ReactNode;
               {item}
             </SidebarItem>
           ) : (
-            <div key={item} className="flex shrink-0 items-center rounded-lg pl-10 text-sm text-[#4e4a45] [font-weight:400]" style={{ height: 36 }}>
+            <div key={item} className="flex shrink-0 items-center rounded-lg pl-10 text-sm text-[#52514e] [font-weight:400]" style={{ height: 36 }}>
               {item}
             </div>
           )
