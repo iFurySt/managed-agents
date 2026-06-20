@@ -145,7 +145,7 @@ function Sidebar() {
         <div className="flex h-[52px] items-start justify-start pl-2 pt-3">
           <Button
             variant="ghost"
-            className="!h-7 !w-7 !gap-1.5 !rounded-control !px-0 text-sm !leading-5 !text-[#6f6d68] [font-weight:550] hover:!text-ink"
+            className="!h-7 !w-7 !gap-1.5 !rounded-control !px-0 text-sm !leading-5 !text-[#898781] [font-weight:550] hover:!text-ink"
             aria-label="Expand"
             onClick={() => setCollapsed(false)}
           >
@@ -189,7 +189,7 @@ function Sidebar() {
           </Link>
           <Button
             variant="ghost"
-            className="!h-7 !w-7 !gap-1.5 !rounded-control !px-0 text-sm !leading-5 !text-[#6f6d68] [font-weight:550] hover:!text-ink"
+            className="!h-7 !w-7 !gap-1.5 !rounded-control !px-0 text-sm !leading-5 !text-[#898781] [font-weight:550] hover:!text-ink"
             aria-label="Collapse"
             onClick={() => setCollapsed(true)}
           >
@@ -264,12 +264,7 @@ function CollapsedSidebarLink({ glyph, label, to = "#" }: { glyph: string; label
 }
 
 function SidebarPanelIcon() {
-  return (
-    <span aria-hidden="true" className="relative block h-5 w-5 text-current">
-      <span className="absolute left-[2px] top-[3px] h-3.5 w-4 rounded-[3px] border-[1.5px] border-current" />
-      <span className="absolute bottom-[3px] left-[9px] top-[3px] w-[1.5px] rounded-full bg-current" />
-    </span>
-  );
+  return <CdsIconGlyph glyph="" />;
 }
 
 function MoreActionsIcon() {
