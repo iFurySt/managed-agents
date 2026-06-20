@@ -2712,7 +2712,7 @@ function FilesPage() {
   }
 
   return (
-    <section className="flex flex-col gap-2">
+    <section className="mx-auto flex w-full max-w-[1216px] flex-col gap-2">
       <PageHeader
         title="Files"
         titleClassName="w-[656px]"
@@ -2791,7 +2791,7 @@ function FilesPage() {
 function FilesEmptyState({ language, onLanguageChange }: { language: string; onLanguageChange: (value: string) => void }) {
   const code = language === "Python" ? filesPythonTemplate : filesCurlTemplate;
   return (
-    <div className="mt-2 max-w-[952px]">
+    <div className="mt-2 w-full">
       <p className="mb-3 text-sm leading-5 text-[#898781]">
         No files have been uploaded to the <span className="font-bold">Default</span> workspace. Copy the template below to upload your first file:
       </p>
