@@ -2987,11 +2987,11 @@ function SkillsPage() {
             <div className="flex flex-col items-end gap-2">
               <Button
                 variant="icon"
-                className="!h-7 !w-7 !gap-1.5 !border-0 !px-0 !text-ink text-sm !leading-5 [font-weight:550] !opacity-0 transition-opacity group-hover:!opacity-100 group-focus-within:!opacity-100"
+                className="!h-7 !w-7 !gap-1.5 !border-0 !px-0 !text-ink text-sm !leading-5 [font-weight:550]"
                 aria-label={`View version history for ${skill.name}`}
                 onClick={() => setVersionSkillId(skill.id)}
               >
-                <Clock className="h-4 w-4" />
+                <CdsIconGlyph glyph="" />
               </Button>
               {skill.owner !== "Anthropic" ? <SkillActions onDelete={() => deleteCurrent(skill)} /> : null}
             </div>
