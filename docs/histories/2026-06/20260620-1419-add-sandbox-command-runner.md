@@ -33,6 +33,10 @@
   - Follow-up: added `network: true` support to sandboxd `POST /runs`, including
     guest network service injection, host tap forwarding/NAT, DNS setup, and CA
     bundle injection for HTTPS clients.
+  - Follow-up: added orchestrator `sandbox-codex`, which reads host-side Codex
+    auth, starts a networked Firecracker one-shot guest, downloads the Linux
+    Codex release in the guest, runs `codex exec --json`, and records the final
+    Codex message as the agent session event.
 
 ### Design Intent
 
@@ -64,11 +68,18 @@ image ships a reliable host-to-guest control channel.
     `LOWER_UP`, IPv4 `172.16.69.2/30`, default route via the host tap, DNS
     resolvers, and HTTPS reachability to the OpenAI API returning HTTP `401`
     without TLS errors.
+  - Full apiserver-to-orchestrator-to-guest-Codex flow completed on the same N2
+    host: session `sesn_local_20260620072004905844325`, work
+    `ewrk_msg_20260620072004938393086`, runtime `sandbox-codex`, guest
+    `codex-cli 0.141.0`, output `n2-orchestrator-codex-ok`, session status
+    `Idle`, and work state `stopped`.
 
 ### Files Modified
 
 - `apps/orchestrator/main.go`
+- `apps/orchestrator/main_test.go`
 - `apps/sandboxd/main.go`
 - `apps/sandboxd/main_test.go`
 - `README.md`
+- `docs/design-docs/orchestrator-agent-runtime-plan.md`
 - `docs/histories/2026-06/20260620-1419-add-sandbox-command-runner.md`

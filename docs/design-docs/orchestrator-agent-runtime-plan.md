@@ -125,6 +125,12 @@ the whole CLI inside the sandbox image under `/opt`.
 | Codex | Guest CLI under `/opt/codex`. | `codex exec --json` is stable for noninteractive runs, but no-fork built-in tool replacement is not clean enough for the first cut. Let the guest boundary be the sandbox. | `/opt/codex/bin/codex exec --json --ephemeral --skip-git-repo-check --dangerously-bypass-approvals-and-sandbox -C /workspace "$PROMPT"` |
 | OpenCode | Guest CLI under `/opt/opencode`. | `opencode run --format json` and plugins are useful, but custom tool overriding is less direct than Pi. Use the sandbox image boundary first. | `/opt/opencode/bin/opencode run --format json --dir /workspace "$PROMPT"` |
 
+Current MVP status: `sandbox-codex` implements the Codex path by reading
+host-side Codex auth from `CODEX_HOME/auth.json`, starting a networked
+Firecracker one-shot guest through `sandboxd`, downloading the Linux Codex
+release inside the guest, running `codex exec --json`, and translating the final
+message into the canonical session timeline.
+
 For Pi, the extension should map the agent's file and shell tools to platform
 operations:
 

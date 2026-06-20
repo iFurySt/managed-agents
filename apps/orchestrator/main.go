@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/sha256"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -28,6 +29,9 @@ type options struct {
 	workerID       string
 	runtime        string
 	codexBin       string
+	codexHome      string
+	codexModel     string
+	codexTarball   string
 	shellCommand   string
 	workspaceRoot  string
 	pollInterval   time.Duration
@@ -156,7 +160,10 @@ type sandboxState struct {
 type sandboxdRunRequest struct {
 	ID            string `json:"id,omitempty"`
 	Image         string `json:"image,omitempty"`
+	VCPUCount     int    `json:"vcpu_count,omitempty"`
+	MemMiB        int    `json:"mem_mib,omitempty"`
 	Command       string `json:"command"`
+	Network       bool   `json:"network,omitempty"`
 	TimeoutMillis int64  `json:"timeout_millis,omitempty"`
 }
 
@@ -200,8 +207,11 @@ func main() {
 	}
 	root.PersistentFlags().StringVar(&opt.databaseURL, "database-url", env("DATABASE_URL", "postgres://managed_agents:managed_agents@localhost:5432/managed_agents?sslmode=disable"), "metadata database URL")
 	root.PersistentFlags().StringVar(&opt.workerID, "worker-id", env("ORCHESTRATOR_WORKER_ID", defaultWorkerID()), "stable worker identifier")
-	root.PersistentFlags().StringVar(&opt.runtime, "runtime", env("ORCHESTRATOR_RUNTIME", "codex-local"), "runtime: codex-local, shell, sandbox-shell, or sandbox-command")
+	root.PersistentFlags().StringVar(&opt.runtime, "runtime", env("ORCHESTRATOR_RUNTIME", "codex-local"), "runtime: codex-local, shell, sandbox-shell, sandbox-command, or sandbox-codex")
 	root.PersistentFlags().StringVar(&opt.codexBin, "codex-bin", env("CODEX_BIN", "codex"), "Codex CLI binary")
+	root.PersistentFlags().StringVar(&opt.codexHome, "codex-home", env("CODEX_HOME", filepath.Join(homeDir(), ".codex")), "host Codex home used for sandbox-codex auth")
+	root.PersistentFlags().StringVar(&opt.codexModel, "codex-model", env("CODEX_MODEL", "gpt-5.5"), "Codex model used by codex-local and sandbox-codex")
+	root.PersistentFlags().StringVar(&opt.codexTarball, "codex-linux-tarball", env("CODEX_LINUX_TARBALL", "https://github.com/openai/codex/releases/latest/download/codex-x86_64-unknown-linux-musl.tar.gz"), "Linux x86_64 Codex release tarball used by sandbox-codex")
 	root.PersistentFlags().StringVar(&opt.shellCommand, "shell-command", env("ORCHESTRATOR_SHELL_COMMAND", ""), "shell command used when --runtime shell")
 	root.PersistentFlags().StringVar(&opt.workspaceRoot, "workspace-root", env("ORCHESTRATOR_WORKSPACE_ROOT", "/tmp/managed-agents-workspaces"), "host workspace root for runtime processes")
 	root.PersistentFlags().DurationVar(&opt.runtimeTimeout, "runtime-timeout", durationEnv("ORCHESTRATOR_RUNTIME_TIMEOUT", 10*time.Minute), "runtime execution timeout")
@@ -407,6 +417,8 @@ func executeRuntime(ctx context.Context, opt options, work EnvironmentWork, sess
 		result = runSandboxShell(runCtx, opt, work, prompt)
 	case "sandbox-command":
 		result = runSandboxCommand(runCtx, opt, work, prompt)
+	case "sandbox-codex":
+		result = runSandboxCodex(runCtx, opt, work, prompt)
 	default:
 		result = runResult{OK: false, Error: fmt.Sprintf("unsupported runtime %q", opt.runtime), StartedAt: started, EndedAt: time.Now().UTC()}
 	}
@@ -429,6 +441,8 @@ func runCodexLocal(ctx context.Context, opt options, prompt, workspace string) r
 		"--dangerously-bypass-approvals-and-sandbox",
 		"-C",
 		workspace,
+		"-m",
+		opt.codexModel,
 		prompt,
 	}
 	cmd := exec.CommandContext(ctx, opt.codexBin, args...)
@@ -539,26 +553,68 @@ func runSandboxCommand(ctx context.Context, opt options, work EnvironmentWork, p
 		Command:       command,
 		TimeoutMillis: opt.runtimeTimeout.Milliseconds(),
 	}
+	run, err := postSandboxRun(ctx, opt, request)
+	if err != nil {
+		return runResult{OK: false, Error: err.Error(), StartedAt: started, EndedAt: time.Now().UTC()}
+	}
+	return sandboxRunResult(run, started)
+}
+
+func runSandboxCodex(ctx context.Context, opt options, work EnvironmentWork, prompt string) runResult {
+	started := time.Now().UTC()
+	auth, err := os.ReadFile(filepath.Join(opt.codexHome, "auth.json"))
+	if err != nil {
+		return runResult{OK: false, Error: fmt.Sprintf("read codex auth: %v", err), StartedAt: started, EndedAt: time.Now().UTC()}
+	}
+	command := sandboxCodexCommand(auth, opt.codexModel, opt.codexTarball, prompt)
+	request := sandboxdRunRequest{
+		ID:            "sbx-" + safePathPart(work.ID),
+		Image:         opt.sandboxImage,
+		VCPUCount:     2,
+		MemMiB:        1024,
+		Command:       command,
+		Network:       true,
+		TimeoutMillis: opt.runtimeTimeout.Milliseconds(),
+	}
+	run, err := postSandboxRun(ctx, opt, request)
+	if err != nil {
+		return runResult{OK: false, Error: err.Error(), StartedAt: started, EndedAt: time.Now().UTC()}
+	}
+	result := sandboxRunResult(run, started)
+	if result.OK {
+		if summary := summarizeCodexRunOutput(run.Stdout); summary != "" {
+			result.Summary = limitString(summary, 8000)
+		}
+	}
+	return result
+}
+
+func postSandboxRun(ctx context.Context, opt options, request sandboxdRunRequest) (sandboxdRunResponse, error) {
 	var body bytes.Buffer
 	if err := json.NewEncoder(&body).Encode(request); err != nil {
-		return runResult{OK: false, Error: err.Error(), StartedAt: started, EndedAt: time.Now().UTC()}
+		return sandboxdRunResponse{}, err
 	}
 	client := &http.Client{Timeout: opt.runtimeTimeout + 30*time.Second}
 	httpCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), opt.runtimeTimeout+30*time.Second)
 	defer cancel()
 	req, err := http.NewRequestWithContext(httpCtx, http.MethodPost, strings.TrimRight(opt.sandboxdURL, "/")+"/runs", &body)
 	if err != nil {
-		return runResult{OK: false, Error: err.Error(), StartedAt: started, EndedAt: time.Now().UTC()}
+		return sandboxdRunResponse{}, err
 	}
 	req.Header.Set("Content-Type", "application/json")
 	resp, err := client.Do(req)
 	if err != nil {
-		return runResult{OK: false, Error: err.Error(), StartedAt: started, EndedAt: time.Now().UTC()}
+		return sandboxdRunResponse{}, err
 	}
+	defer resp.Body.Close()
 	var run sandboxdRunResponse
 	if err := readJSON(resp, &run); err != nil {
-		return runResult{OK: false, Error: err.Error(), StartedAt: started, EndedAt: time.Now().UTC()}
+		return sandboxdRunResponse{}, err
 	}
+	return run, nil
+}
+
+func sandboxRunResult(run sandboxdRunResponse, started time.Time) runResult {
 	output := run.Stdout
 	if run.Stderr != "" {
 		output += "\n[stderr]\n" + run.Stderr
@@ -577,6 +633,50 @@ func runSandboxCommand(ctx context.Context, opt options, work EnvironmentWork, p
 		}
 	}
 	return result
+}
+
+func sandboxCodexCommand(auth []byte, model, tarballURL, prompt string) string {
+	authB64 := base64.StdEncoding.EncodeToString(auth)
+	config := fmt.Sprintf("model = %q\nmodel_reasoning_effort = \"low\"\n", model)
+	configB64 := base64.StdEncoding.EncodeToString([]byte(config))
+	promptB64 := base64.StdEncoding.EncodeToString([]byte(prompt))
+	return fmt.Sprintf(`set -eu
+HOME=/root
+CODEX_HOME=/root/.codex
+export HOME CODEX_HOME
+mkdir -p /opt/codex/bin /workspace "$CODEX_HOME"
+printf '%%s' %s | base64 -d > "$CODEX_HOME/auth.json"
+printf '%%s' %s | base64 -d > "$CODEX_HOME/config.toml"
+printf '%%s' %s | base64 -d > /tmp/managed-agents-prompt.txt
+chmod 600 "$CODEX_HOME/auth.json" "$CODEX_HOME/config.toml"
+curl -fsSL --max-time 120 -o /tmp/codex.tgz %s
+tar -xzf /tmp/codex.tgz -C /opt/codex/bin
+if [ -f /opt/codex/bin/codex-x86_64-unknown-linux-musl ]; then mv /opt/codex/bin/codex-x86_64-unknown-linux-musl /opt/codex/bin/codex; fi
+chmod +x /opt/codex/bin/codex
+/opt/codex/bin/codex --version
+/opt/codex/bin/codex exec --json --ephemeral --skip-git-repo-check --dangerously-bypass-approvals-and-sandbox -C /workspace -m %s -o /tmp/codex-last.txt "$(cat /tmp/managed-agents-prompt.txt)" >/tmp/codex.jsonl 2>/tmp/codex.stderr
+code=$?
+echo CODEX_EXIT=$code
+cat /tmp/codex-last.txt || true
+printf '\n--- codex-jsonl-tail ---\n'
+tail -20 /tmp/codex.jsonl || true
+printf '\n--- codex-stderr ---\n' >&2
+cat /tmp/codex.stderr >&2 || true
+exit "$code"
+`, shellEnvQuote(authB64), shellEnvQuote(configB64), shellEnvQuote(promptB64), shellEnvQuote(tarballURL), shellEnvQuote(model))
+}
+
+func summarizeCodexRunOutput(output string) string {
+	marker := "CODEX_EXIT=0"
+	idx := strings.Index(output, marker)
+	if idx < 0 {
+		return ""
+	}
+	rest := strings.TrimSpace(output[idx+len(marker):])
+	if cut := strings.Index(rest, "--- codex-jsonl-tail ---"); cut >= 0 {
+		rest = strings.TrimSpace(rest[:cut])
+	}
+	return rest
 }
 
 func startSandbox(ctx context.Context, client *http.Client, opt options, id string) (sandboxState, error) {
@@ -885,6 +985,14 @@ func env(key, fallback string) string {
 		return fallback
 	}
 	return value
+}
+
+func homeDir() string {
+	home, err := os.UserHomeDir()
+	if err != nil || home == "" {
+		return "/tmp"
+	}
+	return home
 }
 
 func durationEnv(key string, fallback time.Duration) time.Duration {

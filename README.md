@@ -87,6 +87,21 @@ ORCHESTRATOR_SHELL_COMMAND='printf sandbox-orchestrator-ok' \
     run-once
 ```
 
+For a real Codex turn inside the Firecracker boundary, use `sandbox-codex`.
+The orchestrator reads host-side Codex auth from `CODEX_HOME/auth.json`, asks
+`sandboxd` for a networked one-shot guest, downloads the Linux Codex release
+inside the guest, runs `codex exec`, then writes the final message back to the
+session:
+
+```sh
+CODEX_HOME=/path/to/codex-home \
+  go run ./apps/orchestrator \
+    --runtime sandbox-codex \
+    --sandboxd-url http://127.0.0.1:8787 \
+    --runtime-timeout 10m \
+    run-once
+```
+
 For the reusable GCP N2 nested-virtualization harness and sync commands, see
 [`docs/references/gcp-firecracker-kvm.md`](docs/references/gcp-firecracker-kvm.md).
 
