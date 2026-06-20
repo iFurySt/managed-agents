@@ -31,7 +31,7 @@ import {
 } from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useEffect, useMemo, useState, type DragEvent } from "react";
-import { Link, Navigate, Route, Routes, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { Link, Navigate, Route, Routes, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   archiveSession,
   archiveAgent,
@@ -95,14 +95,17 @@ const deploymentAgentOptions = [
 ];
 
 export default function App() {
+  const location = useLocation();
+  const showBanner = location.pathname === "/vaults" || location.pathname.startsWith("/vaults/");
+
   return (
     <div className="min-h-screen bg-canvas text-ink">
       <div className="flex min-h-screen">
         <Sidebar />
         <main className="min-w-0 flex-1">
           <div className="mx-auto w-full max-w-[1600px] px-3 pb-8 pt-3">
-            <Banner />
-            <div className="px-5 pt-6">
+            {showBanner ? <Banner /> : null}
+            <div className={`px-5 ${showBanner ? "pt-6" : "pt-3"}`}>
               <Routes>
                 <Route path="/" element={<Navigate to="/agents" replace />} />
                 <Route path="/agents" element={<AgentsPage />} />
