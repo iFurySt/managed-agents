@@ -1101,7 +1101,8 @@ function DeploymentsPage() {
       </div>
       <div className="mt-2 overflow-x-auto">
         <DataTable
-          className="-mx-2 w-[calc(100%+16px)] p-2"
+          className="-mx-2 w-[calc(100%+16px)] overflow-x-auto p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
+          tableClassName="border-separate border-spacing-0 whitespace-nowrap"
           rows={visibleDeployments}
           getKey={(deployment) => deployment.id}
           showSelection={false}
@@ -1112,10 +1113,16 @@ function DeploymentsPage() {
               header: "ID",
               width: "160px",
               render: (deployment) => (
-                <div className="flex min-w-0 items-center gap-2">
+                <div className="group/cid flex min-w-0 items-center gap-2">
                   <span className="truncate font-mono font-semibold">{shortId(deployment.id)}</span>
-                  <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${deployment.id}`} onClick={() => copyText(deployment.id)}>
-                    <Copy className="h-3.5 w-3.5" />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="-my-1 h-[22px] w-[22px] !rounded-[8px] !px-0 !text-[#898781] !opacity-0 hover:!bg-fill hover:!text-[#52514e] group-hover/cid:!opacity-100"
+                    aria-label={`Copy ${deployment.id}`}
+                    onClick={() => copyText(deployment.id)}
+                  >
+                    <CdsIconGlyph glyph="" className="h-3.5 w-3.5 text-current text-[14px] [font-weight:628.5]" />
                   </Button>
                 </div>
               )
@@ -1125,7 +1132,7 @@ function DeploymentsPage() {
               header: "Name",
               width: "240px",
               render: (deployment) => (
-                <Link className="block truncate font-medium hover:underline" to={`/deployments/${deployment.id}`}>
+                <Link className="block truncate [font-weight:400]" to={`/deployments/${deployment.id}`}>
                   {deployment.name}
                 </Link>
               )
@@ -1137,7 +1144,7 @@ function DeploymentsPage() {
               width: "220px",
               render: (deployment) => (
                 <Button variant="ghost" className="h-[25px] min-w-0 max-w-full justify-start px-2">
-                  <Braces className="h-4 w-4 text-muted" />
+                  <CdsIconGlyph glyph="" className="h-4 w-4 text-[#898781] text-[16px] [font-weight:533.25]" />
                   <span className="min-w-0 truncate">{deployment.agentName}</span>
                   <span className="shrink-0 text-muted">{deployment.agentVersion}</span>
                 </Button>
@@ -1166,7 +1173,7 @@ function DeploymentsPage() {
           disabled={page === 0}
           onClick={() => setPage((value) => Math.max(0, value - 1))}
         >
-          <ChevronLeft className="h-4 w-4" />
+          <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
         </Button>
         <Button
           variant="icon"
@@ -1175,7 +1182,7 @@ function DeploymentsPage() {
           disabled={page >= maxPage}
           onClick={() => setPage((value) => Math.min(maxPage, value + 1))}
         >
-          <ChevronRight className="h-4 w-4" />
+          <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
         </Button>
       </div>
       <CreateDeploymentDialog
