@@ -20,7 +20,6 @@ import {
   Info,
   KeyRound,
   MessageSquare,
-  PanelLeftClose,
   Pause,
   Pencil,
   Play,
@@ -142,11 +141,19 @@ function Sidebar() {
   return (
     <aside className="sticky top-0 flex h-screen w-64 shrink-0 flex-col border-r border-line bg-[#f9f9f7] p-3">
       <div className="flex h-10 items-start justify-between">
-        <Link className="mt-[6px] pl-2 text-base !leading-4 [font-weight:400]" to="/">
-          Claude Console
+        <Link className="mt-[5px] pl-2 text-sm leading-[21px] [font-weight:400]" to="/">
+          <span className="inline-flex flex-col items-start gap-[3px]">
+            <span className="ml-[-0.1em] whitespace-nowrap font-serif text-base leading-none text-ink [font-feature-settings:'dlig','ss01'] [font-optical-sizing:auto] [font-weight:550]">
+              Claude Console
+            </span>
+          </span>
         </Link>
-        <Button variant="ghost" className="mt-px !h-7 !w-7 !px-0 text-muted hover:text-ink" aria-label="Collapse sidebar">
-          <PanelLeftClose className="h-5 w-5" />
+        <Button
+          variant="ghost"
+          className="mt-px !h-7 !w-7 !gap-1.5 !rounded-[8px] !px-0 text-sm !leading-5 text-muted [font-weight:550] hover:text-ink"
+          aria-label="Collapse"
+        >
+          <SidebarCollapseIcon />
         </Button>
       </div>
       <button className="mb-[18px] mt-[5px] flex h-[30px] items-center justify-between rounded-cds border border-line bg-white px-3 text-sm shadow-sm">
@@ -185,6 +192,15 @@ function Sidebar() {
         </div>
       </div>
     </aside>
+  );
+}
+
+function SidebarCollapseIcon() {
+  return (
+    <span
+      aria-hidden="true"
+      className="relative block h-[18px] w-[18px] rounded-[3px] border-[1.5px] border-current after:absolute after:bottom-[2px] after:left-[7px] after:top-[2px] after:w-[1.5px] after:rounded-full after:bg-current"
+    />
   );
 }
 
@@ -2601,11 +2617,11 @@ function SkillsPage() {
             </Button>
             <a
               data-cds="Button"
-              className="cds-focus inline-flex h-8 w-8 items-center justify-center rounded-[8px] text-ink hover:bg-fill"
+              className="cds-focus inline-flex h-8 w-8 items-center justify-center rounded-[8px] text-sm !leading-5 text-ink [font-weight:550] hover:bg-fill"
               aria-label="View documentation"
               href="https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview"
             >
-              <ExternalLink className="h-4 w-4" />
+              <ExternalLink className="h-5 w-5" />
             </a>
           </div>
         }
@@ -2632,7 +2648,7 @@ function SkillsPage() {
             <div className="flex flex-col items-end gap-2">
               <Button
                 variant="icon"
-                className="!h-7 !w-7 !border-0 !px-0 !text-ink !opacity-0 transition-opacity group-hover:!opacity-100 group-focus-within:!opacity-100"
+                className="!h-7 !w-7 !gap-1.5 !border-0 !px-0 !text-ink text-sm !leading-5 [font-weight:550] !opacity-0 transition-opacity group-hover:!opacity-100 group-focus-within:!opacity-100"
                 aria-label={`View version history for ${skill.name}`}
                 onClick={() => setVersionSkillId(skill.id)}
               >

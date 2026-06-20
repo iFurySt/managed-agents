@@ -18,6 +18,7 @@ export default {
       },
       fontFamily: {
         sans: ["anthropicSans", "\"anthropicSans Fallback\"", "system-ui", "\"Segoe UI\"", "Roboto", "Helvetica", "Arial", "sans-serif"],
+        serif: ["anthropicSerif", "\"anthropicSerif Fallback\"", "Georgia", "\"Times New Roman\"", "serif"],
         mono: ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"]
       }
     }
