@@ -177,18 +177,18 @@ function Sidebar() {
         </button>
       </div>
       <nav className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto pb-0">
-        <IconItem icon={<Home />} label="Dashboard" />
-        <IconItem icon={<KeyRound />} label="API keys" />
-        <Group icon={<Wrench />} label="Build" items={["Workbench", "Files", "Skills", "Batches"]} />
+        <IconItem icon={<SidebarGlyph glyph="" />} label="Dashboard" />
+        <IconItem icon={<SidebarGlyph glyph="" />} label="API keys" />
+        <Group icon={<SidebarGlyph glyph="" />} label="Build" items={["Workbench", "Files", "Skills", "Batches"]} />
         <Group
-          icon={<Braces />}
+          icon={<SidebarGlyph glyph="" />}
           label="Managed Agents"
           items={["Quickstart", "Agents", "Sessions", "Deployments", "Environments", "Credential vaults", "Memory stores"]}
           managed
         />
-        <Group icon={<Gauge />} label="Analytics" items={["Usage", "Caching", "Rate limits", "Cost", "Logs"]} />
-        <Group icon={<Terminal />} label="Claude Code" items={["Usage", "Settings"]} />
-        <Group icon={<Settings />} label="Manage" items={["Limits", "Service accounts", "Privacy controls", "Security", "Webhooks", "Tags"]} />
+        <Group icon={<SidebarGlyph glyph="" />} label="Analytics" items={["Usage", "Caching", "Rate limits", "Cost", "Logs"]} />
+        <Group icon={<SidebarGlyph glyph="" />} label="Claude Code" items={["Usage", "Settings"]} />
+        <Group icon={<SidebarGlyph glyph="" />} label="Manage" items={["Limits", "Service accounts", "Privacy controls", "Security", "Webhooks", "Tags"]} />
       </nav>
       <div className="-mx-3 flex flex-col gap-1 border-t-[0.5px] border-line bg-transparent px-3 pb-0 pt-2">
         <FooterItem icon={<FileText />} label="Documentation" />
@@ -228,6 +228,14 @@ function MoreActionsIcon() {
   return <MoreHorizontal aria-hidden="true" className="h-5 w-5" strokeWidth={1.75} />;
 }
 
+function SidebarGlyph({ glyph, className = "h-5 w-5 text-[#898781] text-[20px] [font-weight:433.3]" }: { glyph: string; className?: string }) {
+  return (
+    <span data-cds="Icon" aria-hidden="true" className={`flex shrink-0 select-none items-center justify-center leading-none [font-family:var(--font-anthropicons,Anthropicons-Variable)] ${className}`}>
+      {glyph}
+    </span>
+  );
+}
+
 function WorkspaceBoxIcon() {
   return (
     <span className="shrink-0 text-[#9b87f5]">
@@ -252,7 +260,7 @@ function WorkspaceChevronIcon() {
 function IconItem({ icon, label, right }: { icon: React.ReactNode; label: string; right?: string }) {
   return (
     <div className="flex shrink-0 items-center gap-3 rounded-lg px-2 text-sm text-[#52514e] [font-weight:550]" style={{ height: 36 }}>
-      <span className="h-5 w-5 text-[#898781] [&_svg]:h-5 [&_svg]:w-5">{icon}</span>
+      {icon}
       <span className="min-w-0 flex-1 truncate">{label}</span>
       {right ? <span className="text-muted">{right}</span> : null}
     </div>
@@ -279,9 +287,9 @@ function Group({ icon, label, items, managed = false }: { icon: React.ReactNode;
   return (
     <div className="mb-1 flex shrink-0 flex-col gap-1">
       <div className={`flex shrink-0 items-center gap-3 rounded-lg px-2 text-sm text-[#52514e] ${groupWeight}`} style={{ height: 36 }}>
-        <span className="h-5 w-5 text-[#898781] [&_svg]:h-5 [&_svg]:w-5">{icon}</span>
+        {icon}
         <span className="min-w-0 flex-1 truncate">{label}</span>
-        <ChevronDown className="h-4 w-4 text-[#898781]" />
+        <SidebarGlyph glyph="" className="h-3 w-3 text-[#898781] text-[12px] [font-weight:577.75]" />
       </div>
       <div className="flex flex-col gap-1">
         {items.map((item) =>
