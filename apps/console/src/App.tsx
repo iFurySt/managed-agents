@@ -483,10 +483,22 @@ function AgentsPage() {
   const [status, setStatus] = useState("Active");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [archivingAgent, setArchivingAgent] = useState<Agent | null>(null);
+  const [compactTable, setCompactTable] = useState(() => window.matchMedia("(max-width: 1279px)").matches);
+  const agentTableWidths = compactTable
+    ? { id: "150px", name: "260px", model: "130px", status: "100px", created: "120px", updated: "120px", actions: "48px" }
+    : { id: "180px", name: "310px", model: "170px", status: "120px", created: "150px", updated: "150px", actions: "56px" };
 
   useEffect(() => {
     listAgents({ q: search, status, created }).then(setAgents).catch(() => setAgents([]));
   }, [created, search, status]);
+
+  useEffect(() => {
+    const matcher = window.matchMedia("(max-width: 1279px)");
+    const onChange = () => setCompactTable(matcher.matches);
+    onChange();
+    matcher.addEventListener("change", onChange);
+    return () => matcher.removeEventListener("change", onChange);
+  }, []);
 
   async function archiveCurrent(agent: Agent) {
     const updated = await archiveAgent(agent.id);
@@ -544,14 +556,14 @@ function AgentsPage() {
       </div>
       <DataTable
         className="-mx-2 -my-2 !w-[calc(100%+16px)] overflow-x-auto p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
-        tableClassName="min-w-[1176px] border-separate border-spacing-0 whitespace-nowrap"
+        tableClassName="min-w-[968px] border-separate border-spacing-0 whitespace-nowrap xl:min-w-[1176px]"
         rows={agents}
         getKey={(agent) => agent.id}
         columns={[
           {
             key: "id",
             header: "ID",
-            width: "180px",
+            width: agentTableWidths.id,
             render: (agent) => (
               <div className="group/cid flex items-center gap-2 font-mono font-semibold">
                 <span>{shortId(agent.id)}</span>
@@ -570,19 +582,19 @@ function AgentsPage() {
           {
             key: "name",
             header: "Name",
-            width: "310px",
+            width: agentTableWidths.name,
             render: (agent) => (
               <Link className="block truncate [font-weight:400]" to={`/agents/${agent.id}`}>
                 {agent.name}
               </Link>
             )
           },
-          { key: "model", header: "Model", width: "170px", render: (agent) => <span className="font-mono text-muted">{agent.model}</span> },
-          { key: "status", header: "Status", width: "120px", render: (agent) => <Badge tone={agent.status === "Archived" ? "neutral" : "green"}>{agent.status}</Badge> },
-          { key: "created", header: "Created", width: "150px", render: (agent) => <span className="text-muted">{agent.createdLabel || "2 days ago"}</span> },
-          { key: "updated", header: "Last updated", width: "150px", render: (agent) => <span className="text-muted">{agent.updatedLabel || "2 days ago"}</span> }
+          { key: "model", header: "Model", width: agentTableWidths.model, render: (agent) => <span className="font-mono text-muted">{agent.model}</span> },
+          { key: "status", header: "Status", width: agentTableWidths.status, render: (agent) => <Badge tone={agent.status === "Archived" ? "neutral" : "green"}>{agent.status}</Badge> },
+          { key: "created", header: "Created", width: agentTableWidths.created, render: (agent) => <span className="text-muted">{agent.createdLabel || "2 days ago"}</span> },
+          { key: "updated", header: "Last updated", width: agentTableWidths.updated, render: (agent) => <span className="text-muted">{agent.updatedLabel || "2 days ago"}</span> }
         ]}
-        actionsWidth="56px"
+        actionsWidth={agentTableWidths.actions}
         renderActions={(agent) => <AgentRowActions agent={agent} onArchive={() => setArchivingAgent(agent)} />}
       />
       <div className="-mt-[1.5px] flex gap-2">
