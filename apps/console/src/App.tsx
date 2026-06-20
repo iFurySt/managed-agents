@@ -191,11 +191,11 @@ function Sidebar() {
         <Group icon={<SidebarGlyph glyph="" />} label="Manage" items={["Limits", "Service accounts", "Privacy controls", "Security", "Webhooks", "Tags"]} />
       </nav>
       <div className="-mx-3 flex flex-col gap-1 border-t-[0.5px] border-line bg-transparent px-3 pb-0 pt-2">
-        <FooterItem icon={<FileText />} label="Documentation" />
-        <FooterItem icon={<CircleDollarSign />} label="Credits" right="USD 3.10" />
+        <FooterItem icon={<SidebarGlyph glyph="" className="h-5 w-5 text-[#52514e] text-[20px] [font-weight:433.3]" />} label="Documentation" />
+        <FooterItem icon={<SidebarGlyph glyph="" className="h-5 w-5 text-[#52514e] text-[20px] [font-weight:433.3]" />} label="Credits" right="USD 3.10" />
         <div className="flex h-11 items-center gap-3 rounded-lg px-2 py-1.5">
           <div className="grid h-8 w-8 shrink-0 place-items-center rounded-md border-[0.5px] border-black/10 bg-[rgba(11,11,11,0.05)] text-[#52514e]">
-            <Boxes className="h-5 w-5" />
+            <SidebarGlyph glyph="" className="h-5 w-5 text-[#52514e] text-[20px] [font-weight:433.3]" />
           </div>
           <div className="min-w-0 flex-1 pr-4">
             <div className="truncate text-sm leading-5 text-ink [font-weight:550]">Leo</div>
@@ -205,7 +205,7 @@ function Sidebar() {
               <span className="truncate">Leo's Individual Org</span>
             </div>
           </div>
-          <ChevronDown className="h-4 w-4 shrink-0 text-[#898781]" />
+          <SidebarGlyph glyph="" className="h-4 w-4 text-[#898781] text-[16px] [font-weight:533.3]" />
         </div>
       </div>
     </aside>
@@ -270,7 +270,7 @@ function IconItem({ icon, label, right }: { icon: React.ReactNode; label: string
 function FooterItem({ icon, label, right }: { icon: React.ReactNode; label: string; right?: string }) {
   return (
     <div className="flex h-9 shrink-0 items-center gap-3 rounded-lg px-2 text-sm leading-5 text-[#52514e] [font-weight:400]">
-      <span className="h-5 w-5 shrink-0 text-[#52514e] [&_svg]:h-5 [&_svg]:w-5">{icon}</span>
+      {icon}
       <span className="min-w-0 flex-1 truncate">{label}</span>
       {right ? <span className="text-[#898781] tabular-nums">{right}</span> : null}
     </div>
