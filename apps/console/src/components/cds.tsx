@@ -32,7 +32,7 @@ export const Button = forwardRef<HTMLButtonElement, React.ButtonHTMLAttributes<H
       ref={ref}
       data-cds="Button"
       type={type}
-      className={`cds-focus inline-flex shrink-0 items-center justify-center gap-2 rounded-control font-medium opacity-100 transition-shadow disabled:pointer-events-none disabled:opacity-50 ${variants[variant]} ${variant === "icon" ? "h-7 w-7 px-0" : sizes[size]} ${className}`}
+      className={`cds-focus inline-flex shrink-0 items-center justify-center gap-2 rounded-control [font-weight:550] opacity-100 transition-shadow disabled:pointer-events-none disabled:opacity-50 ${variants[variant]} ${variant === "icon" ? "h-7 w-7 px-0" : sizes[size]} ${className}`}
       {...props}
     >
       {children}
