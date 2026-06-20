@@ -371,7 +371,7 @@ function AgentsPage() {
           triggerClassName="ml-2 w-[123px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2"
         />
       </div>
-      <div className="-mx-2 overflow-x-auto p-2">
+      <div className="-mx-2 -my-2 overflow-x-auto p-2">
         <DataTable
           rows={agents}
           getKey={(agent) => agent.id}
