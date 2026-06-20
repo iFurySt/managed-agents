@@ -5326,7 +5326,7 @@ function CreateCredentialForm({
   const [target, setTarget] = useState("");
 
   useEffect(() => {
-    setTarget(authType === "MCP OAuth" ? "https://mcp.example.com" : "");
+    setTarget("");
   }, [authType]);
 
   async function submit() {
@@ -5377,7 +5377,7 @@ function CreateCredentialForm({
               ariaLabel={targetLabel}
               value={target || targetPlaceholder}
               options={[targetPlaceholder]}
-              onValueChange={setTarget}
+              onValueChange={(value) => setTarget(value === targetPlaceholder ? "" : value)}
               triggerClassName="!h-[31px] w-[455px] !gap-1.5 rounded-none !border-transparent !bg-transparent !pl-2 !pr-0 hover:!bg-transparent"
             />
           ) : (
