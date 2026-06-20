@@ -2185,16 +2185,23 @@ function MemoryStoresPage() {
   const [query, setQuery] = useState("");
   const [created, setCreated] = useState("All time");
   const [status, setStatus] = useState("Active");
+  const [page, setPage] = useState(0);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [archivingStore, setArchivingStore] = useState<MemoryStore | null>(null);
   const [deletingStore, setDeletingStore] = useState<MemoryStore | null>(null);
 
   useEffect(() => {
+    setPage(0);
     listMemoryStores({ q: query, status, created }).then(setStores).catch(() => setStores([]));
   }, [created, query, status]);
 
+  const pageSize = 8;
+  const maxPage = Math.max(0, Math.ceil(stores.length / pageSize) - 1);
+  const visibleStores = stores.slice(page * pageSize, page * pageSize + pageSize);
+
   async function refreshStores() {
     const items = await listMemoryStores({ q: query, status, created });
+    setPage(0);
     setStores(items);
   }
 
@@ -2260,7 +2267,7 @@ function MemoryStoresPage() {
       <div className="overflow-x-auto">
         <DataTable
           className="-mx-2 w-[calc(100%+16px)] p-2"
-          rows={stores}
+          rows={visibleStores}
           getKey={(store) => store.id}
           actionsWidth="56px"
           columns={[
@@ -2298,6 +2305,26 @@ function MemoryStoresPage() {
             />
           )}
         />
+      </div>
+      <div className="mt-[8.5px] flex gap-2">
+        <Button
+          variant="icon"
+          className="!h-8 !w-8 !gap-1.5 !rounded-[8px] !leading-5"
+          aria-label="Previous page"
+          disabled={page === 0}
+          onClick={() => setPage((value) => Math.max(0, value - 1))}
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="icon"
+          className="!h-8 !w-8 !gap-1.5 !rounded-[8px] !leading-5"
+          aria-label="Next page"
+          disabled={page >= maxPage}
+          onClick={() => setPage((value) => Math.min(maxPage, value + 1))}
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
       </div>
       <CreateMemoryStoreDialog
         open={dialogOpen}
