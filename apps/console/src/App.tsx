@@ -20,7 +20,6 @@ import {
   Pause,
   Play,
   Plus,
-  RefreshCw,
   Search,
   Send,
   Settings,
@@ -2329,12 +2328,6 @@ function MemoryStoresPage() {
   const maxPage = Math.max(0, Math.ceil(stores.length / pageSize) - 1);
   const visibleStores = stores.slice(page * pageSize, page * pageSize + pageSize);
 
-  async function refreshStores() {
-    const items = await listMemoryStores({ q: query, status, created });
-    setPage(0);
-    setStores(items);
-  }
-
   async function archiveStore(store: MemoryStore) {
     const updated = await archiveMemoryStore(store.id);
     setStores((items) => items.map((item) => item.id === store.id ? updated : item));
@@ -2358,9 +2351,14 @@ function MemoryStoresPage() {
               <CdsIconGlyph glyph="" className="h-5 w-5 text-current text-[20px] [font-weight:566.5]" />
               Create memory store
             </Button>
-            <Button variant="icon" className="h-8 w-8 !rounded-[8px] [font-weight:550]" aria-label="Refresh memory stores" onClick={refreshStores}>
-              <RefreshCw className="h-5 w-5" />
-            </Button>
+            <a
+              data-cds="Button"
+              className="cds-focus inline-flex h-8 w-8 items-center justify-center gap-1.5 rounded-[8px] text-sm !leading-5 text-ink [font-weight:550] hover:bg-fill"
+              aria-label="View documentation"
+              href="https://platform.claude.com/docs/en/managed-agents/memory"
+            >
+              <CdsIconGlyph glyph="" />
+            </a>
           </div>
         }
       />
@@ -2397,7 +2395,7 @@ function MemoryStoresPage() {
       <div className="overflow-x-auto">
         <DataTable
           className="-mx-2 w-[calc(100%+16px)] overflow-x-auto p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
-          tableClassName="border-separate border-spacing-0 whitespace-nowrap"
+          tableClassName="w-[1552px] border-separate border-spacing-0 whitespace-nowrap"
           rows={visibleStores}
           getKey={(store) => store.id}
           actionsWidth="56px"
@@ -2424,7 +2422,7 @@ function MemoryStoresPage() {
             {
               key: "name",
               header: "Name",
-              width: "352px",
+              width: "936px",
               render: (store) => (
                 <Link className="block truncate [font-weight:400]" to={`/memory-stores/${store.id}`}>
                   {store.name}
