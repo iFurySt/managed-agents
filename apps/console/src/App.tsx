@@ -12,6 +12,7 @@ import {
   Download,
   ExternalLink,
   FileText,
+  FolderPlus,
   Gauge,
   Home,
   Info,
@@ -5571,6 +5572,7 @@ function CreateSkillDialog({
             onDrop={handleDrop}
           >
             <div>
+              <FolderPlus className="mx-auto mb-3 h-8 w-8 text-[#898781]" strokeWidth={1.5} />
               <p className="text-sm text-[#898781]">Drag and drop a .zip, .skill file, or directory to upload</p>
               {selectedName ? <p className="mt-3 font-mono text-sm text-ink">{selectedName}</p> : null}
             </div>
