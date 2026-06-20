@@ -5502,15 +5502,7 @@ function CreateCredentialForm({
         <div className="grid gap-[7px]">
           <label className={fieldLabelClass}>Type</label>
           <div className={selectShellClass}>
-            <FieldSelect
-              label=""
-              showLabel={false}
-              ariaLabel="Credential type"
-              value={authType}
-              options={["MCP OAuth", "Bearer token", "Environment variable"]}
-              onValueChange={setAuthType}
-              triggerClassName="!h-[31px] w-[455px] !gap-1.5 rounded-none !border-transparent !bg-transparent !pl-2 !pr-0 hover:!bg-transparent"
-            />
+            <CredentialAuthTypeSelect value={authType} onValueChange={setAuthType} />
           </div>
         </div>
         <div className="grid gap-2">
@@ -5542,6 +5534,68 @@ function CreateCredentialForm({
         <Button className="h-[31px] w-[81px] rounded-[8px] px-0 [font-weight:550]" onClick={submit} disabled={!canSubmit}>{submitLabel}</Button>
       </div>
     </div>
+  );
+}
+
+const credentialAuthTypeOptions = [
+  {
+    value: "MCP OAuth",
+    description: "For MCP servers that support OAuth."
+  },
+  {
+    value: "Bearer token",
+    description: "For MCP servers that accept a long-lived API key or personal access token."
+  },
+  {
+    value: "Environment variable",
+    description: "For CLIs, SDKs, or direct API calls. The agent never sees the value."
+  }
+];
+
+function CredentialAuthTypeSelect({ value, onValueChange }: { value: string; onValueChange: (value: string) => void }) {
+  return (
+    <Select.Root value={value} onValueChange={onValueChange}>
+      <Select.Trigger
+        data-cds="Button"
+        aria-label="Credential type"
+        className="cds-focus inline-flex h-[31px] w-[455px] items-center gap-1.5 rounded-none border border-transparent bg-transparent pl-2 pr-0 text-sm leading-5 text-ink outline-none hover:bg-transparent"
+      >
+        <span className="flex min-w-0 flex-1 items-baseline gap-1.5 whitespace-nowrap">
+          <Select.Value />
+        </span>
+        <Select.Icon className="shrink-0">
+          <CdsIconGlyph glyph="" className="mr-0.5 h-4 w-4 text-[#898781] text-[16px] [font-weight:533.25]" />
+        </Select.Icon>
+      </Select.Trigger>
+      <Select.Portal>
+        <Select.Content
+          position="popper"
+          sideOffset={6}
+          data-cds="ComboboxPopover"
+          className="z-50 w-[463px] overflow-hidden rounded-[12px] bg-white p-1 shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]"
+        >
+          <Select.Viewport>
+            {credentialAuthTypeOptions.map((option) => (
+              <Select.Item
+                key={option.value}
+                value={option.value}
+                className="flex min-h-12 w-full select-none items-center gap-2 rounded-[8px] px-3 py-1 text-sm leading-5 text-ink outline-none data-[highlighted]:bg-fill"
+              >
+                <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                  <Select.ItemText>
+                    <span className="block truncate">{option.value}</span>
+                  </Select.ItemText>
+                  <span className="whitespace-normal break-words text-[13px] leading-[17.875px] text-[#898781]">{option.description}</span>
+                </div>
+                <Select.ItemIndicator>
+                  <CdsIconGlyph glyph="" className="h-4 w-4 shrink-0 text-[#898781] text-[16px] [font-weight:533.25]" />
+                </Select.ItemIndicator>
+              </Select.Item>
+            ))}
+          </Select.Viewport>
+        </Select.Content>
+      </Select.Portal>
+    </Select.Root>
   );
 }
 
