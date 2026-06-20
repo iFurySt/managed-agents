@@ -6598,30 +6598,34 @@ function AgentRowActions({ agent, onArchive, onGuidedEdit }: { agent: Agent; onA
       <CdsDropdownMenu.Portal>
         <CdsDropdownMenu.Content
           data-cds="Menu"
-          className="z-50 w-[184px] max-w-[320px] rounded-[12px] bg-white p-1 text-sm text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
+          className="z-50 w-[148px] max-w-[320px] rounded-[12px] bg-white p-1 text-sm text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
           align="end"
           sideOffset={8}
         >
-          <CdsDropdownMenu.Item className={menuItemClass} onSelect={() => navigate(`/sessions?agentId=${agent.id}`)}>
-            <MenuResumeIcon />
-            Start session
-          </CdsDropdownMenu.Item>
-          <CdsDropdownMenu.Item className={menuItemClass} onSelect={() => (onGuidedEdit ? onGuidedEdit() : navigate(`/agents/${agent.id}`))}>
-            <span className="h-5 w-5 shrink-0" aria-hidden="true" />
-            Guided edit
-          </CdsDropdownMenu.Item>
-          <CdsDropdownMenu.Item className={menuItemClass} onSelect={() => navigate(`/deployments?agentId=${agent.id}`)}>
-            <CdsIconGlyph glyph="" className="h-5 w-5 text-current text-[20px] [font-weight:566.5]" />
-            Create deployment
-          </CdsDropdownMenu.Item>
-          <div className="my-1 h-px bg-line" />
+          {onGuidedEdit ? (
+            <>
+              <CdsDropdownMenu.Item className={menuItemClass} onSelect={() => navigate(`/sessions?agentId=${agent.id}`)}>
+                <MenuResumeIcon />
+                Start session
+              </CdsDropdownMenu.Item>
+              <CdsDropdownMenu.Item className={menuItemClass} onSelect={onGuidedEdit}>
+                <span className="h-5 w-5 shrink-0" aria-hidden="true" />
+                Guided edit
+              </CdsDropdownMenu.Item>
+              <CdsDropdownMenu.Item className={menuItemClass} onSelect={() => navigate(`/deployments?agentId=${agent.id}`)}>
+                <CdsIconGlyph glyph="" className="h-5 w-5 text-current text-[20px] [font-weight:566.5]" />
+                Create deployment
+              </CdsDropdownMenu.Item>
+              <div className="my-1 h-px bg-line" />
+            </>
+          ) : null}
           <CdsDropdownMenu.Item
             className={menuItemClass}
             onSelect={onArchive}
             disabled={archived}
           >
             <MenuArchiveIcon />
-            {archived ? "Archived" : "Archive"}
+            {archived ? "Archived" : "Archive agent"}
           </CdsDropdownMenu.Item>
         </CdsDropdownMenu.Content>
       </CdsDropdownMenu.Portal>
