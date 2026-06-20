@@ -457,12 +457,18 @@ function SessionsPage() {
   const [agent, setAgent] = useState(searchParams.get("agentId") ?? "All");
   const [deployment, setDeployment] = useState(searchParams.get("deploymentId") ?? "All");
   const [status, setStatus] = useState(searchParams.get("status") ?? "Active");
+  const [page, setPage] = useState(0);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [archivingSession, setArchivingSession] = useState<Session | null>(null);
 
   useEffect(() => {
+    setPage(0);
     listSessions({ q: search, status, agentId: agent, deploymentId: deployment, created }).then(setSessions).catch(() => setSessions([]));
   }, [agent, created, deployment, search, status]);
+
+  const pageSize = 8;
+  const maxPage = Math.max(0, Math.ceil(sessions.length / pageSize) - 1);
+  const visibleSessions = sessions.slice(page * pageSize, page * pageSize + pageSize);
 
   async function archiveCurrent(session: Session) {
     const updated = await archiveSession(session.id);
@@ -539,7 +545,7 @@ function SessionsPage() {
       <div className="-mt-4">
         <DataTable
           className="-mx-2 w-[calc(100%+16px)] p-2"
-          rows={sessions}
+          rows={visibleSessions}
           getKey={(session) => session.id}
           columns={[
             {
@@ -582,6 +588,26 @@ function SessionsPage() {
           actionsWidth="56px"
           renderActions={(session) => <SessionRowActions session={session} onArchive={() => setArchivingSession(session)} />}
         />
+      </div>
+      <div className="-mt-3 flex gap-2">
+        <Button
+          variant="icon"
+          className="!h-8 !w-8 !gap-1.5 !rounded-[8px] !leading-5"
+          aria-label="Previous page"
+          disabled={page === 0}
+          onClick={() => setPage((value) => Math.max(0, value - 1))}
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="icon"
+          className="!h-8 !w-8 !gap-1.5 !rounded-[8px] !leading-5"
+          aria-label="Next page"
+          disabled={page >= maxPage}
+          onClick={() => setPage((value) => Math.min(maxPage, value + 1))}
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
       </div>
       <CreateSessionDialog
         open={dialogOpen}
