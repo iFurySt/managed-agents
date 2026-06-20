@@ -169,7 +169,9 @@ function Sidebar() {
         >
           <span className="flex w-full min-w-0 items-center gap-2">
             <WorkspaceBoxIcon />
-            <span className="min-w-0 truncate">Default</span>
+            <span className="flex min-w-0 flex-col">
+              <span className="truncate text-sm">Default</span>
+            </span>
           </span>
           <WorkspaceChevronIcon />
         </button>
@@ -228,19 +230,22 @@ function MoreActionsIcon() {
 
 function WorkspaceBoxIcon() {
   return (
-    <span
-      aria-hidden="true"
-      className="relative h-4 w-4 shrink-0 text-[#9b87f5] before:absolute before:left-[3px] before:top-[1.5px] before:h-[13px] before:w-[10px] before:rounded-[2px] before:border-[1.5px] before:border-current after:absolute after:left-[3px] after:top-[5.5px] after:h-[1.5px] after:w-[10px] after:bg-current"
-    />
+    <span className="shrink-0 text-[#9b87f5]">
+      <span data-cds="Icon" aria-hidden="true" className="relative flex h-4 w-4 shrink-0 select-none items-center justify-center text-[16px] leading-none text-current [font-family:var(--font-anthropicons,Anthropicons-Variable)] [font-weight:533.3]">
+        <span className="sr-only"></span>
+        <span className="absolute left-[3px] top-[1.5px] h-[13px] w-[10px] rounded-[2px] border-[1.5px] border-current" />
+        <span className="absolute left-[3px] top-[5.5px] h-[1.5px] w-[10px] bg-current" />
+      </span>
+    </span>
   );
 }
 
 function WorkspaceChevronIcon() {
   return (
-    <span
-      aria-hidden="true"
-      className="relative mr-0.5 h-4 w-4 shrink-0 text-[#898781] before:absolute before:left-1 before:top-[5px] before:h-2 before:w-2 before:rotate-45 before:border-b-[1.5px] before:border-r-[1.5px] before:border-current"
-    />
+    <span data-cds="Icon" aria-hidden="true" className="relative mr-0.5 flex h-4 w-4 shrink-0 select-none items-center justify-center text-[16px] leading-none text-[#898781] [font-family:var(--font-anthropicons,Anthropicons-Variable)] [font-weight:533.3]">
+      <span className="sr-only"></span>
+      <span className="absolute left-1 top-[5px] h-2 w-2 rotate-45 border-b-[1.5px] border-r-[1.5px] border-current" />
+    </span>
   );
 }
 
