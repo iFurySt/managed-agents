@@ -421,6 +421,14 @@ function AgentsPage() {
           renderActions={(agent) => <AgentRowActions agent={agent} onArchive={() => setArchivingAgent(agent)} />}
         />
       </div>
+      <div className="-mt-[1.5px] flex gap-2">
+        <Button variant="icon" className="!h-8 !w-8 !gap-1.5 !rounded-[8px] !leading-5" aria-label="Previous page">
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        <Button variant="icon" className="!h-8 !w-8 !gap-1.5 !rounded-[8px] !leading-5" aria-label="Next page">
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
       <AgentArchiveDialog
         open={Boolean(archivingAgent)}
         onOpenChange={(open) => {
