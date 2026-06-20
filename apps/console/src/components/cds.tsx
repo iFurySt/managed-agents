@@ -43,7 +43,7 @@ export const Button = forwardRef<HTMLButtonElement, React.ButtonHTMLAttributes<H
 export function Badge({ children, tone = "neutral", className = "" }: { children: ReactNode; tone?: "neutral" | "green" | "blue" | "red"; className?: string }) {
   const tones = {
     neutral: "bg-fill text-muted",
-    green: "bg-[#cdf0ce] text-[#13751f]",
+    green: "bg-[#caeac7] text-[#006300]",
     blue: "bg-[#d7e8ff] text-[#1b5eb8]",
     red: "bg-[#ffe0dc] text-[#a33a29]"
   };

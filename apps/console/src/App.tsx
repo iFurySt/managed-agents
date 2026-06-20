@@ -20,6 +20,7 @@ import {
   Info,
   KeyRound,
   MessageSquare,
+  PanelLeftClose,
   Pause,
   Pencil,
   Play,
@@ -139,10 +140,12 @@ export default function App() {
 function Sidebar() {
   return (
     <aside className="sticky top-0 flex h-screen w-64 shrink-0 flex-col border-r border-line bg-[#f9f9f7] p-3">
-      <div className="flex h-10 items-center justify-between">
-        <div className="text-base !leading-4 [font-weight:400]">Claude Console</div>
-        <Button variant="ghost" className="h-7 w-7 px-0" aria-label="Collapse sidebar">
-          <span className="h-5 w-5 rounded border border-muted" />
+      <div className="flex h-10 items-start justify-between">
+        <Link className="mt-[6px] pl-2 text-base !leading-4 [font-weight:400]" to="/">
+          Claude Console
+        </Link>
+        <Button variant="ghost" className="mt-px !h-7 !w-7 !px-0 text-muted hover:text-ink" aria-label="Collapse sidebar">
+          <PanelLeftClose className="h-5 w-5" />
         </Button>
       </div>
       <button className="mb-[18px] mt-[5px] flex h-[30px] items-center justify-between rounded-cds border border-line bg-white px-3 text-sm shadow-sm">
@@ -1847,7 +1850,7 @@ function VaultDetailPage() {
         <div className="min-w-0 flex-1">
           <div className="mb-2 flex items-center gap-3">
             <h1 className="truncate text-[22px] leading-[26px] [font-weight:580]">{vault.name}</h1>
-            <span className="text-sm leading-[21px] text-ink">{vault.status}</span>
+            <Badge className="!h-5 !rounded-[5px] px-2 text-xs !leading-[15px] [font-weight:550]" tone={vaultTone(vault.status)}>{vault.status}</Badge>
           </div>
           <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
             <span className="rounded-md px-1 font-mono text-xs leading-5">{vault.id}</span>
@@ -1861,7 +1864,7 @@ function VaultDetailPage() {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button variant="ghost" className="h-8 !gap-1.5 rounded-[8px] bg-transparent px-3 [font-weight:550] hover:bg-fill" onClick={() => setDialogOpen(true)}>
+          <Button className="h-8 w-[143px] !gap-1.5 rounded-[8px] px-0 [font-weight:550]" onClick={() => setDialogOpen(true)}>
             <Plus className="h-4 w-4" />
             Add credential
           </Button>
