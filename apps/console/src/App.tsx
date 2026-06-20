@@ -145,11 +145,11 @@ function Sidebar() {
         <div className="flex h-[52px] items-start justify-start pl-2 pt-3">
           <Button
             variant="ghost"
-            className="!h-7 !w-7 !gap-1.5 !rounded-control !px-0 text-sm !leading-5 !text-[#898781] [font-weight:550] hover:!text-ink"
+            className="!h-7 !w-7 !gap-1.5 !rounded-control !px-0 text-sm !leading-5 !text-[#6f6d68] [font-weight:550] hover:!text-ink"
             aria-label="Expand"
             onClick={() => setCollapsed(false)}
           >
-            <SidebarCollapseIcon />
+            <SidebarPanelIcon />
           </Button>
         </div>
         <button
@@ -182,18 +182,18 @@ function Sidebar() {
         <div className="-mr-2 flex w-full translate-y-px items-center justify-between">
           <Link className="pl-2" to="/">
             <div data-cds="ProductLogo" className="inline-flex flex-col items-start">
-              <span className="whitespace-nowrap font-voice text-[16px] leading-none text-ink [font-weight:550]">
+              <span className="whitespace-nowrap font-voice text-[19px] leading-6 text-ink [font-weight:600]">
                 Claude Console
               </span>
             </div>
           </Link>
           <Button
             variant="ghost"
-            className="!h-7 !w-7 !gap-1.5 !rounded-control !px-0 text-sm !leading-5 !text-[#898781] [font-weight:550] hover:!text-ink"
+            className="!h-7 !w-7 !gap-1.5 !rounded-control !px-0 text-sm !leading-5 !text-[#6f6d68] [font-weight:550] hover:!text-ink"
             aria-label="Collapse"
             onClick={() => setCollapsed(true)}
           >
-            <SidebarCollapseIcon />
+            <SidebarPanelIcon />
           </Button>
         </div>
       </div>
@@ -263,8 +263,13 @@ function CollapsedSidebarLink({ glyph, label, to = "#" }: { glyph: string; label
   );
 }
 
-function SidebarCollapseIcon() {
-  return <CdsIconGlyph glyph="" className="h-5 w-5 text-current text-[20px] [font-weight:433.25]" />;
+function SidebarPanelIcon() {
+  return (
+    <span aria-hidden="true" className="relative block h-5 w-5 text-current">
+      <span className="absolute left-[2px] top-[3px] h-3.5 w-4 rounded-[3px] border-[1.5px] border-current" />
+      <span className="absolute bottom-[3px] left-[9px] top-[3px] w-[1.5px] rounded-full bg-current" />
+    </span>
+  );
 }
 
 function MoreActionsIcon() {
@@ -316,7 +321,7 @@ function WorkspaceChevronIcon() {
 
 function IconItem({ icon, label, right }: { icon: React.ReactNode; label: string; right?: string }) {
   return (
-    <div className="flex shrink-0 items-center gap-3 rounded-lg px-2 text-sm text-[#52514e] [font-weight:550]" style={{ height: 36 }}>
+    <div className="flex shrink-0 items-center gap-3 rounded-lg px-2 text-[14.5px] leading-5 text-[#52514e] [font-weight:560]" style={{ height: 36 }}>
       {icon}
       <span className="min-w-0 flex-1 truncate">{label}</span>
       {right ? <span className="text-muted">{right}</span> : null}
@@ -326,7 +331,7 @@ function IconItem({ icon, label, right }: { icon: React.ReactNode; label: string
 
 function FooterItem({ icon, label, right }: { icon: React.ReactNode; label: string; right?: string }) {
   return (
-    <div className="flex h-9 shrink-0 items-center gap-3 rounded-lg px-2 text-sm leading-5 text-[#52514e] [font-weight:400]">
+    <div className="flex h-9 shrink-0 items-center gap-3 rounded-lg px-2 text-[14.5px] leading-5 text-[#52514e] [font-weight:430]">
       {icon}
       <span className="min-w-0 flex-1 truncate">{label}</span>
       {right ? <span className="text-[#898781] tabular-nums">{right}</span> : null}
@@ -352,13 +357,13 @@ function Group({ icon, label, items, managed = false, defaultExpanded = true }: 
   return (
     <div className="mb-1 flex shrink-0 flex-col gap-1">
       <button
-        className="flex h-9 shrink-0 items-center gap-3 rounded-lg px-2 text-left text-sm text-[#52514e] hover:bg-fill"
+        className="flex h-9 shrink-0 items-center gap-3 rounded-lg px-2 text-left text-[14.5px] leading-5 text-[#52514e] hover:bg-fill"
         type="button"
         aria-expanded={expanded}
         onClick={() => setExpanded((value) => !value)}
       >
         {icon}
-        <span className={`min-w-0 flex-1 truncate text-left ${groupActive ? "[font-weight:580]" : "[font-weight:550]"}`}>{label}</span>
+        <span className={`min-w-0 flex-1 truncate text-left ${groupActive ? "[font-weight:590]" : "[font-weight:560]"}`}>{label}</span>
         <CdsIconGlyph glyph="" className={`h-3 w-3 shrink-0 text-[#898781] text-[12px] [font-weight:577.75] ${expanded ? "rotate-90" : ""}`} />
       </button>
       {expanded ? <div className="flex flex-col gap-1">
@@ -373,7 +378,7 @@ function Group({ icon, label, items, managed = false, defaultExpanded = true }: 
               {item}
             </SidebarItem>
           ) : (
-            <div key={item} className="flex shrink-0 items-center rounded-lg pl-10 text-sm text-[#52514e] [font-weight:400]" style={{ height: 36 }}>
+            <div key={item} className="flex shrink-0 items-center rounded-lg pl-10 text-[14.5px] leading-5 text-[#52514e] [font-weight:430]" style={{ height: 36 }}>
               {item}
             </div>
           );
