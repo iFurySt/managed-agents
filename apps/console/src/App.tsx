@@ -362,8 +362,9 @@ function Group({ icon, label, items, managed = false, defaultExpanded = true }: 
       >
         {icon}
         <span className="min-w-0 flex-1 truncate">{label}</span>
-        <span aria-hidden="true" className="relative h-4 w-4 shrink-0 text-[#898781]">
-          <span className={`absolute left-[5px] top-[4px] h-[7px] w-[7px] border-b-[1.5px] border-r-[1.5px] border-current ${expanded ? "rotate-45" : "-rotate-45"}`} />
+        <span aria-hidden="true" className={`relative h-4 w-4 shrink-0 text-[#898781] ${expanded ? "" : "-rotate-90"}`}>
+          <span className="absolute left-[3px] top-[7px] h-[1.5px] w-[6px] rotate-45 rounded-full bg-current" />
+          <span className="absolute left-[7px] top-[7px] h-[1.5px] w-[6px] -rotate-45 rounded-full bg-current" />
         </span>
       </button>
       {expanded ? <div className="flex flex-col gap-1">
@@ -485,7 +486,7 @@ function AgentsPage() {
         />
       </div>
       <DataTable
-        className="-mx-2 -my-2 overflow-x-auto p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
+        className="-mx-2 -my-2 !w-[calc(100%+16px)] overflow-x-auto p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
         tableClassName="border-separate border-spacing-0 whitespace-nowrap"
         rows={agents}
         getKey={(agent) => agent.id}
