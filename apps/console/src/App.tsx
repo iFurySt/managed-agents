@@ -181,7 +181,7 @@ function Sidebar() {
         <div className="-mr-2 flex w-full translate-y-px items-center justify-between">
           <Link className="pl-2" to="/">
             <div className="inline-flex flex-col items-start">
-              <span className="ml-[-0.1em] whitespace-nowrap font-voice text-base font-medium leading-none text-ink [font-weight:550]">
+              <span className="ml-[-0.1em] whitespace-nowrap font-serif text-[17px] leading-none text-ink [font-weight:650]">
                 Claude Console
               </span>
             </div>
@@ -264,7 +264,10 @@ function CollapsedSidebarLink({ glyph, label, to = "#" }: { glyph: string; label
 
 function SidebarCollapseIcon() {
   return (
-    <SidebarGlyph glyph="" className="h-5 w-5 text-current text-[20px] [font-weight:433.3]" />
+    <span aria-hidden="true" className="relative block h-5 w-5 shrink-0 text-[#898781]">
+      <span className="absolute left-[3px] top-[2px] h-4 w-[14px] rounded-[2px] border-[1.5px] border-current" />
+      <span className="absolute left-[8px] top-[3px] h-[14px] w-[1.5px] rounded-full bg-current" />
+    </span>
   );
 }
 
@@ -341,6 +344,11 @@ function Group({ icon, label, items, managed = false }: { icon: React.ReactNode;
     if (item === "Quickstart") return "#";
     return `/${item.toLowerCase().replaceAll(" ", "-").replace("credential-vaults", "vaults")}`;
   };
+  const buildPath = (item: string) => {
+    if (item === "Files") return "/files";
+    if (item === "Skills") return "/skills";
+    return null;
+  };
   const groupWeight = managed ? "[font-weight:580]" : "[font-weight:550]";
   return (
     <div className="mb-1 flex shrink-0 flex-col gap-1">
@@ -352,17 +360,22 @@ function Group({ icon, label, items, managed = false }: { icon: React.ReactNode;
         </span>
       </div>
       <div className="flex flex-col gap-1">
-        {items.map((item) =>
-          managed && item !== "Quickstart" ? (
+        {items.map((item) => {
+          const route = buildPath(item);
+          return managed && item !== "Quickstart" ? (
             <SidebarItem key={item} to={toPath(item)} inset badge={item === "Deployments" ? "New" : undefined}>
+              {item}
+            </SidebarItem>
+          ) : route ? (
+            <SidebarItem key={item} to={route} inset>
               {item}
             </SidebarItem>
           ) : (
             <div key={item} className="flex shrink-0 items-center rounded-lg pl-10 text-sm text-[#52514e] [font-weight:400]" style={{ height: 36 }}>
               {item}
             </div>
-          )
-        )}
+          );
+        })}
       </div>
     </div>
   );
@@ -2810,7 +2823,7 @@ function FilesEmptyState({ language, onLanguageChange }: { language: string; onL
         <div className="flex h-9 items-center gap-2 px-3">
           <FilesLanguageMenu language={language} onLanguageChange={onLanguageChange} />
           <div className="ml-auto flex items-center gap-1">
-            <a data-cds="Button" className="inline-flex h-6 w-[96px] items-center gap-1.5 rounded-md px-2 text-[13px] leading-5 [font-weight:550] hover:bg-[#eeeeeb]" href="https://docs.claude.com/en/docs/build-with-claude/files">
+            <a data-cds="Button" className="inline-flex h-6 w-[96px] items-center gap-1.5 whitespace-nowrap rounded-md px-2 text-[13px] leading-5 [font-weight:550] hover:bg-[#eeeeeb]" href="https://docs.claude.com/en/docs/build-with-claude/files">
               View docs
               <CdsIconGlyph glyph="" className="h-3.5 w-3.5 text-[#898781] text-[14px] [font-weight:628.5]" />
             </a>
