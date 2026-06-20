@@ -2323,12 +2323,22 @@ function FilesPage() {
         title="Files"
         description="Only files from the Default workspace are shown. To see other workspace's files, select a workspace."
         action={
-          files.length ? (
-            <Button onClick={() => setDialogOpen(true)}>
-              <Plus className="h-4 w-4" />
-              Add local file
-            </Button>
-          ) : null
+          <div className="flex items-center gap-2">
+            {files.length ? (
+              <Button onClick={() => setDialogOpen(true)}>
+                <Plus className="h-4 w-4" />
+                Add local file
+              </Button>
+            ) : null}
+            <a
+              data-cds="Button"
+              aria-label="View documentation"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-[8px] text-sm !leading-5 [font-weight:550] hover:bg-fill"
+              href="https://docs.claude.com/en/docs/build-with-claude/files"
+            >
+              <ExternalLink className="h-5 w-5" />
+            </a>
+          </div>
         }
       />
       {files.length ? (
