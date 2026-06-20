@@ -3704,10 +3704,10 @@ function EditAgentDialog({
       title="Edit agent"
       open={open}
       onOpenChange={onOpenChange}
-      contentClassName="h-[680px] w-[720px] max-w-[calc(100vw-32px)] !max-h-[calc(100dvh-32px)] !rounded-[12px] border-0"
+      contentClassName="h-[679px] w-[720px] max-w-[calc(100vw-32px)] !max-h-[calc(100dvh-32px)] !rounded-[12px] border-0 !shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]"
       headerClassName="flex items-start justify-between pl-6 pr-4 pt-4"
       titleClassName="mt-1 text-[22px] leading-[26px] text-ink [font-weight:580]"
-      closeButtonClassName="h-8 w-8 rounded-[8px] px-0"
+      closeButtonClassName="h-8 w-8 !rounded-[8px] !px-0"
       closeLabel="Close"
     >
       <div className="max-h-[calc(100dvh-106px)] overflow-y-auto px-6 pb-0 pt-[11px]">
@@ -3753,7 +3753,7 @@ function EditAgentDialog({
           </div>
         </div>
         <div className="mt-4 flex justify-end">
-          <Button className="h-8 w-[139px] rounded-[8px] px-3 [font-weight:550]" onClick={submit}>Save new version</Button>
+          <Button className="h-8 w-[139px] !rounded-[8px] px-3 [font-weight:550]" onClick={submit}>Save new version</Button>
         </div>
       </div>
     </ConsoleDialog>
