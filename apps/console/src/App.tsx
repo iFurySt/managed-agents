@@ -3638,10 +3638,12 @@ function CreateAgentDialog({
           onClick={() => setStartingPointOpen((current) => !current)}
         >
           <CdsIconGlyph glyph="" className="h-4 w-4 text-[#52514e] text-[16px] [font-weight:533.25]" />
-          <span className="flex items-center gap-1.5">
-            <span>Starting point</span>
-            <span>·</span>
-            <span>{selectedTemplate.name}</span>
+          <span className="flex min-w-0 items-baseline gap-2 text-sm">
+            <span className="whitespace-nowrap text-ink [font-weight:580]">Starting point</span>
+            <span className="flex min-w-0 gap-2 text-[#898781]" style={{ opacity: startingPointOpen ? 0 : 1 }}>
+              <span>·</span>
+              <span>{selectedTemplate.name}</span>
+            </span>
           </span>
         </button>
         <div
