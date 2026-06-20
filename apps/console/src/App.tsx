@@ -6100,14 +6100,14 @@ function AgentRowActions({ agent, onArchive }: { agent: Agent; onArchive: () => 
   return (
     <CdsDropdownMenu.Root>
       <CdsDropdownMenu.Trigger asChild>
-        <Button variant="icon" aria-label="More actions">
+        <Button variant="icon" className="!gap-1.5 [font-weight:550]" aria-label="More actions">
           <span className="text-lg leading-none">⋯</span>
         </Button>
       </CdsDropdownMenu.Trigger>
       <CdsDropdownMenu.Portal>
         <CdsDropdownMenu.Content data-cds="Menu" className="z-50 min-w-[148px] max-w-[320px] rounded-[12px] bg-white p-1 text-sm text-ink shadow-[0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]" align="end">
           <CdsDropdownMenu.Item
-            className="flex h-8 w-full cursor-pointer items-center gap-2 rounded-[8px] px-2.5 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-fill"
+            className="flex h-8 w-full cursor-pointer items-center gap-2 rounded-[8px] px-2.5 py-1.5 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-fill"
             onSelect={onArchive}
             disabled={archived}
           >
