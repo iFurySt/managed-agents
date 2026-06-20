@@ -48,6 +48,15 @@ image ships a reliable host-to-guest control channel.
   runner and that the runner decodes the command, captures stdout/stderr, writes
   `result.json`, and powers off the guest.
 - Follow-up unit coverage verifies the guest command console completion signals.
+- N2 host validation:
+  - Direct sandboxd `POST /runs` completed in a real Firecracker guest with
+    stdout `n2-direct-command-ok-2`, exit code `0`, and no residual sandbox
+    directory or Firecracker process.
+  - Full apiserver-to-orchestrator-to-sandboxd flow completed on the same N2
+    host: session `sesn_local_20260620064644146788605`, work
+    `ewrk_msg_20260620064644180480194`, output
+    `n2-orchestrator-command-ok`, session status `Idle`, and work state
+    `stopped`.
 
 ### Files Modified
 
