@@ -5876,6 +5876,7 @@ function EnvironmentConfirmationDialog({
 
 function VaultRowActions({ vault, onArchive, onDelete }: { vault: Vault; onArchive: () => void; onDelete: () => void }) {
   const archived = vault.status === "Archived";
+  const menuItemClass = "flex h-8 w-full cursor-pointer items-center gap-2 rounded-[8px] px-2.5 py-1.5 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-fill";
   return (
     <CdsDropdownMenu.Root>
       <CdsDropdownMenu.Trigger asChild>
@@ -5884,9 +5885,14 @@ function VaultRowActions({ vault, onArchive, onDelete }: { vault: Vault; onArchi
         </Button>
       </CdsDropdownMenu.Trigger>
       <CdsDropdownMenu.Portal>
-        <CdsDropdownMenu.Content data-cds="Menu" className="z-50 min-w-[128px] max-w-[320px] rounded-cds bg-white p-1 text-sm text-ink shadow-lg" align="end">
+        <CdsDropdownMenu.Content
+          data-cds="Menu"
+          className="z-50 min-w-[128px] max-w-[320px] rounded-[12px] bg-white p-1 text-sm text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
+          align="end"
+          sideOffset={6}
+        >
           <CdsDropdownMenu.Item
-            className="flex h-8 w-full cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-fill"
+            className={menuItemClass}
             onSelect={onArchive}
             disabled={archived}
           >
@@ -5894,7 +5900,7 @@ function VaultRowActions({ vault, onArchive, onDelete }: { vault: Vault; onArchi
             {archived ? "Archived" : "Archive"}
           </CdsDropdownMenu.Item>
           <CdsDropdownMenu.Item
-            className="flex h-8 w-full cursor-pointer items-center gap-2 rounded-md px-2 text-sm text-[#a33a29] outline-none data-[highlighted]:bg-[#fff1ef]"
+            className={`${menuItemClass} text-[#8e2626] data-[highlighted]:bg-[#fff1ef]`}
             onSelect={onDelete}
           >
             <MenuDeleteIcon />
