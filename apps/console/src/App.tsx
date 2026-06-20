@@ -3618,7 +3618,7 @@ function CreateAgentDialog({
       description="Start from a template or describe what you need."
       open={open}
       onOpenChange={onOpenChange}
-      contentClassName="h-[941px] w-[706px] max-w-[calc(100vw-32px)] !rounded-[12px] border-0 !shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]"
+      contentClassName="flex w-[706px] max-w-[calc(100vw-32px)] flex-col !max-h-[calc(100dvh-2rem)] !rounded-[12px] border-0 !shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]"
       headerClassName="flex items-start justify-between pl-6 pr-4 pt-4"
       titleClassName="mt-1 text-[22px] leading-[26px] text-ink [font-weight:580]"
       descriptionClassName="mt-1 text-sm leading-5 text-[#52514e]"
@@ -3626,7 +3626,7 @@ function CreateAgentDialog({
       closeLabel="Close"
       overlayClassName="fixed inset-0 z-40 bg-transparent"
     >
-      <div className="h-[calc(941px-80px)] overflow-y-auto px-6 pb-0 pt-[10px]">
+      <div className="flex h-[calc(65vh+74px)] max-h-[calc(100dvh-112px)] flex-col overflow-y-auto px-6 pb-6 pt-[10px]">
         <button className="mb-[11px] flex h-5 w-full items-center gap-1.5 rounded-[8px] text-sm text-[#52514e]" type="button">
           <CdsIconGlyph glyph="" className="h-4 w-4 text-[#52514e] text-[16px] [font-weight:533.25]" />
           <span className="flex items-center gap-1.5">
@@ -3692,9 +3692,9 @@ function CreateAgentDialog({
             </div>
           )}
         </div>
-        <div className="mt-[14px]">
+        <div className="mt-[14px] flex min-h-0 flex-1 flex-col">
           <h2 className="mb-[11px] text-sm leading-5 [font-weight:580]">Agent config</h2>
-          <div className="h-[558px] overflow-hidden rounded-cds border border-line bg-white">
+          <div className="min-h-[180px] flex-1 overflow-hidden rounded-cds border border-line bg-white">
             <div className="flex h-[43px] items-center justify-between pb-0 pl-3 pr-2 pt-0">
               <div className="flex h-[27px] -translate-x-px text-sm leading-5" role="tablist" aria-label="Agent config format">
                 <button
@@ -3719,7 +3719,7 @@ function CreateAgentDialog({
               </Button>
             </div>
             {format === "YAML" ? (
-              <div className="relative h-[513px]">
+              <div className="relative h-[calc(100%-43px)] min-h-0">
                 <span className="sr-only">Tab inserts indentation. Press Escape then Tab to move focus out of the editor.</span>
                 <textarea
                   className="h-full w-full resize-none overflow-auto border-0 bg-transparent px-[11px] py-3 font-mono text-[13px] leading-[19px] outline-none"
@@ -3729,7 +3729,7 @@ function CreateAgentDialog({
                 />
               </div>
             ) : (
-              <pre className="h-[513px] overflow-auto whitespace-pre-wrap px-[11px] py-3 font-mono text-[13px] leading-[19px]">
+              <pre className="h-[calc(100%-43px)] min-h-0 overflow-auto whitespace-pre-wrap px-[11px] py-3 font-mono text-[13px] leading-[19px]">
                 {jsonConfig}
               </pre>
             )}
