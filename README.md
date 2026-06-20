@@ -73,6 +73,20 @@ ORCHESTRATOR_SHELL_COMMAND='printf sandbox-orchestrator-ok' \
     run-once
 ```
 
+If the CI guest image does not expose a usable host-to-guest process-api
+transport, use the one-shot command runner. It injects a systemd unit into the
+guest rootfs, runs the command inside Firecracker, powers off, and reads the
+result back from the guest disk:
+
+```sh
+ORCHESTRATOR_SHELL_COMMAND='printf sandbox-orchestrator-ok' \
+  go run ./apps/orchestrator \
+    --runtime sandbox-command \
+    --sandboxd-url http://127.0.0.1:8787 \
+    --runtime-timeout 3m \
+    run-once
+```
+
 For the reusable GCP N2 nested-virtualization harness and sync commands, see
 [`docs/references/gcp-firecracker-kvm.md`](docs/references/gcp-firecracker-kvm.md).
 

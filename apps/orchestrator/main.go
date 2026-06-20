@@ -153,6 +153,25 @@ type sandboxState struct {
 	Status string `json:"status"`
 }
 
+type sandboxdRunRequest struct {
+	ID            string `json:"id,omitempty"`
+	Image         string `json:"image,omitempty"`
+	Command       string `json:"command"`
+	TimeoutMillis int64  `json:"timeout_millis,omitempty"`
+}
+
+type sandboxdRunResponse struct {
+	ID             string       `json:"id"`
+	OK             bool         `json:"ok"`
+	ExitCode       int          `json:"exit_code"`
+	Stdout         string       `json:"stdout"`
+	Stderr         string       `json:"stderr"`
+	Error          string       `json:"error,omitempty"`
+	TimedOut       bool         `json:"timed_out"`
+	DurationMillis int64        `json:"duration_millis"`
+	Sandbox        sandboxState `json:"sandbox"`
+}
+
 type processAPIExecRequest struct {
 	Argv          []string          `json:"argv"`
 	Cwd           string            `json:"cwd,omitempty"`
@@ -181,7 +200,7 @@ func main() {
 	}
 	root.PersistentFlags().StringVar(&opt.databaseURL, "database-url", env("DATABASE_URL", "postgres://managed_agents:managed_agents@localhost:5432/managed_agents?sslmode=disable"), "metadata database URL")
 	root.PersistentFlags().StringVar(&opt.workerID, "worker-id", env("ORCHESTRATOR_WORKER_ID", defaultWorkerID()), "stable worker identifier")
-	root.PersistentFlags().StringVar(&opt.runtime, "runtime", env("ORCHESTRATOR_RUNTIME", "codex-local"), "runtime: codex-local, shell, or sandbox-shell")
+	root.PersistentFlags().StringVar(&opt.runtime, "runtime", env("ORCHESTRATOR_RUNTIME", "codex-local"), "runtime: codex-local, shell, sandbox-shell, or sandbox-command")
 	root.PersistentFlags().StringVar(&opt.codexBin, "codex-bin", env("CODEX_BIN", "codex"), "Codex CLI binary")
 	root.PersistentFlags().StringVar(&opt.shellCommand, "shell-command", env("ORCHESTRATOR_SHELL_COMMAND", ""), "shell command used when --runtime shell")
 	root.PersistentFlags().StringVar(&opt.workspaceRoot, "workspace-root", env("ORCHESTRATOR_WORKSPACE_ROOT", "/tmp/managed-agents-workspaces"), "host workspace root for runtime processes")
@@ -386,6 +405,8 @@ func executeRuntime(ctx context.Context, opt options, work EnvironmentWork, sess
 		result = runCodexLocal(runCtx, opt, prompt, workspace)
 	case "sandbox-shell":
 		result = runSandboxShell(runCtx, opt, work, prompt)
+	case "sandbox-command":
+		result = runSandboxCommand(runCtx, opt, work, prompt)
 	default:
 		result = runResult{OK: false, Error: fmt.Sprintf("unsupported runtime %q", opt.runtime), StartedAt: started, EndedAt: time.Now().UTC()}
 	}
@@ -500,6 +521,57 @@ func runSandboxShell(ctx context.Context, opt options, work EnvironmentWork, pro
 		}
 		if resp.TimedOut {
 			result.Error = "guest command timed out"
+		}
+	}
+	return result
+}
+
+func runSandboxCommand(ctx context.Context, opt options, work EnvironmentWork, prompt string) runResult {
+	started := time.Now().UTC()
+	command := strings.TrimSpace(opt.shellCommand)
+	if command == "" {
+		command = "printf '%s\n' \"$MANAGED_AGENTS_PROMPT\""
+	}
+	command = "MANAGED_AGENTS_PROMPT=" + shellEnvQuote(prompt) + "\n" + command
+	request := sandboxdRunRequest{
+		ID:            "sbx-" + safePathPart(work.ID),
+		Image:         opt.sandboxImage,
+		Command:       command,
+		TimeoutMillis: opt.runtimeTimeout.Milliseconds(),
+	}
+	var body bytes.Buffer
+	if err := json.NewEncoder(&body).Encode(request); err != nil {
+		return runResult{OK: false, Error: err.Error(), StartedAt: started, EndedAt: time.Now().UTC()}
+	}
+	client := &http.Client{Timeout: opt.runtimeTimeout + 30*time.Second}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, strings.TrimRight(opt.sandboxdURL, "/")+"/runs", &body)
+	if err != nil {
+		return runResult{OK: false, Error: err.Error(), StartedAt: started, EndedAt: time.Now().UTC()}
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := client.Do(req)
+	if err != nil {
+		return runResult{OK: false, Error: err.Error(), StartedAt: started, EndedAt: time.Now().UTC()}
+	}
+	var run sandboxdRunResponse
+	if err := readJSON(resp, &run); err != nil {
+		return runResult{OK: false, Error: err.Error(), StartedAt: started, EndedAt: time.Now().UTC()}
+	}
+	output := run.Stdout
+	if run.Stderr != "" {
+		output += "\n[stderr]\n" + run.Stderr
+	}
+	result := runResult{
+		OK:        run.OK,
+		Summary:   limitString(strings.TrimSpace(output), 8000),
+		RawOutput: limitString(output, 50000),
+		StartedAt: started,
+		EndedAt:   time.Now().UTC(),
+	}
+	if !run.OK {
+		result.Error = run.Error
+		if result.Error == "" {
+			result.Error = fmt.Sprintf("guest command exited with %d", run.ExitCode)
 		}
 	}
 	return result
@@ -783,6 +855,10 @@ func safePathPart(value string) string {
 		}
 	}
 	return out.String()
+}
+
+func shellEnvQuote(value string) string {
+	return "'" + strings.ReplaceAll(value, "'", "'\\''") + "'"
 }
 
 func formatDuration(duration time.Duration) string {

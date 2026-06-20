@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"encoding/xml"
 	"errors"
@@ -51,6 +52,7 @@ type options struct {
 	forceRemove         bool
 	vsockCID            uint32
 	listenAddr          string
+	guestCommand        string
 }
 
 type listBucketResult struct {
@@ -180,6 +182,27 @@ type sandboxdStartRequest struct {
 	ProcessAPITCPPort   uint32 `json:"process_api_tcp_port,omitempty"`
 	VsockCID            uint32 `json:"vsock_cid,omitempty"`
 	TimeoutMillis       int64  `json:"timeout_millis,omitempty"`
+}
+
+type sandboxdRunRequest struct {
+	ID            string `json:"id,omitempty"`
+	Image         string `json:"image,omitempty"`
+	VCPUCount     int    `json:"vcpu_count,omitempty"`
+	MemMiB        int    `json:"mem_mib,omitempty"`
+	Command       string `json:"command"`
+	TimeoutMillis int64  `json:"timeout_millis,omitempty"`
+}
+
+type sandboxdRunResponse struct {
+	ID             string       `json:"id"`
+	OK             bool         `json:"ok"`
+	ExitCode       int          `json:"exit_code"`
+	Stdout         string       `json:"stdout"`
+	Stderr         string       `json:"stderr"`
+	Error          string       `json:"error,omitempty"`
+	TimedOut       bool         `json:"timed_out"`
+	DurationMillis int64        `json:"duration_millis"`
+	Sandbox        sandboxState `json:"sandbox"`
 }
 
 type sandboxdHealth struct {
@@ -833,6 +856,23 @@ func sandboxdHTTPHandler(opt options) http.Handler {
 			writeAPIError(w, http.StatusMethodNotAllowed, "method not allowed")
 		}
 	})
+	mux.HandleFunc("/runs", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			writeAPIError(w, http.StatusMethodNotAllowed, "method not allowed")
+			return
+		}
+		var request sandboxdRunRequest
+		if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 1<<20)).Decode(&request); err != nil {
+			writeAPIError(w, http.StatusBadRequest, "invalid json body")
+			return
+		}
+		result, err := runSandboxCommand(r.Context(), opt, request)
+		if err != nil {
+			writeAPIError(w, statusForError(err), err.Error())
+			return
+		}
+		writeJSON(w, http.StatusOK, result)
+	})
 	mux.HandleFunc("/sandboxes/", func(w http.ResponseWriter, r *http.Request) {
 		parts := strings.Split(strings.Trim(strings.TrimPrefix(r.URL.Path, "/sandboxes/"), "/"), "/")
 		if len(parts) == 0 || parts[0] == "" {
@@ -1005,6 +1045,63 @@ func sandboxdStartOptions(base options, request sandboxdStartRequest) options {
 		base.timeout = time.Duration(request.TimeoutMillis) * time.Millisecond
 	}
 	return base
+}
+
+func sandboxdRunOptions(base options, request sandboxdRunRequest) options {
+	if request.Image != "" {
+		base.image = request.Image
+	}
+	if request.VCPUCount > 0 {
+		base.vcpuCount = request.VCPUCount
+	}
+	if request.MemMiB > 0 {
+		base.memMiB = request.MemMiB
+	}
+	if request.TimeoutMillis > 0 {
+		base.timeout = time.Duration(request.TimeoutMillis) * time.Millisecond
+	}
+	base.waitForBoot = true
+	base.withProcessAPI = false
+	base.guestCommand = request.Command
+	return base
+}
+
+func runSandboxCommand(ctx context.Context, opt options, request sandboxdRunRequest) (sandboxdRunResponse, error) {
+	if strings.TrimSpace(request.Command) == "" {
+		return sandboxdRunResponse{}, errors.New("command is required")
+	}
+	runOpt := sandboxdRunOptions(opt, request)
+	if runOpt.timeout == 0 {
+		runOpt.timeout = 180 * time.Second
+	}
+	started := time.Now()
+	state, err := startSandbox(ctx, runOpt, request.ID)
+	if err != nil {
+		return sandboxdRunResponse{}, err
+	}
+	cleanup := true
+	defer func() {
+		if cleanup {
+			_ = removeSandbox(context.Background(), opt, state.ID, true)
+		}
+	}()
+	timedOut, err := waitForSandboxExit(ctx, state.PID, runOpt.timeout)
+	if err != nil {
+		return sandboxdRunResponse{}, err
+	}
+	result, err := readGuestCommandResult(ctx, state)
+	if err != nil {
+		return sandboxdRunResponse{}, err
+	}
+	result.ID = state.ID
+	result.Sandbox = state
+	result.TimedOut = timedOut
+	result.DurationMillis = time.Since(started).Milliseconds()
+	if err := removeSandbox(ctx, opt, state.ID, true); err != nil {
+		return sandboxdRunResponse{}, err
+	}
+	cleanup = false
+	return result, nil
 }
 
 func handleSandboxResource(w http.ResponseWriter, r *http.Request, opt options, id string) {
@@ -1186,6 +1283,65 @@ func copyRootfs(ctx context.Context, source, target string) error {
 	}
 	_ = os.Remove(target)
 	return runPassthrough(ctx, false, "cp", "--reflink=auto", "--sparse=always", source, target)
+}
+
+func injectGuestCommand(ctx context.Context, opt options, rootfsPath, sandboxDir string) error {
+	mountDir := filepath.Join(sandboxDir, "rootfs-mount")
+	if err := os.MkdirAll(mountDir, 0o755); err != nil {
+		return err
+	}
+	servicePath := filepath.Join(sandboxDir, "managed-agents-command.service")
+	if err := os.WriteFile(servicePath, []byte(guestCommandService(opt.guestCommand)), 0o644); err != nil {
+		return err
+	}
+	mounted := false
+	defer func() {
+		if mounted {
+			_ = runPassthrough(ctx, true, "umount", mountDir)
+		}
+		_ = os.RemoveAll(mountDir)
+	}()
+	if err := runPassthrough(ctx, true, "mount", "-o", "loop", rootfsPath, mountDir); err != nil {
+		return err
+	}
+	mounted = true
+	if err := runPassthrough(ctx, true, "mkdir", "-p",
+		filepath.Join(mountDir, "opt/managed-agents/run"),
+		filepath.Join(mountDir, "etc/systemd/system/multi-user.target.wants"),
+	); err != nil {
+		return err
+	}
+	if err := runPassthrough(ctx, true, "cp", servicePath, filepath.Join(mountDir, "etc/systemd/system/managed-agents-command.service")); err != nil {
+		return err
+	}
+	if err := runPassthrough(ctx, true, "ln", "-sf", "../managed-agents-command.service", filepath.Join(mountDir, "etc/systemd/system/multi-user.target.wants/managed-agents-command.service")); err != nil {
+		return err
+	}
+	if err := runPassthrough(ctx, true, "sync"); err != nil {
+		return err
+	}
+	if err := runPassthrough(ctx, true, "umount", mountDir); err != nil {
+		return err
+	}
+	mounted = false
+	return nil
+}
+
+func guestCommandService(command string) string {
+	encoded := base64.StdEncoding.EncodeToString([]byte(command))
+	return fmt.Sprintf(`[Unit]
+Description=Managed Agents One Shot Command
+After=basic.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c 'set +e; mkdir -p /opt/managed-agents/run; printf %%s %s | base64 -d >/opt/managed-agents/run/command.sh; chmod +x /opt/managed-agents/run/command.sh; /bin/sh /opt/managed-agents/run/command.sh >/opt/managed-agents/run/stdout 2>/opt/managed-agents/run/stderr; code=$?; printf "{\"exit_code\":%%s}\n" "$code" >/opt/managed-agents/run/result.json; sync; poweroff -f'
+StandardOutput=journal+console
+StandardError=journal+console
+
+[Install]
+WantedBy=multi-user.target
+`, encoded)
 }
 
 func injectProcessAPI(ctx context.Context, opt options, rootfsPath, sandboxDir string, network processNetwork) error {
@@ -1405,6 +1561,61 @@ func removeSandbox(ctx context.Context, opt options, id string, force bool) erro
 	return os.RemoveAll(cleanDir)
 }
 
+func waitForSandboxExit(ctx context.Context, pid int, timeout time.Duration) (bool, error) {
+	deadline := time.Now().Add(timeout)
+	for time.Now().Before(deadline) {
+		if !isProcessAlive(pid) {
+			return false, nil
+		}
+		select {
+		case <-ctx.Done():
+			return false, ctx.Err()
+		case <-time.After(250 * time.Millisecond):
+		}
+	}
+	if err := terminatePID(pid); err != nil {
+		return true, err
+	}
+	return true, nil
+}
+
+func readGuestCommandResult(ctx context.Context, state sandboxState) (sandboxdRunResponse, error) {
+	mountDir := filepath.Join(state.SandboxDir, "result-mount")
+	if err := os.MkdirAll(mountDir, 0o755); err != nil {
+		return sandboxdRunResponse{}, err
+	}
+	mounted := false
+	defer func() {
+		if mounted {
+			_ = runPassthrough(ctx, true, "umount", mountDir)
+		}
+		_ = os.RemoveAll(mountDir)
+	}()
+	if err := runPassthrough(ctx, true, "mount", "-o", "loop", state.RootfsPath, mountDir); err != nil {
+		return sandboxdRunResponse{}, err
+	}
+	mounted = true
+	runDir := filepath.Join(mountDir, "opt/managed-agents/run")
+	stdout, _ := os.ReadFile(filepath.Join(runDir, "stdout"))
+	stderr, _ := os.ReadFile(filepath.Join(runDir, "stderr"))
+	var result struct {
+		ExitCode int `json:"exit_code"`
+	}
+	data, err := os.ReadFile(filepath.Join(runDir, "result.json"))
+	if err != nil {
+		return sandboxdRunResponse{}, fmt.Errorf("guest command result is missing: %w", err)
+	}
+	if err := json.Unmarshal(data, &result); err != nil {
+		return sandboxdRunResponse{}, err
+	}
+	return sandboxdRunResponse{
+		OK:       result.ExitCode == 0,
+		ExitCode: result.ExitCode,
+		Stdout:   string(stdout),
+		Stderr:   string(stderr),
+	}, nil
+}
+
 func startSandbox(ctx context.Context, opt options, id string) (sandboxState, error) {
 	if opt.vcpuCount <= 0 || opt.memMiB <= 0 {
 		return sandboxState{}, errors.New("vcpu and mem-mib must be positive")
@@ -1445,6 +1656,11 @@ func startSandbox(ctx context.Context, opt options, id string) (sandboxState, er
 	rootfsPath := filepath.Join(sandboxDir, "rootfs.ext4")
 	if err := copyRootfs(ctx, assets.rootfs, rootfsPath); err != nil {
 		return sandboxState{}, err
+	}
+	if strings.TrimSpace(opt.guestCommand) != "" {
+		if err := injectGuestCommand(ctx, opt, rootfsPath, sandboxDir); err != nil {
+			return sandboxState{}, err
+		}
 	}
 	if opt.withProcessAPI {
 		if err := injectProcessAPI(ctx, opt, rootfsPath, sandboxDir, network); err != nil {
