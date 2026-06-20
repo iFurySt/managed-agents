@@ -101,6 +101,12 @@ const sessionAgentOptions = [
   { value: "agent_017k8CPYuCFRD9AmupUeXd2Z", name: "World Cup Daily Digest", updated: "4 days ago" },
   { value: "agent_01UntitledAgentCopy", name: "Untitled agent", updated: "4 days ago" }
 ];
+const sessionEnvironmentOptions = [
+  { value: "env_01ManagedDebug", name: "managed-ssh-debug-env", updated: "4 days ago", type: "Cloud" },
+  { value: "env_01Cloud123", name: "123", updated: "4 days ago", type: "Self-hosted" },
+  { value: "env_01SelfHostedMyenv", name: "myenv", updated: "4 days ago", type: "Self-hosted" },
+  { value: "env_01WorldCupDigest", name: "world-cup-digest-env", updated: "4 days ago", type: "Cloud" }
+];
 
 export default function App() {
   const location = useLocation();
@@ -3853,14 +3859,7 @@ function CreateSessionDialog({
               <label className={fieldLabelClass}>Environment</label>
               <DialogTextLink href="/environments">Manage environments</DialogTextLink>
             </div>
-            <FieldSelect
-              label=""
-              value={environmentId || "Select an environment"}
-              options={["Select an environment", "env_01ManagedDebug", "env_01UbuntuNode", "env_01PythonBrowser"]}
-              onValueChange={(value) => setEnvironmentId(value === "Select an environment" ? "" : value)}
-              showLabel={false}
-              triggerClassName="!h-[31px] w-[651px] !gap-1.5 !rounded-none border-0 !bg-transparent !pl-2 !pr-0"
-            />
+            <CreateSessionEnvironmentPicker value={environmentId} onValueChange={setEnvironmentId} />
           </div>
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
@@ -3933,7 +3932,7 @@ function CreateSessionAgentPicker({ value, onValueChange }: { value: string; onV
       <Select.Portal>
         <Select.Content
           position="popper"
-          sideOffset={0}
+          sideOffset={6}
           data-cds="ComboboxPopover"
           className="z-50 max-h-[278px] w-[658px] overflow-hidden rounded-[12px] bg-white p-1 shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]"
         >
@@ -3958,6 +3957,67 @@ function CreateSessionAgentPicker({ value, onValueChange }: { value: string; onV
                     <span className="block truncate">{option.name}</span>
                   </Select.ItemText>
                   <span className="truncate text-xs leading-4 text-[#898781]">{option.updated}</span>
+                </div>
+                <Select.ItemIndicator>
+                  <Check className="h-4 w-4 shrink-0 text-[#898781]" />
+                </Select.ItemIndicator>
+              </Select.Item>
+            ))}
+          </Select.Viewport>
+        </Select.Content>
+      </Select.Portal>
+    </Select.Root>
+  );
+}
+
+function CreateSessionEnvironmentPicker({ value, onValueChange }: { value: string; onValueChange: (value: string) => void }) {
+  const selected = sessionEnvironmentOptions.find((option) => option.value === value);
+  const [search, setSearch] = useState("");
+  const filteredOptions = sessionEnvironmentOptions.filter((option) => option.name.toLowerCase().includes(search.toLowerCase()));
+
+  return (
+    <Select.Root value={value || undefined} onValueChange={onValueChange}>
+      <Select.Trigger
+        data-cds="Button"
+        className="cds-focus inline-flex h-[31px] w-[651px] items-center gap-1.5 rounded-none border-0 bg-transparent pl-2 pr-0 text-left text-sm leading-5 text-ink outline-none"
+      >
+        <span className="min-w-0 flex-1 truncate">{selected?.name ?? "Select an environment"}</span>
+        <Select.Icon className="shrink-0">
+          <CdsIconGlyph glyph="" className="mr-0.5 h-4 w-4 text-[#898781] text-[16px] [font-weight:533.25]" />
+        </Select.Icon>
+      </Select.Trigger>
+      <Select.Portal>
+        <Select.Content
+          position="popper"
+          sideOffset={6}
+          data-cds="ComboboxPopover"
+          className="z-50 max-h-[238px] w-[658px] overflow-hidden rounded-[12px] bg-white p-1 shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]"
+        >
+          <div role="combobox" aria-expanded="true" className="-mx-1 -mt-1 mb-1 flex h-[37px] w-[calc(100%+8px)] items-center border-b border-line px-4 py-2">
+            <input
+              className="h-full min-w-0 flex-1 bg-transparent text-sm leading-5 text-ink outline-none placeholder:text-transparent"
+              aria-label="Search environments"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              onKeyDown={(event) => event.stopPropagation()}
+            />
+          </div>
+          <Select.Viewport className="max-h-[192px] overflow-y-auto overflow-x-hidden">
+            {filteredOptions.map((option) => (
+              <Select.Item
+                key={option.value}
+                value={option.value}
+                className="flex min-h-[48px] w-full select-none items-center gap-2 rounded-[8px] px-3 py-1 text-sm leading-5 text-ink outline-none data-[highlighted]:bg-fill"
+              >
+                <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                  <Select.ItemText>
+                    <span className="block truncate">{option.name}</span>
+                  </Select.ItemText>
+                  <span className="truncate text-xs leading-4 text-[#898781]">
+                    {option.updated}
+                    <span className="mx-1.5">·</span>
+                    {option.type}
+                  </span>
                 </div>
                 <Select.ItemIndicator>
                   <Check className="h-4 w-4 shrink-0 text-[#898781]" />
