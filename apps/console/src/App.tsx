@@ -5794,7 +5794,7 @@ function SkillVersionDialog({ skillId, onOpenChange }: { skillId: string | null;
         <Dialog.Overlay className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[2px]" />
         <Dialog.Content
           data-cds="Dialog"
-          className="fixed left-1/2 top-1/2 z-50 flex h-[396px] w-[520px] max-w-[calc(100vw-32px)] -translate-x-1/2 -translate-y-1/2 flex-col overflow-y-auto rounded-[12px] bg-white p-6 text-sm text-ink shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)] outline-none"
+          className="fixed left-1/2 top-1/2 z-50 flex h-[396px] w-[520px] max-w-[calc(100vw-32px)] -translate-x-1/2 -translate-y-1/2 flex-col overflow-y-auto rounded-[12px] bg-white p-6 text-sm text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)] outline-none"
         >
           <div className="mb-4 flex min-h-0 items-start gap-2">
             <div className="-mt-1 flex min-w-0 flex-1 flex-col gap-1">
