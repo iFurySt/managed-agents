@@ -2542,7 +2542,7 @@ function MemoryStoreDetailPage() {
           </div>
           <div className="mt-3 flex h-4 flex-wrap items-center gap-2 text-xs text-muted">
             <button className="-mx-1 -my-0.5 rounded-md px-1 py-0.5 font-mono hover:bg-fill" onClick={() => copyText(store.id)}>
-              <span>{shortId(store.id)}</span>
+              <span>{shortMemoryStoreId(store.id)}</span>
               <span className="hidden">{store.id}</span>
             </button>
             <span className="hidden font-mono">{store.id}</span>
@@ -2552,7 +2552,7 @@ function MemoryStoreDetailPage() {
         </div>
         <div className="flex gap-2">
           <Button className="h-8 w-[130px] !gap-1.5 !rounded-[8px] px-0 [font-weight:550]" onClick={() => setDialogOpen(true)}>
-            <Plus className="h-5 w-5" />
+            <CdsIconGlyph glyph="" className="h-5 w-5 text-current text-[20px] [font-weight:566.5]" />
             Add memory
           </Button>
         </div>
@@ -2561,13 +2561,13 @@ function MemoryStoreDetailPage() {
       <div className="mt-6 flex min-h-0 flex-1 overflow-hidden rounded-xl border-[0.5px] border-line">
         <aside className="relative flex w-72 shrink-0 flex-col border-r-[0.5px] border-line bg-[#f9f9f7]">
           <Button variant="ghost" size="sm" className="absolute right-2 top-4 !h-6 !w-6 rounded-[6px] !px-0 [font-weight:550]" aria-label="Expand all">
-            <ChevronDown className="h-3.5 w-3.5" />
+            <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
           </Button>
           <div className="flex flex-1 flex-col gap-0.5 overflow-y-auto p-2">
             {folders.map((folder) => (
               <div key={folder} className="flex h-7 items-center gap-1.5 rounded-lg px-3 py-1 text-sm text-[#52514e] hover:bg-[#f6f6f0]">
-                <ChevronDown className="h-3.5 w-3.5" />
-                <Database className="h-3.5 w-3.5" />
+                <CdsIconGlyph glyph="" className="h-3.5 w-3.5 text-current text-[14px] [font-weight:628.5]" />
+                <CdsIconGlyph glyph="" className="h-3.5 w-3.5 text-current text-[14px] [font-weight:628.5]" />
                 <span className="truncate">{folder}</span>
               </div>
             ))}
@@ -2577,7 +2577,7 @@ function MemoryStoreDetailPage() {
                 className={`flex h-7 items-center gap-1.5 rounded-lg py-1 pr-3 text-left text-sm hover:bg-[#f6f6f0] ${selectedMemoryId === memory.id ? "bg-[#f6f6f0] pl-8 text-ink [font-weight:550]" : "px-3 text-[#52514e]"}`}
                 onClick={() => selectMemory(memory.id)}
               >
-                <FileText className="h-3.5 w-3.5 shrink-0 text-muted" />
+                <CdsIconGlyph glyph="" className={`h-3.5 w-3.5 shrink-0 text-[14px] [font-weight:628.5] ${selectedMemoryId === memory.id ? "text-ink" : "text-[#52514e]"}`} />
                 <span className="min-w-0 flex-1 truncate">{memoryName(memory.path)}</span>
                 <span className="text-xs text-muted">{memory.size}</span>
               </button>
@@ -2594,7 +2594,7 @@ function MemoryStoreDetailPage() {
                   </div>
                   <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted">
                     <button className="-mx-1 -my-0.5 rounded-md px-1 py-0.5 font-mono hover:bg-fill" onClick={() => copyText(selectedMemory.id)}>
-                      <span>{shortId(selectedMemory.id)}</span>
+                      <span>{shortMemoryRecordId(selectedMemory.id)}</span>
                       <span className="hidden">{selectedMemory.id}</span>
                     </button>
                     <span className="hidden font-mono">{selectedMemory.id}</span>
@@ -2602,7 +2602,7 @@ function MemoryStoreDetailPage() {
                     <span>Updated {selectedMemory.updatedLabel}</span>
                     <span>·</span>
                     <button className="-mx-1 -my-0.5 rounded-md px-1 py-0.5 font-mono hover:bg-fill" onClick={() => copyText(selectedMemory.authorId)}>
-                      <span>{shortId(selectedMemory.authorId)}</span>
+                      <span>{shortUserId(selectedMemory.authorId)}</span>
                       <span className="hidden">{selectedMemory.authorId}</span>
                     </button>
                   </div>
@@ -2610,15 +2610,15 @@ function MemoryStoreDetailPage() {
                 <div className="flex shrink-0 items-center gap-2">
                   <div className="inline-flex h-7 rounded-control bg-fill p-px">
                     <button className="flex h-[26px] w-[26px] items-center justify-center rounded-[6px] bg-white" aria-label="Preview memory">
-                      <FileText className="h-4 w-4" />
+                      <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
                     </button>
                     <button className="flex h-[26px] w-[26px] items-center justify-center rounded-[6px] text-muted" aria-label="View source">
-                      <Braces className="h-4 w-4" />
+                      <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
                     </button>
                   </div>
                   <MemoryRecordActions record={selectedMemory} onDelete={() => deleteRecord(selectedMemory)} />
                   <Button variant="ghost" className="!h-7 !gap-1.5 rounded-[7px] !px-2.5 text-sm !leading-5 [font-weight:550]">
-                    <FileText className="h-4 w-4" />
+                    <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
                     Edit
                   </Button>
                 </div>
@@ -6649,6 +6649,21 @@ function EmptyState({ title, description, compact = false }: { title: string; de
 function shortId(id: string) {
   if (id.length <= 14) return id;
   return `${id.slice(0, 7)}…${id.slice(-6)}`;
+}
+
+function shortMemoryStoreId(id: string) {
+  if (id.length <= 15) return id;
+  return `${id.slice(0, 8)}…${id.slice(-6)}`;
+}
+
+function shortMemoryRecordId(id: string) {
+  if (id.length <= 11) return id;
+  return `${id.slice(0, 4)}…${id.slice(-6)}`;
+}
+
+function shortUserId(id: string) {
+  if (id.length <= 10) return id;
+  return `${id.slice(0, 5)}…${id.slice(-4)}`;
 }
 
 function shortEnvironmentId(id: string) {
