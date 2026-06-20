@@ -86,6 +86,7 @@ import { Badge, Button, CdsDropdownMenu, CdsTabs, ConsoleDialog, DataTable, Fiel
 import type { Agent, CollectionName, Deployment, Environment, MemoryRecord, MemoryStore, Resource, Session, SessionEvent, SkillPackage, SkillVersion, UpdateDeploymentInput, Vault, VaultCredential, WorkspaceFile } from "./types";
 
 const managedRoutes: { path: CollectionName; title: string; description: string; action: string }[] = [];
+const sidebarCollapsedStorageKey = "managed-agents.sidebar.collapsed";
 const defaultDeploymentEnvironmentId = "env_01UTaKkbFknSkQNEsZjUARMh";
 const deploymentAgentOptions = [
   { value: "agent_013mi1SmR2hJ6Hk6wNTeJvF9", name: "Managed SSH Reverse Tunnel Bootstrapper", updated: "3 days ago" },
@@ -151,13 +152,29 @@ export default function App() {
   );
 }
 
+function readSidebarCollapsedPreference() {
+  try {
+    return window.localStorage.getItem(sidebarCollapsedStorageKey) === "true";
+  } catch {
+    return false;
+  }
+}
+
 function Sidebar() {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(readSidebarCollapsedPreference);
   const location = useLocation();
   const managedSectionActive = ["/agents", "/sessions", "/deployments", "/environments", "/vaults", "/memory-stores"].some(
     (path) => location.pathname === path || location.pathname.startsWith(`${path}/`)
   );
   const buildSectionActive = ["/files", "/skills"].some((path) => location.pathname === path || location.pathname.startsWith(`${path}/`));
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(sidebarCollapsedStorageKey, collapsed ? "true" : "false");
+    } catch {
+      // Ignore unavailable storage; the sidebar still works for the current session.
+    }
+  }, [collapsed]);
 
   if (collapsed) {
     return (
