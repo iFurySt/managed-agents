@@ -26,6 +26,17 @@ DATABASE_URL=postgres://managed_agents:managed_agents@localhost:5432/managed_age
 APISERVER_ADDR=:8080
 ```
 
+Run one queued session or deployment work item through the orchestrator:
+
+```sh
+# Uses local Codex CLI auth and writes results back to Postgres.
+go run ./apps/orchestrator run-once
+
+# Deterministic local verifier that avoids model calls.
+ORCHESTRATOR_SHELL_COMMAND='printf orchestrator-ok' \
+  go run ./apps/orchestrator --runtime shell --runtime-timeout 30s run-once
+```
+
 Run the host-plane Firecracker smoke test on a Linux host with KVM:
 
 ```sh

@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/sha256"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -168,6 +169,7 @@ type Session struct {
 	Duration        string         `json:"duration"`
 	Tokens          string         `json:"tokens"`
 	Cost            string         `json:"cost"`
+	CurrentWorkID   string         `json:"currentWorkId" gorm:"index"`
 	CreatedLabel    string         `json:"createdLabel"`
 	CreatedAt       time.Time      `json:"createdAt"`
 	UpdatedAt       time.Time      `json:"updatedAt"`
@@ -179,12 +181,39 @@ type SessionEvent struct {
 	SessionID string    `json:"sessionId" gorm:"index"`
 	Role      string    `json:"role"`
 	Kind      string    `json:"kind"`
+	Type      string    `json:"type" gorm:"index"`
 	Summary   string    `json:"summary" gorm:"type:text"`
 	Status    string    `json:"status"`
 	Tokens    string    `json:"tokens"`
 	Cost      string    `json:"cost"`
 	Offset    string    `json:"offset"`
+	Payload   string    `json:"payload" gorm:"type:text"`
+	WorkID    string    `json:"workId" gorm:"index"`
 	CreatedAt time.Time `json:"createdAt"`
+}
+
+type EnvironmentWork struct {
+	ID                  string    `json:"id" gorm:"primaryKey"`
+	EnvironmentID       string    `json:"environmentId" gorm:"index"`
+	SessionID           string    `json:"sessionId" gorm:"index"`
+	DeploymentRunID     string    `json:"deploymentRunId" gorm:"index"`
+	Type                string    `json:"type" gorm:"index"`
+	State               string    `json:"state" gorm:"index"`
+	Priority            int       `json:"priority" gorm:"index"`
+	Attempt             int       `json:"attempt"`
+	MaxAttempts         int       `json:"maxAttempts"`
+	IdempotencyKey      string    `json:"idempotencyKey" gorm:"uniqueIndex"`
+	Payload             string    `json:"payload" gorm:"type:text"`
+	WorkerID            string    `json:"workerId" gorm:"index"`
+	LeaseID             string    `json:"leaseId" gorm:"index"`
+	HeartbeatAt         time.Time `json:"heartbeatAt"`
+	HeartbeatTTLSeconds int       `json:"heartbeatTtlSeconds"`
+	StartedAt           time.Time `json:"startedAt"`
+	StoppedAt           time.Time `json:"stoppedAt"`
+	StopRequestedAt     time.Time `json:"stopRequestedAt"`
+	Error               string    `json:"error" gorm:"type:text"`
+	CreatedAt           time.Time `json:"createdAt"`
+	UpdatedAt           time.Time `json:"updatedAt"`
 }
 
 type Deployment struct {
@@ -213,13 +242,16 @@ type Deployment struct {
 type DeploymentRun struct {
 	ID            string    `json:"id" gorm:"primaryKey"`
 	DeploymentID  string    `json:"deploymentId" gorm:"index"`
+	WorkID        string    `json:"workId" gorm:"index"`
 	StartedAt     string    `json:"startedAt"`
 	StartedLabel  string    `json:"startedLabel"`
 	Trigger       string    `json:"trigger"`
 	Result        string    `json:"result"`
+	Error         string    `json:"error" gorm:"type:text"`
 	AgentVersion  string    `json:"agentVersion"`
 	SessionID     string    `json:"sessionId"`
 	SessionStatus string    `json:"sessionStatus"`
+	CompletedAt   time.Time `json:"completedAt"`
 	CreatedAt     time.Time `json:"createdAt"`
 }
 
@@ -333,7 +365,7 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	if err := db.AutoMigrate(&Agent{}, &Resource{}, &Environment{}, &Vault{}, &VaultCredential{}, &MemoryStore{}, &MemoryRecord{}, &WorkspaceFile{}, &SkillPackage{}, &SkillVersion{}, &Session{}, &SessionEvent{}, &Deployment{}, &DeploymentRun{}); err != nil {
+	if err := db.AutoMigrate(&Agent{}, &Resource{}, &Environment{}, &Vault{}, &VaultCredential{}, &MemoryStore{}, &MemoryRecord{}, &WorkspaceFile{}, &SkillPackage{}, &SkillVersion{}, &Session{}, &SessionEvent{}, &EnvironmentWork{}, &Deployment{}, &DeploymentRun{}); err != nil {
 		return err
 	}
 	if err := seed(db); err != nil {
@@ -363,6 +395,7 @@ func run() error {
 	router.POST("/api/sessions/:id/cancel", cancelSession(db))
 	router.POST("/api/sessions/:id/archive", archiveSession(db))
 	router.POST("/api/sessions/:id/messages", createSessionMessage(db))
+	router.GET("/api/environment-work", listEnvironmentWork(db))
 	router.GET("/api/deployments", listDeployments(db))
 	router.GET("/api/deployments/:id", getDeployment(db))
 	router.POST("/api/deployments", createDeployment(db))
@@ -724,15 +757,38 @@ func createSessionMessage(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 		now := time.Now().UTC()
-		userEvent := sessionEvent(session.ID, fmt.Sprintf("sevt_user_%s%09d", now.Format("20060102150405"), now.Nanosecond()), "User", "Message", message, "", "", "", session.Duration, now)
-		replyEvent := sessionEvent(session.ID, fmt.Sprintf("sevt_agent_%s%09d", now.Format("20060102150405"), now.Nanosecond()), "Agent", "Message", "Received. The agent is queued to continue this session.", "", session.Tokens, "", session.Duration, now.Add(time.Second))
-		if err := db.Create(&[]SessionEvent{userEvent, replyEvent}).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-		session.Status = "Idle"
+		work := environmentWork(
+			fmt.Sprintf("ewrk_msg_%s%09d", now.Format("20060102150405"), now.Nanosecond()),
+			session.EnvironmentID,
+			session.ID,
+			"",
+			"session_turn",
+			fmt.Sprintf("session-message:%s:%d", session.ID, now.UnixNano()),
+			workPayload(map[string]any{
+				"prompt":       message,
+				"source":       "session_message",
+				"session_id":   session.ID,
+				"agent_id":     session.AgentID,
+				"agent_name":   session.AgentName,
+				"environment":  session.EnvironmentName,
+				"created_at":   now.Format(time.RFC3339Nano),
+				"current_work": session.CurrentWorkID,
+			}),
+			now,
+		)
+		userEvent := sessionEvent(session.ID, fmt.Sprintf("sevt_user_%s%09d", now.Format("20060102150405"), now.Nanosecond()), "User", "Message", message, "", "", "", session.Duration, now, work.ID, work.Payload, "user.message")
+		session.CurrentWorkID = work.ID
 		session.UpdatedAt = now
-		if err := db.Save(&session).Error; err != nil {
+		err := db.Transaction(func(tx *gorm.DB) error {
+			if err := tx.Create(&userEvent).Error; err != nil {
+				return err
+			}
+			if err := tx.Create(&work).Error; err != nil {
+				return err
+			}
+			return tx.Save(&session).Error
+		})
+		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -743,6 +799,24 @@ func createSessionMessage(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 		c.JSON(http.StatusOK, session)
+	}
+}
+
+func listEnvironmentWork(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var work []EnvironmentWork
+		query := db.Order("created_at desc")
+		if state := strings.TrimSpace(c.Query("state")); state != "" && !strings.EqualFold(state, "all") {
+			query = query.Where("state = ?", state)
+		}
+		if sessionID := strings.TrimSpace(c.Query("sessionId")); sessionID != "" {
+			query = query.Where("session_id = ?", sessionID)
+		}
+		if err := query.Find(&work).Error; err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{"items": work})
 	}
 }
 
@@ -930,28 +1004,53 @@ func runDeployment(db *gorm.DB) gin.HandlerFunc {
 			StartedAt:     now.Format("1/2/2006, 3:04 PM"),
 			StartedLabel:  "just now",
 			Trigger:       "Manual",
-			Result:        "Success",
+			Result:        "Pending",
 			AgentVersion:  deployment.AgentVersion,
 			SessionID:     sessionID,
 			SessionStatus: "Idle",
 			CreatedAt:     now,
 		}
-		event := sessionEvent(sessionID, fmt.Sprintf("sevt_local_%s%09d", now.Format("20060102150405"), now.Nanosecond()), "System", "Deployment run", "Deployment was run manually from the console.", "Idle", "0 / 0", "$0.00", "0:00:00", now)
+		work := environmentWork(
+			fmt.Sprintf("ewrk_depl_%s%09d", now.Format("20060102150405"), now.Nanosecond()),
+			deployment.EnvironmentID,
+			sessionID,
+			run.ID,
+			"deployment_run",
+			fmt.Sprintf("deployment-run:%s:%d", run.ID, now.UnixNano()),
+			workPayload(map[string]any{
+				"prompt":            deployment.InitialMessage,
+				"source":            "deployment_run",
+				"deployment_id":     deployment.ID,
+				"deployment_run_id": run.ID,
+				"session_id":        sessionID,
+				"agent_id":          deployment.AgentID,
+				"agent_name":        deployment.AgentName,
+				"environment":       deployment.EnvironmentName,
+				"created_at":        now.Format(time.RFC3339Nano),
+			}),
+			now,
+		)
+		session.CurrentWorkID = work.ID
+		run.WorkID = work.ID
+		event := sessionEvent(sessionID, fmt.Sprintf("sevt_local_%s%09d", now.Format("20060102150405"), now.Nanosecond()), "User", "Message", deployment.InitialMessage, "Queued", "0 / 0", "$0.00", "0:00:00", now, work.ID, work.Payload, "user.message")
 		deployment.LastRunLabel = "just now"
 		deployment.UpdatedAt = now
-		if err := db.Create(&session).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-		if err := db.Create(&event).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-		if err := db.Create(&run).Error; err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-			return
-		}
-		if err := db.Save(&deployment).Error; err != nil {
+		err := db.Transaction(func(tx *gorm.DB) error {
+			if err := tx.Create(&session).Error; err != nil {
+				return err
+			}
+			if err := tx.Create(&event).Error; err != nil {
+				return err
+			}
+			if err := tx.Create(&run).Error; err != nil {
+				return err
+			}
+			if err := tx.Create(&work).Error; err != nil {
+				return err
+			}
+			return tx.Save(&deployment).Error
+		})
+		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -2063,18 +2162,82 @@ func session(id, name, status, agentID, agentName, environmentID, environmentNam
 	}
 }
 
-func sessionEvent(sessionID, id, role, kind, summary, status, tokens, cost, offset string, ts time.Time) SessionEvent {
+func environmentWork(id, environmentID, sessionID, deploymentRunID, workType, idempotencyKey, payload string, ts time.Time) EnvironmentWork {
+	return EnvironmentWork{
+		ID:                  id,
+		EnvironmentID:       environmentID,
+		SessionID:           sessionID,
+		DeploymentRunID:     deploymentRunID,
+		Type:                workType,
+		State:               "queued",
+		Priority:            0,
+		Attempt:             0,
+		MaxAttempts:         3,
+		IdempotencyKey:      idempotencyKey,
+		Payload:             payload,
+		HeartbeatTTLSeconds: 30,
+		CreatedAt:           ts,
+		UpdatedAt:           ts,
+	}
+}
+
+func workPayload(value map[string]any) string {
+	data, err := json.Marshal(value)
+	if err != nil {
+		return "{}"
+	}
+	return string(data)
+}
+
+func sessionEvent(sessionID, id, role, kind, summary, status, tokens, cost, offset string, ts time.Time, extra ...string) SessionEvent {
+	workID := ""
+	payload := ""
+	eventType := canonicalEventType(role, kind, status)
+	if len(extra) > 0 {
+		workID = extra[0]
+	}
+	if len(extra) > 1 {
+		payload = extra[1]
+	}
+	if len(extra) > 2 && strings.TrimSpace(extra[2]) != "" {
+		eventType = extra[2]
+	}
 	return SessionEvent{
 		ID:        id,
 		SessionID: sessionID,
 		Role:      role,
 		Kind:      kind,
+		Type:      eventType,
 		Summary:   summary,
 		Status:    status,
 		Tokens:    tokens,
 		Cost:      cost,
 		Offset:    offset,
+		Payload:   payload,
+		WorkID:    workID,
 		CreatedAt: ts,
+	}
+}
+
+func canonicalEventType(role, kind, status string) string {
+	role = strings.ToLower(strings.TrimSpace(role))
+	kind = strings.ToLower(strings.TrimSpace(kind))
+	status = strings.ToLower(strings.TrimSpace(status))
+	switch {
+	case role == "user" && kind == "message":
+		return "user.message"
+	case role == "agent" && kind == "message":
+		return "agent.message"
+	case role == "tool":
+		return "agent.tool_use"
+	case role == "system" && status == "running":
+		return "session.status_running"
+	case role == "system" && status == "idle":
+		return "session.status_idle"
+	case role == "system" && (status == "error" || status == "failed"):
+		return "session.error"
+	default:
+		return role + "." + strings.ReplaceAll(kind, " ", "_")
 	}
 }
 
