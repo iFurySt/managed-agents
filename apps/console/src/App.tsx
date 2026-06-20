@@ -10,7 +10,6 @@ import {
   CircleDollarSign,
   Database,
   Download,
-  ExternalLink,
   FileText,
   FolderPlus,
   Gauge,
@@ -30,7 +29,7 @@ import {
   Wrench
 } from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
-import { useEffect, useMemo, useState, type DragEvent } from "react";
+import { useEffect, useMemo, useState, type DragEvent, type ReactNode } from "react";
 import { Link, Navigate, Route, Routes, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   archiveSession,
@@ -3790,7 +3789,6 @@ function CreateSessionDialog({
   const [resource, setResource] = useState("");
   const canCreate = true;
   const fieldLabelClass = "text-sm leading-none [font-weight:550]";
-  const manageLinkClass = "inline-flex items-center gap-1 text-xs leading-4 text-[#184f95] hover:underline";
 
   async function submit() {
     const session = await createSession({
@@ -3837,11 +3835,7 @@ function CreateSessionDialog({
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
               <label className={fieldLabelClass}>Agent</label>
-              <a className={manageLinkClass} href="/agents" target="_blank" rel="noreferrer">
-                Manage agents
-                <ExternalLink className="h-3 w-3" />
-                <span className="sr-only">(opens in new tab)</span>
-              </a>
+              <DialogTextLink href="/agents">Manage agents</DialogTextLink>
             </div>
             <FieldSelect
               label=""
@@ -3855,11 +3849,7 @@ function CreateSessionDialog({
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
               <label className={fieldLabelClass}>Environment</label>
-              <a className={manageLinkClass} href="/environments" target="_blank" rel="noreferrer">
-                Manage environments
-                <ExternalLink className="h-3 w-3" />
-                <span className="sr-only">(opens in new tab)</span>
-              </a>
+              <DialogTextLink href="/environments">Manage environments</DialogTextLink>
             </div>
             <FieldSelect
               label=""
@@ -3873,11 +3863,7 @@ function CreateSessionDialog({
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
               <label className={fieldLabelClass}>Credential vaults</label>
-              <a className={manageLinkClass} href="/vaults" target="_blank" rel="noreferrer">
-                Manage credential vaults
-                <ExternalLink className="h-3 w-3" />
-                <span className="sr-only">(opens in new tab)</span>
-              </a>
+              <DialogTextLink href="/vaults">Manage credential vaults</DialogTextLink>
             </div>
             <FieldSelect
               label=""
@@ -3892,11 +3878,11 @@ function CreateSessionDialog({
             <label className={fieldLabelClass}>Resources</label>
             <p className="text-[13px] leading-[18px] text-[#898781]">Mount files, GitHub repositories, or memory stores into the session.</p>
             <FieldSelect
-              label="+"
+              label={<CdsIconGlyph glyph="" className="-ml-1 h-5 w-5 text-ink text-[20px] [font-weight:433.25]" />}
               value={resource || "Resource"}
               options={["Resource", "session-output.tar.gz", "operations-memory", "No resources"]}
               onValueChange={(value) => setResource(value === "Resource" || value === "No resources" ? "" : value)}
-              triggerClassName="!h-[27px] w-[121px] justify-self-start !gap-1.5 rounded-control border-0 !bg-transparent px-[10px] [font-weight:550]"
+              triggerClassName="!h-[27px] w-[121px] justify-self-start !gap-1.5 rounded-control border-0 !bg-transparent px-[10px] [font-weight:550] [&>span:first-child]:!items-center [&>span:first-child]:!gap-1"
             />
           </div>
         </div>
@@ -3905,6 +3891,24 @@ function CreateSessionDialog({
         </div>
       </div>
     </ConsoleDialog>
+  );
+}
+
+function DialogTextLink({ href, children }: { href: string; children: ReactNode }) {
+  return (
+    <a
+      data-cds="TextLink"
+      className="group/tl inline-flex items-baseline gap-0 rounded-[2px] text-xs leading-4 text-[#184f95] no-underline outline-none focus-visible:shadow-[0_0_0_2px_rgba(11,11,11,0.18)]"
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+    >
+      <span className="underline underline-offset-[3px] decoration-[color-mix(in_srgb,currentColor,transparent_60%)] transition group-hover/tl:decoration-current group-focus-visible/tl:decoration-current">
+        {children}
+      </span>
+      <CdsIconGlyph glyph="" className="h-4 w-4 self-center text-current text-[16px] [font-weight:533.25]" />
+      <span className="sr-only">(opens in new tab)</span>
+    </a>
   );
 }
 
@@ -3945,7 +3949,6 @@ function CreateDeploymentDialog({
 
   const canCreate = name && agentId && initialMessage && environmentId && trigger;
   const fieldLabelClass = "text-sm leading-none [font-weight:550]";
-  const manageLinkClass = "inline-flex items-center gap-1 text-xs leading-4 text-[#184f95] hover:underline";
   const lockedAgentId = mode === "edit" && deployment ? deployment.agentId : initialAgentId;
   const lockedAgentName = mode === "edit" && deployment ? deployment.agentName : initialAgentName;
   const lockedAgentVersion = mode === "edit" && deployment ? deployment.agentVersion : initialAgentVersion;
@@ -4048,11 +4051,7 @@ function CreateDeploymentDialog({
               <div className="grid gap-2">
                 <div className="flex items-center justify-between">
                   <label className={fieldLabelClass}>Agent</label>
-                  <a className={manageLinkClass} href={`/agents/${lockedAgentId}`} target="_blank" rel="noreferrer">
-                    View agent
-                    <ExternalLink className="h-3 w-3" />
-                    <span className="sr-only">(opens in new tab)</span>
-                  </a>
+                  <DialogTextLink href={`/agents/${lockedAgentId}`}>View agent</DialogTextLink>
                 </div>
                 <div className="flex h-8 items-center truncate text-sm">{lockedAgentName || lockedAgentId}</div>
               </div>
@@ -4066,11 +4065,7 @@ function CreateDeploymentDialog({
               <div className="grid gap-2">
                 <div className="flex items-center justify-between">
                   <label className={fieldLabelClass}>Agent</label>
-                  <a className={manageLinkClass} href="/agents" target="_blank" rel="noreferrer">
-                    Manage agents
-                    <ExternalLink className="h-3 w-3" />
-                    <span className="sr-only">(opens in new tab)</span>
-                  </a>
+                  <DialogTextLink href="/agents">Manage agents</DialogTextLink>
                 </div>
                 <DeploymentAgentPicker value={agentId} onValueChange={selectAgent} />
               </div>
@@ -4083,11 +4078,7 @@ function CreateDeploymentDialog({
             <div className="grid gap-2">
               <div className="flex items-center justify-between">
                 <label className={fieldLabelClass}>Agent</label>
-                <a className={manageLinkClass} href="/agents" target="_blank" rel="noreferrer">
-                  Manage agents
-                  <ExternalLink className="h-3 w-3" />
-                  <span className="sr-only">(opens in new tab)</span>
-                </a>
+                <DialogTextLink href="/agents">Manage agents</DialogTextLink>
               </div>
               <DeploymentAgentPicker value={agentId} onValueChange={selectAgent} wide />
             </div>
@@ -4105,11 +4096,7 @@ function CreateDeploymentDialog({
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
               <label className={fieldLabelClass}>Environment</label>
-              <a className={manageLinkClass} href="/environments" target="_blank" rel="noreferrer">
-                Manage environments
-                <ExternalLink className="h-3 w-3" />
-                <span className="sr-only">(opens in new tab)</span>
-              </a>
+              <DialogTextLink href="/environments">Manage environments</DialogTextLink>
             </div>
             <DeploymentEnvironmentPicker
               value={environmentId}
@@ -4121,22 +4108,14 @@ function CreateDeploymentDialog({
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
               <label className={fieldLabelClass}>Credential vaults(optional)</label>
-              <a className={manageLinkClass} href="/vaults" target="_blank" rel="noreferrer">
-                Manage credential vaults
-                <ExternalLink className="h-3 w-3" />
-                <span className="sr-only">(opens in new tab)</span>
-              </a>
+              <DialogTextLink href="/vaults">Manage credential vaults</DialogTextLink>
             </div>
             <DeploymentVaultPicker value={vault} onValueChange={setVault} />
           </div>
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
               <label className={fieldLabelClass}>Memory stores(optional)</label>
-              <a className={manageLinkClass} href="/memory-stores" target="_blank" rel="noreferrer">
-                Manage memory stores
-                <ExternalLink className="h-3 w-3" />
-                <span className="sr-only">(opens in new tab)</span>
-              </a>
+              <DialogTextLink href="/memory-stores">Manage memory stores</DialogTextLink>
             </div>
             <DeploymentMemoryStorePicker value={memoryStore} onValueChange={setMemoryStore} />
           </div>

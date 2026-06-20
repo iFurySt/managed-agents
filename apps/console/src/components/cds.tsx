@@ -84,7 +84,7 @@ export function FieldSelect({
   contentClassName = "",
   itemClassName = ""
 }: {
-  label: string;
+  label: ReactNode;
   value: string;
   options: string[];
   onValueChange: (value: string) => void;
