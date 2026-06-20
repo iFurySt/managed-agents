@@ -5674,7 +5674,11 @@ function SkillVersionDialog({ skillId, onOpenChange }: { skillId: string | null;
                             if (event.key === "Enter" || event.key === " ") copyText(version.version);
                           }}
                         >
-                          <span data-cds="Badge" className="inline-flex h-[22px] items-center rounded-[5.5px] bg-fill px-2 align-bottom font-mono text-xs leading-[15px] text-[#52514e] [font-weight:550]">{version.version}</span>
+                          <span className="relative inline-block max-w-full truncate align-bottom font-mono text-xs text-[#52514e]">
+                            <span data-cds="Badge" className="inline-flex h-[22px] items-center rounded-[5.5px] bg-fill px-2 align-bottom font-mono text-xs leading-[15px] text-[#52514e] [font-weight:550]">{version.version}</span>
+                            <span className="pointer-events-none absolute left-0 top-0 select-none whitespace-nowrap text-transparent">{version.version}</span>
+                            <span className="sr-only" />
+                          </span>
                         </span>
                         <span className="text-[#898781]">{version.releasedAt}</span>
                         {version.latest ? <span data-cds="Badge" className="inline-flex h-[22px] items-center rounded-[5.5px] bg-[#cde2fb] px-2 text-xs leading-[15px] text-[#184f95] [font-weight:550]">Latest</span> : null}
