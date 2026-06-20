@@ -48,7 +48,7 @@ export function Badge({ children, tone = "neutral", className = "" }: { children
     red: "bg-[#ffe0dc] text-[#a33a29]"
   };
   return (
-    <span data-cds="Badge" className={`inline-flex h-6 items-center rounded-md px-2 text-xs font-semibold ${tones[tone]} ${className}`}>
+    <span data-cds="Badge" className={`inline-flex h-5 items-center rounded-[5px] px-2 text-xs leading-[15px] [font-weight:550] ${tones[tone]} ${className}`}>
       {children}
     </span>
   );
