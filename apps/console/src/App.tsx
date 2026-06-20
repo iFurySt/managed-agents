@@ -2938,6 +2938,7 @@ function SkillsPage() {
   const [skills, setSkills] = useState<SkillPackage[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [versionSkillId, setVersionSkillId] = useState<string | null>(null);
+  const [hoveredSkillId, setHoveredSkillId] = useState<string | null>(null);
 
   useEffect(() => {
     listSkills().then(setSkills).catch(() => setSkills([]));
@@ -2972,7 +2973,14 @@ function SkillsPage() {
       />
       <div className="mt-2 flex max-w-[952px] flex-col border-t border-line">
         {skills.map((skill) => (
-          <article key={skill.id} className="group grid min-h-[137px] grid-cols-[minmax(0,1fr)_28px] gap-4 border-b border-line px-3 py-3 transition-colors hover:bg-fill focus-within:bg-fill">
+          <article
+            key={skill.id}
+            className="grid min-h-[137px] grid-cols-[minmax(0,1fr)_28px] gap-4 border-b border-line px-3 py-3 transition-colors hover:bg-fill focus-within:bg-fill"
+            onMouseEnter={() => setHoveredSkillId(skill.id)}
+            onMouseLeave={() => setHoveredSkillId((current) => (current === skill.id ? null : current))}
+            onFocusCapture={() => setHoveredSkillId(skill.id)}
+            onBlurCapture={() => setHoveredSkillId((current) => (current === skill.id ? null : current))}
+          >
             <div className="min-w-0">
               <h3 className="mb-0 text-base leading-6 [font-weight:550]">{skill.name}</h3>
               <p className="cds-line-clamp-2 max-w-[720px] whitespace-pre-wrap text-sm leading-5 text-[#898781]">{skill.description}</p>
@@ -2992,7 +3000,8 @@ function SkillsPage() {
             <div className="flex flex-col items-end gap-2">
               <Button
                 variant="icon"
-                className="!h-7 !w-7 !gap-1.5 !border-0 !px-0 !text-ink text-sm !leading-5 [font-weight:550]"
+                className="!h-7 !w-7 !gap-1.5 !border-0 !px-0 !text-ink text-sm !leading-5 transition-opacity [font-weight:550]"
+                style={{ opacity: hoveredSkillId === skill.id ? 1 : 0 }}
                 aria-label={`View version history for ${skill.name}`}
                 onClick={() => setVersionSkillId(skill.id)}
               >
