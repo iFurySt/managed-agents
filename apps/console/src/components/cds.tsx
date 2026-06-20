@@ -2,9 +2,17 @@ import * as Dialog from "@radix-ui/react-dialog";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import * as Select from "@radix-ui/react-select";
 import * as Tabs from "@radix-ui/react-tabs";
-import { Check, ChevronDown, MoreHorizontal } from "lucide-react";
+import { Check } from "lucide-react";
 import { forwardRef, type ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
+
+function CdsIconGlyph({ glyph, className = "h-5 w-5 text-current text-[20px] [font-weight:433.3]" }: { glyph: string; className?: string }) {
+  return (
+    <span data-cds="Icon" aria-hidden="true" className={`flex shrink-0 select-none items-center justify-center leading-none [font-family:var(--font-anthropicons,Anthropicons-Variable)] ${className}`}>
+      {glyph}
+    </span>
+  );
+}
 
 export const Button = forwardRef<HTMLButtonElement, React.ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: "primary" | "secondary" | "ghost" | "icon";
@@ -92,7 +100,7 @@ export function FieldSelect({
         {showLabel ? <span className="text-muted">{label}</span> : null}
         <Select.Value />
         <Select.Icon>
-          <ChevronDown className="h-4 w-4 text-muted" />
+          <CdsIconGlyph glyph="" className="h-4 w-4 text-[#898781] text-[16px] [font-weight:533.25]" />
         </Select.Icon>
       </Select.Trigger>
       <Select.Portal>
@@ -181,7 +189,7 @@ export function DataTable<T>({
                     renderActions(row)
                   ) : (
                     <Button variant="icon" aria-label="Open row actions">
-                      <MoreHorizontal aria-hidden="true" className="h-5 w-5" strokeWidth={1.75} />
+                      <CdsIconGlyph glyph="" />
                     </Button>
                   )}
                 </td>

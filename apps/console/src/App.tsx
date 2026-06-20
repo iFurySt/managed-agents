@@ -20,7 +20,6 @@ import {
   Info,
   KeyRound,
   MessageSquare,
-  MoreHorizontal,
   Pause,
   Pencil,
   Play,
@@ -218,7 +217,7 @@ function SidebarCollapseIcon() {
 }
 
 function MoreActionsIcon() {
-  return <MoreHorizontal aria-hidden="true" className="h-5 w-5" strokeWidth={1.75} />;
+  return <CdsIconGlyph glyph="" />;
 }
 
 function CdsIconGlyph({ glyph, className = "h-5 w-5 text-current text-[20px] [font-weight:433.3]" }: { glyph: string; className?: string }) {
@@ -377,7 +376,7 @@ function AgentsPage() {
       />
       <div className="flex items-center gap-2">
         <div data-cds="TextInput" className="relative flex h-8 w-[320px] items-center rounded-[8px] bg-white/50 px-3">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+          <CdsIconGlyph glyph="" className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#898781] text-[16px] [font-weight:533.25]" />
           <input
             className="ml-6 h-full min-w-0 flex-1 border-0 bg-transparent p-0 text-sm text-ink outline-none placeholder:text-muted"
             aria-label="Search by name or exact ID"
@@ -414,7 +413,7 @@ function AgentsPage() {
                 <div className="flex items-center gap-2 font-mono font-semibold">
                   <span>{shortId(agent.id)}</span>
                   <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${agent.id}`} onClick={() => copyText(agent.id)}>
-                    <Copy className="h-3.5 w-3.5" />
+                    <CdsIconGlyph glyph="" className="h-3.5 w-3.5 text-[#898781] text-[14px] [font-weight:628.5]" />
                   </Button>
                 </div>
               )
@@ -440,10 +439,10 @@ function AgentsPage() {
       </div>
       <div className="-mt-[1.5px] flex gap-2">
         <Button variant="icon" className="!h-8 !w-8 !gap-1.5 !rounded-[8px] !leading-5" aria-label="Previous page">
-          <ChevronLeft className="h-4 w-4" />
+          <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
         </Button>
         <Button variant="icon" className="!h-8 !w-8 !gap-1.5 !rounded-[8px] !leading-5" aria-label="Next page">
-          <ChevronRight className="h-4 w-4" />
+          <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
         </Button>
       </div>
       <AgentArchiveDialog
