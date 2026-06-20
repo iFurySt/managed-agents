@@ -7,7 +7,7 @@ export default {
       colors: {
         canvas: "#fcfcfb",
         ink: "#0b0b0b",
-        muted: "#77736d",
+        muted: "#898781",
         line: "#e8e6e1",
         clay: "#c6613f",
         fill: "#f2f1ee"
