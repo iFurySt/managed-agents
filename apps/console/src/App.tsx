@@ -29,6 +29,7 @@ import {
   Wrench
 } from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
+import * as Select from "@radix-ui/react-select";
 import { useEffect, useMemo, useState, type DragEvent, type ReactNode } from "react";
 import { Link, Navigate, Route, Routes, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
@@ -91,6 +92,14 @@ const deploymentAgentOptions = [
   { value: "agent_019BdsR2v3NW1DiEG62wpu3e", name: "World Cup Daily Digest (self-hosted clone)", updated: "3 days ago" },
   { value: "agent_017k8CPYuCFRD9AmupUeXd2Z", name: "World Cup Daily Digest", updated: "3 days ago" },
   { value: "agent_01MNpVPKyrSECHGA6HqAmREZ", name: "Untitled agent", updated: "3 days ago" }
+];
+const sessionAgentOptions = [
+  { value: "agent_01MNpVPKyrSECHGA6HqAmREZ", name: "Untitled agent", updated: "23 hours ago" },
+  { value: "agent_013mi1SmR2hJ6Hk6wNTeJvF9", name: "Managed SSH Reverse Tunnel Bootstrapper", updated: "4 days ago" },
+  { value: "agent_01AVRPTGyYareCeoUasn66q5", name: "Incident commander", updated: "4 days ago" },
+  { value: "agent_019BdsR2v3NW1DiEG62wpu3e", name: "World Cup Daily Digest (self-hosted clone)", updated: "4 days ago" },
+  { value: "agent_017k8CPYuCFRD9AmupUeXd2Z", name: "World Cup Daily Digest", updated: "4 days ago" },
+  { value: "agent_01UntitledAgentCopy", name: "Untitled agent", updated: "4 days ago" }
 ];
 
 export default function App() {
@@ -3837,14 +3846,7 @@ function CreateSessionDialog({
               <label className={fieldLabelClass}>Agent</label>
               <DialogTextLink href="/agents">Manage agents</DialogTextLink>
             </div>
-            <FieldSelect
-              label=""
-              value={agentId || "Select an agent"}
-              options={["Select an agent", "agent_013mi1SmR2hJ6Hk6wNTeJvF9", "agent_017k8CPYuCFRD9AmupUeXd2Z", "agent_01AVRPTGyYareCeoUasn66q5"]}
-              onValueChange={(value) => setAgentId(value === "Select an agent" ? "" : value)}
-              showLabel={false}
-              triggerClassName="!h-[31px] w-[651px] !gap-1.5 !rounded-none border-0 !bg-transparent !pl-2 !pr-0"
-            />
+            <CreateSessionAgentPicker value={agentId} onValueChange={setAgentId} />
           </div>
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
@@ -3909,6 +3911,63 @@ function DialogTextLink({ href, children }: { href: string; children: ReactNode 
       <CdsIconGlyph glyph="" className="h-4 w-4 self-center text-current text-[16px] [font-weight:533.25]" />
       <span className="sr-only">(opens in new tab)</span>
     </a>
+  );
+}
+
+function CreateSessionAgentPicker({ value, onValueChange }: { value: string; onValueChange: (value: string) => void }) {
+  const selected = sessionAgentOptions.find((option) => option.value === value);
+  const [search, setSearch] = useState("");
+  const filteredOptions = sessionAgentOptions.filter((option) => option.name.toLowerCase().includes(search.toLowerCase()));
+
+  return (
+    <Select.Root value={value || undefined} onValueChange={onValueChange}>
+      <Select.Trigger
+        data-cds="Button"
+        className="cds-focus inline-flex h-[31px] w-[651px] items-center gap-1.5 rounded-none border-0 bg-transparent pl-2 pr-0 text-left text-sm leading-5 text-ink outline-none"
+      >
+        <span className="min-w-0 flex-1 truncate">{selected?.name ?? "Select an agent"}</span>
+        <Select.Icon className="shrink-0">
+          <CdsIconGlyph glyph="" className="mr-0.5 h-4 w-4 text-[#898781] text-[16px] [font-weight:533.25]" />
+        </Select.Icon>
+      </Select.Trigger>
+      <Select.Portal>
+        <Select.Content
+          position="popper"
+          sideOffset={0}
+          data-cds="ComboboxPopover"
+          className="z-50 max-h-[278px] w-[658px] overflow-hidden rounded-[12px] bg-white p-1 shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]"
+        >
+          <div role="combobox" aria-expanded="true" className="-mx-1 -mt-1 mb-1 flex h-[37px] w-[calc(100%+8px)] items-center border-b border-line px-4 py-2">
+            <input
+              className="h-full min-w-0 flex-1 bg-transparent text-sm leading-5 text-ink outline-none placeholder:text-transparent"
+              aria-label="Search agents"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              onKeyDown={(event) => event.stopPropagation()}
+            />
+          </div>
+          <Select.Viewport className="max-h-[230px] overflow-y-auto overflow-x-hidden">
+            {filteredOptions.map((option) => (
+              <Select.Item
+                key={option.value}
+                value={option.value}
+                className="flex min-h-[48px] w-full select-none items-center gap-2 rounded-[8px] px-3 py-1 text-sm leading-5 text-ink outline-none data-[highlighted]:bg-fill"
+              >
+                <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                  <Select.ItemText>
+                    <span className="block truncate">{option.name}</span>
+                  </Select.ItemText>
+                  <span className="truncate text-xs leading-4 text-[#898781]">{option.updated}</span>
+                </div>
+                <Select.ItemIndicator>
+                  <Check className="h-4 w-4 shrink-0 text-[#898781]" />
+                </Select.ItemIndicator>
+              </Select.Item>
+            ))}
+          </Select.Viewport>
+        </Select.Content>
+      </Select.Portal>
+    </Select.Root>
   );
 }
 
