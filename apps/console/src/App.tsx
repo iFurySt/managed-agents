@@ -2252,7 +2252,7 @@ function MemoryStoreDetailPage() {
                     </button>
                   </div>
                   <MemoryRecordActions record={selectedMemory} onDelete={() => deleteRecord(selectedMemory)} />
-                  <Button variant="ghost" size="sm" className="h-7 rounded-[7px] px-2.5 text-sm [font-weight:550]">
+                  <Button variant="ghost" className="!h-7 !gap-1.5 rounded-[7px] !px-2.5 text-sm !leading-5 [font-weight:550]">
                     <FileText className="h-4 w-4" />
                     Edit
                   </Button>
@@ -5665,7 +5665,7 @@ function MemoryRecordActions({ record, onDelete }: { record: MemoryRecord; onDel
   return (
     <CdsDropdownMenu.Root>
       <CdsDropdownMenu.Trigger asChild>
-        <Button variant="icon" aria-label="More actions">
+        <Button variant="icon" className="!h-7 !w-7 !gap-1.5 text-sm !leading-5 [font-weight:550]" aria-label="More actions">
           <span className="text-lg leading-none">⋯</span>
         </Button>
       </CdsDropdownMenu.Trigger>
