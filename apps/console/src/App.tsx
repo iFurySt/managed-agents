@@ -6562,10 +6562,10 @@ function AgentArchiveDialog({
         <Dialog.Content
           data-cds="ConfirmationDialog"
           role="alertdialog"
-          className="fixed left-1/2 top-1/2 z-50 flex w-[510px] max-w-[calc(100vw-32px)] -translate-x-1/2 -translate-y-1/2 flex-col rounded-[12px] bg-white p-6 text-sm text-ink shadow-[0_16px_48px_rgba(0,0,0,0.18),0_4px_14px_rgba(0,0,0,0.1)] outline-none"
+          className="fixed left-1/2 top-1/2 z-50 flex w-[510px] max-w-[calc(100vw-32px)] -translate-x-1/2 -translate-y-1/2 flex-col rounded-[12px] bg-white p-6 text-sm text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)] outline-none"
         >
-          <Dialog.Title className="-mt-1 text-[17px] leading-[26px] text-ink [font-weight:620]">Archive agent</Dialog.Title>
-          <Dialog.Description className="mt-1 text-sm leading-5 text-[#696762]">
+          <Dialog.Title className="-mt-1 text-[22px] leading-[26px] text-ink [font-weight:580]">Archive agent</Dialog.Title>
+          <Dialog.Description className="mt-1 text-sm leading-5 text-[#52514e]">
             This agent will be hidden from the default view. Sessions that reference it keep working.
           </Dialog.Description>
           <div className="mt-3 flex justify-end gap-2">
