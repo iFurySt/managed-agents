@@ -1,5 +1,4 @@
 import {
-  Archive,
   Boxes,
   Braces,
   Check,
@@ -257,6 +256,14 @@ function SidebarCollapseIcon() {
 
 function MoreActionsIcon() {
   return <CdsIconGlyph glyph="" />;
+}
+
+function MenuArchiveIcon() {
+  return <CdsIconGlyph glyph="" className="h-5 w-5 text-current text-[20px] [font-weight:433.25]" />;
+}
+
+function MenuDeleteIcon() {
+  return <CdsIconGlyph glyph="" className="h-5 w-5 text-current text-[20px] [font-weight:433.25]" />;
 }
 
 function CdsIconGlyph({ glyph, className = "h-5 w-5 text-current text-[20px] [font-weight:433.3]" }: { glyph: string; className?: string }) {
@@ -5726,14 +5733,14 @@ function EnvironmentActions({ environment, onArchive, onDelete }: { environment:
             onSelect={onArchive}
             disabled={archived}
           >
-            <Archive className="h-4 w-4 text-muted" />
+            <MenuArchiveIcon />
             {archived ? "Archived" : "Archive"}
           </CdsDropdownMenu.Item>
           <CdsDropdownMenu.Item
             className="flex h-8 w-full cursor-pointer items-center gap-2 rounded-md px-2 text-sm text-[#a33a29] outline-none data-[highlighted]:bg-[#fff1ef]"
             onSelect={onDelete}
           >
-            <Trash2 className="h-4 w-4" />
+            <MenuDeleteIcon />
             Delete
           </CdsDropdownMenu.Item>
         </CdsDropdownMenu.Content>
@@ -5807,14 +5814,14 @@ function VaultRowActions({ vault, onArchive, onDelete }: { vault: Vault; onArchi
             onSelect={onArchive}
             disabled={archived}
           >
-            <Archive className="h-4 w-4 text-muted" />
+            <MenuArchiveIcon />
             {archived ? "Archived" : "Archive"}
           </CdsDropdownMenu.Item>
           <CdsDropdownMenu.Item
             className="flex h-8 w-full cursor-pointer items-center gap-2 rounded-md px-2 text-sm text-[#a33a29] outline-none data-[highlighted]:bg-[#fff1ef]"
             onSelect={onDelete}
           >
-            <Trash2 className="h-4 w-4" />
+            <MenuDeleteIcon />
             Delete
           </CdsDropdownMenu.Item>
         </CdsDropdownMenu.Content>
@@ -5893,14 +5900,14 @@ function CredentialActions({ credential, onArchive, onDelete }: { credential: Va
             onSelect={onArchive}
             disabled={archived}
           >
-            <Archive className="h-4 w-4 text-muted" />
+            <MenuArchiveIcon />
             {archived ? "Archived" : "Archive"}
           </CdsDropdownMenu.Item>
           <CdsDropdownMenu.Item
             className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm text-[#a33a29] outline-none data-[highlighted]:bg-[#fff1ef]"
             onSelect={onDelete}
           >
-            <Trash2 className="h-4 w-4" />
+            <MenuDeleteIcon />
             Delete
           </CdsDropdownMenu.Item>
         </CdsDropdownMenu.Content>
@@ -5925,14 +5932,14 @@ function MemoryStoreActions({ store, onArchive, onDelete }: { store: MemoryStore
             onSelect={onArchive}
             disabled={archived}
           >
-            <Archive className="h-4 w-4 text-muted" />
+            <MenuArchiveIcon />
             {archived ? "Archived" : "Archive store"}
           </CdsDropdownMenu.Item>
           <CdsDropdownMenu.Item
             className="flex h-8 w-full cursor-pointer items-center gap-2 rounded-md px-2 text-sm text-[#a33a29] outline-none data-[highlighted]:bg-[#fff1ef]"
             onSelect={onDelete}
           >
-            <Trash2 className="h-4 w-4" />
+            <MenuDeleteIcon />
             Delete store
           </CdsDropdownMenu.Item>
         </CdsDropdownMenu.Content>
@@ -6007,7 +6014,7 @@ function MemoryRecordActions({ record, onDelete }: { record: MemoryRecord; onDel
             className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm text-[#a33a29] outline-none data-[highlighted]:bg-[#fff1ef]"
             onSelect={onDelete}
           >
-            <Trash2 className="h-4 w-4" />
+            <MenuDeleteIcon />
             Delete
           </CdsDropdownMenu.Item>
         </CdsDropdownMenu.Content>
@@ -6040,7 +6047,7 @@ function FileActions({ file, onDelete }: { file: WorkspaceFile; onDelete: () => 
             className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm text-[#a33a29] outline-none data-[highlighted]:bg-[#fff1ef]"
             onSelect={onDelete}
           >
-            <Trash2 className="h-4 w-4" />
+            <MenuDeleteIcon />
             Delete
           </CdsDropdownMenu.Item>
         </CdsDropdownMenu.Content>
@@ -6102,7 +6109,7 @@ function SessionRowActions({ session, onArchive }: { session: Session; onArchive
             onSelect={onArchive}
             disabled={archived}
           >
-            <Archive className="h-4 w-4 text-muted" />
+            <MenuArchiveIcon />
             {archived ? "Archived" : "Archive session"}
           </CdsDropdownMenu.Item>
         </CdsDropdownMenu.Content>
@@ -6193,7 +6200,7 @@ function DeploymentActions({
             onSelect={onArchive}
             disabled={archived}
           >
-            <Archive className="h-5 w-5 text-muted" />
+            <MenuArchiveIcon />
             {archived ? "Archived" : "Archive"}
           </CdsDropdownMenu.Item>
         </CdsDropdownMenu.Content>
@@ -6244,7 +6251,7 @@ function SessionDetailActions({
             onSelect={onArchive}
             disabled={archived}
           >
-            <Archive className="h-4 w-4 text-muted" />
+            <MenuArchiveIcon />
             {archived ? "Archived" : "Archive session"}
           </CdsDropdownMenu.Item>
         </CdsDropdownMenu.Content>
@@ -6400,7 +6407,7 @@ function AgentRowActions({ agent, onArchive }: { agent: Agent; onArchive: () => 
             onSelect={onArchive}
             disabled={archived}
           >
-            <Archive className="h-4 w-4 text-muted" />
+            <MenuArchiveIcon />
             {archived ? "Archived" : "Archive agent"}
           </CdsDropdownMenu.Item>
         </CdsDropdownMenu.Content>
@@ -6423,7 +6430,7 @@ function SkillActions({ onDelete }: { onDelete: () => void }) {
             className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm text-[#a33a29] outline-none data-[highlighted]:bg-[#fff1ef]"
             onSelect={onDelete}
           >
-            <Trash2 className="h-4 w-4" />
+            <MenuDeleteIcon />
             Delete
           </CdsDropdownMenu.Item>
         </CdsDropdownMenu.Content>
