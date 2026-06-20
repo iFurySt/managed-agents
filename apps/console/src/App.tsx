@@ -141,8 +141,8 @@ function Sidebar() {
 
   if (collapsed) {
     return (
-      <aside className="sticky top-0 flex h-screen w-12 shrink-0 flex-col border-r-[0.5px] border-line bg-[#f9f9f7] p-1.5">
-        <div className="flex h-10 items-center justify-center pb-3">
+      <aside className="sticky top-0 flex h-screen w-12 shrink-0 flex-col border-r-[0.5px] border-line bg-[#f9f9f7] p-0">
+        <div className="flex h-[52px] items-start justify-start pl-2 pt-3">
           <Button
             variant="ghost"
             className="!h-7 !w-7 !gap-1.5 !rounded-control !px-0 text-sm !leading-5 !text-[#898781] [font-weight:550] hover:!text-ink"
@@ -153,7 +153,7 @@ function Sidebar() {
           </Button>
         </div>
         <button
-          className="mt-[11px] flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-[8px] border border-black/10 bg-transparent text-[#9b87f5] shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
+          className="ml-[9px] mt-[5px] flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-[8px] border border-black/10 bg-transparent text-[#9b87f5] shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
           aria-label="Workspace"
         >
           <WorkspaceBoxIcon />
