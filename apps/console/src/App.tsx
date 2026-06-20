@@ -139,7 +139,7 @@ function Sidebar() {
 
   if (collapsed) {
     return (
-      <aside className="sticky top-0 flex h-screen w-[52px] shrink-0 flex-col border-r-[0.5px] border-line bg-[#f9f9f7] p-2">
+      <aside className="sticky top-0 flex h-screen w-12 shrink-0 flex-col border-r-[0.5px] border-line bg-[#f9f9f7] p-1.5">
         <div className="flex h-10 items-center justify-center pb-3">
           <Button
             variant="ghost"
@@ -150,7 +150,13 @@ function Sidebar() {
             <SidebarCollapseIcon />
           </Button>
         </div>
-        <nav className="mt-[4px] flex min-h-0 flex-1 flex-col items-center gap-1 overflow-y-auto pb-0">
+        <button
+          className="mt-[11px] flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-[8px] border border-black/10 bg-transparent text-[#9b87f5] shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
+          aria-label="Workspace"
+        >
+          <WorkspaceBoxIcon />
+        </button>
+        <nav className="mt-[17px] flex min-h-0 flex-1 flex-col items-center gap-1 overflow-y-auto pb-0">
           <CollapsedSidebarLink glyph="" label="Dashboard" />
           <CollapsedSidebarLink glyph="" label="API keys" />
           <CollapsedSidebarLink glyph="" label="Build" />
@@ -242,8 +248,14 @@ function Sidebar() {
 }
 
 function CollapsedSidebarLink({ glyph, label, to = "#" }: { glyph: string; label: string; to?: string }) {
+  const location = useLocation();
+  const managedActive =
+    label === "Managed Agents" &&
+    ["/agents", "/sessions", "/deployments", "/environments", "/vaults", "/memory-stores"].some((path) => location.pathname === path || location.pathname.startsWith(`${path}/`));
+  const active = managedActive || (to !== "#" && (location.pathname === to || location.pathname.startsWith(`${to}/`)));
+
   return (
-    <Link className="grid h-9 w-9 place-items-center rounded-lg text-[#898781] hover:bg-fill hover:text-ink" to={to} title={label} aria-label={label}>
+    <Link className={`grid h-9 w-9 place-items-center rounded-lg text-[#898781] hover:bg-fill hover:text-ink ${active ? "bg-[rgba(11,11,11,0.05)] !text-ink" : ""}`} to={to} title={label} aria-label={label}>
       <SidebarGlyph glyph={glyph} />
     </Link>
   );
@@ -289,13 +301,7 @@ function SidebarGlyph({ glyph, className = "h-5 w-5 text-[#898781] text-[20px] [
 
 function WorkspaceBoxIcon() {
   return (
-    <span className="shrink-0 text-[#9b87f5]">
-      <span data-cds="Icon" aria-hidden="true" className="relative flex h-4 w-4 shrink-0 select-none items-center justify-center text-[16px] leading-none text-current [font-family:var(--font-anthropicons,Anthropicons-Variable)] [font-weight:533.3]">
-        <span className="sr-only"></span>
-        <span className="absolute left-[3px] top-[1.5px] h-[13px] w-[10px] rounded-[2px] border-[1.5px] border-current" />
-        <span className="absolute left-[3px] top-[5.5px] h-[1.5px] w-[10px] bg-current" />
-      </span>
-    </span>
+    <CdsIconGlyph glyph="" className="h-4 w-4 text-[#9b87f5] text-[16px] [font-weight:533.3]" />
   );
 }
 
@@ -340,7 +346,9 @@ function Group({ icon, label, items, managed = false }: { icon: React.ReactNode;
       <div className={`flex shrink-0 items-center gap-3 rounded-lg px-2 text-sm text-[#52514e] ${groupWeight}`} style={{ height: 36 }}>
         {icon}
         <span className="min-w-0 flex-1 truncate">{label}</span>
-        <SidebarGlyph glyph="" className="h-3 w-3 text-[#898781] text-[12px] [font-weight:577.75]" />
+        <span aria-hidden="true" className="relative h-4 w-4 shrink-0 text-[#898781]">
+          <span className="absolute left-[5px] top-[4px] h-[7px] w-[7px] rotate-45 border-b-[1.5px] border-r-[1.5px] border-current" />
+        </span>
       </div>
       <div className="flex flex-col gap-1">
         {items.map((item) =>

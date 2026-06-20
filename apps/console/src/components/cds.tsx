@@ -208,10 +208,10 @@ export function SidebarItem({ to, children, inset = false, badge }: { to: string
   return (
     <Link
       to={to}
-      className={`flex shrink-0 items-center gap-3 rounded-lg px-2 text-sm text-[#52514e] hover:bg-fill ${inset ? "pl-10" : ""} ${active ? "bg-[rgba(11,11,11,0.05)] text-ink" : ""}`}
+      className={`flex shrink-0 items-center ${badge ? "gap-2" : "gap-3"} rounded-lg px-2 text-sm text-[#52514e] hover:bg-fill ${inset ? "pl-10" : ""} ${active ? "bg-[rgba(11,11,11,0.05)] text-ink" : ""}`}
       style={{ height: 36 }}
     >
-      <span className="min-w-0 flex-1 truncate">{children}</span>
+      <span className={`min-w-0 truncate ${badge ? "flex-none" : "flex-1"}`}>{children}</span>
       {badge ? <span className="rounded-md bg-[#d7e8ff] px-2 py-0.5 text-xs font-semibold text-[#1b5eb8]">{badge}</span> : null}
     </Link>
   );
