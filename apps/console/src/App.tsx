@@ -3365,7 +3365,8 @@ function CreateSessionDialog({
               value={agentId || "Select an agent"}
               options={["Select an agent", "agent_013mi1SmR2hJ6Hk6wNTeJvF9", "agent_017k8CPYuCFRD9AmupUeXd2Z", "agent_01AVRPTGyYareCeoUasn66q5"]}
               onValueChange={(value) => setAgentId(value === "Select an agent" ? "" : value)}
-              triggerClassName="!h-[31px] w-full border-0 bg-transparent px-2"
+              showLabel={false}
+              triggerClassName="!h-[31px] w-[651px] border-0 !bg-transparent !pl-2 !pr-0"
             />
           </div>
           <div className="grid gap-2">
@@ -3382,7 +3383,8 @@ function CreateSessionDialog({
               value={environmentId || "Select an environment"}
               options={["Select an environment", "env_01ManagedDebug", "env_01UbuntuNode", "env_01PythonBrowser"]}
               onValueChange={(value) => setEnvironmentId(value === "Select an environment" ? "" : value)}
-              triggerClassName="!h-[31px] w-full border-0 bg-transparent px-2"
+              showLabel={false}
+              triggerClassName="!h-[31px] w-[651px] border-0 !bg-transparent !pl-2 !pr-0"
             />
           </div>
           <div className="grid gap-2">
@@ -3399,7 +3401,8 @@ function CreateSessionDialog({
               value={vault || "Select one or more vaults"}
               options={["Select one or more vaults", "vault_01GitHub", "No vaults"]}
               onValueChange={(value) => setVault(value === "Select one or more vaults" || value === "No vaults" ? "" : value)}
-              triggerClassName="!h-[31px] w-full border-0 bg-transparent px-2"
+              showLabel={false}
+              triggerClassName="!h-[31px] w-[651px] border-0 !bg-transparent !pl-2 !pr-0"
             />
           </div>
           <div className="grid gap-[7px]">
