@@ -2975,7 +2975,7 @@ function SkillsPage() {
   }
 
   return (
-    <section className="flex flex-col gap-4">
+    <section className="mx-auto flex w-full max-w-[1216px] flex-col gap-4">
       <PageHeader
         title="Skills"
         description="Skills are repeatable and customizable instructions that Claude API can follow. Only skills from the Default workspace are shown. To see other workspace's skills, select a workspace."
@@ -2996,7 +2996,7 @@ function SkillsPage() {
           </div>
         }
       />
-      <div className="mt-2 flex max-w-[952px] flex-col border-t border-line">
+      <div className="mt-2 flex w-full flex-col border-t border-line">
         {skills.map((skill) => (
           <article
             key={skill.id}
