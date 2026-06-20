@@ -637,10 +637,9 @@ function SessionsPage() {
       />
       <div className="flex flex-wrap items-start gap-2">
         <div className="flex h-10 w-[320px] flex-col gap-1">
-          <div className="flex h-8 items-center gap-2 rounded-[8px] bg-white/50 px-3">
+          <div data-cds="TextInput" className="flex h-8 items-center gap-2 rounded-[8px] bg-white/50 px-3 shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]">
             <span className="text-xs text-[#898781] [font-weight:580]">ID</span>
             <input
-              data-cds="TextInput"
               className="h-full min-w-0 flex-1 border-0 bg-transparent p-0 text-sm text-ink outline-none placeholder:text-muted"
               aria-label="Search by session ID"
               placeholder="Search by session ID"
@@ -655,28 +654,28 @@ function SessionsPage() {
           value={created}
           options={["All time", "Last 24 hours", "Last 7 days", "Last 30 days"]}
           onValueChange={setCreated}
-          triggerClassName="w-[142px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2"
+          triggerClassName="w-[142px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2 !shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]"
         />
         <FieldSelect
           label="Agent"
           value={agent}
           options={["All", "agent_013mi1SmR2hJ6Hk6wNTeJvF9", "agent_017k8CPYuCFRD9AmupUeXd2Z"]}
           onValueChange={setAgent}
-          triggerClassName="ml-2 w-[112px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2"
+          triggerClassName="ml-2 w-[112px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2 !shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]"
         />
         <FieldSelect
           label="Deployment"
           value={deployment}
           options={["All", "depl_01ERmHnRJWQSLyxk7pVCMZXs"]}
           onValueChange={setDeployment}
-          triggerClassName="ml-2 w-[136px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2"
+          triggerClassName="ml-2 w-[136px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2 !shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]"
         />
         <FieldSelect
           label="Status"
           value={status}
           options={["Active", "Idle", "Archived", "All"]}
           onValueChange={setStatus}
-          triggerClassName="ml-2 w-[123px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2"
+          triggerClassName="ml-2 w-[123px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2 !shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]"
         />
       </div>
       <div className="-mt-2">
