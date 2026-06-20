@@ -2397,7 +2397,7 @@ function FilesPage() {
 function FilesEmptyState({ language, onLanguageChange }: { language: string; onLanguageChange: (value: string) => void }) {
   const code = language === "Python" ? filesPythonTemplate : filesCurlTemplate;
   return (
-    <div className="mt-4 max-w-[952px]">
+    <div className="mt-2 max-w-[952px]">
       <p className="mb-3 text-sm text-[#898781]">No files have been uploaded to the Default workspace. Copy the template below to upload your first file:</p>
       <div className="overflow-hidden rounded-cds bg-fill">
         <div className="flex h-9 items-center gap-2 px-3">
@@ -2407,7 +2407,7 @@ function FilesEmptyState({ language, onLanguageChange }: { language: string; onL
               View docs
               <ExternalLink className="h-3.5 w-3.5 text-muted" />
             </a>
-            <Button variant="ghost" size="sm" className="!-mr-1 !h-6 !w-6 !rounded-md !px-0 [font-weight:550]" aria-label="Copy code" onClick={() => copyText(code)}>
+            <Button variant="ghost" size="sm" className="!-mr-1 !h-6 !w-6 !gap-1.5 !rounded-md !px-0 !text-[13px] !leading-5 [font-weight:550]" aria-label="Copy code" onClick={() => copyText(code)}>
               <Copy className="h-3.5 w-3.5" />
             </Button>
           </div>
