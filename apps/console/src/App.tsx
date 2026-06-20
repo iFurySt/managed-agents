@@ -2751,8 +2751,8 @@ function AgentDetailPage() {
           </div>
         </div>
         <div className="flex shrink-0 gap-2">
-          <Button variant="secondary" className="!w-[71px] !border-0 !bg-transparent" onClick={() => setEditOpen(true)}>
-            <Settings className="h-4 w-4" />
+          <Button variant="secondary" className="!w-[71px] !gap-1.5 !border-0 !bg-transparent [font-weight:550]" onClick={() => setEditOpen(true)}>
+            <Pencil className="h-4 w-4" />
             Edit
           </Button>
           <AgentRowActions agent={agent} onArchive={() => setArchiveOpen(true)} />
