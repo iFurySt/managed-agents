@@ -18,7 +18,6 @@ import {
   KeyRound,
   MessageSquare,
   Pause,
-  Pencil,
   Play,
   Plus,
   RefreshCw,
@@ -168,12 +167,12 @@ function Sidebar() {
   }
 
   return (
-    <aside className="sticky top-0 flex h-screen w-64 shrink-0 flex-col border-r-[0.5px] border-line bg-[#f9f9f7] p-3">
+    <aside className="sticky top-0 flex h-screen w-[204px] shrink-0 flex-col border-r-[0.5px] border-line bg-[#f9f9f7] p-3">
       <div className="flex h-10 w-full flex-col pb-3">
         <div className="-mr-2 flex w-full translate-y-px items-center justify-between">
           <Link className="pl-2" to="/">
             <div className="inline-flex flex-col items-start">
-              <span className="ml-[-0.1em] whitespace-nowrap font-voice text-base font-medium leading-none text-ink [font-weight:550]">
+              <span className="whitespace-nowrap font-voice text-base font-medium leading-none text-ink [font-weight:550]">
                 Claude Console
               </span>
             </div>
@@ -264,6 +263,14 @@ function MenuArchiveIcon() {
 
 function MenuDeleteIcon() {
   return <CdsIconGlyph glyph="" className="h-5 w-5 text-current text-[20px] [font-weight:433.25]" />;
+}
+
+function MenuResumeIcon() {
+  return <CdsIconGlyph glyph="" className="h-5 w-5 text-current text-[20px] [font-weight:433.25]" />;
+}
+
+function MenuEditIcon() {
+  return <CdsIconGlyph glyph="" className="h-5 w-5 text-current text-[20px] [font-weight:433.25]" />;
 }
 
 function CdsIconGlyph({ glyph, className = "h-5 w-5 text-current text-[20px] [font-weight:433.3]" }: { glyph: string; className?: string }) {
@@ -6182,7 +6189,7 @@ function DeploymentActions({
         <CdsDropdownMenu.Content data-cds="Menu" className="z-50 w-[128px] rounded-[12px] bg-white p-1 shadow-[0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]" align="end" sideOffset={6}>
           {paused ? (
             <CdsDropdownMenu.Item className={itemClass} onSelect={onResume} disabled={archived}>
-              <Play className="h-5 w-5 text-muted" />
+              <MenuResumeIcon />
               Resume
             </CdsDropdownMenu.Item>
           ) : (
@@ -6192,11 +6199,11 @@ function DeploymentActions({
             </CdsDropdownMenu.Item>
           )}
           <CdsDropdownMenu.Item className={itemClass} onSelect={onEdit} disabled={archived}>
-            <Pencil className="h-5 w-5 text-muted" />
+            <MenuEditIcon />
             Edit
           </CdsDropdownMenu.Item>
           <CdsDropdownMenu.Item
-            className={itemClass}
+            className={`${itemClass} text-[#8e2626]`}
             onSelect={onArchive}
             disabled={archived}
           >
