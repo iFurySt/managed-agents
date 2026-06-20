@@ -5983,13 +5983,13 @@ function EnvironmentConfirmationDialog({
         <Dialog.Content
           data-cds="ConfirmationDialog"
           role="alertdialog"
-          className="fixed left-1/2 top-1/2 z-50 flex w-[510px] max-w-[calc(100vw-32px)] -translate-x-1/2 -translate-y-1/2 flex-col rounded-[12px] bg-white p-6 text-sm text-ink shadow-[0_16px_48px_rgba(0,0,0,0.18),0_4px_14px_rgba(0,0,0,0.1)] outline-none"
+          className="fixed left-1/2 top-1/2 z-50 flex w-[510px] max-w-[calc(100vw-32px)] -translate-x-1/2 -translate-y-1/2 flex-col rounded-[12px] bg-white p-6 text-sm text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)] outline-none"
         >
-          <Dialog.Title className="-mt-1 text-[17px] leading-[26px] text-ink [font-weight:620]">{title}</Dialog.Title>
-          <Dialog.Description className="mt-1 text-sm leading-5 text-[#696762]">{description}</Dialog.Description>
+          <Dialog.Title className="-mt-1 text-[22px] leading-[26px] text-ink [font-weight:580]">{title}</Dialog.Title>
+          <Dialog.Description className="mt-1 text-sm leading-5 text-[#52514e]">{description}</Dialog.Description>
           <div className="mt-3 flex justify-end gap-2">
             <Dialog.Close asChild>
-              <Button variant="secondary" className="h-8 w-[70px] rounded-[8px] border-0 bg-[#f1f0ec] px-0 text-sm [font-weight:550] hover:bg-[#e8e6df]">
+              <Button variant="ghost" className="h-8 w-[70px] rounded-[8px] bg-transparent px-0 text-sm [font-weight:550] hover:bg-fill">
                 Cancel
               </Button>
             </Dialog.Close>
@@ -6070,13 +6070,13 @@ function VaultConfirmationDialog({
         <Dialog.Content
           data-cds="ConfirmationDialog"
           role="alertdialog"
-          className="fixed left-1/2 top-1/2 z-50 flex w-[510px] max-w-[calc(100vw-32px)] -translate-x-1/2 -translate-y-1/2 flex-col rounded-[12px] bg-white p-6 text-sm text-ink shadow-[0_16px_48px_rgba(0,0,0,0.18),0_4px_14px_rgba(0,0,0,0.1)] outline-none"
+          className="fixed left-1/2 top-1/2 z-50 flex w-[510px] max-w-[calc(100vw-32px)] -translate-x-1/2 -translate-y-1/2 flex-col rounded-[12px] bg-white p-6 text-sm text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)] outline-none"
         >
-          <Dialog.Title className="-mt-1 text-[17px] leading-[26px] text-ink [font-weight:620]">{title}</Dialog.Title>
-          <Dialog.Description className="mt-1 text-sm leading-5 text-[#696762]">{description}</Dialog.Description>
+          <Dialog.Title className="-mt-1 text-[22px] leading-[26px] text-ink [font-weight:580]">{title}</Dialog.Title>
+          <Dialog.Description className="mt-1 text-sm leading-5 text-[#52514e]">{description}</Dialog.Description>
           <div className="mt-3 flex justify-end gap-2">
             <Dialog.Close asChild>
-              <Button variant="secondary" className="h-8 w-[70px] rounded-[8px] border-0 bg-[#f1f0ec] px-0 text-sm [font-weight:550] hover:bg-[#e8e6df]">
+              <Button variant="ghost" className="h-8 w-[70px] rounded-[8px] bg-transparent px-0 text-sm [font-weight:550] hover:bg-fill">
                 Cancel
               </Button>
             </Dialog.Close>
@@ -6186,13 +6186,13 @@ function MemoryStoreConfirmationDialog({
         <Dialog.Content
           data-cds="ConfirmationDialog"
           role="alertdialog"
-          className="fixed left-1/2 top-1/2 z-50 flex w-[510px] max-w-[calc(100vw-32px)] -translate-x-1/2 -translate-y-1/2 flex-col rounded-[12px] bg-white p-6 text-sm text-ink shadow-[0_16px_48px_rgba(0,0,0,0.18),0_4px_14px_rgba(0,0,0,0.1)] outline-none"
+          className="fixed left-1/2 top-1/2 z-50 flex w-[510px] max-w-[calc(100vw-32px)] -translate-x-1/2 -translate-y-1/2 flex-col rounded-[12px] bg-white p-6 text-sm text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)] outline-none"
         >
-          <Dialog.Title className="-mt-1 text-[17px] leading-[26px] text-ink [font-weight:620]">{title}</Dialog.Title>
-          <Dialog.Description className="mt-1 text-sm leading-5 text-[#696762]">{description}</Dialog.Description>
+          <Dialog.Title className="-mt-1 text-[22px] leading-[26px] text-ink [font-weight:580]">{title}</Dialog.Title>
+          <Dialog.Description className="mt-1 text-sm leading-5 text-[#52514e]">{description}</Dialog.Description>
           <div className="mt-3 flex justify-end gap-2">
             <Dialog.Close asChild>
-              <Button variant="secondary" className="h-8 w-[70px] rounded-[8px] border-0 bg-[#f1f0ec] px-0 text-sm [font-weight:550] hover:bg-[#e8e6df]">
+              <Button variant="ghost" className="h-8 w-[70px] rounded-[8px] bg-transparent px-0 text-sm [font-weight:550] hover:bg-fill">
                 Cancel
               </Button>
             </Dialog.Close>
