@@ -955,13 +955,19 @@ function DeploymentsPage() {
   const [search, setSearch] = useState("");
   const [agent, setAgent] = useState("All");
   const [status, setStatus] = useState("All");
+  const [page, setPage] = useState(0);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingDeployment, setEditingDeployment] = useState<Deployment | null>(null);
   const [archivingDeployment, setArchivingDeployment] = useState<Deployment | null>(null);
 
   useEffect(() => {
+    setPage(0);
     listDeployments({ q: search, status, agentId: agent }).then(setDeployments).catch(() => setDeployments([]));
   }, [agent, search, status]);
+
+  const pageSize = 8;
+  const maxPage = Math.max(0, Math.ceil(deployments.length / pageSize) - 1);
+  const visibleDeployments = deployments.slice(page * pageSize, page * pageSize + pageSize);
 
   async function applyStatus(deployment: Deployment, action: "pause" | "resume" | "archive") {
     const updated =
@@ -1031,7 +1037,7 @@ function DeploymentsPage() {
       <div className="mt-2 overflow-x-auto">
         <DataTable
           className="-mx-2 w-[calc(100%+16px)] p-2"
-          rows={deployments}
+          rows={visibleDeployments}
           getKey={(deployment) => deployment.id}
           showSelection={false}
           actionsWidth="56px"
@@ -1086,6 +1092,26 @@ function DeploymentsPage() {
             />
           )}
         />
+      </div>
+      <div className="mt-5 flex gap-2">
+        <Button
+          variant="icon"
+          className="!h-8 !w-8 !gap-1.5 !rounded-[8px] !leading-5"
+          aria-label="Previous page"
+          disabled={page === 0}
+          onClick={() => setPage((value) => Math.max(0, value - 1))}
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="icon"
+          className="!h-8 !w-8 !gap-1.5 !rounded-[8px] !leading-5"
+          aria-label="Next page"
+          disabled={page >= maxPage}
+          onClick={() => setPage((value) => Math.min(maxPage, value + 1))}
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
       </div>
       <CreateDeploymentDialog
         open={dialogOpen}
