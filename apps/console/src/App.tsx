@@ -156,13 +156,20 @@ function Sidebar() {
           <SidebarCollapseIcon />
         </Button>
       </div>
-      <button className="mb-[18px] mt-[5px] flex h-[30px] items-center justify-between rounded-cds border border-line bg-white px-3 text-sm shadow-sm">
-        <span className="flex items-center gap-2">
-          <Box className="h-4 w-4 text-[#8b6fff]" />
-          Default
-        </span>
-        <ChevronDown className="h-4 w-4 text-muted" />
-      </button>
+      <div className="mb-[18px] mt-[4px] inline-flex h-8 w-full items-center gap-1.5 rounded-cds border border-black/10 bg-transparent pr-2 text-sm leading-5">
+        <button
+          className="flex min-w-0 flex-1 items-center gap-1.5 self-stretch border-0 bg-transparent p-0 pl-2 text-left outline-none"
+          role="combobox"
+          aria-expanded="false"
+          aria-label="Workspace"
+        >
+          <span className="flex w-full min-w-0 items-center gap-2">
+            <WorkspaceBoxIcon />
+            <span className="min-w-0 truncate">Default</span>
+          </span>
+          <WorkspaceChevronIcon />
+        </button>
+      </div>
       <nav className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto pb-0">
         <IconItem icon={<Home />} label="Dashboard" />
         <IconItem icon={<KeyRound />} label="API keys" />
@@ -200,6 +207,24 @@ function SidebarCollapseIcon() {
     <span
       aria-hidden="true"
       className="relative block h-5 w-5 before:absolute before:left-[3px] before:top-[2px] before:h-4 before:w-[14px] before:rounded-[3px] before:border-[1.5px] before:border-current after:absolute after:bottom-[2px] after:left-[8.5px] after:top-[2px] after:w-[1.5px] after:rounded-full after:bg-current"
+    />
+  );
+}
+
+function WorkspaceBoxIcon() {
+  return (
+    <span
+      aria-hidden="true"
+      className="relative h-4 w-4 shrink-0 text-[#9b87f5] before:absolute before:left-[3px] before:top-[1.5px] before:h-[13px] before:w-[10px] before:rounded-[2px] before:border-[1.5px] before:border-current after:absolute after:left-[3px] after:top-[5.5px] after:h-[1.5px] after:w-[10px] after:bg-current"
+    />
+  );
+}
+
+function WorkspaceChevronIcon() {
+  return (
+    <span
+      aria-hidden="true"
+      className="relative mr-0.5 h-4 w-4 shrink-0 text-[#898781] before:absolute before:left-1 before:top-[5px] before:h-2 before:w-2 before:rotate-45 before:border-b-[1.5px] before:border-r-[1.5px] before:border-current"
     />
   );
 }
