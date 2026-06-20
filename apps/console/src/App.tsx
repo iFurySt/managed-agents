@@ -5294,7 +5294,7 @@ function CreateCredentialDialog({
       description={description}
       open={open}
       onOpenChange={onOpenChange}
-      contentClassName="h-[349px] w-[510px] max-w-[calc(100vw-32px)] !rounded-[12px] border-0"
+      contentClassName="h-[349px] w-[510px] max-w-[calc(100vw-32px)] !rounded-[12px] border-0 !shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]"
       headerClassName="flex items-start justify-between pl-6 pr-4 pt-4"
       titleClassName="mt-1 w-[431px] text-[22px] leading-[26px] text-ink [font-weight:580]"
       closeButtonClassName="h-[31px] w-[31px] rounded-[8px] px-0"
@@ -5354,7 +5354,7 @@ function CreateCredentialForm({
             Name <span className="inline-flex h-[22px] items-center rounded-[5.5px] bg-fill px-2 text-xs leading-[15px] text-[#52514e] [font-weight:550]">Optional</span>
           </label>
           <TextInput
-            className="h-[31px] rounded-[8px] border-0 bg-white/50 px-3 font-normal"
+            className="h-[31px] rounded-[8px] border-0 bg-white/50 px-3 font-normal shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]"
             placeholder="Example credential"
             value={name}
             onChange={(event) => setName(event.target.value)}
@@ -5394,7 +5394,7 @@ function CreateCredentialForm({
       </div>
       <div className="sticky bottom-0 -mx-6 mt-4 flex justify-end gap-2 bg-white px-6 py-0">
         {secondaryLabel ? <Button variant="ghost" className="h-[31px] rounded-[8px] px-3 [font-weight:550]" onClick={onSecondary}>{secondaryLabel}</Button> : null}
-        <Button variant="ghost" className="h-[31px] w-[81px] rounded-[8px] px-0 [font-weight:550]" onClick={submit} disabled={!canSubmit}>{submitLabel}</Button>
+        <Button className="h-[31px] w-[81px] rounded-[8px] px-0 [font-weight:550]" onClick={submit} disabled={!canSubmit}>{submitLabel}</Button>
       </div>
     </div>
   );
