@@ -5220,10 +5220,10 @@ function CreateVaultDialog({
       title={step === "vault" ? "Create vault" : "Add a credential"}
       open={open}
       onOpenChange={closeDialog}
-      contentClassName={step === "vault" ? "h-[306px] w-[510px] max-w-[calc(100vw-32px)] !rounded-[12px] border-0" : undefined}
+      contentClassName={step === "vault" ? "h-[306px] w-[510px] max-w-[calc(100vw-32px)] !rounded-[12px] border-0 !shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]" : undefined}
       headerClassName={step === "vault" ? "flex items-start justify-between pl-6 pr-4 pt-4" : undefined}
       titleClassName={step === "vault" ? "mt-1 w-[431px] -translate-y-px text-[22px] leading-[26px] text-ink [font-weight:580]" : undefined}
-      closeButtonClassName={step === "vault" ? "h-[31px] w-[31px] -translate-y-px rounded-[8px] px-0" : undefined}
+      closeButtonClassName={step === "vault" ? "h-[31px] w-[31px] -translate-y-px !rounded-[8px] px-0" : undefined}
       closeLabel={step === "vault" ? "Close" : undefined}
     >
       {step === "vault" ? (
@@ -5239,7 +5239,7 @@ function CreateVaultDialog({
           <div className="grid gap-2">
             <label className={fieldLabelClass}>Name</label>
             <TextInput
-              className="h-[31px] rounded-[8px] border-0 bg-white/50 px-3 font-normal"
+              className="h-[31px] !rounded-[8px] border-0 bg-white/50 px-3 font-normal shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]"
               placeholder="Production vault"
               value={name}
               maxLength={50}
@@ -5248,7 +5248,7 @@ function CreateVaultDialog({
             <span className={helperClass}>50 characters or fewer.</span>
           </div>
           <div className="sticky bottom-0 -mx-6 mt-[15px] flex justify-end bg-white px-6 py-0">
-            <Button className="h-[31px] w-[84px] rounded-[8px] px-0 [font-weight:550]" onClick={continueToCredential} disabled={!canContinue}>Continue</Button>
+            <Button className="h-[31px] w-[84px] !rounded-[8px] px-0 [font-weight:550]" onClick={continueToCredential} disabled={!canContinue}>Continue</Button>
           </div>
         </div>
       ) : vault ? (
