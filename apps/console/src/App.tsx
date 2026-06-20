@@ -5360,6 +5360,7 @@ function CreateCredentialForm({
           <FieldSelect
             label=""
             showLabel={false}
+            ariaLabel="Credential type"
             value={authType}
             options={["MCP OAuth", "Bearer token", "Environment variable"]}
             onValueChange={setAuthType}
@@ -5372,6 +5373,7 @@ function CreateCredentialForm({
             <FieldSelect
               label=""
               showLabel={false}
+              ariaLabel={targetLabel}
               value={target || targetPlaceholder}
               options={[targetPlaceholder]}
               onValueChange={setTarget}

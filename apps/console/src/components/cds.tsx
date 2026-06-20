@@ -80,6 +80,7 @@ export function FieldSelect({
   onValueChange,
   triggerClassName = "",
   showLabel = true,
+  ariaLabel,
   contentClassName = "",
   itemClassName = ""
 }: {
@@ -89,6 +90,7 @@ export function FieldSelect({
   onValueChange: (value: string) => void;
   triggerClassName?: string;
   showLabel?: boolean;
+  ariaLabel?: string;
   contentClassName?: string;
   itemClassName?: string;
 }) {
@@ -96,6 +98,7 @@ export function FieldSelect({
     <Select.Root value={value} onValueChange={onValueChange}>
       <Select.Trigger
         data-cds="Button"
+        aria-label={ariaLabel}
         className={`cds-focus inline-flex h-8 items-center gap-2 rounded-control border border-line bg-white px-3 text-sm text-ink ${triggerClassName}`}
       >
         <span className="flex min-w-0 flex-1 items-baseline gap-1.5 whitespace-nowrap">
