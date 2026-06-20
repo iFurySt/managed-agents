@@ -41,7 +41,6 @@ import {
   createAgent,
   createDeployment,
   createEnvironment,
-  createFile,
   createMemory,
   createMemoryStore,
   createSession,
@@ -2677,7 +2676,6 @@ function FilesPage() {
   const [kind, setKind] = useState("All");
   const [status, setStatus] = useState("All");
   const [language, setLanguage] = useState("Python");
-  const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
     listFiles({ q: query, kind, status }).then(setFiles).catch(() => setFiles([]));
@@ -2696,12 +2694,6 @@ function FilesPage() {
         description="Only files from the Default workspace are shown. To see other workspace's files, select a workspace."
         action={
           <div className="flex items-center gap-2">
-            {files.length ? (
-              <Button className="!gap-1.5 !rounded-[8px] !px-2 [font-weight:550]" onClick={() => setDialogOpen(true)}>
-                <CdsIconGlyph glyph="" className="h-5 w-5 text-current text-[20px] [font-weight:566.5]" />
-                Add local file
-              </Button>
-            ) : null}
             <a
               data-cds="Button"
               aria-label="View documentation"
@@ -2767,11 +2759,6 @@ function FilesPage() {
       ) : (
         <FilesEmptyState language={language} onLanguageChange={setLanguage} />
       )}
-      <CreateFileDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        onCreated={(file) => setFiles((items) => [file, ...items])}
-      />
     </section>
   );
 }
@@ -5450,64 +5437,6 @@ function AddMemoryDialog({
         </div>
         <div className="sticky bottom-0 -mx-6 mt-[15px] flex justify-end bg-white px-6 py-0">
           <Button variant="ghost" className="h-[31px] w-[69px] rounded-[8px] px-0 [font-weight:550]" onClick={submit} disabled={!canCreate}>Create</Button>
-        </div>
-      </div>
-    </ConsoleDialog>
-  );
-}
-
-function CreateFileDialog({
-  open,
-  onOpenChange,
-  onCreated
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onCreated: (file: WorkspaceFile) => void;
-}) {
-  const [name, setName] = useState("");
-  const [mediaType, setMediaType] = useState("text/plain");
-  const [description, setDescription] = useState("");
-  const [content, setContent] = useState("");
-  const canCreate = name.trim().length > 0;
-
-  async function submit() {
-    if (!canCreate) return;
-    const file = await createFile({ name, mediaType, description, content });
-    onCreated(file);
-    onOpenChange(false);
-    setName("");
-    setDescription("");
-    setContent("");
-  }
-
-  return (
-    <ConsoleDialog title="Add local file" description="Create a local filestore row for UI testing." open={open} onOpenChange={onOpenChange}>
-      <div className="px-6 pb-0 pt-5">
-        <div className="grid gap-5">
-          <label className="grid gap-2 text-sm font-medium">
-            Name
-            <TextInput placeholder="document.pdf" value={name} onChange={(event) => setName(event.target.value)} />
-          </label>
-          <div className="grid gap-2">
-            <label className="text-sm font-medium">Media type</label>
-            <FieldSelect label="" value={mediaType} options={["text/plain", "application/pdf", "application/json", "image/png"]} onValueChange={setMediaType} />
-          </div>
-          <label className="grid gap-2 text-sm font-medium">
-            Description
-            <TextInput placeholder="Optional note" value={description} onChange={(event) => setDescription(event.target.value)} />
-          </label>
-          <label className="grid gap-2 text-sm font-medium">
-            Content
-            <textarea
-              className="cds-focus min-h-[140px] resize-none rounded-cds border border-line bg-white px-3 py-3 font-mono text-sm leading-6"
-              value={content}
-              onChange={(event) => setContent(event.target.value)}
-            />
-          </label>
-        </div>
-        <div className="sticky bottom-0 -mx-6 mt-6 flex justify-end bg-white px-6 py-5">
-          <Button onClick={submit} disabled={!canCreate}>Create</Button>
         </div>
       </div>
     </ConsoleDialog>
