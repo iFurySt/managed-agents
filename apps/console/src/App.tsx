@@ -3704,7 +3704,7 @@ function CreateAgentDialog({
                     onClick={() => selectTemplate(template)}
                   >
                     <span className="text-sm leading-5 text-ink">{template.name}</span>
-                    <span className="mt-px text-xs leading-4 text-muted">{template.description}</span>
+                    <span className="mt-0.5 text-xs leading-4 text-muted">{template.description}</span>
                   </button>
                 ))}
               </div>
