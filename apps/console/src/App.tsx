@@ -144,8 +144,12 @@ function Sidebar() {
     <aside className="sticky top-0 flex h-screen w-64 shrink-0 flex-col border-r-[0.5px] border-line bg-[#f9f9f7] p-3">
       <div className="flex h-10 w-full flex-col pb-3">
         <div className="-mr-2 flex w-full translate-y-px items-center justify-between">
-          <Link className="pl-2 text-sm font-normal leading-[21px] text-ink" to="/">
-            Claude Console
+          <Link className="pl-2" to="/">
+            <span className="inline-flex flex-col items-start gap-[3px]">
+              <span className="ml-[-0.1em] whitespace-nowrap font-serif text-base leading-none text-ink [font-feature-settings:'dlig','ss01'] [font-optical-sizing:auto] [font-weight:550]">
+                Claude Console
+              </span>
+            </span>
           </Link>
           <Button
             variant="ghost"
