@@ -758,7 +758,7 @@ function SessionsPage() {
           renderActions={(session) => <SessionRowActions session={session} onArchive={() => setArchivingSession(session)} />}
         />
       </div>
-      <div className="-mt-3 flex gap-2">
+      <div className="mt-[5px] flex gap-2">
         <Button
           variant="icon"
           className="!h-8 !w-8 !gap-1.5 !rounded-[8px] !leading-5"
