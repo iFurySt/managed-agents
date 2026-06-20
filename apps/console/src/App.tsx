@@ -181,8 +181,8 @@ function Sidebar() {
       <div className="flex h-10 w-full flex-col pb-3">
         <div className="-mr-2 flex w-full translate-y-px items-center justify-between">
           <Link className="pl-2" to="/">
-            <div data-cds="ProductLogo" className="inline-flex origin-left scale-95 flex-col items-start">
-              <span className="ml-[-0.1em] whitespace-nowrap font-voice text-[16px] leading-none text-ink [font-weight:550]">
+            <div data-cds="ProductLogo" className="inline-flex flex-col items-start">
+              <span className="whitespace-nowrap font-voice text-[16px] leading-none text-ink [font-weight:550]">
                 Claude Console
               </span>
             </div>
@@ -264,12 +264,7 @@ function CollapsedSidebarLink({ glyph, label, to = "#" }: { glyph: string; label
 }
 
 function SidebarCollapseIcon() {
-  return (
-    <span data-cds="Icon" aria-hidden="true" className="relative block h-5 w-5 text-current">
-      <span className="absolute left-[3px] top-[3px] h-3.5 w-3.5 rounded-[3px] border-[1.5px] border-current" />
-      <span className="absolute left-[8px] top-[3px] h-3.5 border-l-[1.5px] border-current" />
-    </span>
-  );
+  return <CdsIconGlyph glyph="" className="h-5 w-5 text-current text-[20px] [font-weight:433.25]" />;
 }
 
 function MoreActionsIcon() {
