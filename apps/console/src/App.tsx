@@ -1988,7 +1988,8 @@ function VaultsPage() {
       </div>
       <div className="overflow-x-auto">
         <DataTable
-          className="-mx-2 w-[calc(100%+16px)] p-2"
+          className="-mx-2 w-[calc(100%+16px)] overflow-x-auto p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
+          tableClassName="border-separate border-spacing-0 whitespace-nowrap"
           rows={visibleVaults}
           getKey={(vault) => vault.id}
           showSelection={false}
@@ -1999,10 +2000,16 @@ function VaultsPage() {
               header: "ID",
               width: "216px",
               render: (vault) => (
-                <div className="flex items-center gap-2">
+                <div className="group/cid flex items-center gap-2">
                   <span className="font-mono font-semibold">{shortId(vault.id)}</span>
-                  <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${vault.id}`} onClick={() => copyText(vault.id)}>
-                    <Copy className="h-3.5 w-3.5" />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="-my-1 h-[22px] w-[22px] !rounded-[8px] !px-0 !text-[#898781] !opacity-0 hover:!bg-fill hover:!text-[#52514e] group-hover/cid:!opacity-100"
+                    aria-label={`Copy ${vault.id}`}
+                    onClick={() => copyText(vault.id)}
+                  >
+                    <CdsIconGlyph glyph="" className="h-3.5 w-3.5 text-current text-[14px] [font-weight:628.5]" />
                   </Button>
                 </div>
               )
@@ -2012,7 +2019,7 @@ function VaultsPage() {
               header: "Name",
               width: "304px",
               render: (vault) => (
-                <Link className="font-medium hover:underline" to={`/vaults/${vault.id}`}>
+                <Link className="block truncate [font-weight:400]" to={`/vaults/${vault.id}`}>
                   {vault.name}
                 </Link>
               )
@@ -2037,7 +2044,7 @@ function VaultsPage() {
           disabled={page === 0}
           onClick={() => setPage((value) => Math.max(0, value - 1))}
         >
-          <ChevronLeft className="h-4 w-4" />
+          <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
         </Button>
         <Button
           variant="icon"
@@ -2046,7 +2053,7 @@ function VaultsPage() {
           disabled={page >= maxPage}
           onClick={() => setPage((value) => Math.min(maxPage, value + 1))}
         >
-          <ChevronRight className="h-4 w-4" />
+          <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
         </Button>
       </div>
       <CreateVaultDialog
