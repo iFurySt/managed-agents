@@ -3584,7 +3584,7 @@ function CreateAgentDialog({
   const [configYaml, setConfigYaml] = useState(defaultAgentYaml());
   const jsonConfig = useMemo(() => JSON.stringify(agentConfigFromYaml(configYaml), null, 2), [configYaml]);
   const startingPointPanelId = "create-agent-starting-point-panel";
-  const startingPointPanelHeight = startingPointOpen ? (startingPointMode === "template" ? 167 : 157) : 0;
+  const startingPointPanelHeight = startingPointOpen ? (startingPointMode === "template" ? 160 : 157) : 0;
 
   function selectTemplate(template: (typeof agentStartingTemplates)[number]) {
     setSelectedTemplate(template);
@@ -3652,7 +3652,7 @@ function CreateAgentDialog({
           data-open={startingPointOpen ? "" : undefined}
           style={{ height: startingPointPanelHeight, transitionDuration: "0s" }}
         >
-          <div className={`rounded-cds bg-fill ${startingPointMode === "template" ? "h-[167px] overflow-hidden" : ""}`}>
+          <div className={`rounded-cds bg-fill ${startingPointMode === "template" ? "h-[160px] overflow-hidden" : ""}`}>
             <div className="grid h-[31px] grid-cols-2 rounded-cds bg-fill p-px text-sm" role="radiogroup" aria-label="Starting point">
               <button
                 aria-checked={startingPointMode === "describe"}
