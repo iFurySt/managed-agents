@@ -3341,8 +3341,8 @@ function CreateSessionDialog({
       closeLabel="Close"
     >
       <div className="px-6 pb-0 pt-[10px]">
-        <div className="grid gap-[17px]">
-          <label className={`grid gap-2 ${fieldLabelClass}`}>
+        <div className="grid gap-4">
+          <label className={`grid gap-[7px] ${fieldLabelClass}`}>
             Title
             <TextInput
               className="h-[31px] border-0 bg-white/50 rounded-[8px] px-3 font-normal"
@@ -3402,7 +3402,7 @@ function CreateSessionDialog({
               triggerClassName="!h-[31px] w-full border-0 bg-transparent px-2"
             />
           </div>
-          <div className="grid gap-2">
+          <div className="grid gap-[7px]">
             <label className={fieldLabelClass}>Resources</label>
             <p className="text-[13px] leading-[18px] text-muted">Mount files, GitHub repositories, or memory stores into the session.</p>
             <FieldSelect
@@ -3414,7 +3414,7 @@ function CreateSessionDialog({
             />
           </div>
         </div>
-        <div className="sticky bottom-0 -mx-6 mt-9 flex justify-end bg-white px-6 pb-[23px] pt-0">
+        <div className="sticky bottom-0 -mx-6 mt-[37px] flex justify-end bg-white px-6 pb-[23px] pt-0">
           <Button className="h-[31px] w-[122px] rounded-[8px] px-0 [font-weight:550]" onClick={submit} disabled={!canCreate}>Create session</Button>
         </div>
       </div>
