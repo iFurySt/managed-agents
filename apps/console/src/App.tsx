@@ -5478,11 +5478,12 @@ function CreateCredentialForm({
     setTarget("");
   }
 
-  const targetLabel = authType === "Environment variable" ? "Environment variable" : authType === "Bearer token" ? "Endpoint" : "MCP server";
-  const targetPlaceholder = authType === "Environment variable" ? "ENV_VAR_NAME" : authType === "Bearer token" ? "https://api.example.com/" : "https://mcp.example.com";
+  const targetLabel = authType === "Environment variable" ? "Environment variable" : "MCP server";
+  const targetPlaceholder = authType === "Environment variable" ? "ENV_VAR_NAME" : "https://mcp.example.com";
   const canSubmit = target.trim().length > 0;
   const fieldLabelClass = "text-sm leading-none [font-weight:550]";
   const selectShellClass = "flex h-[31px] w-full items-center rounded-[8px] border-0 bg-white/50 pr-2 shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]";
+  const primaryLabel = authType === "MCP OAuth" ? submitLabel : "Add credential";
 
   return (
     <div className="px-6 pb-0 pt-[10px]">
@@ -5507,7 +5508,7 @@ function CreateCredentialForm({
         </div>
         <div className="grid gap-2">
           <label className={fieldLabelClass}>{targetLabel}</label>
-          {authType === "MCP OAuth" ? (
+          {authType === "MCP OAuth" || authType === "Bearer token" ? (
             <div className={selectShellClass}>
               <FieldSelect
                 label=""
@@ -5531,7 +5532,7 @@ function CreateCredentialForm({
       </div>
       <div className="sticky bottom-0 -mx-6 mt-4 flex justify-end gap-2 bg-white px-6 py-0">
         {secondaryLabel ? <Button variant="ghost" className="h-[31px] rounded-[8px] px-3 [font-weight:550]" onClick={onSecondary}>{secondaryLabel}</Button> : null}
-        <Button className="h-[31px] w-[81px] rounded-[8px] px-0 [font-weight:550]" onClick={submit} disabled={!canSubmit}>{submitLabel}</Button>
+        <Button className={`h-[31px] rounded-[8px] px-0 [font-weight:550] ${primaryLabel === "Add credential" ? "w-[121px]" : "w-[81px]"}`} onClick={submit} disabled={!canSubmit}>{primaryLabel}</Button>
       </div>
     </div>
   );
