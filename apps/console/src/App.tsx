@@ -1846,13 +1846,19 @@ function VaultsPage() {
   const [vaults, setVaults] = useState<Vault[]>([]);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All");
+  const [page, setPage] = useState(0);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [archivingVault, setArchivingVault] = useState<Vault | null>(null);
   const [deletingVault, setDeletingVault] = useState<Vault | null>(null);
 
   useEffect(() => {
+    setPage(0);
     listVaults({ q: search, status }).then(setVaults).catch(() => setVaults([]));
   }, [search, status]);
+
+  const pageSize = 8;
+  const maxPage = Math.max(0, Math.ceil(vaults.length / pageSize) - 1);
+  const visibleVaults = vaults.slice(page * pageSize, page * pageSize + pageSize);
 
   async function archiveCurrent(vault: Vault) {
     const updated = await archiveVault(vault.id);
@@ -1904,7 +1910,7 @@ function VaultsPage() {
       <div className="overflow-x-auto">
         <DataTable
           className="-mx-2 w-[calc(100%+16px)] p-2"
-          rows={vaults}
+          rows={visibleVaults}
           getKey={(vault) => vault.id}
           showSelection={false}
           actionsWidth="48px"
@@ -1944,6 +1950,26 @@ function VaultsPage() {
           )}
         />
       </div>
+      <div className="mt-[10.5px] flex gap-2">
+        <Button
+          variant="icon"
+          className="!h-8 !w-8 !gap-1.5 !rounded-[8px] !leading-5"
+          aria-label="Previous page"
+          disabled={page === 0}
+          onClick={() => setPage((value) => Math.max(0, value - 1))}
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="icon"
+          className="!h-8 !w-8 !gap-1.5 !rounded-[8px] !leading-5"
+          aria-label="Next page"
+          disabled={page >= maxPage}
+          onClick={() => setPage((value) => Math.min(maxPage, value + 1))}
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
+      </div>
       <CreateVaultDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
@@ -1976,6 +2002,7 @@ function VaultDetailPage() {
   const navigate = useNavigate();
   const [vault, setVault] = useState<Vault | null>(null);
   const [status, setStatus] = useState("All");
+  const [credentialPage, setCredentialPage] = useState(0);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [archiveOpen, setArchiveOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -1983,6 +2010,10 @@ function VaultDetailPage() {
   useEffect(() => {
     if (id) getVault(id).then(setVault).catch(() => setVault(null));
   }, [id]);
+
+  useEffect(() => {
+    setCredentialPage(0);
+  }, [id, status]);
 
   async function archiveCurrentVault() {
     if (!vault) return;
@@ -2012,7 +2043,10 @@ function VaultDetailPage() {
 
   if (!vault) return <EmptyState title="Credential vault not found" description="The selected vault could not be loaded." />;
 
-  const visibleCredentials = status === "All" ? (vault.credentials ?? []) : (vault.credentials ?? []).filter((credential) => credential.status === status);
+  const filteredCredentials = status === "All" ? (vault.credentials ?? []) : (vault.credentials ?? []).filter((credential) => credential.status === status);
+  const credentialPageSize = 8;
+  const credentialMaxPage = Math.max(0, Math.ceil(filteredCredentials.length / credentialPageSize) - 1);
+  const visibleCredentials = filteredCredentials.slice(credentialPage * credentialPageSize, credentialPage * credentialPageSize + credentialPageSize);
 
   return (
     <section className="-mt-4 flex flex-col">
@@ -2099,6 +2133,26 @@ function VaultDetailPage() {
           ]}
           renderActions={(credential) => <CredentialActions credential={credential} onArchive={() => archiveCredential(credential)} onDelete={() => deleteCredential(credential)} />}
         />
+      </div>
+      <div className="mt-3 flex gap-2">
+        <Button
+          variant="icon"
+          className="!h-8 !w-8 !gap-1.5 !rounded-[8px] !leading-5"
+          aria-label="Previous page"
+          disabled={credentialPage === 0}
+          onClick={() => setCredentialPage((value) => Math.max(0, value - 1))}
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="icon"
+          className="!h-8 !w-8 !gap-1.5 !rounded-[8px] !leading-5"
+          aria-label="Next page"
+          disabled={credentialPage >= credentialMaxPage}
+          onClick={() => setCredentialPage((value) => Math.min(credentialMaxPage, value + 1))}
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
       </div>
       <CreateCredentialDialog
         open={dialogOpen}
