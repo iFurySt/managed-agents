@@ -5365,7 +5365,7 @@ function CreateCredentialForm({
             value={authType}
             options={["MCP OAuth", "Bearer token", "Environment variable"]}
             onValueChange={setAuthType}
-            triggerClassName="!h-[31px] w-[455px] rounded-none !border-transparent !bg-transparent px-0 hover:!bg-transparent"
+            triggerClassName="!h-[31px] w-[455px] !gap-1.5 rounded-none !border-transparent !bg-transparent !pl-2 !pr-0 hover:!bg-transparent"
           />
         </div>
         <div className="grid gap-2">
@@ -5378,7 +5378,7 @@ function CreateCredentialForm({
               value={target || targetPlaceholder}
               options={[targetPlaceholder]}
               onValueChange={setTarget}
-              triggerClassName="!h-[31px] w-[455px] rounded-none !border-transparent !bg-transparent px-0 hover:!bg-transparent"
+              triggerClassName="!h-[31px] w-[455px] !gap-1.5 rounded-none !border-transparent !bg-transparent !pl-2 !pr-0 hover:!bg-transparent"
             />
           ) : (
             <TextInput

@@ -106,7 +106,7 @@ export function FieldSelect({
           <Select.Value className="min-w-0 truncate" />
         </span>
         <Select.Icon className="shrink-0">
-          <CdsIconGlyph glyph="" className="h-4 w-4 text-[#898781] text-[16px] [font-weight:533.25]" />
+          <CdsIconGlyph glyph="" className="mr-0.5 h-4 w-4 text-[#898781] text-[16px] [font-weight:533.25]" />
         </Select.Icon>
       </Select.Trigger>
       <Select.Portal>
