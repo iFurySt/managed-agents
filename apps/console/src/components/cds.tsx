@@ -168,7 +168,7 @@ export function DataTable<T>({
           <tr className="h-8 border-b border-line text-[13px] leading-4 text-[#52514e] [font-weight:550]">
             {showSelection ? (
               <th className="w-10 py-0">
-                <span className="block h-4 w-4 rounded border border-[#cfcac2]" />
+                <CdsIconGlyph glyph="" className="h-4 w-4 text-[#52514e] text-[16px] [font-weight:533.25]" />
               </th>
             ) : null}
             {columns.map((column) => (
@@ -188,7 +188,7 @@ export function DataTable<T>({
             <tr key={getKey(row)} className="h-[45px] border-b border-[#efede8] hover:bg-[#fbfaf7]">
               {showSelection ? (
                 <td className="py-2">
-                  <span className="block h-4 w-4 rounded border border-[#cfcac2]" />
+                  <CdsIconGlyph glyph="" className="h-4 w-4 text-[#898781] text-[16px] [font-weight:533.25]" />
                 </td>
               ) : null}
               {columns.map((column) => (

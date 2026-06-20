@@ -495,7 +495,7 @@ function AgentsPage() {
       </div>
       <DataTable
         className="-mx-2 -my-2 !w-[calc(100%+16px)] overflow-x-auto p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
-        tableClassName="border-separate border-spacing-0 whitespace-nowrap"
+        tableClassName="min-w-[1176px] border-separate border-spacing-0 whitespace-nowrap"
         rows={agents}
         getKey={(agent) => agent.id}
         columns={[
@@ -521,6 +521,7 @@ function AgentsPage() {
           {
             key: "name",
             header: "Name",
+            width: "310px",
             render: (agent) => (
               <Link className="block truncate [font-weight:400]" to={`/agents/${agent.id}`}>
                 {agent.name}
