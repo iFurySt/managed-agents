@@ -534,14 +534,14 @@ function AgentsPage() {
           value={created}
           options={["All time", "Last 24 hours", "Last 7 days", "Last 30 days"]}
           onValueChange={setCreated}
-          triggerClassName="w-[142px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2 !shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]"
+          triggerClassName="w-[142px] !gap-1.5 !rounded-none !border-0 !bg-transparent !pl-2 !pr-0 !shadow-none"
         />
         <FieldSelect
           label="Status"
           value={status}
           options={["Active", "Archived", "All"]}
           onValueChange={setStatus}
-          triggerClassName="ml-2 w-[123px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2 !shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]"
+          triggerClassName="ml-2 w-[123px] !gap-1.5 !rounded-none !border-0 !bg-transparent !pl-2 !pr-0 !shadow-none"
         />
       </div>
       <DataTable
