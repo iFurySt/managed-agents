@@ -1397,13 +1397,19 @@ function EnvironmentsPage() {
   const [environments, setEnvironments] = useState<Environment[]>([]);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All");
+  const [page, setPage] = useState(0);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [archivingEnvironment, setArchivingEnvironment] = useState<Environment | null>(null);
   const [deletingEnvironment, setDeletingEnvironment] = useState<Environment | null>(null);
 
   useEffect(() => {
+    setPage(0);
     listEnvironments({ q: search, status }).then(setEnvironments).catch(() => setEnvironments([]));
   }, [search, status]);
+
+  const pageSize = 8;
+  const maxPage = Math.max(0, Math.ceil(environments.length / pageSize) - 1);
+  const visibleEnvironments = environments.slice(page * pageSize, page * pageSize + pageSize);
 
   async function archiveCurrent(environment: Environment) {
     const updated = await archiveEnvironment(environment.id);
@@ -1455,7 +1461,7 @@ function EnvironmentsPage() {
       <div className="overflow-x-auto">
         <DataTable
           className="-mx-2 w-[calc(100%+16px)] p-2"
-          rows={environments}
+          rows={visibleEnvironments}
           getKey={(environment) => environment.id}
           actionsWidth="56px"
           columns={[
@@ -1494,6 +1500,26 @@ function EnvironmentsPage() {
             />
           )}
         />
+      </div>
+      <div className="mt-[8.5px] flex gap-2">
+        <Button
+          variant="icon"
+          className="!h-8 !w-8 !gap-1.5 !rounded-[8px] !leading-5"
+          aria-label="Previous page"
+          disabled={page === 0}
+          onClick={() => setPage((value) => Math.max(0, value - 1))}
+        >
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="icon"
+          className="!h-8 !w-8 !gap-1.5 !rounded-[8px] !leading-5"
+          aria-label="Next page"
+          disabled={page >= maxPage}
+          onClick={() => setPage((value) => Math.min(maxPage, value + 1))}
+        >
+          <ChevronRight className="h-4 w-4" />
+        </Button>
       </div>
       <CreateEnvironmentDialog
         open={dialogOpen}
