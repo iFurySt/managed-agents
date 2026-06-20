@@ -96,13 +96,14 @@ const deploymentAgentOptions = [
 export default function App() {
   const location = useLocation();
   const showBanner = location.pathname === "/vaults" || location.pathname.startsWith("/vaults/");
+  const fullWidthRoute = location.pathname.startsWith("/memory-stores/");
 
   return (
     <div className="min-h-screen bg-canvas text-ink">
       <div className="flex min-h-screen">
         <Sidebar />
         <main className="min-w-0 flex-1">
-          <div className="mx-auto w-full max-w-[1600px] px-3 pb-8 pt-3">
+          <div className={`mx-auto w-full px-3 pb-8 pt-3 ${fullWidthRoute ? "max-w-none" : "max-w-[1600px]"}`}>
             {showBanner ? <Banner /> : null}
             <div className={`px-5 ${showBanner ? "pt-6" : "pt-3"}`}>
               <Routes>
@@ -2559,6 +2560,7 @@ function MemoryStoreDetailPage() {
   const memories = store.memories ?? [];
   const selectedMemory = memories.find((memory) => memory.id === selectedMemoryId) ?? null;
   const folders = memoryFolders(memories);
+  const selectedFolder = selectedMemory ? memoryFolder(selectedMemory.path) : null;
 
   return (
     <section className="-mt-2 flex h-[calc(100vh-144px)] flex-col overflow-hidden">
@@ -2603,22 +2605,23 @@ function MemoryStoreDetailPage() {
           </Button>
           <div className="flex flex-1 flex-col gap-0.5 overflow-y-auto p-2">
             {folders.map((folder) => (
-              <div key={folder} className="flex h-7 items-center gap-1.5 rounded-lg px-3 py-1 text-sm text-[#52514e] hover:bg-[#f6f6f0]">
-                <CdsIconGlyph glyph="" className="h-3.5 w-3.5 text-current text-[14px] [font-weight:628.5]" />
-                <CdsIconGlyph glyph="" className="h-3.5 w-3.5 text-current text-[14px] [font-weight:628.5]" />
-                <span className="truncate">{folder}</span>
+              <div key={folder}>
+                <div className="flex h-7 items-center gap-1.5 rounded-lg px-3 py-1 text-sm text-[#52514e] hover:bg-[#f6f6f0]">
+                  <CdsIconGlyph glyph="" className="h-3.5 w-3.5 text-current text-[14px] [font-weight:628.5]" />
+                  <CdsIconGlyph glyph="" className="h-3.5 w-3.5 text-current text-[14px] [font-weight:628.5]" />
+                  <span className="truncate">{folder}</span>
+                </div>
+                {selectedMemory && selectedFolder === folder ? (
+                  <button
+                    className="flex h-7 w-full items-center gap-1.5 rounded-lg bg-[#f6f6f0] py-1 pl-8 pr-3 text-left text-sm text-ink [font-weight:550]"
+                    onClick={() => selectMemory(selectedMemory.id)}
+                  >
+                    <CdsIconGlyph glyph="" className="h-3.5 w-3.5 shrink-0 text-ink text-[14px] [font-weight:628.5]" />
+                    <span className="min-w-0 flex-1 truncate">{memoryName(selectedMemory.path)}</span>
+                    <span className="text-xs text-muted">{selectedMemory.size}</span>
+                  </button>
+                ) : null}
               </div>
-            ))}
-            {memories.map((memory) => (
-              <button
-                key={memory.id}
-                className={`flex h-7 items-center gap-1.5 rounded-lg py-1 pr-3 text-left text-sm hover:bg-[#f6f6f0] ${selectedMemoryId === memory.id ? "bg-[#f6f6f0] pl-8 text-ink [font-weight:550]" : "px-3 text-[#52514e]"}`}
-                onClick={() => selectMemory(memory.id)}
-              >
-                <CdsIconGlyph glyph="" className={`h-3.5 w-3.5 shrink-0 text-[14px] [font-weight:628.5] ${selectedMemoryId === memory.id ? "text-ink" : "text-[#52514e]"}`} />
-                <span className="min-w-0 flex-1 truncate">{memoryName(memory.path)}</span>
-                <span className="text-xs text-muted">{memory.size}</span>
-              </button>
             ))}
           </div>
         </aside>
@@ -6502,12 +6505,16 @@ function nextLocalId(prefix: string) {
 function memoryFolders(memories: MemoryRecord[]) {
   const folders = new Set<string>();
   memories.forEach((memory) => {
-    const parts = memory.path.split("/").filter(Boolean);
-    parts.slice(0, -1).forEach((_, index) => {
-      folders.add(parts.slice(0, index + 1).join("/"));
-    });
+    folders.add(memoryFolder(memory.path));
   });
   return [...folders].sort();
+}
+
+function memoryFolder(path: string) {
+  const parts = path.split("/").filter(Boolean);
+  if (parts.length > 1) return parts[0];
+  const name = parts[0] || path;
+  return name.match(/^[A-Za-z_-]+/)?.[0] || name;
 }
 
 function memoryName(path: string) {

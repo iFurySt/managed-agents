@@ -1834,17 +1834,36 @@ func seed(db *gorm.DB) error {
 		return err
 	}
 
-	if err := db.Model(&MemoryStore{}).Count(&count).Error; err != nil {
+	stores, memories := seedMemoryStores(now)
+	if err := db.Clauses(clause.OnConflict{
+		Columns: []clause.Column{{Name: "id"}},
+		DoUpdates: clause.AssignmentColumns([]string{
+			"name",
+			"status",
+			"description",
+			"created_label",
+			"updated_label",
+			"created_at",
+			"updated_at",
+		}),
+	}).Create(&stores).Error; err != nil {
 		return err
 	}
-	if count == 0 {
-		stores, memories := seedMemoryStores(now)
-		if err := db.Create(&stores).Error; err != nil {
-			return err
-		}
-		if err := db.Create(&memories).Error; err != nil {
-			return err
-		}
+	if err := db.Clauses(clause.OnConflict{
+		Columns: []clause.Column{{Name: "id"}},
+		DoUpdates: clause.AssignmentColumns([]string{
+			"memory_store_id",
+			"path",
+			"status",
+			"size",
+			"content",
+			"author_id",
+			"updated_label",
+			"created_at",
+			"updated_at",
+		}),
+	}).Create(&memories).Error; err != nil {
+		return err
 	}
 
 	skills, versions := seedSkills(now)
@@ -2012,7 +2031,7 @@ func seedMemoryStores(ts time.Time) ([]MemoryStore, []MemoryRecord) {
 	stores := []MemoryStore{
 		memoryStore("memstore_01TFhvAtMizQJLWU29TaW5AZ", "123", "Active", "Browse and manage persistent memory for your agents.", "6 hours ago", ts.Add(42*time.Hour)),
 		memoryStore("memstore_01GYUDt8DBmRPDfhs5i9in8M", "zzz", "Active", "Scratch memory store for console testing.", "2 days ago", ts),
-		memoryStore("memstore_01GToktzJyefFL2DVxmgyT5e", "world cup", "Active", "Daily World Cup memory for agents that prepare match and news digests.", "2 days ago", ts),
+		memoryStore("memstore_01GToktzJyefFL2DVxmgyT5e", "world cup", "Active", "Daily World Cup memory for agents that prepare match and news digests.", "4 days ago", ts),
 		memoryStore("memstore_014LoF1P4MoTKK9HYDmacJuB", "leo_test", "Active", "Personal test memory store.", "2 days ago", ts),
 	}
 	memories := []MemoryRecord{
