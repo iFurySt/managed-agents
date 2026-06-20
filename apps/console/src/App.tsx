@@ -25,6 +25,7 @@ import {
   Pencil,
   Play,
   Plus,
+  RefreshCw,
   Search,
   Send,
   Settings,
@@ -1959,6 +1960,11 @@ function MemoryStoresPage() {
     listMemoryStores({ q: query, status, created }).then(setStores).catch(() => setStores([]));
   }, [created, query, status]);
 
+  async function refreshStores() {
+    const items = await listMemoryStores({ q: query, status, created });
+    setStores(items);
+  }
+
   async function archiveStore(store: MemoryStore) {
     const updated = await archiveMemoryStore(store.id);
     setStores((items) => items.map((item) => item.id === store.id ? updated : item));
@@ -1977,10 +1983,15 @@ function MemoryStoresPage() {
         title="Memory stores"
         description="Browse and manage persistent memory for your agents."
         action={
-          <Button className="!gap-1.5 !rounded-[8px] [font-weight:550]" onClick={() => setDialogOpen(true)}>
-            <Plus className="h-4 w-4" />
-            Create memory store
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button className="!gap-1.5 !rounded-[8px] [font-weight:550]" onClick={() => setDialogOpen(true)}>
+              <Plus className="h-4 w-4" />
+              Create memory store
+            </Button>
+            <Button variant="icon" className="h-8 w-8 !rounded-[8px] [font-weight:550]" aria-label="Refresh memory stores" onClick={refreshStores}>
+              <RefreshCw className="h-5 w-5" />
+            </Button>
+          </div>
         }
       />
       <div className="mt-4 flex h-10 items-start gap-2">
