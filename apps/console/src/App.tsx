@@ -3559,14 +3559,14 @@ function CreateAgentDialog({
       description="Start from a template or describe what you need."
       open={open}
       onOpenChange={onOpenChange}
-      contentClassName="h-[650px] w-[706px] max-w-[calc(100vw-32px)] !rounded-[12px] border-0 !shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1),0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]"
+      contentClassName="h-[648px] w-[706px] max-w-[calc(100vw-32px)] !rounded-[12px] border-0 !shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]"
       headerClassName="flex items-start justify-between pl-6 pr-4 pt-4"
       titleClassName="mt-1 text-[22px] leading-[26px] text-ink [font-weight:580]"
-      closeButtonClassName="h-[31px] w-[31px] !gap-1.5 rounded-[8px] !px-0 [font-weight:550]"
+      closeButtonClassName="h-[31px] w-[31px] !gap-1.5 !rounded-[8px] !px-0 [font-weight:550]"
       closeLabel="Close"
       overlayClassName="fixed inset-0 z-40 bg-transparent"
     >
-      <div className="h-[calc(650px-80px)] overflow-y-auto px-6 pb-0 pt-[10px]">
+      <div className="h-[calc(648px-80px)] overflow-y-auto px-6 pb-0 pt-[10px]">
         <button className="mb-[11px] flex h-5 w-full items-center gap-1.5 rounded-[8px] text-sm" type="button">
           <CdsIconGlyph glyph="" className="h-4 w-4 text-[#52514e] text-[16px] [font-weight:533.25]" />
           <span className="[font-weight:580]">Starting point</span>
@@ -3660,7 +3660,7 @@ function CreateAgentDialog({
           </div>
         </div>
         <div className="mt-[15px] flex justify-end">
-          <Button className="h-[31px] w-[110px] !gap-1.5 translate-x-px rounded-[8px] !px-0 [font-weight:550]" onClick={submit}>Create agent</Button>
+          <Button className="h-[31px] w-[110px] !gap-1.5 translate-x-px !rounded-[8px] !px-0 [font-weight:550]" onClick={submit}>Create agent</Button>
         </div>
       </div>
     </ConsoleDialog>
