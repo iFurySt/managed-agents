@@ -4394,7 +4394,7 @@ function DeploymentAgentPicker({
           className={`flex h-8 items-center justify-between rounded-[8px] bg-transparent px-2 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-[#c6613f]/35 ${wide ? "w-[464px]" : "w-[292px]"}`}
           onClick={() => setOpen((current) => !current)}
         >
-          <span className="truncate">{selected?.name ?? "Select an agent"}</span>
+          <span className={`truncate ${selected ? "" : "text-muted [font-weight:430]"}`}>{selected?.name ?? "Select an agent"}</span>
           <ChevronDown className="h-4 w-4 shrink-0 text-muted" />
         </button>
       </div>
@@ -4463,7 +4463,7 @@ function DeploymentEnvironmentPicker({
           className="flex h-8 w-full items-center justify-between rounded-[8px] bg-transparent px-2 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-[#c6613f]/35"
           onClick={() => setOpen((current) => !current)}
         >
-          <span className="truncate">{selected?.name ?? "Select an environment"}</span>
+          <span className={`truncate ${selected ? "" : "text-muted [font-weight:430]"}`}>{selected?.name ?? "Select an environment"}</span>
           <ChevronDown className="h-4 w-4 shrink-0 text-muted" />
         </button>
       </div>
@@ -4523,7 +4523,7 @@ function DeploymentVaultPicker({ value, onValueChange }: { value: string; onValu
         >
           <span className="inline-flex min-w-0 items-center gap-2 truncate">
             {selected ? <Shield className="h-4 w-4 shrink-0 text-muted" /> : <Plus className="h-4 w-4 shrink-0 text-muted" />}
-            <span className="truncate">{selected?.name ?? "Add vault"}</span>
+            <span className={`truncate ${selected ? "" : "text-muted [font-weight:430]"}`}>{selected?.name ?? "Add vault"}</span>
           </span>
           <ChevronDown className="h-4 w-4 shrink-0 text-muted" />
         </button>
@@ -4604,7 +4604,7 @@ function DeploymentMemoryStorePicker({ value, onValueChange }: { value: string; 
         >
           <span className="inline-flex min-w-0 items-center gap-2 truncate">
             <Plus className="h-4 w-4 shrink-0 text-muted" />
-            <span className="truncate">Add memory store</span>
+            <span className="truncate text-muted [font-weight:430]">Add memory store</span>
           </span>
           <ChevronDown className="h-4 w-4 shrink-0 text-muted" />
         </button>
@@ -4666,7 +4666,7 @@ function DeploymentTriggerPicker({ value, onValueChange }: { value: string; onVa
         >
           <span className="inline-flex min-w-0 items-center gap-2 truncate">
             {selected ? <selected.icon className="h-4 w-4 text-muted" /> : null}
-            <span className="truncate">{selected?.value ?? "Select a trigger"}</span>
+            <span className={`truncate ${selected ? "" : "text-muted [font-weight:430]"}`}>{selected?.value ?? "Select a trigger"}</span>
           </span>
           <ChevronDown className="h-4 w-4 shrink-0 text-muted" />
         </button>
