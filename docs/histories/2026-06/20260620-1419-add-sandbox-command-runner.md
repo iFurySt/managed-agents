@@ -30,6 +30,9 @@
   - Follow-up: gave the orchestrator sandbox-command HTTP call a response
     window slightly longer than the guest runtime timeout so sandboxd can return
     the final result instead of racing the caller context.
+  - Follow-up: added `network: true` support to sandboxd `POST /runs`, including
+    guest network service injection, host tap forwarding/NAT, DNS setup, and CA
+    bundle injection for HTTPS clients.
 
 ### Design Intent
 
@@ -57,6 +60,10 @@ image ships a reliable host-to-guest control channel.
     `ewrk_msg_20260620064644180480194`, output
     `n2-orchestrator-command-ok`, session status `Idle`, and work state
     `stopped`.
+  - Networked `POST /runs` completed on the same N2 host with guest `eth0`
+    `LOWER_UP`, IPv4 `172.16.69.2/30`, default route via the host tap, DNS
+    resolvers, and HTTPS reachability to the OpenAI API returning HTTP `401`
+    without TLS errors.
 
 ### Files Modified
 

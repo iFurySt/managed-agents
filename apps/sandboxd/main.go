@@ -53,6 +53,7 @@ type options struct {
 	vsockCID            uint32
 	listenAddr          string
 	guestCommand        string
+	guestNetwork        bool
 }
 
 type listBucketResult struct {
@@ -190,6 +191,7 @@ type sandboxdRunRequest struct {
 	VCPUCount     int    `json:"vcpu_count,omitempty"`
 	MemMiB        int    `json:"mem_mib,omitempty"`
 	Command       string `json:"command"`
+	Network       bool   `json:"network,omitempty"`
 	TimeoutMillis int64  `json:"timeout_millis,omitempty"`
 }
 
@@ -1063,6 +1065,7 @@ func sandboxdRunOptions(base options, request sandboxdRunRequest) options {
 	base.waitForBoot = true
 	base.withProcessAPI = false
 	base.guestCommand = request.Command
+	base.guestNetwork = request.Network
 	return base
 }
 
@@ -1291,7 +1294,7 @@ func injectGuestCommand(ctx context.Context, opt options, rootfsPath, sandboxDir
 		return err
 	}
 	servicePath := filepath.Join(sandboxDir, "managed-agents-command.service")
-	if err := os.WriteFile(servicePath, []byte(guestCommandService()), 0o644); err != nil {
+	if err := os.WriteFile(servicePath, []byte(guestCommandService(opt.guestNetwork)), 0o644); err != nil {
 		return err
 	}
 	runnerPath := filepath.Join(sandboxDir, "managed-agents-command-runner.sh")
@@ -1344,10 +1347,15 @@ func injectGuestCommand(ctx context.Context, opt options, rootfsPath, sandboxDir
 	return nil
 }
 
-func guestCommandService() string {
-	return `[Unit]
+func guestCommandService(network bool) string {
+	networkDeps := ""
+	if network {
+		networkDeps = "Wants=managed-agents-network.service\nAfter=managed-agents-network.service\n"
+	}
+	return fmt.Sprintf(`[Unit]
 Description=Managed Agents One Shot Command
 After=local-fs.target
+%s
 
 [Service]
 Type=oneshot
@@ -1358,7 +1366,7 @@ StandardError=journal+console
 
 [Install]
 WantedBy=multi-user.target
-`
+`, networkDeps)
 }
 
 func guestCommandRunnerScript() string {
@@ -1454,6 +1462,63 @@ func injectProcessAPI(ctx context.Context, opt options, rootfsPath, sandboxDir s
 	return nil
 }
 
+func injectGuestNetwork(ctx context.Context, rootfsPath, sandboxDir string, network processNetwork) error {
+	mountDir := filepath.Join(sandboxDir, "rootfs-mount")
+	if err := os.MkdirAll(mountDir, 0o755); err != nil {
+		return err
+	}
+	networkServicePath := filepath.Join(sandboxDir, "managed-agents-network.service")
+	if err := os.WriteFile(networkServicePath, []byte(managedAgentsNetworkService(network)), 0o644); err != nil {
+		return err
+	}
+	mounted := false
+	defer func() {
+		if mounted {
+			_ = runPassthrough(ctx, true, "umount", mountDir)
+		}
+		_ = os.RemoveAll(mountDir)
+	}()
+	if err := runPassthrough(ctx, true, "mount", "-o", "loop", rootfsPath, mountDir); err != nil {
+		return err
+	}
+	mounted = true
+	if err := runPassthrough(ctx, true, "mkdir", "-p", filepath.Join(mountDir, "etc/systemd/system/multi-user.target.wants")); err != nil {
+		return err
+	}
+	if err := injectHostCABundle(ctx, mountDir); err != nil {
+		return err
+	}
+	if err := runPassthrough(ctx, true, "cp", networkServicePath, filepath.Join(mountDir, "etc/systemd/system/managed-agents-network.service")); err != nil {
+		return err
+	}
+	if err := runPassthrough(ctx, true, "ln", "-sf", "../managed-agents-network.service", filepath.Join(mountDir, "etc/systemd/system/multi-user.target.wants/managed-agents-network.service")); err != nil {
+		return err
+	}
+	if err := runPassthrough(ctx, true, "sync"); err != nil {
+		return err
+	}
+	if err := runPassthrough(ctx, true, "umount", mountDir); err != nil {
+		return err
+	}
+	mounted = false
+	return nil
+}
+
+func injectHostCABundle(ctx context.Context, mountDir string) error {
+	hostCA := "/etc/ssl/certs/ca-certificates.crt"
+	if _, err := os.Stat(hostCA); err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return nil
+		}
+		return err
+	}
+	guestCA := filepath.Join(mountDir, "etc/ssl/certs/ca-certificates.crt")
+	if err := runPassthrough(ctx, true, "mkdir", "-p", filepath.Dir(guestCA)); err != nil {
+		return err
+	}
+	return runPassthrough(ctx, true, "cp", hostCA, guestCA)
+}
+
 func processAPIService(opt options) string {
 	args := fmt.Sprintf("--transport %s --tcp-addr 0.0.0.0:%d --vsock-port %d", opt.processAPITransport, opt.processAPITCPPort, opt.processAPIPort)
 	networkDeps := ""
@@ -1488,7 +1553,7 @@ Before=managed-agents-network.target process-api.service
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=/bin/sh -c 'set -e; ip link set dev eth0 up; ip addr flush dev eth0 || true; ip addr add %s/30 dev eth0; ip route replace default via %s dev eth0 || true'
+ExecStart=/bin/sh -c 'set -e; ip link set dev eth0 up; ip addr flush dev eth0 || true; ip addr add %s/30 dev eth0; ip route replace default via %s dev eth0 || true; printf "nameserver 8.8.8.8\nnameserver 1.1.1.1\n" >/etc/resolv.conf || true'
 
 [Install]
 WantedBy=multi-user.target
@@ -1531,7 +1596,25 @@ func setupTap(ctx context.Context, network processNetwork) error {
 		_ = deleteTap(ctx, network.tapName)
 		return err
 	}
+	if err := configureTapForwarding(ctx, network); err != nil {
+		_ = deleteTap(ctx, network.tapName)
+		return err
+	}
 	return nil
+}
+
+func configureTapForwarding(ctx context.Context, network processNetwork) error {
+	script := fmt.Sprintf(`
+set -e
+sysctl -w net.ipv4.ip_forward=1 >/dev/null
+out_dev="$(ip route show default 0.0.0.0/0 | awk '{print $5; exit}')"
+if [ -n "$out_dev" ] && command -v iptables >/dev/null 2>&1; then
+  iptables -t nat -C POSTROUTING -s %[1]s/30 -o "$out_dev" -j MASQUERADE 2>/dev/null || iptables -t nat -A POSTROUTING -s %[1]s/30 -o "$out_dev" -j MASQUERADE
+  iptables -C FORWARD -i %[2]s -j ACCEPT 2>/dev/null || iptables -A FORWARD -i %[2]s -j ACCEPT
+  iptables -C FORWARD -o %[2]s -m state --state RELATED,ESTABLISHED -j ACCEPT 2>/dev/null || iptables -A FORWARD -o %[2]s -m state --state RELATED,ESTABLISHED -j ACCEPT
+fi
+`, network.guestIP, shellQuote(network.tapName))
+	return runShell(ctx, true, script, "")
 }
 
 func deleteTap(ctx context.Context, tapName string) error {
@@ -1717,8 +1800,9 @@ func startSandbox(ctx context.Context, opt options, id string) (sandboxState, er
 	if err := validateSandboxID(id); err != nil {
 		return sandboxState{}, err
 	}
+	withNetwork := opt.guestNetwork || (opt.withProcessAPI && opt.processAPITransport == "tcp")
 	var network processNetwork
-	if opt.withProcessAPI && opt.processAPITransport == "tcp" {
+	if withNetwork {
 		network = processNetworkForSandbox(id)
 	}
 	if opt.withProcessAPI {
@@ -1750,6 +1834,11 @@ func startSandbox(ctx context.Context, opt options, id string) (sandboxState, er
 			return sandboxState{}, err
 		}
 	}
+	if opt.guestNetwork && !(opt.withProcessAPI && opt.processAPITransport == "tcp") {
+		if err := injectGuestNetwork(ctx, rootfsPath, sandboxDir, network); err != nil {
+			return sandboxState{}, err
+		}
+	}
 	if opt.withProcessAPI {
 		if err := injectProcessAPI(ctx, opt, rootfsPath, sandboxDir, network); err != nil {
 			return sandboxState{}, err
@@ -1766,7 +1855,7 @@ func startSandbox(ctx context.Context, opt options, id string) (sandboxState, er
 	_ = os.Remove(logPath)
 
 	networkReady := false
-	if opt.withProcessAPI && opt.processAPITransport == "tcp" {
+	if withNetwork {
 		if err := setupTap(ctx, network); err != nil {
 			return sandboxState{}, err
 		}
@@ -1830,6 +1919,12 @@ func startSandbox(ctx context.Context, opt options, id string) (sandboxState, er
 			state.GuestMAC = network.guestMAC
 		}
 	}
+	if withNetwork && !state.ProcessAPI {
+		state.TapName = network.tapName
+		state.HostIP = network.hostIP
+		state.GuestIP = network.guestIP
+		state.GuestMAC = network.guestMAC
+	}
 	if err := writeSandboxState(state); err != nil {
 		_ = terminateProcess(cmd.Process)
 		return sandboxState{}, err
@@ -1865,7 +1960,7 @@ func startSandbox(ctx context.Context, opt options, id string) (sandboxState, er
 			return sandboxState{}, err
 		}
 	}
-	if opt.withProcessAPI && opt.processAPITransport == "tcp" {
+	if withNetwork {
 		if err := putJSON(ctx, client, "/network-interfaces/eth0", fmt.Sprintf(`{"iface_id":"eth0","guest_mac":%q,"host_dev_name":%q}`, network.guestMAC, network.tapName)); err != nil {
 			_ = terminateProcess(cmd.Process)
 			return sandboxState{}, err

@@ -162,7 +162,7 @@ func TestProcessAPIService(t *testing.T) {
 }
 
 func TestGuestCommandServiceUsesFixedRunner(t *testing.T) {
-	service := guestCommandService()
+	service := guestCommandService(false)
 	for _, want := range []string{
 		"Description=Managed Agents One Shot Command",
 		"After=local-fs.target",
@@ -176,6 +176,16 @@ func TestGuestCommandServiceUsesFixedRunner(t *testing.T) {
 	}
 	if strings.Contains(service, "%s") || strings.Contains(service, "base64 -d") {
 		t.Fatalf("command service should not inline shell formatting or base64 decode:\n%s", service)
+	}
+
+	withNetwork := guestCommandService(true)
+	for _, want := range []string{
+		"Wants=managed-agents-network.service",
+		"After=managed-agents-network.service",
+	} {
+		if !strings.Contains(withNetwork, want) {
+			t.Fatalf("network command service missing %q:\n%s", want, withNetwork)
+		}
 	}
 }
 
@@ -218,6 +228,7 @@ func TestManagedAgentsNetworkService(t *testing.T) {
 		"ip link set dev eth0 up",
 		"ip addr add 172.16.50.2/30 dev eth0",
 		"ip route replace default via 172.16.50.1 dev eth0",
+		"nameserver 8.8.8.8",
 		"WantedBy=multi-user.target",
 	} {
 		if !strings.Contains(service, want) {
@@ -239,6 +250,19 @@ func TestProcessNetworkForSandbox(t *testing.T) {
 	}
 	if !strings.HasPrefix(network.guestMAC, "06:00:ac:10:") || !strings.HasSuffix(network.guestMAC, ":02") {
 		t.Fatalf("unexpected guest MAC: %q", network.guestMAC)
+	}
+}
+
+func TestSandboxdRunOptionsEnablesGuestNetwork(t *testing.T) {
+	opt := sandboxdRunOptions(options{}, sandboxdRunRequest{
+		Command: "true",
+		Network: true,
+	})
+	if !opt.guestNetwork {
+		t.Fatal("guest network was not enabled")
+	}
+	if opt.withProcessAPI {
+		t.Fatal("run options should not enable process-api for one-shot commands")
 	}
 }
 
