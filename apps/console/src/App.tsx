@@ -289,10 +289,20 @@ function AgentsPage() {
         title="Agents"
         description="Create and manage autonomous agents."
         action={
-          <Button className="!w-[132px] !gap-1.5 !rounded-[8px] [font-weight:550]" onClick={() => setDialogOpen(true)}>
-            <Plus className="h-4 w-4" />
-            Create agent
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button className="!w-[132px] !gap-1.5 !rounded-[8px] [font-weight:550]" onClick={() => setDialogOpen(true)}>
+              <Plus className="h-4 w-4" />
+              Create agent
+            </Button>
+            <a
+              data-cds="Button"
+              className="cds-focus inline-flex h-8 w-8 items-center justify-center gap-1.5 rounded-[8px] text-sm !leading-5 text-ink [font-weight:550] hover:bg-fill"
+              aria-label="View documentation"
+              href="https://platform.claude.com/docs/en/managed-agents/agent-setup"
+            >
+              <ExternalLink className="h-5 w-5" />
+            </a>
+          </div>
         }
       />
       <div className="flex items-center gap-2">
