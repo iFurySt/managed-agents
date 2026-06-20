@@ -212,9 +212,12 @@ function Sidebar() {
 
 function SidebarCollapseIcon() {
   return (
-    <span data-cds="Icon" aria-hidden="true" className="relative flex h-5 w-5 shrink-0 items-center justify-center text-current">
-      <span className="absolute left-[3px] top-[3.25px] h-[13.5px] w-3.5 rounded-[2px] border-[1.6px] border-current" />
-      <span className="absolute left-[7.75px] top-[3.75px] h-[12.5px] border-l-[1.6px] border-current" />
+    <span className="inline-flex items-center gap-1">
+      <span data-cds="Icon" aria-hidden="true" className="relative flex h-5 w-5 shrink-0 select-none items-center justify-center text-[20px] leading-none text-current [font-family:var(--font-anthropicons,Anthropicons-Variable)] [font-weight:433.3]">
+        <span className="sr-only"></span>
+        <span className="absolute left-[3px] top-[3.25px] h-[13.5px] w-3.5 rounded-[2px] border-[1.6px] border-current" />
+        <span className="absolute left-[7.75px] top-[3.75px] h-[12.5px] border-l-[1.6px] border-current" />
+      </span>
     </span>
   );
 }
