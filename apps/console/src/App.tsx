@@ -1532,7 +1532,8 @@ function EnvironmentsPage() {
       </div>
       <div className="overflow-x-auto">
         <DataTable
-          className="-mx-2 w-[calc(100%+16px)] p-2"
+          className="-mx-2 w-[calc(100%+16px)] overflow-x-auto p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
+          tableClassName="border-separate border-spacing-0 whitespace-nowrap"
           rows={visibleEnvironments}
           getKey={(environment) => environment.id}
           actionsWidth="56px"
@@ -1542,10 +1543,16 @@ function EnvironmentsPage() {
               header: "ID",
               width: "216px",
               render: (environment) => (
-                <div className="flex min-w-0 items-center gap-2">
+                <div className="group/cid flex min-w-0 items-center gap-2">
                   <span className="truncate font-mono font-semibold">{shortEnvironmentId(environment.id)}</span>
-                  <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${environment.id}`} onClick={() => copyText(environment.id)}>
-                    <Copy className="h-3.5 w-3.5" />
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="-my-1 h-[22px] w-[22px] !rounded-[8px] !px-0 !text-[#898781] !opacity-0 hover:!bg-fill hover:!text-[#52514e] group-hover/cid:!opacity-100"
+                    aria-label={`Copy ${environment.id}`}
+                    onClick={() => copyText(environment.id)}
+                  >
+                    <CdsIconGlyph glyph="" className="h-3.5 w-3.5 text-current text-[14px] [font-weight:628.5]" />
                   </Button>
                 </div>
               )
@@ -1555,7 +1562,7 @@ function EnvironmentsPage() {
               header: "Name",
               width: "296px",
               render: (environment) => (
-                <Link className="block truncate font-medium hover:underline" to={`/environments/${environment.id}`}>
+                <Link className="block truncate [font-weight:400]" to={`/environments/${environment.id}`}>
                   {environment.name}
                 </Link>
               )
@@ -1581,7 +1588,7 @@ function EnvironmentsPage() {
           disabled={page === 0}
           onClick={() => setPage((value) => Math.max(0, value - 1))}
         >
-          <ChevronLeft className="h-4 w-4" />
+          <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
         </Button>
         <Button
           variant="icon"
@@ -1590,7 +1597,7 @@ function EnvironmentsPage() {
           disabled={page >= maxPage}
           onClick={() => setPage((value) => Math.min(maxPage, value + 1))}
         >
-          <ChevronRight className="h-4 w-4" />
+          <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
         </Button>
       </div>
       <CreateEnvironmentDialog
