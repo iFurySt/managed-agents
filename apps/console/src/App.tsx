@@ -2193,14 +2193,14 @@ function MemoryStoreDetailPage() {
         </div>
       </div>
 
-      <div className="mt-6 flex min-h-0 flex-1 overflow-hidden rounded-xl border border-line">
-        <aside className="relative w-72 shrink-0 border-r border-line bg-[#f9f9f7]">
-          <Button variant="ghost" size="sm" className="absolute right-2 top-4 h-6 w-6 rounded-[6px] px-0" aria-label="Collapse all">
+      <div className="mt-6 flex min-h-0 flex-1 overflow-hidden rounded-xl border-[0.5px] border-line">
+        <aside className="relative flex w-72 shrink-0 flex-col border-r-[0.5px] border-line bg-[#f9f9f7]">
+          <Button variant="ghost" size="sm" className="absolute right-2 top-4 !h-6 !w-6 rounded-[6px] !px-0 [font-weight:550]" aria-label="Expand all">
             <ChevronDown className="h-3.5 w-3.5" />
           </Button>
-          <div className="flex flex-col gap-0.5 overflow-y-auto p-2">
+          <div className="flex flex-1 flex-col gap-0.5 overflow-y-auto p-2">
             {folders.map((folder) => (
-              <div key={folder} className="flex h-7 items-center gap-1.5 rounded-lg px-3 text-sm text-muted hover:bg-[#f6f6f0]">
+              <div key={folder} className="flex h-7 items-center gap-1.5 rounded-lg px-3 py-1 text-sm text-[#52514e] hover:bg-[#f6f6f0]">
                 <ChevronDown className="h-3.5 w-3.5" />
                 <Database className="h-3.5 w-3.5" />
                 <span className="truncate">{folder}</span>
@@ -2209,7 +2209,7 @@ function MemoryStoreDetailPage() {
             {memories.map((memory) => (
               <button
                 key={memory.id}
-                className={`flex h-7 items-center gap-1.5 rounded-lg px-3 text-left text-sm hover:bg-[#f6f6f0] ${selectedMemoryId === memory.id ? "bg-[#f6f6f0] font-semibold text-ink" : "text-[#52514e]"}`}
+                className={`flex h-7 items-center gap-1.5 rounded-lg py-1 pr-3 text-left text-sm hover:bg-[#f6f6f0] ${selectedMemoryId === memory.id ? "bg-[#f6f6f0] pl-8 text-ink [font-weight:550]" : "px-3 text-[#52514e]"}`}
                 onClick={() => selectMemory(memory.id)}
               >
                 <FileText className="h-3.5 w-3.5 shrink-0 text-muted" />
@@ -2222,7 +2222,7 @@ function MemoryStoreDetailPage() {
         <div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-[#fcfcfb]">
           {selectedMemory ? (
             <>
-              <div className="flex h-[56px] items-center justify-between gap-4 border-b border-line px-3 py-2">
+              <div className="flex h-[56px] items-center justify-between gap-4 border-b-[0.5px] border-line px-3 py-2">
                 <div className="min-w-0">
                   <div className="flex min-w-0 items-center gap-2">
                     <h3 className="truncate font-mono text-sm text-ink">{selectedMemory.path}</h3>
