@@ -14,6 +14,10 @@ function CdsIconGlyph({ glyph, className = "h-5 w-5 text-current text-[20px] [fo
   );
 }
 
+function TableSelectionBox() {
+  return <span aria-hidden="true" className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-[4px] border border-[rgba(11,11,11,0.2)] bg-transparent" />;
+}
+
 export const Button = forwardRef<HTMLButtonElement, React.ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: "primary" | "secondary" | "ghost" | "icon";
   size?: "md" | "sm";
@@ -167,8 +171,10 @@ export function DataTable<T>({
         <thead>
           <tr className="h-8 border-b border-line text-[13px] leading-4 text-[#52514e] [font-weight:550]">
             {showSelection ? (
-              <th className="w-10 py-0">
-                <CdsIconGlyph glyph="" className="h-4 w-4 text-[#52514e] text-[16px] [font-weight:533.25]" />
+              <th className="relative w-10 p-0">
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <TableSelectionBox />
+                </div>
               </th>
             ) : null}
             {columns.map((column) => (
@@ -187,8 +193,10 @@ export function DataTable<T>({
           {rows.map((row) => (
             <tr key={getKey(row)} className="h-[45px] border-b border-[#efede8] hover:bg-[#fbfaf7]">
               {showSelection ? (
-                <td className="py-2">
-                  <CdsIconGlyph glyph="" className="h-4 w-4 text-[#898781] text-[16px] [font-weight:533.25]" />
+                <td className="relative p-0">
+                  <div className="absolute inset-0 z-10 flex items-center justify-center">
+                    <TableSelectionBox />
+                  </div>
                 </td>
               ) : null}
               {columns.map((column) => (
