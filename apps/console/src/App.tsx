@@ -3650,8 +3650,7 @@ function CreateAgentDialog({
           id={startingPointPanelId}
           className="overflow-hidden transition-[height] duration-150 ease-out"
           data-open={startingPointOpen ? "" : undefined}
-          hidden={!startingPointOpen}
-          style={{ height: startingPointPanelHeight }}
+          style={{ height: startingPointPanelHeight, transitionDuration: "0s" }}
         >
           <div className={`rounded-cds bg-fill ${startingPointMode === "template" ? "h-[167px] overflow-hidden" : ""}`}>
             <div className="grid h-[31px] grid-cols-2 rounded-cds bg-fill p-px text-sm" role="radiogroup" aria-label="Starting point">
