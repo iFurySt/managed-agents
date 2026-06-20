@@ -196,7 +196,7 @@ export function DataTable<T>({
 
 export function SidebarItem({ to, children, inset = false, badge }: { to: string; children: ReactNode; inset?: boolean; badge?: string }) {
   const location = useLocation();
-  const active = location.pathname === to;
+  const active = location.pathname === to || location.pathname.startsWith(`${to}/`);
   return (
     <Link
       to={to}

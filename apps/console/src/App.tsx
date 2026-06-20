@@ -2173,7 +2173,7 @@ function MemoryStoreDetailPage() {
         <div className="min-w-0 flex-1">
           <div className="flex h-7 min-w-0 items-center gap-2">
             <h1 className="truncate text-xl leading-7 [font-weight:550]">{store.name}</h1>
-            <Badge className="h-5 rounded-[5px] [font-weight:550]" tone={memoryTone(store.status)}>{store.status}</Badge>
+            <Badge className="!h-5 !rounded-[5px] !leading-[15px] [font-weight:550]" tone={memoryTone(store.status)}>{store.status}</Badge>
           </div>
           <div className="mt-3 flex h-4 flex-wrap items-center gap-2 text-xs text-muted">
             <button className="-mx-1 -my-0.5 rounded-md px-1 py-0.5 font-mono hover:bg-fill" onClick={() => copyText(store.id)}>
@@ -2186,11 +2186,10 @@ function MemoryStoreDetailPage() {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button variant="ghost" className="h-8 !gap-1.5 rounded-[8px] bg-transparent px-3 [font-weight:550] hover:bg-fill" onClick={() => setDialogOpen(true)}>
-            <Plus className="h-4 w-4" />
+          <Button className="h-8 w-[130px] !gap-1.5 !rounded-[8px] px-0 [font-weight:550]" onClick={() => setDialogOpen(true)}>
+            <Plus className="h-5 w-5" />
             Add memory
           </Button>
-          <MemoryStoreActions store={store} onArchive={() => setArchiveOpen(true)} onDelete={() => setDeleteOpen(true)} />
         </div>
       </div>
 
