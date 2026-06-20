@@ -228,17 +228,17 @@ function Banner() {
   const [visible, setVisible] = useState(true);
   if (!visible) return null;
   return (
-    <div data-cds="Banner" className="mb-10 flex min-h-[76px] items-start gap-4 rounded-cds border border-line bg-white px-6 py-[11px]">
-      <Info className="mt-0.5 h-4 w-4 shrink-0 text-muted" />
+    <div data-cds="Banner" className="mb-4 flex h-[76px] items-start gap-2 rounded-[12px] bg-[#fcfcfb] px-4 py-3">
+      <Info className="h-5 w-5 shrink-0 text-muted" />
       <div className="flex-1 text-sm leading-5">
         <span>Update June 12: We've suspended access to Claude Fable 5 and Claude Mythos 5. Please use Opus 4.8 or another model.</span>
         <div>
-          <Button className="mt-1" size="sm">
+          <Button className="-ml-0.5 mt-2 !h-7 !w-[130px] !gap-1.5 !px-2.5 !text-sm">
             Learn more here
           </Button>
         </div>
       </div>
-      <Button variant="ghost" className="h-7 w-7 px-0" onClick={() => setVisible(false)} aria-label="Dismiss banner">
+      <Button variant="ghost" className="-mr-2.5 -mt-1.5 h-8 w-8 px-0" onClick={() => setVisible(false)} aria-label="Dismiss banner">
         ×
       </Button>
     </div>
