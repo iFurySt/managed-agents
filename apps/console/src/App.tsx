@@ -5482,6 +5482,7 @@ function CreateCredentialForm({
   const targetPlaceholder = authType === "Environment variable" ? "ENV_VAR_NAME" : authType === "Bearer token" ? "https://api.example.com/" : "https://mcp.example.com";
   const canSubmit = target.trim().length > 0;
   const fieldLabelClass = "text-sm leading-none [font-weight:550]";
+  const selectShellClass = "flex h-[31px] w-full items-center rounded-[8px] border-0 bg-white/50 pr-2 shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]";
 
   return (
     <div className="px-6 pb-0 pt-[10px]">
@@ -5500,28 +5501,32 @@ function CreateCredentialForm({
         </div>
         <div className="grid gap-[7px]">
           <label className={fieldLabelClass}>Type</label>
-          <FieldSelect
-            label=""
-            showLabel={false}
-            ariaLabel="Credential type"
-            value={authType}
-            options={["MCP OAuth", "Bearer token", "Environment variable"]}
-            onValueChange={setAuthType}
-            triggerClassName="!h-[31px] w-[455px] !gap-1.5 rounded-none !border-transparent !bg-transparent !pl-2 !pr-0 hover:!bg-transparent"
-          />
+          <div className={selectShellClass}>
+            <FieldSelect
+              label=""
+              showLabel={false}
+              ariaLabel="Credential type"
+              value={authType}
+              options={["MCP OAuth", "Bearer token", "Environment variable"]}
+              onValueChange={setAuthType}
+              triggerClassName="!h-[31px] w-[455px] !gap-1.5 rounded-none !border-transparent !bg-transparent !pl-2 !pr-0 hover:!bg-transparent"
+            />
+          </div>
         </div>
         <div className="grid gap-2">
           <label className={fieldLabelClass}>{targetLabel}</label>
           {authType === "MCP OAuth" ? (
-            <FieldSelect
-              label=""
-              showLabel={false}
-              ariaLabel={targetLabel}
-              value={target || targetPlaceholder}
-              options={[targetPlaceholder]}
-              onValueChange={(value) => setTarget(value === targetPlaceholder ? "" : value)}
-              triggerClassName="!h-[31px] w-[455px] !gap-1.5 rounded-none !border-transparent !bg-transparent !pl-2 !pr-0 hover:!bg-transparent"
-            />
+            <div className={selectShellClass}>
+              <FieldSelect
+                label=""
+                showLabel={false}
+                ariaLabel={targetLabel}
+                value={target || targetPlaceholder}
+                options={[targetPlaceholder]}
+                onValueChange={(value) => setTarget(value === targetPlaceholder ? "" : value)}
+                triggerClassName="!h-[31px] w-[455px] !gap-1.5 rounded-none !border-transparent !bg-transparent !pl-2 !pr-0 hover:!bg-transparent"
+              />
+            </div>
           ) : (
             <TextInput
               className="h-[31px] rounded-[8px] border-0 bg-white/50 px-3 font-normal"
