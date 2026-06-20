@@ -2771,10 +2771,10 @@ function FilesEmptyState({ language, onLanguageChange }: { language: string; onL
           <div className="ml-auto flex items-center gap-1">
             <a data-cds="Button" className="inline-flex h-6 w-[96px] items-center gap-1.5 rounded-md px-2 text-[13px] leading-5 [font-weight:550] hover:bg-[#eeeeeb]" href="https://docs.claude.com/en/docs/build-with-claude/files">
               View docs
-              <ExternalLink className="h-3.5 w-3.5 text-muted" />
+              <CdsIconGlyph glyph="" className="h-3.5 w-3.5 text-[#898781] text-[14px] [font-weight:628.5]" />
             </a>
             <Button variant="ghost" size="sm" className="!-mr-1 !h-6 !w-6 !gap-1.5 !rounded-md !px-0 !text-[13px] !leading-5 [font-weight:550]" aria-label="Copy code" onClick={() => copyText(code)}>
-              <Copy className="h-3.5 w-3.5" />
+              <CdsIconGlyph glyph="" className="h-3.5 w-3.5 text-current text-[14px] [font-weight:628.5]" />
             </Button>
           </div>
         </div>
@@ -2834,7 +2834,7 @@ function FilesLanguageMenu({ language, onLanguageChange }: { language: string; o
       <CdsDropdownMenu.Trigger asChild>
         <Button variant="ghost" className="!h-6 !w-[81px] !gap-1.5 !rounded-md !bg-transparent !px-2 !text-[13px] !text-[#52514e] [font-weight:550] hover:!bg-[#eeeeeb]">
           {language}
-          <ChevronDown className="h-3.5 w-3.5 text-[#898781]" />
+          <CdsIconGlyph glyph="" className="h-3.5 w-3.5 text-[#898781] text-[14px] [font-weight:628.5]" />
         </Button>
       </CdsDropdownMenu.Trigger>
       <CdsDropdownMenu.Portal>
