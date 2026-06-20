@@ -136,13 +136,46 @@ export default function App() {
 }
 
 function Sidebar() {
+  const [collapsed, setCollapsed] = useState(false);
+
+  if (collapsed) {
+    return (
+      <aside className="sticky top-0 flex h-screen w-[52px] shrink-0 flex-col border-r-[0.5px] border-line bg-[#f9f9f7] p-2">
+        <div className="flex h-10 items-center justify-center pb-3">
+          <Button
+            variant="ghost"
+            className="!h-7 !w-7 !gap-1.5 !rounded-control !px-0 text-sm !leading-5 !text-[#898781] [font-weight:550] hover:!text-ink"
+            aria-label="Expand"
+            onClick={() => setCollapsed(false)}
+          >
+            <SidebarCollapseIcon />
+          </Button>
+        </div>
+        <nav className="mt-[4px] flex min-h-0 flex-1 flex-col items-center gap-1 overflow-y-auto pb-0">
+          <CollapsedSidebarLink glyph="" label="Dashboard" />
+          <CollapsedSidebarLink glyph="" label="API keys" />
+          <CollapsedSidebarLink glyph="" label="Build" />
+          <CollapsedSidebarLink glyph="" label="Managed Agents" to="/agents" />
+          <CollapsedSidebarLink glyph="" label="Analytics" />
+          <CollapsedSidebarLink glyph="" label="Claude Code" />
+          <CollapsedSidebarLink glyph="" label="Manage" />
+        </nav>
+        <div className="flex flex-col items-center gap-1 border-t-[0.5px] border-line pt-2">
+          <CollapsedSidebarLink glyph="" label="Documentation" />
+          <CollapsedSidebarLink glyph="" label="Credits" />
+          <CollapsedSidebarLink glyph="" label="Leo" />
+        </div>
+      </aside>
+    );
+  }
+
   return (
     <aside className="sticky top-0 flex h-screen w-64 shrink-0 flex-col border-r-[0.5px] border-line bg-[#f9f9f7] p-3">
       <div className="flex h-10 w-full flex-col pb-3">
         <div className="-mr-2 flex w-full translate-y-px items-center justify-between">
           <Link className="pl-2" to="/">
             <div className="inline-flex flex-col items-start">
-              <span className="ml-[-0.1em] whitespace-nowrap font-voice text-base leading-none text-ink [font-weight:550]">
+              <span className="ml-[-0.1em] whitespace-nowrap font-voice text-base font-medium leading-none text-ink [font-weight:550]">
                 Claude Console
               </span>
             </div>
@@ -151,6 +184,7 @@ function Sidebar() {
             variant="ghost"
             className="!h-7 !w-7 !gap-1.5 !rounded-control !px-0 text-sm !leading-5 !text-[#898781] [font-weight:550] hover:!text-ink"
             aria-label="Collapse"
+            onClick={() => setCollapsed(true)}
           >
             <SidebarCollapseIcon />
           </Button>
@@ -205,6 +239,14 @@ function Sidebar() {
         </div>
       </div>
     </aside>
+  );
+}
+
+function CollapsedSidebarLink({ glyph, label, to = "#" }: { glyph: string; label: string; to?: string }) {
+  return (
+    <Link className="grid h-9 w-9 place-items-center rounded-lg text-[#898781] hover:bg-fill hover:text-ink" to={to} title={label} aria-label={label}>
+      <SidebarGlyph glyph={glyph} />
+    </Link>
   );
 }
 
