@@ -149,12 +149,32 @@ func TestProcessAPIService(t *testing.T) {
 	})
 	for _, want := range []string{
 		"Description=Managed Agents Process API",
+		"Wants=managed-agents-network.service",
+		"After=managed-agents-network.service",
 		"ExecStart=/opt/managed-agents/bin/process-api --transport tcp --tcp-addr 0.0.0.0:8080 --vsock-port 2048",
 		"StandardOutput=journal+console",
 		"WantedBy=multi-user.target",
 	} {
 		if !strings.Contains(service, want) {
 			t.Fatalf("service file missing %q:\n%s", want, service)
+		}
+	}
+}
+
+func TestManagedAgentsNetworkService(t *testing.T) {
+	service := managedAgentsNetworkService(processNetwork{
+		guestIP: "172.16.50.2",
+		hostIP:  "172.16.50.1",
+	})
+	for _, want := range []string{
+		"Description=Managed Agents Guest Network",
+		"ip link set dev eth0 up",
+		"ip addr add 172.16.50.2/30 dev eth0",
+		"ip route replace default via 172.16.50.1 dev eth0",
+		"WantedBy=multi-user.target",
+	} {
+		if !strings.Contains(service, want) {
+			t.Fatalf("network service missing %q:\n%s", want, service)
 		}
 	}
 }

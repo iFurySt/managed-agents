@@ -1188,7 +1188,7 @@ func copyRootfs(ctx context.Context, source, target string) error {
 	return runPassthrough(ctx, false, "cp", "--reflink=auto", "--sparse=always", source, target)
 }
 
-func injectProcessAPI(ctx context.Context, opt options, rootfsPath, sandboxDir string) error {
+func injectProcessAPI(ctx context.Context, opt options, rootfsPath, sandboxDir string, network processNetwork) error {
 	if opt.processAPIBin == "" {
 		return errors.New("process-api binary path is required")
 	}
@@ -1202,6 +1202,12 @@ func injectProcessAPI(ctx context.Context, opt options, rootfsPath, sandboxDir s
 	servicePath := filepath.Join(sandboxDir, "process-api.service")
 	if err := os.WriteFile(servicePath, []byte(processAPIService(opt)), 0o644); err != nil {
 		return err
+	}
+	networkServicePath := filepath.Join(sandboxDir, "managed-agents-network.service")
+	if opt.processAPITransport == "tcp" {
+		if err := os.WriteFile(networkServicePath, []byte(managedAgentsNetworkService(network)), 0o644); err != nil {
+			return err
+		}
 	}
 	mounted := false
 	defer func() {
@@ -1232,6 +1238,14 @@ func injectProcessAPI(ctx context.Context, opt options, rootfsPath, sandboxDir s
 	if err := runPassthrough(ctx, true, "ln", "-sf", "../process-api.service", filepath.Join(mountDir, "etc/systemd/system/multi-user.target.wants/process-api.service")); err != nil {
 		return err
 	}
+	if opt.processAPITransport == "tcp" {
+		if err := runPassthrough(ctx, true, "cp", networkServicePath, filepath.Join(mountDir, "etc/systemd/system/managed-agents-network.service")); err != nil {
+			return err
+		}
+		if err := runPassthrough(ctx, true, "ln", "-sf", "../managed-agents-network.service", filepath.Join(mountDir, "etc/systemd/system/multi-user.target.wants/managed-agents-network.service")); err != nil {
+			return err
+		}
+	}
 	if err := runPassthrough(ctx, true, "sync"); err != nil {
 		return err
 	}
@@ -1244,9 +1258,14 @@ func injectProcessAPI(ctx context.Context, opt options, rootfsPath, sandboxDir s
 
 func processAPIService(opt options) string {
 	args := fmt.Sprintf("--transport %s --tcp-addr 0.0.0.0:%d --vsock-port %d", opt.processAPITransport, opt.processAPITCPPort, opt.processAPIPort)
+	networkDeps := ""
+	if opt.processAPITransport == "tcp" {
+		networkDeps = "Wants=managed-agents-network.service\nAfter=managed-agents-network.service\n"
+	}
 	return fmt.Sprintf(`[Unit]
 Description=Managed Agents Process API
 After=basic.target
+%s
 
 [Service]
 Type=simple
@@ -1258,7 +1277,24 @@ StandardError=journal+console
 
 [Install]
 WantedBy=multi-user.target
-`, args)
+`, networkDeps, args)
+}
+
+func managedAgentsNetworkService(network processNetwork) string {
+	return fmt.Sprintf(`[Unit]
+Description=Managed Agents Guest Network
+DefaultDependencies=no
+After=systemd-udevd.service
+Before=managed-agents-network.target process-api.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bin/sh -c 'set -e; ip link set dev eth0 up; ip addr flush dev eth0 || true; ip addr add %s/30 dev eth0; ip route replace default via %s dev eth0 || true'
+
+[Install]
+WantedBy=multi-user.target
+`, network.guestIP, network.hostIP)
 }
 
 func processNetworkForSandbox(id string) processNetwork {
@@ -1382,6 +1418,10 @@ func startSandbox(ctx context.Context, opt options, id string) (sandboxState, er
 	if err := validateSandboxID(id); err != nil {
 		return sandboxState{}, err
 	}
+	var network processNetwork
+	if opt.withProcessAPI && opt.processAPITransport == "tcp" {
+		network = processNetworkForSandbox(id)
+	}
 	if opt.withProcessAPI {
 		if err := validateProcessAPIOptions(opt); err != nil {
 			return sandboxState{}, err
@@ -1407,7 +1447,7 @@ func startSandbox(ctx context.Context, opt options, id string) (sandboxState, er
 		return sandboxState{}, err
 	}
 	if opt.withProcessAPI {
-		if err := injectProcessAPI(ctx, opt, rootfsPath, sandboxDir); err != nil {
+		if err := injectProcessAPI(ctx, opt, rootfsPath, sandboxDir, network); err != nil {
 			return sandboxState{}, err
 		}
 	}
@@ -1421,10 +1461,8 @@ func startSandbox(ctx context.Context, opt options, id string) (sandboxState, er
 	_ = os.Remove(consolePath)
 	_ = os.Remove(logPath)
 
-	var network processNetwork
 	networkReady := false
 	if opt.withProcessAPI && opt.processAPITransport == "tcp" {
-		network = processNetworkForSandbox(id)
 		if err := setupTap(ctx, network); err != nil {
 			return sandboxState{}, err
 		}
