@@ -672,7 +672,6 @@ function SessionsPage() {
             {
               key: "name",
               header: "Name",
-              width: "191px",
               render: (session) => (
                 <Link className="block truncate [font-weight:400]" to={`/sessions/${session.id}`}>
                   {session.name}
@@ -683,7 +682,6 @@ function SessionsPage() {
             {
               key: "agent",
               header: "Agent",
-              width: "191px",
               render: (session) => (
                 <button
                   data-cds="Button"
