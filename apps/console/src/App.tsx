@@ -89,11 +89,12 @@ const managedRoutes: { path: CollectionName; title: string; description: string;
 const sidebarCollapsedStorageKey = "managed-agents.sidebar.collapsed";
 const defaultDeploymentEnvironmentId = "env_01UTaKkbFknSkQNEsZjUARMh";
 const deploymentAgentOptions = [
-  { value: "agent_013mi1SmR2hJ6Hk6wNTeJvF9", name: "Managed SSH Reverse Tunnel Bootstrapper", updated: "3 days ago" },
-  { value: "agent_01AVRPTGyYareCeoUasn66q5", name: "Incident commander", updated: "3 days ago" },
-  { value: "agent_019BdsR2v3NW1DiEG62wpu3e", name: "World Cup Daily Digest (self-hosted clone)", updated: "3 days ago" },
-  { value: "agent_017k8CPYuCFRD9AmupUeXd2Z", name: "World Cup Daily Digest", updated: "3 days ago" },
-  { value: "agent_01MNpVPKyrSECHGA6HqAmREZ", name: "Untitled agent", updated: "3 days ago" }
+  { value: "agent_01MNpVPKyrSECHGA6HqAmREZ", name: "Untitled agent", updated: "yesterday" },
+  { value: "agent_013mi1SmR2hJ6Hk6wNTeJvF9", name: "Managed SSH Reverse Tunnel Bootstrapper", updated: "5 days ago" },
+  { value: "agent_01AVRPTGyYareCeoUasn66q5", name: "Incident commander", updated: "5 days ago" },
+  { value: "agent_019BdsR2v3NW1DiEG62wpu3e", name: "World Cup Daily Digest (self-hosted clone)", updated: "5 days ago" },
+  { value: "agent_017k8CPYuCFRD9AmupUeXd2Z", name: "World Cup Daily Digest", updated: "5 days ago" },
+  { value: "agent_01UntitledAgentCopy", name: "Untitled agent", updated: "5 days ago" }
 ];
 const sessionAgentOptions = [
   { value: "agent_01MNpVPKyrSECHGA6HqAmREZ", name: "Untitled agent", updated: "23 hours ago" },
@@ -4381,7 +4382,9 @@ function DeploymentAgentPicker({
   wide?: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
   const selected = deploymentAgentOptions.find((option) => option.value === value);
+  const filteredOptions = deploymentAgentOptions.filter((option) => option.name.toLowerCase().includes(search.toLowerCase()));
 
   return (
     <div data-cds="Field" className={`relative ${wide ? "w-[472px]" : "w-[300px]"}`}>
@@ -4402,16 +4405,25 @@ function DeploymentAgentPicker({
         <div
           data-cds="Combobox"
           role="dialog"
-          className="absolute left-0 top-[39px] z-50 w-[472px] rounded-[12px] bg-white p-1 shadow-[0_10px_28px_rgba(0,0,0,0.12)]"
+          className="absolute left-0 top-[38px] z-50 max-h-[320px] w-[472px] overflow-hidden rounded-[12px] bg-white p-1 shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
         >
-          <div role="listbox" className="grid gap-0">
-            {deploymentAgentOptions.map((option) => (
+          <div role="combobox" aria-expanded="true" className="-mx-1 -mt-1 mb-1 flex h-[37px] w-[calc(100%+8px)] items-center border-b border-line px-4 py-2">
+            <input
+              className="h-full min-w-0 flex-1 bg-transparent text-sm leading-5 text-ink outline-none placeholder:text-transparent"
+              aria-label="Search deployment agents"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              onKeyDown={(event) => event.stopPropagation()}
+            />
+          </div>
+          <div role="listbox" className="grid max-h-[275px] gap-0 overflow-y-auto overflow-x-hidden">
+            {filteredOptions.map((option) => (
               <button
                 key={option.value}
                 type="button"
                 role="option"
                 aria-selected={value === option.value}
-                className="flex h-12 w-full items-center justify-between rounded-[8px] px-3 text-left outline-none hover:bg-fill aria-selected:bg-black/[0.05]"
+                className="flex min-h-[48px] w-full items-center justify-between rounded-[8px] px-3 py-1 text-left outline-none hover:bg-fill aria-selected:bg-black/[0.05]"
                 onClick={() => {
                   onValueChange(option.value);
                   setOpen(false);
@@ -4419,7 +4431,7 @@ function DeploymentAgentPicker({
               >
                 <span className="grid min-w-0 gap-0.5">
                   <span className="truncate text-sm leading-4 text-ink">{option.name}</span>
-                  <span className="truncate text-xs leading-4 text-muted">{option.updated}</span>
+                  <span className="truncate text-[13px] leading-[18px] text-muted">{option.updated}</span>
                 </span>
                 {value === option.value ? <span className="h-2 w-2 shrink-0 rounded-full bg-[#c6613f]" aria-hidden /> : null}
               </button>
