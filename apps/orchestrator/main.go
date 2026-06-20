@@ -9,6 +9,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -31,6 +33,10 @@ type options struct {
 	pollInterval   time.Duration
 	runtimeTimeout time.Duration
 	heartbeatTTL   time.Duration
+	sandboxdURL    string
+	sandboxImage   string
+	processAPIBin  string
+	keepSandbox    bool
 }
 
 type Agent struct {
@@ -134,6 +140,38 @@ type runResult struct {
 	EndedAt   time.Time
 }
 
+type sandboxdStartRequest struct {
+	ID            string `json:"id,omitempty"`
+	Image         string `json:"image,omitempty"`
+	ProcessAPI    bool   `json:"process_api,omitempty"`
+	ProcessAPIBin string `json:"process_api_bin,omitempty"`
+	TimeoutMillis int64  `json:"timeout_millis,omitempty"`
+}
+
+type sandboxState struct {
+	ID     string `json:"id"`
+	Status string `json:"status"`
+}
+
+type processAPIExecRequest struct {
+	Argv          []string          `json:"argv"`
+	Cwd           string            `json:"cwd,omitempty"`
+	Env           map[string]string `json:"env,omitempty"`
+	TimeoutMillis int64             `json:"timeout_millis,omitempty"`
+}
+
+type processAPIExecResponse struct {
+	OK             bool     `json:"ok"`
+	Argv           []string `json:"argv"`
+	Cwd            string   `json:"cwd"`
+	ExitCode       int      `json:"exit_code"`
+	Stdout         string   `json:"stdout"`
+	Stderr         string   `json:"stderr"`
+	Error          string   `json:"error,omitempty"`
+	TimedOut       bool     `json:"timed_out"`
+	DurationMillis int64    `json:"duration_millis"`
+}
+
 func main() {
 	opt := options{}
 	root := &cobra.Command{
@@ -143,12 +181,16 @@ func main() {
 	}
 	root.PersistentFlags().StringVar(&opt.databaseURL, "database-url", env("DATABASE_URL", "postgres://managed_agents:managed_agents@localhost:5432/managed_agents?sslmode=disable"), "metadata database URL")
 	root.PersistentFlags().StringVar(&opt.workerID, "worker-id", env("ORCHESTRATOR_WORKER_ID", defaultWorkerID()), "stable worker identifier")
-	root.PersistentFlags().StringVar(&opt.runtime, "runtime", env("ORCHESTRATOR_RUNTIME", "codex-local"), "runtime: codex-local or shell")
+	root.PersistentFlags().StringVar(&opt.runtime, "runtime", env("ORCHESTRATOR_RUNTIME", "codex-local"), "runtime: codex-local, shell, or sandbox-shell")
 	root.PersistentFlags().StringVar(&opt.codexBin, "codex-bin", env("CODEX_BIN", "codex"), "Codex CLI binary")
 	root.PersistentFlags().StringVar(&opt.shellCommand, "shell-command", env("ORCHESTRATOR_SHELL_COMMAND", ""), "shell command used when --runtime shell")
 	root.PersistentFlags().StringVar(&opt.workspaceRoot, "workspace-root", env("ORCHESTRATOR_WORKSPACE_ROOT", "/tmp/managed-agents-workspaces"), "host workspace root for runtime processes")
 	root.PersistentFlags().DurationVar(&opt.runtimeTimeout, "runtime-timeout", durationEnv("ORCHESTRATOR_RUNTIME_TIMEOUT", 10*time.Minute), "runtime execution timeout")
 	root.PersistentFlags().DurationVar(&opt.heartbeatTTL, "heartbeat-ttl", durationEnv("ORCHESTRATOR_HEARTBEAT_TTL", 30*time.Second), "work heartbeat TTL")
+	root.PersistentFlags().StringVar(&opt.sandboxdURL, "sandboxd-url", env("SANDBOXD_URL", "http://127.0.0.1:8787"), "sandboxd HTTP API URL")
+	root.PersistentFlags().StringVar(&opt.sandboxImage, "sandbox-image", env("ORCHESTRATOR_SANDBOX_IMAGE", "firecracker-ci-ubuntu-22.04"), "sandbox image passed to sandboxd")
+	root.PersistentFlags().StringVar(&opt.processAPIBin, "process-api-bin", env("PROCESS_API_BIN", "/opt/managed-agents/bin/process-api"), "guest process-api binary path on the sandboxd host")
+	root.PersistentFlags().BoolVar(&opt.keepSandbox, "keep-sandbox", env("ORCHESTRATOR_KEEP_SANDBOX", "") == "1", "leave sandbox running for debugging")
 	runOnce := &cobra.Command{
 		Use:   "run-once",
 		Short: "Claim and run at most one queued work item",
@@ -342,6 +384,8 @@ func executeRuntime(ctx context.Context, opt options, work EnvironmentWork, sess
 		result = runShellRuntime(runCtx, opt, prompt, workspace)
 	case "codex-local":
 		result = runCodexLocal(runCtx, opt, prompt, workspace)
+	case "sandbox-shell":
+		result = runSandboxShell(runCtx, opt, work, prompt)
 	default:
 		result = runResult{OK: false, Error: fmt.Sprintf("unsupported runtime %q", opt.runtime), StartedAt: started, EndedAt: time.Now().UTC()}
 	}
@@ -413,6 +457,121 @@ func runShellRuntime(ctx context.Context, opt options, prompt, workspace string)
 		}
 	}
 	return result
+}
+
+func runSandboxShell(ctx context.Context, opt options, work EnvironmentWork, prompt string) runResult {
+	started := time.Now().UTC()
+	sandboxID := "sbx-" + safePathPart(work.ID)
+	client := &http.Client{Timeout: opt.runtimeTimeout + 30*time.Second}
+	state, err := startSandbox(ctx, client, opt, sandboxID)
+	if err != nil {
+		return runResult{OK: false, Error: err.Error(), StartedAt: started, EndedAt: time.Now().UTC()}
+	}
+	if !opt.keepSandbox {
+		defer cleanupSandbox(context.Background(), client, opt, state.ID)
+	}
+	command := strings.TrimSpace(opt.shellCommand)
+	if command == "" {
+		command = "printf '%s\n' \"$MANAGED_AGENTS_PROMPT\""
+	}
+	resp, err := execSandbox(ctx, client, opt, state.ID, processAPIExecRequest{
+		Argv:          []string{"/bin/sh", "-c", command},
+		Cwd:           "/tmp",
+		Env:           map[string]string{"MANAGED_AGENTS_PROMPT": prompt},
+		TimeoutMillis: opt.runtimeTimeout.Milliseconds(),
+	})
+	output := resp.Stdout
+	if resp.Stderr != "" {
+		output += "\n[stderr]\n" + resp.Stderr
+	}
+	result := runResult{
+		OK:        err == nil && resp.OK,
+		Summary:   limitString(strings.TrimSpace(output), 8000),
+		RawOutput: limitString(output, 50000),
+		StartedAt: started,
+		EndedAt:   time.Now().UTC(),
+	}
+	if err != nil {
+		result.Error = err.Error()
+	} else if !resp.OK {
+		result.Error = resp.Error
+		if result.Error == "" {
+			result.Error = fmt.Sprintf("guest command exited with %d", resp.ExitCode)
+		}
+		if resp.TimedOut {
+			result.Error = "guest command timed out"
+		}
+	}
+	return result
+}
+
+func startSandbox(ctx context.Context, client *http.Client, opt options, id string) (sandboxState, error) {
+	request := sandboxdStartRequest{
+		ID:            id,
+		Image:         opt.sandboxImage,
+		ProcessAPI:    true,
+		ProcessAPIBin: opt.processAPIBin,
+		TimeoutMillis: opt.runtimeTimeout.Milliseconds(),
+	}
+	var body bytes.Buffer
+	if err := json.NewEncoder(&body).Encode(request); err != nil {
+		return sandboxState{}, err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, strings.TrimRight(opt.sandboxdURL, "/")+"/sandboxes", &body)
+	if err != nil {
+		return sandboxState{}, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := client.Do(req)
+	if err != nil {
+		return sandboxState{}, err
+	}
+	var state sandboxState
+	if err := readJSON(resp, &state); err != nil {
+		return sandboxState{}, err
+	}
+	return state, nil
+}
+
+func execSandbox(ctx context.Context, client *http.Client, opt options, id string, request processAPIExecRequest) (processAPIExecResponse, error) {
+	var body bytes.Buffer
+	if err := json.NewEncoder(&body).Encode(request); err != nil {
+		return processAPIExecResponse{}, err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, fmt.Sprintf("%s/sandboxes/%s/exec", strings.TrimRight(opt.sandboxdURL, "/"), id), &body)
+	if err != nil {
+		return processAPIExecResponse{}, err
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err := client.Do(req)
+	if err != nil {
+		return processAPIExecResponse{}, err
+	}
+	var result processAPIExecResponse
+	if err := readJSON(resp, &result); err != nil {
+		return processAPIExecResponse{}, err
+	}
+	return result, nil
+}
+
+func cleanupSandbox(ctx context.Context, client *http.Client, opt options, id string) {
+	base := strings.TrimRight(opt.sandboxdURL, "/") + "/sandboxes/" + id
+	stopReq, err := http.NewRequestWithContext(ctx, http.MethodPost, base+"/stop", nil)
+	if err == nil {
+		resp, err := client.Do(stopReq)
+		if err == nil {
+			_, _ = io.Copy(io.Discard, resp.Body)
+			_ = resp.Body.Close()
+		}
+	}
+	deleteReq, err := http.NewRequestWithContext(ctx, http.MethodDelete, base+"?force=true", nil)
+	if err == nil {
+		resp, err := client.Do(deleteReq)
+		if err == nil {
+			_, _ = io.Copy(io.Discard, resp.Body)
+			_ = resp.Body.Close()
+		}
+	}
 }
 
 func finalizeWork(db *gorm.DB, work EnvironmentWork, session Session, run DeploymentRun, result runResult) error {
@@ -668,4 +827,16 @@ func defaultWorkerID() string {
 		host = "localhost"
 	}
 	return "orch-" + safePathPart(host)
+}
+
+func readJSON(resp *http.Response, target any) error {
+	defer resp.Body.Close()
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+	if resp.StatusCode >= 300 {
+		return fmt.Errorf("http %s: %s", resp.Status, strings.TrimSpace(string(data)))
+	}
+	return json.Unmarshal(data, target)
 }

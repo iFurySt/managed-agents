@@ -879,6 +879,93 @@ func sandboxdHTTPHandler(opt options) http.Handler {
 			writeJSON(w, http.StatusOK, health)
 			return
 		}
+		if len(parts) == 2 && parts[1] == "exec" {
+			if r.Method != http.MethodPost {
+				writeAPIError(w, http.StatusMethodNotAllowed, "method not allowed")
+				return
+			}
+			state, err := readSandboxState(opt, id)
+			if err != nil {
+				writeAPIError(w, statusForError(err), err.Error())
+				return
+			}
+			var request processAPIExecRequest
+			if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 1<<20)).Decode(&request); err != nil {
+				writeAPIError(w, http.StatusBadRequest, "invalid json body")
+				return
+			}
+			result, err := execProcessAPI(r.Context(), state, request)
+			if err != nil {
+				writeAPIError(w, statusForError(err), err.Error())
+				return
+			}
+			writeJSON(w, http.StatusOK, result)
+			return
+		}
+		if len(parts) == 2 && parts[1] == "processes" {
+			if r.Method != http.MethodPost {
+				writeAPIError(w, http.StatusMethodNotAllowed, "method not allowed")
+				return
+			}
+			state, err := readSandboxState(opt, id)
+			if err != nil {
+				writeAPIError(w, statusForError(err), err.Error())
+				return
+			}
+			var request processAPIProcessRequest
+			if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 1<<20)).Decode(&request); err != nil {
+				writeAPIError(w, http.StatusBadRequest, "invalid json body")
+				return
+			}
+			result, err := startProcessAPI(r.Context(), state, request)
+			if err != nil {
+				writeAPIError(w, statusForError(err), err.Error())
+				return
+			}
+			writeJSON(w, http.StatusOK, result)
+			return
+		}
+		if len(parts) == 3 && parts[1] == "processes" {
+			if r.Method != http.MethodGet {
+				writeAPIError(w, http.StatusMethodNotAllowed, "method not allowed")
+				return
+			}
+			state, err := readSandboxState(opt, id)
+			if err != nil {
+				writeAPIError(w, statusForError(err), err.Error())
+				return
+			}
+			result, err := getProcessAPIProcess(r.Context(), state, parts[2])
+			if err != nil {
+				writeAPIError(w, statusForError(err), err.Error())
+				return
+			}
+			writeJSON(w, http.StatusOK, result)
+			return
+		}
+		if len(parts) == 4 && parts[1] == "processes" && parts[3] == "signal" {
+			if r.Method != http.MethodPost {
+				writeAPIError(w, http.StatusMethodNotAllowed, "method not allowed")
+				return
+			}
+			state, err := readSandboxState(opt, id)
+			if err != nil {
+				writeAPIError(w, statusForError(err), err.Error())
+				return
+			}
+			var request processAPISignalRequest
+			if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 1<<20)).Decode(&request); err != nil && !errors.Is(err, io.EOF) {
+				writeAPIError(w, http.StatusBadRequest, "invalid json body")
+				return
+			}
+			result, err := signalProcessAPI(r.Context(), state, parts[2], request.Signal)
+			if err != nil {
+				writeAPIError(w, statusForError(err), err.Error())
+				return
+			}
+			writeJSON(w, http.StatusOK, result)
+			return
+		}
 		writeAPIError(w, http.StatusNotFound, "route not found")
 	})
 	return mux

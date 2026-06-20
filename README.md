@@ -60,6 +60,19 @@ go run ./apps/sandboxd verify --work-dir /opt/managed-agents/firecracker --sudo
 go run ./apps/sandboxd serve --work-dir /opt/managed-agents/firecracker --sudo --listen 127.0.0.1:8787
 ```
 
+With `sandboxd serve` running on a KVM host, the orchestrator can execute a
+queued work item inside a Firecracker guest through `process-api`:
+
+```sh
+ORCHESTRATOR_SHELL_COMMAND='printf sandbox-orchestrator-ok' \
+  go run ./apps/orchestrator \
+    --runtime sandbox-shell \
+    --sandboxd-url http://127.0.0.1:8787 \
+    --process-api-bin /opt/managed-agents/bin/process-api \
+    --runtime-timeout 2m \
+    run-once
+```
+
 For the reusable GCP N2 nested-virtualization harness and sync commands, see
 [`docs/references/gcp-firecracker-kvm.md`](docs/references/gcp-firecracker-kvm.md).
 

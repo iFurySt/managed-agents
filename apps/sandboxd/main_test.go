@@ -333,6 +333,134 @@ func TestSandboxdHTTPHandlerStatusStopAndRemove(t *testing.T) {
 	}
 }
 
+func TestSandboxdHTTPHandlerProcessAPIProxy(t *testing.T) {
+	processServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch {
+		case r.Method == http.MethodPost && r.URL.Path == "/exec":
+			var req processAPIExecRequest
+			if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+				t.Fatalf("decode exec request: %v", err)
+			}
+			_ = json.NewEncoder(w).Encode(processAPIExecResponse{
+				OK:       true,
+				Argv:     req.Argv,
+				Cwd:      req.Cwd,
+				ExitCode: 0,
+				Stdout:   "exec-ok",
+			})
+		case r.Method == http.MethodPost && r.URL.Path == "/processes":
+			_ = json.NewEncoder(w).Encode(processAPIProcessResponse{
+				ID:       "proc-1",
+				Status:   "running",
+				PID:      123,
+				ExitCode: 0,
+			})
+		case r.Method == http.MethodGet && r.URL.Path == "/processes/proc-1":
+			_ = json.NewEncoder(w).Encode(processAPIProcessResponse{
+				ID:       "proc-1",
+				Status:   "exited",
+				ExitCode: 0,
+				Stdout:   "done",
+			})
+		case r.Method == http.MethodPost && r.URL.Path == "/processes/proc-1/signal":
+			_ = json.NewEncoder(w).Encode(processAPIProcessResponse{
+				ID:       "proc-1",
+				Status:   "exited",
+				ExitCode: 143,
+			})
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer processServer.Close()
+
+	hostPort := strings.TrimPrefix(processServer.URL, "http://")
+	host, port, _ := strings.Cut(hostPort, ":")
+	var tcpPort uint32
+	if _, err := fmt.Sscanf(port, "%d", &tcpPort); err != nil {
+		t.Fatalf("parse test server port: %v", err)
+	}
+
+	opt := options{workDir: t.TempDir()}
+	state := sandboxState{
+		ID:               "sbx-proxy",
+		Image:            "firecracker-ci-ubuntu-22.04",
+		Status:           "running",
+		PID:              -1,
+		WorkDir:          opt.workDir,
+		SandboxDir:       filepath.Join(sandboxesDir(opt), "sbx-proxy"),
+		ProcessAPI:       true,
+		ProcessTransport: "tcp",
+		GuestIP:          host,
+		ProcessTCPPort:   tcpPort,
+		StartedAt:        time.Date(2026, 6, 18, 12, 0, 0, 0, time.UTC),
+	}
+	if err := writeSandboxState(state); err != nil {
+		t.Fatalf("writeSandboxState returned error: %v", err)
+	}
+	server := httptest.NewServer(sandboxdHTTPHandler(opt))
+	defer server.Close()
+
+	body := strings.NewReader(`{"argv":["/bin/echo","ok"],"cwd":"/tmp"}`)
+	resp, err := http.Post(server.URL+"/sandboxes/sbx-proxy/exec", "application/json", body)
+	if err != nil {
+		t.Fatalf("POST exec returned error: %v", err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("POST exec status = %d", resp.StatusCode)
+	}
+	var execResp processAPIExecResponse
+	if err := json.NewDecoder(resp.Body).Decode(&execResp); err != nil {
+		t.Fatalf("decode exec response: %v", err)
+	}
+	if !execResp.OK || execResp.Stdout != "exec-ok" || execResp.Cwd != "/tmp" {
+		t.Fatalf("unexpected exec response: %#v", execResp)
+	}
+
+	resp, err = http.Post(server.URL+"/sandboxes/sbx-proxy/processes", "application/json", strings.NewReader(`{"argv":["/bin/sleep","1"]}`))
+	if err != nil {
+		t.Fatalf("POST processes returned error: %v", err)
+	}
+	defer resp.Body.Close()
+	var process processAPIProcessResponse
+	if err := json.NewDecoder(resp.Body).Decode(&process); err != nil {
+		t.Fatalf("decode process start: %v", err)
+	}
+	if process.ID != "proc-1" || process.Status != "running" {
+		t.Fatalf("unexpected process start: %#v", process)
+	}
+
+	resp, err = http.Get(server.URL + "/sandboxes/sbx-proxy/processes/proc-1")
+	if err != nil {
+		t.Fatalf("GET process returned error: %v", err)
+	}
+	defer resp.Body.Close()
+	if err := json.NewDecoder(resp.Body).Decode(&process); err != nil {
+		t.Fatalf("decode process status: %v", err)
+	}
+	if process.Status != "exited" || process.Stdout != "done" {
+		t.Fatalf("unexpected process status: %#v", process)
+	}
+
+	req, err := http.NewRequest(http.MethodPost, server.URL+"/sandboxes/sbx-proxy/processes/proc-1/signal", strings.NewReader(`{"signal":"TERM"}`))
+	if err != nil {
+		t.Fatalf("new signal request: %v", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	resp, err = http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatalf("POST signal returned error: %v", err)
+	}
+	defer resp.Body.Close()
+	if err := json.NewDecoder(resp.Body).Decode(&process); err != nil {
+		t.Fatalf("decode signal response: %v", err)
+	}
+	if process.ExitCode != 143 {
+		t.Fatalf("unexpected signal response: %#v", process)
+	}
+}
+
 func TestSandboxdStartOptions(t *testing.T) {
 	wait := false
 	base := options{
