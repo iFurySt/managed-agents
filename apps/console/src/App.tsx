@@ -160,16 +160,11 @@ function Sidebar() {
 
   if (collapsed) {
     return (
-      <aside aria-label="Main navigation" className="sticky top-0 flex h-screen w-[49.25px] shrink-0 flex-col border-r-[0.5px] border-line bg-[#f9f9f7] p-0">
+      <aside aria-label="Main navigation" className="sticky top-0 flex h-screen w-12 shrink-0 flex-col border-r-[0.5px] border-line bg-[#f9f9f7] p-0">
         <div className="flex h-[52px] items-start justify-start pl-2 pt-3">
-          <Button
-            variant="ghost"
-            className="!h-7 !w-7 !gap-1.5 !rounded-control !px-0 text-sm !leading-5 !text-[#898781] [font-weight:550] hover:!text-ink"
-            aria-label="Expand"
-            onClick={() => setCollapsed(false)}
-          >
+          <SidebarIconButton aria-label="Expand" data-testid="menu-sidebar-open" onClick={() => setCollapsed(false)}>
             <SidebarPanelIcon />
-          </Button>
+          </SidebarIconButton>
         </div>
         <button
           className="ml-[9px] mt-[5px] flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-[8px] border border-black/10 bg-transparent text-[#9b87f5] shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
@@ -196,9 +191,9 @@ function Sidebar() {
   }
 
   return (
-    <aside aria-label="Main navigation" className="sticky top-0 flex h-screen w-64 shrink-0 flex-col border-r-[0.5px] border-line bg-[#f9f9f7] p-3">
+    <aside aria-label="Main navigation" className="sticky top-0 flex h-screen w-[206px] shrink-0 flex-col border-r-[0.5px] border-line bg-[#f9f9f7] p-3">
       <div className="flex h-10 w-full flex-col pb-3">
-        <div className="flex w-full translate-y-px items-center justify-between">
+        <div className="-mr-2 flex w-full translate-y-px items-center justify-between">
           <Link className="pl-2" to="/">
             <div data-cds="ProductLogo" className="inline-flex flex-col items-start gap-[3px]">
               <span
@@ -209,14 +204,9 @@ function Sidebar() {
               </span>
             </div>
           </Link>
-          <Button
-            variant="ghost"
-            className="!h-7 !w-7 !gap-1.5 !rounded-control !px-0 text-sm !leading-5 !text-[#898781] [font-weight:550] hover:!text-ink"
-            aria-label="Collapse"
-            onClick={() => setCollapsed(true)}
-          >
+          <SidebarIconButton aria-label="Collapse" onClick={() => setCollapsed(true)}>
             <SidebarPanelIcon />
-          </Button>
+          </SidebarIconButton>
         </div>
       </div>
       <div className="mb-[17px] mt-[4px] inline-flex h-8 w-full items-center gap-1.5 rounded-cds border border-black/10 bg-transparent pr-2 text-sm leading-5">
@@ -268,6 +258,21 @@ function Sidebar() {
         </div>
       </div>
     </aside>
+  );
+}
+
+function SidebarIconButton({ children, className = "", ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) {
+  return (
+    <button
+      data-cds="Button"
+      data-size="sm"
+      type="button"
+      className={`group/sidebar-icon relative isolate inline-flex h-7 w-7 shrink-0 select-none items-center justify-center gap-1.5 whitespace-nowrap rounded-control border-0 bg-transparent px-0 text-sm leading-5 text-[#898781] outline-none transition-colors [font-weight:550] hover:text-ink ${className}`}
+      {...props}
+    >
+      <span aria-hidden="true" className="absolute inset-0 -z-[1] rounded-[inherit] bg-transparent transition-colors group-hover/sidebar-icon:bg-fill" />
+      {children}
+    </button>
   );
 }
 
