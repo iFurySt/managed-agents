@@ -17,7 +17,7 @@ export default {
         control: "7px"
       },
       fontFamily: {
-        sans: ["anthropicSans", "Inter", "ui-sans-serif", "system-ui", "sans-serif"],
+        sans: ["anthropicSans", "\"anthropicSans Fallback\"", "system-ui", "\"Segoe UI\"", "Roboto", "Helvetica", "Arial", "sans-serif"],
         mono: ["ui-monospace", "SFMono-Regular", "Menlo", "monospace"]
       }
     }

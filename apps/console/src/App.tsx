@@ -138,21 +138,21 @@ export default function App() {
 
 function Sidebar() {
   return (
-    <aside className="sticky top-0 flex h-screen w-64 shrink-0 flex-col border-r border-line bg-canvas px-3">
-      <div className="flex h-16 items-center justify-between">
-        <div className="text-xl font-semibold tracking-[-0.01em]">Claude Console</div>
+    <aside className="sticky top-0 flex h-screen w-64 shrink-0 flex-col border-r border-line bg-[#f9f9f7] p-3">
+      <div className="flex h-10 items-center justify-between">
+        <div className="text-base !leading-4 [font-weight:400]">Claude Console</div>
         <Button variant="ghost" className="h-7 w-7 px-0" aria-label="Collapse sidebar">
           <span className="h-5 w-5 rounded border border-muted" />
         </Button>
       </div>
-      <button className="mb-5 flex h-9 items-center justify-between rounded-cds border border-line bg-white px-3 text-sm shadow-sm">
+      <button className="mb-[18px] mt-[5px] flex h-[30px] items-center justify-between rounded-cds border border-line bg-white px-3 text-sm shadow-sm">
         <span className="flex items-center gap-2">
           <Box className="h-4 w-4 text-[#8b6fff]" />
           Default
         </span>
         <ChevronDown className="h-4 w-4 text-muted" />
       </button>
-      <nav className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto pb-3">
+      <nav className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto pb-0">
         <IconItem icon={<Home />} label="Dashboard" />
         <IconItem icon={<KeyRound />} label="API keys" />
         <Group icon={<Wrench />} label="Build" items={["Workbench", "Files", "Skills", "Batches"]} />
@@ -166,7 +166,7 @@ function Sidebar() {
         <Group icon={<Terminal />} label="Claude Code" items={["Usage", "Settings"]} />
         <Group icon={<Settings />} label="Manage" items={["Limits", "Service accounts", "Privacy controls", "Security", "Webhooks", "Tags"]} />
       </nav>
-      <div className="-mx-3 border-t border-line px-3 py-3">
+      <div className="-mx-3 border-t border-line bg-[#fcfcfb] px-3 py-3">
         <IconItem icon={<FileText />} label="Documentation" />
         <IconItem icon={<CircleDollarSign />} label="Credits" right="USD 3.10" />
         <div className="mt-3 flex items-center gap-3 rounded-lg px-2 py-2">
@@ -186,7 +186,7 @@ function Sidebar() {
 
 function IconItem({ icon, label, right }: { icon: React.ReactNode; label: string; right?: string }) {
   return (
-    <div className="flex h-9 items-center gap-3 rounded-lg px-2 text-sm font-medium text-[#4e4a45]">
+    <div className="flex shrink-0 items-center gap-3 rounded-lg px-2 text-sm text-[#4e4a45] [font-weight:550]" style={{ height: 36 }}>
       <span className="text-muted [&_svg]:h-4 [&_svg]:w-4">{icon}</span>
       <span className="min-w-0 flex-1 truncate">{label}</span>
       {right ? <span className="text-muted">{right}</span> : null}
@@ -201,8 +201,8 @@ function Group({ icon, label, items, managed = false }: { icon: React.ReactNode;
     return `/${item.toLowerCase().replaceAll(" ", "-").replace("credential-vaults", "vaults")}`;
   };
   return (
-    <div className="flex flex-col">
-      <div className="flex h-9 items-center gap-3 rounded-lg px-2 text-sm font-semibold text-[#4e4a45]">
+    <div className="mb-1 flex shrink-0 flex-col gap-1">
+      <div className="flex shrink-0 items-center gap-3 rounded-lg px-2 text-sm font-semibold text-[#4e4a45]" style={{ height: 36 }}>
         <span className="text-muted [&_svg]:h-4 [&_svg]:w-4">{icon}</span>
         <span className="min-w-0 flex-1 truncate">{label}</span>
         <ChevronDown className="h-4 w-4 text-muted" />
@@ -214,7 +214,7 @@ function Group({ icon, label, items, managed = false }: { icon: React.ReactNode;
               {item}
             </SidebarItem>
           ) : (
-            <div key={item} className="flex h-9 items-center rounded-lg pl-10 text-sm text-[#4e4a45]">
+            <div key={item} className="flex shrink-0 items-center rounded-lg pl-10 text-sm text-[#4e4a45] [font-weight:400]" style={{ height: 36 }}>
               {item}
             </div>
           )
@@ -228,7 +228,7 @@ function Banner() {
   const [visible, setVisible] = useState(true);
   if (!visible) return null;
   return (
-    <div data-cds="Banner" className="mb-4 flex h-[76px] items-start gap-2 rounded-[12px] bg-[#fcfcfb] px-4 py-3">
+    <div data-cds="Banner" className="mb-10 flex h-[76px] items-start gap-2 rounded-[12px] bg-[#fcfcfb] px-4 py-3">
       <Info className="h-5 w-5 shrink-0 text-muted" />
       <div className="flex-1 text-sm leading-5">
         <span>Update June 12: We've suspended access to Claude Fable 5 and Claude Mythos 5. Please use Opus 4.8 or another model.</span>
