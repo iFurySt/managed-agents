@@ -5112,7 +5112,7 @@ function CreateEnvironmentDialog({
   const [description, setDescription] = useState("");
   const canCreate = name.trim().length <= 50;
   const fieldLabelClass = "text-sm leading-none [font-weight:550]";
-  const helperClass = "text-[13px] font-normal leading-[18px] text-muted";
+  const helperClass = "text-[13px] font-normal leading-[18px] text-[#898781]";
 
   async function submit() {
     if (!canCreate) return;
@@ -5133,10 +5133,10 @@ function CreateEnvironmentDialog({
       title="Create environment"
       open={open}
       onOpenChange={onOpenChange}
-      contentClassName="h-[429px] w-[510px] max-w-[calc(100vw-32px)] !rounded-[12px] border-0"
+      contentClassName="h-[429px] w-[510px] max-w-[calc(100vw-32px)] !rounded-[12px] border-0 !shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]"
       headerClassName="flex items-start justify-between pl-6 pr-4 pt-4"
       titleClassName="relative -top-px mt-1 w-[431px] text-[22px] leading-[26px] text-ink [font-weight:580]"
-      closeButtonClassName="relative -top-px h-[31px] w-[31px] rounded-[8px] px-0"
+      closeButtonClassName="relative -top-px h-[31px] w-[31px] !rounded-[8px] px-0"
       closeLabel="Close"
     >
       <div className="px-6 pb-0 pt-[27px]">
@@ -5144,7 +5144,7 @@ function CreateEnvironmentDialog({
           <div className="grid gap-2">
             <label className={fieldLabelClass}>Name</label>
             <TextInput
-              className="h-[31px] rounded-[8px] border-0 bg-white/50 px-3 font-normal"
+              className="h-[31px] !rounded-[8px] border-0 bg-white/50 px-3 font-normal shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]"
               placeholder="E.g. My Environment"
               value={name}
               maxLength={50}
@@ -5159,14 +5159,14 @@ function CreateEnvironmentDialog({
               value={hostingType}
               options={["Cloud", "Self-hosted"]}
               onValueChange={setHostingType}
-              triggerClassName="!h-[31px] w-full rounded-[8px] border-0 bg-white/50 px-2"
+              triggerClassName="!h-[31px] w-full !rounded-[8px] border-0 bg-white/50 px-2 shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]"
             />
             <p className={helperClass}>This cannot be changed after creation.</p>
           </div>
           <div className="grid gap-2">
             <label className={fieldLabelClass}>Description</label>
             <textarea
-              className="cds-focus h-[74px] resize-none rounded-[8px] border-0 bg-white/50 px-3 py-2 text-sm font-normal leading-5"
+              className="cds-focus h-[74px] resize-none rounded-[8px] border-0 bg-white/50 px-3 py-2 text-sm font-normal leading-5 shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]"
               placeholder="Optional description for this environment"
               value={description}
               onChange={(event) => setDescription(event.target.value)}
@@ -5174,8 +5174,8 @@ function CreateEnvironmentDialog({
           </div>
         </div>
         <div className="sticky bottom-0 -mx-6 mt-4 flex justify-end gap-[7px] bg-white px-6 py-0">
-          <Button variant="ghost" className="h-[31px] w-[70px] rounded-[8px] px-0 [font-weight:550]" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button className="h-[31px] w-[69px] rounded-[8px] px-0 [font-weight:550]" onClick={submit} disabled={!canCreate}>Create</Button>
+          <Button variant="ghost" className="h-[31px] w-[70px] !rounded-[8px] px-0 [font-weight:550]" onClick={() => onOpenChange(false)}>Cancel</Button>
+          <Button className="h-[31px] w-[69px] !rounded-[8px] px-0 [font-weight:550]" onClick={submit} disabled={!canCreate}>Create</Button>
         </div>
       </div>
     </ConsoleDialog>
