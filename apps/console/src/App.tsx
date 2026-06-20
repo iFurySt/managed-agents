@@ -3572,11 +3572,13 @@ function CreateAgentDialog({
       overlayClassName="fixed inset-0 z-40 bg-transparent"
     >
       <div className="h-[calc(941px-80px)] overflow-y-auto px-6 pb-0 pt-[10px]">
-        <button className="mb-[11px] flex h-5 w-full items-center gap-1.5 rounded-[8px] text-sm" type="button">
+        <button className="mb-[11px] flex h-5 w-full items-center gap-1.5 rounded-[8px] text-sm text-[#52514e]" type="button">
           <CdsIconGlyph glyph="" className="h-4 w-4 text-[#52514e] text-[16px] [font-weight:533.25]" />
-          <span className="[font-weight:580]">Starting point</span>
-          <span className="text-muted">·</span>
-          <span className="font-normal text-muted">{selectedTemplate.name}</span>
+          <span className="flex items-center gap-1.5">
+            <span>Starting point</span>
+            <span>·</span>
+            <span>{selectedTemplate.name}</span>
+          </span>
         </button>
         <div className={`rounded-cds bg-fill ${startingPointMode === "template" ? "h-[167px] overflow-hidden" : ""}`}>
           <div className="grid h-[31px] grid-cols-2 rounded-cds bg-fill p-px text-sm" role="radiogroup" aria-label="Starting point">
