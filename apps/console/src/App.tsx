@@ -3801,11 +3801,11 @@ function CreateSessionDialog({
       description="Set up an instance of your agent in its environment."
       open={open}
       onOpenChange={onOpenChange}
-      contentClassName="h-[526px] w-[706px] max-w-[calc(100vw-32px)] !rounded-[12px] border-0 !shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]"
+      contentClassName="h-[526px] w-[706px] max-w-[calc(100vw-32px)] !rounded-[12px] border-0 !shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]"
       headerClassName="flex items-start justify-between pl-6 pr-4 pt-4"
       titleClassName="mt-1 text-[22px] leading-[26px] text-ink [font-weight:580]"
       descriptionClassName="mt-1 text-sm text-[#52514e]"
-      closeButtonClassName="h-[31px] w-[31px] !gap-1.5 rounded-[8px] !px-0 [font-weight:550]"
+      closeButtonClassName="h-[31px] w-[31px] !gap-1.5 !rounded-[8px] !px-0 [font-weight:550]"
       closeLabel="Close"
       overlayClassName="fixed inset-0 z-40 bg-transparent"
     >
@@ -3814,7 +3814,7 @@ function CreateSessionDialog({
           <label className={`grid gap-[7px] ${fieldLabelClass}`}>
             Title
             <TextInput
-              className="h-[31px] border-0 bg-white/50 rounded-[8px] px-3 font-normal"
+              className="h-[31px] border-0 bg-white/50 !rounded-[8px] px-3 font-normal shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]"
               placeholder="Optional – name this run"
               value={title}
               onChange={(event) => setTitle(event.target.value)}
@@ -3835,7 +3835,7 @@ function CreateSessionDialog({
               options={["Select an agent", "agent_013mi1SmR2hJ6Hk6wNTeJvF9", "agent_017k8CPYuCFRD9AmupUeXd2Z", "agent_01AVRPTGyYareCeoUasn66q5"]}
               onValueChange={(value) => setAgentId(value === "Select an agent" ? "" : value)}
               showLabel={false}
-              triggerClassName="!h-[31px] w-[651px] !gap-1.5 border-0 !bg-transparent !pl-2 !pr-0"
+              triggerClassName="!h-[31px] w-[651px] !gap-1.5 !rounded-none border-0 !bg-transparent !pl-2 !pr-0"
             />
           </div>
           <div className="grid gap-2">
@@ -3853,7 +3853,7 @@ function CreateSessionDialog({
               options={["Select an environment", "env_01ManagedDebug", "env_01UbuntuNode", "env_01PythonBrowser"]}
               onValueChange={(value) => setEnvironmentId(value === "Select an environment" ? "" : value)}
               showLabel={false}
-              triggerClassName="!h-[31px] w-[651px] !gap-1.5 border-0 !bg-transparent !pl-2 !pr-0"
+              triggerClassName="!h-[31px] w-[651px] !gap-1.5 !rounded-none border-0 !bg-transparent !pl-2 !pr-0"
             />
           </div>
           <div className="grid gap-2">
@@ -3871,12 +3871,12 @@ function CreateSessionDialog({
               options={["Select one or more vaults", "vault_01GitHub", "No vaults"]}
               onValueChange={(value) => setVault(value === "Select one or more vaults" || value === "No vaults" ? "" : value)}
               showLabel={false}
-              triggerClassName="!h-[31px] w-[651px] !gap-1.5 border-0 !bg-transparent !pl-2 !pr-0"
+              triggerClassName="!h-[31px] w-[651px] !gap-1.5 !rounded-none border-0 !bg-transparent !pl-2 !pr-0"
             />
           </div>
           <div className="grid gap-[7px]">
             <label className={fieldLabelClass}>Resources</label>
-            <p className="text-[13px] leading-[18px] text-muted">Mount files, GitHub repositories, or memory stores into the session.</p>
+            <p className="text-[13px] leading-[18px] text-[#898781]">Mount files, GitHub repositories, or memory stores into the session.</p>
             <FieldSelect
               label="+"
               value={resource || "Resource"}
@@ -3887,7 +3887,7 @@ function CreateSessionDialog({
           </div>
         </div>
         <div className="sticky bottom-0 -mx-6 mt-[37px] flex justify-end bg-white px-6 pb-[23px] pt-0">
-          <Button className="h-[31px] w-[122px] !gap-1.5 rounded-[8px] !px-3 [font-weight:550]" onClick={submit} disabled={!canCreate}>Create session</Button>
+          <Button className="h-[31px] w-[122px] !gap-1.5 !rounded-[8px] !px-3 [font-weight:550]" onClick={submit} disabled={!canCreate}>Create session</Button>
         </div>
       </div>
     </ConsoleDialog>
