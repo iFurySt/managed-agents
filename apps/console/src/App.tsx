@@ -3398,8 +3398,9 @@ function CreateSessionDialog({
       headerClassName="flex items-start justify-between pl-6 pr-4 pt-4"
       titleClassName="mt-1 text-[22px] leading-[26px] text-ink [font-weight:580]"
       descriptionClassName="mt-1 text-sm text-[#52514e]"
-      closeButtonClassName="h-[31px] w-[31px] rounded-[8px] px-0"
+      closeButtonClassName="h-[31px] w-[31px] !gap-1.5 rounded-[8px] !px-0 [font-weight:550]"
       closeLabel="Close"
+      overlayClassName="fixed inset-0 z-40 bg-transparent"
     >
       <div className="px-6 pb-0 pt-[10px]">
         <div className="grid gap-4">
@@ -3427,7 +3428,7 @@ function CreateSessionDialog({
               options={["Select an agent", "agent_013mi1SmR2hJ6Hk6wNTeJvF9", "agent_017k8CPYuCFRD9AmupUeXd2Z", "agent_01AVRPTGyYareCeoUasn66q5"]}
               onValueChange={(value) => setAgentId(value === "Select an agent" ? "" : value)}
               showLabel={false}
-              triggerClassName="!h-[31px] w-[651px] border-0 !bg-transparent !pl-2 !pr-0"
+              triggerClassName="!h-[31px] w-[651px] !gap-1.5 border-0 !bg-transparent !pl-2 !pr-0"
             />
           </div>
           <div className="grid gap-2">
@@ -3445,7 +3446,7 @@ function CreateSessionDialog({
               options={["Select an environment", "env_01ManagedDebug", "env_01UbuntuNode", "env_01PythonBrowser"]}
               onValueChange={(value) => setEnvironmentId(value === "Select an environment" ? "" : value)}
               showLabel={false}
-              triggerClassName="!h-[31px] w-[651px] border-0 !bg-transparent !pl-2 !pr-0"
+              triggerClassName="!h-[31px] w-[651px] !gap-1.5 border-0 !bg-transparent !pl-2 !pr-0"
             />
           </div>
           <div className="grid gap-2">
@@ -3463,7 +3464,7 @@ function CreateSessionDialog({
               options={["Select one or more vaults", "vault_01GitHub", "No vaults"]}
               onValueChange={(value) => setVault(value === "Select one or more vaults" || value === "No vaults" ? "" : value)}
               showLabel={false}
-              triggerClassName="!h-[31px] w-[651px] border-0 !bg-transparent !pl-2 !pr-0"
+              triggerClassName="!h-[31px] w-[651px] !gap-1.5 border-0 !bg-transparent !pl-2 !pr-0"
             />
           </div>
           <div className="grid gap-[7px]">
@@ -3474,12 +3475,12 @@ function CreateSessionDialog({
               value={resource || "Resource"}
               options={["Resource", "session-output.tar.gz", "operations-memory", "No resources"]}
               onValueChange={(value) => setResource(value === "Resource" || value === "No resources" ? "" : value)}
-              triggerClassName="!h-[27px] w-[121px] justify-self-start rounded-control border-0 bg-transparent px-[10px] font-medium"
+              triggerClassName="!h-[27px] w-[121px] justify-self-start !gap-1.5 rounded-control border-0 !bg-transparent px-[10px] [font-weight:550]"
             />
           </div>
         </div>
         <div className="sticky bottom-0 -mx-6 mt-[37px] flex justify-end bg-white px-6 pb-[23px] pt-0">
-          <Button className="h-[31px] w-[122px] rounded-[8px] px-0 [font-weight:550]" onClick={submit} disabled={!canCreate}>Create session</Button>
+          <Button className="h-[31px] w-[122px] !gap-1.5 rounded-[8px] !px-3 [font-weight:550]" onClick={submit} disabled={!canCreate}>Create session</Button>
         </div>
       </div>
     </ConsoleDialog>
