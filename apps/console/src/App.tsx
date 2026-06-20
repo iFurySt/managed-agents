@@ -5422,10 +5422,10 @@ function CreateMemoryStoreDialog({
       title="Create memory store"
       open={open}
       onOpenChange={onOpenChange}
-      contentClassName="h-[337px] w-[510px] max-w-[calc(100vw-32px)] !rounded-[12px] border-0"
+      contentClassName="h-[337px] w-[510px] max-w-[calc(100vw-32px)] !rounded-[12px] border-0 !shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]"
       headerClassName="flex items-start justify-between pl-6 pr-4 pt-4"
       titleClassName="mt-1 w-[431px] text-[22px] leading-[26px] text-ink [font-weight:580]"
-      closeButtonClassName="h-[31px] w-[31px] rounded-[8px] px-0"
+      closeButtonClassName="h-[31px] w-[31px] !rounded-[8px] px-0"
       closeLabel="Close"
     >
       <div className="px-6 pb-0 pt-3">
@@ -5433,7 +5433,7 @@ function CreateMemoryStoreDialog({
           <div className="grid gap-[7px]">
             <label className={fieldLabelClass}>Name</label>
             <TextInput
-              className="h-[31px] rounded-[8px] border-0 bg-white/50 px-3 font-normal"
+              className="h-[31px] !rounded-[8px] border-0 bg-white/50 px-3 font-normal shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]"
               placeholder="My memory store"
               value={name}
               onChange={(event) => setName(event.target.value)}
@@ -5442,16 +5442,16 @@ function CreateMemoryStoreDialog({
           <div className="mt-4 grid gap-2">
             <label className={fieldLabelClass}>Description (optional)</label>
             <textarea
-              className="cds-focus h-[74px] resize-none rounded-[8px] border-0 bg-white/50 px-3 py-2 text-sm font-normal leading-5"
+              className="cds-focus h-[74px] resize-none rounded-[8px] border-0 bg-white/50 px-3 py-2 text-sm font-normal leading-5 shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]"
               placeholder="What this store contains and how agents should use it"
               value={description}
               onChange={(event) => setDescription(event.target.value)}
             />
           </div>
-          <p className="mt-2 text-[13px] leading-[18px] text-muted">Name and description are rendered in the agent system prompt when this store is attached.</p>
+          <p className="mt-2 text-[13px] leading-[18px] text-[#898781]">Name and description are rendered in the agent system prompt when this store is attached.</p>
         </div>
         <div className="sticky bottom-0 -mx-6 mt-[15px] flex justify-end bg-white px-6 py-0">
-          <Button className="h-[31px] w-[69px] rounded-[8px] px-0 [font-weight:550]" onClick={submit} disabled={!canCreate}>Create</Button>
+          <Button className="h-[31px] w-[69px] !rounded-[8px] px-0 [font-weight:550]" onClick={submit} disabled={!canCreate}>Create</Button>
         </div>
       </div>
     </ConsoleDialog>
