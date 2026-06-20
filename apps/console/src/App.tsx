@@ -647,7 +647,7 @@ function SessionsPage() {
       </div>
       <div className="-mt-2">
         <DataTable
-          className="-mx-2 -my-2 overflow-x-auto p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
+          className="-mx-2 -my-2 !w-[calc(100%+16px)] overflow-x-auto p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
           tableClassName="border-separate border-spacing-0 whitespace-nowrap"
           rows={visibleSessions}
           getKey={(session) => session.id}
@@ -687,10 +687,14 @@ function SessionsPage() {
               header: "Agent",
               width: "191px",
               render: (session) => (
-                <Button variant="ghost" className="h-[25px] max-w-[170px] justify-start px-2">
+                <button
+                  data-cds="Button"
+                  type="button"
+                  className="cds-focus inline-flex h-[25px] min-w-0 max-w-full items-center gap-1.5 rounded-md border-[0.5px] border-black/10 bg-transparent px-1.5 py-0.5 text-sm leading-5 text-[#52514e] [font-weight:400] hover:bg-fill"
+                >
                   <CdsIconGlyph glyph="" className="h-4 w-4 text-[#898781] text-[16px] [font-weight:533.25]" />
                   <span className="truncate">{session.agentName}</span>
-                </Button>
+                </button>
               )
             },
             { key: "created", header: "Created", width: "200px", render: (session) => <span className="text-muted">{session.createdLabel}</span> }

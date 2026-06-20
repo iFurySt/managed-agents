@@ -97,9 +97,11 @@ export function FieldSelect({
         data-cds="Button"
         className={`cds-focus inline-flex h-8 items-center gap-2 rounded-control border border-line bg-white px-3 text-sm text-ink ${triggerClassName}`}
       >
-        {showLabel ? <span className="text-muted">{label}</span> : null}
-        <Select.Value />
-        <Select.Icon>
+        <span className="flex min-w-0 flex-1 items-baseline gap-1.5 whitespace-nowrap">
+          {showLabel ? <span className="shrink-0 text-muted">{label}</span> : null}
+          <Select.Value className="min-w-0 truncate" />
+        </span>
+        <Select.Icon className="shrink-0">
           <CdsIconGlyph glyph="" className="h-4 w-4 text-[#898781] text-[16px] [font-weight:533.25]" />
         </Select.Icon>
       </Select.Trigger>
