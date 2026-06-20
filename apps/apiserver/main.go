@@ -374,7 +374,7 @@ func run() error {
 
 	router := gin.Default()
 	router.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:5173", "http://127.0.0.1:5173"},
+		AllowOrigins:     []string{"http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:5174", "http://127.0.0.1:5174"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
 		AllowCredentials: true,
@@ -1261,7 +1261,7 @@ func getVault(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var vault Vault
 		if err := db.Preload("Credentials", func(tx *gorm.DB) *gorm.DB {
-			return tx.Order("created_at desc")
+			return tx.Order("created_at asc")
 		}).First(&vault, "id = ?", c.Param("id")).Error; err != nil {
 			status := http.StatusInternalServerError
 			if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -1792,17 +1792,46 @@ func seed(db *gorm.DB) error {
 		}
 	}
 
-	if err := db.Model(&Vault{}).Count(&count).Error; err != nil {
+	vaults, credentials := seedVaults(now)
+	if err := db.Clauses(clause.OnConflict{
+		Columns: []clause.Column{{Name: "id"}},
+		DoUpdates: clause.AssignmentColumns([]string{
+			"name",
+			"status",
+			"description",
+			"created_label",
+			"updated_label",
+			"created_at",
+			"updated_at",
+		}),
+	}).Create(&vaults).Error; err != nil {
 		return err
 	}
-	if count == 0 {
-		vaults, credentials := seedVaults(now)
-		if err := db.Create(&vaults).Error; err != nil {
-			return err
-		}
-		if err := db.Create(&credentials).Error; err != nil {
-			return err
-		}
+	staleVaultCredentialIDs := []string{
+		"vcrd_01EnvVarOpsToken",
+		"vcrd_01EnvVarApiKey",
+		"vcrd_01BearerInternal",
+		"vcrd_01McpOAuthGmail",
+		"vcrd_01ExpLeoKey",
+	}
+	if err := db.Where("id IN ?", staleVaultCredentialIDs).Delete(&VaultCredential{}).Error; err != nil {
+		return err
+	}
+	if err := db.Clauses(clause.OnConflict{
+		Columns: []clause.Column{{Name: "id"}},
+		DoUpdates: clause.AssignmentColumns([]string{
+			"vault_id",
+			"name",
+			"auth_type",
+			"target",
+			"status",
+			"last_used",
+			"updated_label",
+			"created_at",
+			"updated_at",
+		}),
+	}).Create(&credentials).Error; err != nil {
+		return err
 	}
 
 	if err := db.Model(&MemoryStore{}).Count(&count).Error; err != nil {
@@ -1941,11 +1970,11 @@ func seedVaults(ts time.Time) ([]Vault, []VaultCredential) {
 		vault("vault_01GitHub", "GitHub source access", "Active", "Jun 16", ts),
 	}
 	credentials := []VaultCredential{
-		vaultCredential("vcrd_01EnvVarOpsToken", "vlt_011Cc6ULi3DaPNjN1LZLTenB", "Unnamed", "Environment variable", "OPS_TOKEN", "Active", "Never", "Jun 16", ts),
-		vaultCredential("vcrd_01EnvVarApiKey", "vlt_011Cc6ULi3DaPNjN1LZLTenB", "Unnamed", "Environment variable", "API_TOKEN", "Active", "Never", "Jun 16", ts),
-		vaultCredential("vcrd_01BearerInternal", "vlt_011Cc6ULi3DaPNjN1LZLTenB", "bearertoken", "Bearer token", "https://api.example.com/", "Active", "Never", "Jun 16", ts),
-		vaultCredential("vcrd_01McpOAuthGmail", "vlt_011Cc6ULi3DaPNjN1LZLTenB", "mcpoauth", "MCP OAuth", "https://gmail.mcp.example.com/mcp", "Active", "Never", "Jun 16", ts),
-		vaultCredential("vcrd_01ExpLeoKey", "vlt_011Cc6ULi3DaPNjN1LZLTenB", "exp", "Environment variable", "X_LEO_KEY", "Active", "Never", "Jun 16", ts),
+		vaultCredential("vcrd_01Console9X2g5BB", "vlt_011Cc6ULi3DaPNjN1LZLTenB", "Unnamed", "Environment variable", "TEST", "Active", "Jun 18, 2026", "Jun 16", ts),
+		vaultCredential("vcrd_01ConsolebjRQgYp", "vlt_011Cc6ULi3DaPNjN1LZLTenB", "Unnamed", "Environment variable", "X_LEO_API", "Active", "Jun 18, 2026", "Jun 16", ts.Add(time.Second)),
+		vaultCredential("vcrd_01ConsoleGJKMDyK", "vlt_011Cc6ULi3DaPNjN1LZLTenB", "bearertoken", "Bearer token", "https://api.ifuryst.com/", "Active", "Never", "Jun 16", ts.Add(2*time.Second)),
+		vaultCredential("vcrd_01ConsoleWtXJ6BE", "vlt_011Cc6ULi3DaPNjN1LZLTenB", "mcpoauth", "MCP OAuth", "https://gmail.mcp.claude.com/mcp", "Active", "Never", "Jun 16", ts.Add(3*time.Second)),
+		vaultCredential("vcrd_01ConsoleiByG9Qr", "vlt_011Cc6ULi3DaPNjN1LZLTenB", "exp", "Environment variable", "X_LEO_KEY", "Active", "Jun 18, 2026", "Jun 16", ts.Add(4*time.Second)),
 		vaultCredential("vcrd_01GithubToken", "vault_01GitHub", "github-token", "Bearer token", "https://api.github.com/", "Active", "2 days ago", "Jun 16", ts),
 	}
 	return vaults, credentials
