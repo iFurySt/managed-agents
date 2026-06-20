@@ -48,12 +48,13 @@ export const Button = forwardRef<HTMLButtonElement, React.ButtonHTMLAttributes<H
   );
 });
 
-export function Badge({ children, tone = "neutral", className = "" }: { children: ReactNode; tone?: "neutral" | "green" | "blue" | "red"; className?: string }) {
+export function Badge({ children, tone = "neutral", className = "" }: { children: ReactNode; tone?: "neutral" | "green" | "blue" | "red" | "warning"; className?: string }) {
   const tones = {
     neutral: "bg-fill text-muted",
     green: "bg-[#caeac7] text-[#006300]",
     blue: "bg-[#d7e8ff] text-[#1b5eb8]",
-    red: "bg-[#ffe0dc] text-[#a33a29]"
+    red: "bg-[#ffe0dc] text-[#a33a29]",
+    warning: "bg-[#f9dca4] text-[#734500]"
   };
   return (
     <span data-cds="Badge" className={`inline-flex h-5 items-center rounded-[5px] px-2 text-xs leading-[15px] [font-weight:550] ${tones[tone]} ${className}`}>

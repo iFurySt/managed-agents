@@ -1111,10 +1111,20 @@ function DeploymentsPage() {
         title="Deployments"
         description="A deployment binds an agent to credentials, an environment, and a schedule so it can run on its own."
         action={
-          <Button className="!gap-1.5 !rounded-[8px] !px-2 [font-weight:550]" onClick={() => setDialogOpen(true)}>
-            <CdsIconGlyph glyph="" className="h-5 w-5 text-current text-[20px] [font-weight:566.5]" />
-            Create deployment
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button className="!gap-1.5 !rounded-[8px] !px-2 [font-weight:550]" onClick={() => setDialogOpen(true)}>
+              <CdsIconGlyph glyph="" className="h-5 w-5 text-current text-[20px] [font-weight:566.5]" />
+              Create deployment
+            </Button>
+            <a
+              data-cds="Button"
+              className="cds-focus inline-flex h-8 w-8 items-center justify-center gap-1.5 rounded-[8px] text-sm !leading-5 text-ink [font-weight:550] hover:bg-fill"
+              aria-label="View documentation"
+              href="https://platform.claude.com/docs/en/managed-agents/deployments"
+            >
+              <CdsIconGlyph glyph="" />
+            </a>
+          </div>
         }
       />
       <div className="mt-4 flex flex-wrap items-start gap-2">
@@ -1156,7 +1166,7 @@ function DeploymentsPage() {
       </div>
       <div className="mt-2 overflow-x-auto">
         <DataTable
-          className="-mx-2 w-[calc(100%+16px)] overflow-x-auto p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
+          className="-mx-2 !w-[calc(100%+16px)] overflow-x-auto p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
           tableClassName="border-separate border-spacing-0 whitespace-nowrap"
           rows={visibleDeployments}
           getKey={(deployment) => deployment.id}
@@ -1198,11 +1208,17 @@ function DeploymentsPage() {
               header: "Agent",
               width: "220px",
               render: (deployment) => (
-                <Button variant="ghost" className="h-[25px] min-w-0 max-w-full justify-start px-2">
-                  <CdsIconGlyph glyph="" className="h-4 w-4 text-[#898781] text-[16px] [font-weight:533.25]" />
-                  <span className="min-w-0 truncate">{deployment.agentName}</span>
-                  <span className="shrink-0 text-muted">{deployment.agentVersion}</span>
-                </Button>
+                <span className="relative z-10 inline-flex max-w-full items-center gap-1.5 align-middle">
+                  <button
+                    data-cds="Button"
+                    type="button"
+                    className="cds-focus inline-flex h-[25px] min-w-0 max-w-full items-center gap-1.5 rounded-md border-[0.5px] border-black/10 bg-transparent px-1.5 py-0.5 text-sm leading-5 text-[#52514e] [font-weight:400] hover:bg-fill"
+                  >
+                    <CdsIconGlyph glyph="" className="h-4 w-4 text-[#898781] text-[16px] [font-weight:533.25]" />
+                    <span className="truncate">{deployment.agentName}</span>
+                  </button>
+                  <span className="shrink-0 rounded bg-[#f6f6f4] px-1 font-mono text-[11px] leading-4 text-[#52514e]">{deployment.agentVersion}</span>
+                </span>
               )
             },
             { key: "trigger", header: "Trigger", width: "200px", render: (deployment) => <span>{deploymentTriggerLabel(deployment)}</span> },
@@ -5727,10 +5743,11 @@ function sessionTone(status: string): "neutral" | "green" | "blue" | "red" {
   return "neutral";
 }
 
-function deploymentTone(status: string): "neutral" | "green" | "blue" | "red" {
+function deploymentTone(status: string): "neutral" | "green" | "blue" | "red" | "warning" {
   if (status === "Failed") return "red";
   if (status === "Active" || status === "Running") return "green";
   if (status === "Queued" || status === "Ready") return "blue";
+  if (status === "Paused") return "warning";
   return "neutral";
 }
 
