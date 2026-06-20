@@ -216,6 +216,7 @@ export function ConsoleDialog({
   children,
   contentClassName = "w-[706px]",
   titleClassName = "text-2xl font-semibold text-ink",
+  descriptionClassName = "mt-1 text-sm text-muted",
   headerClassName = "flex items-start justify-between px-6 pt-6",
   closeButtonClassName = "h-8 w-8 px-0",
   closeLabel = "Close dialog",
@@ -228,6 +229,7 @@ export function ConsoleDialog({
   children: ReactNode;
   contentClassName?: string;
   titleClassName?: string;
+  descriptionClassName?: string;
   headerClassName?: string;
   closeButtonClassName?: string;
   closeLabel?: string;
@@ -241,7 +243,7 @@ export function ConsoleDialog({
           <div className={headerClassName}>
             <div>
               <Dialog.Title className={titleClassName}>{title}</Dialog.Title>
-              {description ? <Dialog.Description className="mt-1 text-sm text-muted">{description}</Dialog.Description> : null}
+              {description ? <Dialog.Description className={descriptionClassName}>{description}</Dialog.Description> : null}
             </div>
             <Dialog.Close asChild>
               <Button variant="ghost" className={closeButtonClassName} aria-label={closeLabel}>
