@@ -3,6 +3,8 @@
 This repository is becoming an open-source managed agents platform. The detailed
 target design lives in
 [Open Managed Agents Architecture](design-docs/open-managed-agents-architecture.md).
+The accepted first orchestrator/runtime cut lives in
+[Orchestrator And Agent Runtime Plan](design-docs/orchestrator-agent-runtime-plan.md).
 This file is the short top-level map.
 
 ## Product Surfaces
@@ -18,7 +20,7 @@ This file is the short top-level map.
 
 The system has three hard layers:
 
-- Control plane: `apiserver`, metadata DB, work queue, session service,
+- Control plane: `apiserver`, metadata DB, `environment_work` queue, session service,
   orchestrator, vault module, filestore module, memory module, skill registry,
   deployment records, and event ingestion.
 - Host plane: `sandboxd`, Firecracker, image/snapshot manager, network/egress
@@ -53,9 +55,11 @@ The system has three hard layers:
   disposable.
 - Every long-running session, run attempt, VM, tunnel, and deployment job has a
   lease, heartbeat or timeout, and finalizer.
-- UI status values must map to real lifecycle states such as queued, assigned,
-  booting, initializing, running, heartbeat-lost, finalizing, failed, timed-out,
-  cancelled, succeeded, and archived.
+- Session `idle` means no active turn is running. It is not a scheduler queue
+  state; scheduling is driven by `environment_work`.
+- UI status values must map to real lifecycle state from sessions, work,
+  deployment runs, run attempts, and sandbox state instead of overloading one
+  status column.
 - When the architecture changes, update this file and the relevant design docs
   in the same task.
 

@@ -13,3 +13,6 @@ Suggested conventions:
 - [core-beliefs.md](core-beliefs.md): stable agent-first operating principles.
 - [open-managed-agents-architecture.md](open-managed-agents-architecture.md):
   draft target architecture for the open managed agents platform.
+- [orchestrator-agent-runtime-plan.md](orchestrator-agent-runtime-plan.md):
+  accepted MVP direction for orchestrator scheduling, session/work state
+  semantics, and Pi/Codex/OpenCode runtime integration.

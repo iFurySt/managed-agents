@@ -74,6 +74,26 @@ The recovered orchestrator and pod monitor surfaces show:
 Design implication: leases are a first-class object. Sessions, run attempts,
 VMs, tunnels, and deployment jobs need heartbeats or timeouts plus finalizers.
 
+Additional CLI and SDK corroboration from the managed-agent command surface:
+
+- `worker poll` long-polls an environment for work, then runs a local session
+  tool runner for the assigned session.
+- `worker run` attaches to an existing session and executes tool-use events
+  locally.
+- environment work exposes poll, retrieve, update, list, acknowledge,
+  heartbeat, stats, and stop operations.
+- work heartbeat uses an expected previous heartbeat value, including a
+  first-claim marker for no previous heartbeat.
+- the observed session status enum is `rescheduling`, `running`, `idle`, and
+  `terminated`.
+- the observed self-hosted work state enum is `queued`, `starting`, `active`,
+  `stopping`, and `stopped`.
+- the prebuilt worker can stop after the agent returns an idle/end-turn result.
+
+Design implication: `idle` is a session lifecycle state, not a queued-work
+state. The open platform should schedule from explicit environment work records
+and keep session status focused on whether a turn is active.
+
 ## Auth And Token Containment
 
 The recovered auth/session ingress shape shows a normalized auth context with

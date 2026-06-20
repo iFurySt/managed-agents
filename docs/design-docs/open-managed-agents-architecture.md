@@ -182,25 +182,22 @@ beginning, even if early implementations are local and minimal.
 ## Session State Model
 
 The UI and API should reflect real lifecycle semantics instead of a vague
-running/failed flag.
+running/failed flag, but durable scheduling state must not be overloaded onto
+the session row. `sessions.status = idle` means the session is waiting for the
+next user or deployment action; it is not pending scheduler work.
 
-Initial states:
+The durable state model is intentionally split:
 
-- `created`: session record exists, no work item is ready.
-- `queued`: work item exists and is waiting for an orchestrator claim.
-- `assigned`: orchestrator claimed work and selected a host.
-- `booting`: host is preparing or restoring the sandbox.
-- `initializing`: runner acknowledged work and is setting up mounts, sources,
-  tools, credentials, and environment.
-- `running`: code agent is executing the task.
-- `heartbeat_lost`: lease is still recoverable, but expected heartbeat is late.
-- `cancelling`: user or policy requested cancellation.
-- `finalizing`: runner or reconciler is collecting outputs and diagnostics.
-- `succeeded`: terminal success with outcome and artifacts recorded.
-- `failed`: terminal failure with class and user-visible reason.
-- `timed_out`: terminal timeout.
-- `cancelled`: terminal user or policy cancellation.
-- `archived`: hidden from active operational views but retained by policy.
+| Object | States | Meaning |
+| --- | --- | --- |
+| `sessions` | `idle`, `running`, `rescheduling`, `terminated` | Conversation or delegated-task lifecycle. |
+| `environment_work` | `queued`, `starting`, `active`, `stopping`, `stopped` | Queue, lease, heartbeat, and stop lifecycle. |
+| `deployment_runs` | `pending`, `running`, `success`, `failed`, `cancelled`, `timed_out` | Product-level deployment execution lifecycle. |
+
+UI states such as assigned, booting, initializing, heartbeat-lost, cancelling,
+finalizing, retrying, succeeded, failed, timed-out, cancelled, and archived are
+derived views across sessions, work rows, deployment runs, run attempts, leases,
+and sandbox state.
 
 ## Core Runtime Contracts
 
@@ -448,14 +445,11 @@ change.
   with explicit per-session registration, bearer auth, tool policy, and config
   merge.
 - Do not build broad UI CRUD before lifecycle semantics are real. The UI must
-  reflect actual queued, assigned, booting, initializing, running,
-  heartbeat-lost, finalizing, failed, timed-out, cancelled, succeeded, and
-  archived states.
+  derive scheduler, sandbox, deployment, and terminal views from the split
+  session/work/run state model instead of inventing vague status labels.
 
 ## Open Questions
 
-- Which adapter should be first: Codex for alignment with this repo, or OpenCode
-  for easier fully open demonstrations?
 - Should the first metadata store be SQLite for local install simplicity or
   Postgres to avoid early migration churn?
 - Do we implement `fs-bridge` directly with go-fuse first, or start with an
