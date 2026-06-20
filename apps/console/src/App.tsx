@@ -483,22 +483,11 @@ function AgentsPage() {
   const [status, setStatus] = useState("Active");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [archivingAgent, setArchivingAgent] = useState<Agent | null>(null);
-  const [compactTable, setCompactTable] = useState(() => window.matchMedia("(max-width: 1279px)").matches);
-  const agentTableWidths = compactTable
-    ? { id: "150px", name: "260px", model: "130px", status: "100px", created: "120px", updated: "120px", actions: "48px" }
-    : { id: "180px", name: "310px", model: "170px", status: "120px", created: "150px", updated: "150px", actions: "56px" };
+  const agentTableWidths = { id: "180px", name: "240px", model: "170px", status: "120px", created: "150px", updated: "150px", actions: "56px" };
 
   useEffect(() => {
     listAgents({ q: search, status, created }).then(setAgents).catch(() => setAgents([]));
   }, [created, search, status]);
-
-  useEffect(() => {
-    const matcher = window.matchMedia("(max-width: 1279px)");
-    const onChange = () => setCompactTable(matcher.matches);
-    onChange();
-    matcher.addEventListener("change", onChange);
-    return () => matcher.removeEventListener("change", onChange);
-  }, []);
 
   async function archiveCurrent(agent: Agent) {
     const updated = await archiveAgent(agent.id);
@@ -556,7 +545,7 @@ function AgentsPage() {
       </div>
       <DataTable
         className="-mx-2 -my-2 !w-[calc(100%+16px)] overflow-x-auto p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
-        tableClassName="min-w-[968px] border-separate border-spacing-0 whitespace-nowrap xl:min-w-[1176px]"
+        tableClassName="min-w-[1106px] border-separate border-spacing-0 whitespace-nowrap"
         rows={agents}
         getKey={(agent) => agent.id}
         columns={[
