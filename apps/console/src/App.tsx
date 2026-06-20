@@ -155,7 +155,7 @@ function Sidebar() {
 
   if (collapsed) {
     return (
-      <aside className="sticky top-0 flex h-screen w-12 shrink-0 flex-col border-r-[0.5px] border-line bg-[#f9f9f7] p-0">
+      <aside aria-label="Main navigation" className="sticky top-0 flex h-screen w-12 shrink-0 flex-col border-r-[0.5px] border-line bg-[#f9f9f7] p-0">
         <div className="flex h-[52px] items-start justify-start pl-2 pt-3">
           <Button
             variant="ghost"
@@ -191,10 +191,10 @@ function Sidebar() {
   }
 
   return (
-    <aside className="sticky top-0 flex h-screen w-64 shrink-0 flex-col border-r-[0.5px] border-line bg-[#f9f9f7] p-3">
+    <aside aria-label="Main navigation" className="sticky top-0 flex h-screen w-64 shrink-0 flex-col border-r-[0.5px] border-line bg-[#f9f9f7] p-3">
       <div className="flex h-10 w-full flex-col pb-3">
         <div className="flex w-full translate-y-px items-center justify-between">
-          <Link className="pl-1.5" to="/">
+          <Link className="pl-2" to="/">
             <div data-cds="ProductLogo" className="inline-flex flex-col items-start">
               <span className="whitespace-nowrap font-voice text-[16px] leading-4 text-ink [font-weight:550]">
                 Claude Console
@@ -278,7 +278,7 @@ function CollapsedSidebarLink({ glyph, label, to = "#" }: { glyph: string; label
 }
 
 function SidebarPanelIcon() {
-  return <CdsIconGlyph glyph="" />;
+  return <CdsIconGlyph glyph="" className="h-5 w-5 text-current text-[20px] [font-weight:433.25]" />;
 }
 
 function MoreActionsIcon() {
