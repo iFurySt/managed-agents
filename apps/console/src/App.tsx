@@ -411,10 +411,20 @@ function SessionsPage() {
         title="Sessions"
         description="Trace and debug Claude Managed Agents sessions."
         action={
-          <Button className="!w-[144px] !gap-1.5 !rounded-[8px] [font-weight:550]" onClick={() => setDialogOpen(true)}>
-            <Plus className="h-4 w-4" />
-            Create session
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button className="!w-[144px] !gap-1.5 !rounded-[8px] [font-weight:550]" onClick={() => setDialogOpen(true)}>
+              <Plus className="h-4 w-4" />
+              Create session
+            </Button>
+            <a
+              data-cds="Button"
+              className="cds-focus inline-flex h-8 w-8 items-center justify-center gap-1.5 rounded-[8px] text-sm !leading-5 text-ink [font-weight:550] hover:bg-fill"
+              aria-label="View documentation"
+              href="https://platform.claude.com/docs/en/managed-agents/sessions"
+            >
+              <ExternalLink className="h-5 w-5" />
+            </a>
+          </div>
         }
       />
       <div className="flex flex-wrap items-start gap-2">
