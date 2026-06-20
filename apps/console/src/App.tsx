@@ -6812,12 +6812,12 @@ function CollectionPage({ route }: { route: { path: CollectionName; title: strin
 
 function PageHeader({ title, description, action, titleClassName = "" }: { title: string; description: React.ReactNode; action?: React.ReactNode; titleClassName?: string }) {
   return (
-    <div className="flex flex-col gap-2">
-      <div className="flex h-8 items-center justify-between gap-4">
+    <div className="flex items-start justify-between gap-4">
+      <div className="flex min-w-0 flex-col gap-2">
         <h1 className={`truncate text-2xl leading-8 [font-weight:550] ${titleClassName}`}>{title}</h1>
-        {action ? <div className="shrink-0">{action}</div> : null}
+        <p className="text-sm leading-5 text-[#898781]">{description}</p>
       </div>
-      <div className="pr-32 text-sm leading-5 text-[#898781]">{description}</div>
+      {action ? <div className="shrink-0">{action}</div> : null}
     </div>
   );
 }
