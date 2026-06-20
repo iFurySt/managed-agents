@@ -182,7 +182,7 @@ function Sidebar() {
         <div className="-mr-2 flex w-full translate-y-px items-center justify-between">
           <Link className="pl-2" to="/">
             <div className="inline-flex flex-col items-start">
-              <span className="ml-[-0.1em] whitespace-nowrap font-serif text-[17px] leading-none text-ink [font-weight:650]">
+              <span className="ml-[-0.1em] whitespace-nowrap font-serif text-[16px] leading-none text-ink [font-weight:550]">
                 Claude Console
               </span>
             </div>
@@ -264,12 +264,7 @@ function CollapsedSidebarLink({ glyph, label, to = "#" }: { glyph: string; label
 }
 
 function SidebarCollapseIcon() {
-  return (
-    <span aria-hidden="true" className="relative block h-5 w-5 shrink-0 text-[#898781]">
-      <span className="absolute left-[3px] top-[2px] h-4 w-[14px] rounded-[2px] border-[1.5px] border-current" />
-      <span className="absolute left-[8px] top-[3px] h-[14px] w-[1.5px] rounded-full bg-current" />
-    </span>
-  );
+  return <CdsIconGlyph glyph="" className="h-5 w-5 text-current text-[20px] [font-weight:433.3]" />;
 }
 
 function MoreActionsIcon() {
@@ -1613,8 +1608,8 @@ function EnvironmentsPage() {
       </div>
       <div className="overflow-x-auto">
         <DataTable
-          className="-mx-2 w-[calc(100%+16px)] overflow-x-auto p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
-          tableClassName="w-[1552px] border-separate border-spacing-0 whitespace-nowrap"
+          className="-mx-2 !w-[calc(100%+16px)] overflow-x-auto p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
+          tableClassName="w-[968px] border-separate border-spacing-0 whitespace-nowrap"
           rows={visibleEnvironments}
           getKey={(environment) => environment.id}
           actionsWidth="56px"
@@ -1641,7 +1636,7 @@ function EnvironmentsPage() {
             {
               key: "name",
               header: "Name",
-              width: "880px",
+              width: "296px",
               render: (environment) => (
                 <Link className="block truncate [font-weight:400]" to={`/environments/${environment.id}`}>
                   {environment.name}
@@ -1649,7 +1644,7 @@ function EnvironmentsPage() {
               )
             },
             { key: "status", header: "Status", width: "100px", render: (environment) => <Badge tone={environmentTone(environment.status)}>{environment.status}</Badge> },
-            { key: "type", header: "Type", width: "120px", render: (environment) => <span>{environment.type}</span> },
+            { key: "type", header: "Type", width: "120px", render: (environment) => <Badge tone="neutral" className="bg-[#f6f6f4] text-[#52514e]">{environment.type}</Badge> },
             { key: "updated", header: "Updated at", width: "140px", render: (environment) => <span className="text-muted">{environment.updatedLabel}</span> }
           ]}
           renderActions={(environment) => (
