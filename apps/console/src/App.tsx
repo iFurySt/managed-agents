@@ -1040,7 +1040,7 @@ function DeploymentFilterSelect({
 
   return (
     <div data-cds="Field" className="relative h-10">
-      <div className="h-8 rounded-[8px] bg-white/50">
+      <div className="h-8 rounded-[8px] bg-white/50 shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]">
         <button
           type="button"
           role="combobox"
@@ -1160,10 +1160,9 @@ function DeploymentsPage() {
       />
       <div className="mt-4 flex flex-wrap items-start gap-2">
         <div className="flex h-10 w-[320px] flex-col gap-1">
-          <div className="relative flex h-8 items-center rounded-[8px] bg-white/50 px-3">
+          <div data-cds="TextInput" className="relative flex h-8 items-center rounded-[8px] bg-white/50 px-3 shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
             <input
-              data-cds="TextInput"
               className="ml-6 h-full min-w-0 flex-1 border-0 bg-transparent p-0 text-sm text-ink outline-none placeholder:text-muted"
               aria-label="Search by name or exact ID"
               placeholder="Search by name or exact ID"
