@@ -32,8 +32,7 @@ import {
   Shield,
   Terminal,
   Trash2,
-  Wrench,
-  X
+  Wrench
 } from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useEffect, useMemo, useState, type DragEvent } from "react";
@@ -222,12 +221,16 @@ function MoreActionsIcon() {
   return <MoreHorizontal aria-hidden="true" className="h-5 w-5" strokeWidth={1.75} />;
 }
 
-function SidebarGlyph({ glyph, className = "h-5 w-5 text-[#898781] text-[20px] [font-weight:433.3]" }: { glyph: string; className?: string }) {
+function CdsIconGlyph({ glyph, className = "h-5 w-5 text-current text-[20px] [font-weight:433.3]" }: { glyph: string; className?: string }) {
   return (
     <span data-cds="Icon" aria-hidden="true" className={`flex shrink-0 select-none items-center justify-center leading-none [font-family:var(--font-anthropicons,Anthropicons-Variable)] ${className}`}>
       {glyph}
     </span>
   );
+}
+
+function SidebarGlyph({ glyph, className = "h-5 w-5 text-[#898781] text-[20px] [font-weight:433.3]" }: { glyph: string; className?: string }) {
+  return <CdsIconGlyph glyph={glyph} className={className} />;
 }
 
 function WorkspaceBoxIcon() {
@@ -311,7 +314,7 @@ function Banner() {
       className="mb-4 flex h-[76px] items-start gap-2 rounded-[12px] bg-[#fcfcfb] px-4 py-3 text-sm leading-5 shadow-[0_0_0_1px_rgba(11,11,11,0.1)]"
     >
       <span className="flex h-5 shrink-0 items-center text-[#52514e]">
-        <Info className="h-5 w-5" />
+        <CdsIconGlyph glyph="" />
       </span>
       <div className="flex min-w-0 flex-1 flex-wrap items-start gap-x-4 gap-y-3">
         <div className="max-w-full min-w-0 flex-auto">
@@ -325,7 +328,7 @@ function Banner() {
       </div>
       <span className="-mr-2.5 flex h-5 shrink-0 items-center">
         <Button variant="ghost" className="!h-8 !w-8 !rounded-[8px] !px-0 [font-weight:550]" onClick={() => setVisible(false)} aria-label="Dismiss">
-          <X aria-hidden="true" className="h-5 w-5" strokeWidth={1.75} />
+          <CdsIconGlyph glyph="" />
         </Button>
       </span>
     </div>
@@ -357,8 +360,8 @@ function AgentsPage() {
         description="Create and manage autonomous agents."
         action={
           <div className="flex items-center gap-2">
-            <Button className="!w-[132px] !gap-1.5 !rounded-[8px] [font-weight:550]" onClick={() => setDialogOpen(true)}>
-              <Plus className="h-4 w-4" />
+            <Button className="!w-[132px] !gap-1.5 !rounded-[8px] !px-2 [font-weight:550]" onClick={() => setDialogOpen(true)}>
+              <CdsIconGlyph glyph="" className="h-5 w-5 text-current text-[20px] [font-weight:566.5]" />
               Create agent
             </Button>
             <a
@@ -367,7 +370,7 @@ function AgentsPage() {
               aria-label="View documentation"
               href="https://platform.claude.com/docs/en/managed-agents/agent-setup"
             >
-              <ExternalLink className="h-5 w-5" />
+              <CdsIconGlyph glyph="" />
             </a>
           </div>
         }
@@ -493,8 +496,8 @@ function SessionsPage() {
         description="Trace and debug Claude Managed Agents sessions."
         action={
           <div className="flex items-center gap-2">
-            <Button className="!w-[144px] !gap-1.5 !rounded-[8px] [font-weight:550]" onClick={() => setDialogOpen(true)}>
-              <Plus className="h-4 w-4" />
+            <Button className="!w-[144px] !gap-1.5 !rounded-[8px] !px-2 [font-weight:550]" onClick={() => setDialogOpen(true)}>
+              <CdsIconGlyph glyph="" className="h-5 w-5 text-current text-[20px] [font-weight:566.5]" />
               Create session
             </Button>
             <a
@@ -503,7 +506,7 @@ function SessionsPage() {
               aria-label="View documentation"
               href="https://platform.claude.com/docs/en/managed-agents/sessions"
             >
-              <ExternalLink className="h-5 w-5" />
+              <CdsIconGlyph glyph="" />
             </a>
           </div>
         }
@@ -1001,8 +1004,8 @@ function DeploymentsPage() {
         title="Deployments"
         description="A deployment binds an agent to credentials, an environment, and a schedule so it can run on its own."
         action={
-          <Button className="!gap-1.5 !rounded-[8px] [font-weight:550]" onClick={() => setDialogOpen(true)}>
-            <Plus className="h-4 w-4" />
+          <Button className="!gap-1.5 !rounded-[8px] !px-2 [font-weight:550]" onClick={() => setDialogOpen(true)}>
+            <CdsIconGlyph glyph="" className="h-5 w-5 text-current text-[20px] [font-weight:566.5]" />
             Create deployment
           </Button>
         }
@@ -1439,8 +1442,8 @@ function EnvironmentsPage() {
         title="Environments"
         description="Configuration template for containers, such as sessions or code execution."
         action={
-          <Button className="!gap-1.5 !rounded-[8px] [font-weight:550]" onClick={() => setDialogOpen(true)}>
-            <Plus className="h-4 w-4" />
+          <Button className="!gap-1.5 !rounded-[8px] !px-2 [font-weight:550]" onClick={() => setDialogOpen(true)}>
+            <CdsIconGlyph glyph="" className="h-5 w-5 text-current text-[20px] [font-weight:566.5]" />
             Create environment
           </Button>
         }
@@ -1888,8 +1891,8 @@ function VaultsPage() {
         title="Credential vaults"
         description="Manage credential vaults that provide your agents with access to MCP servers and other tools."
         action={
-          <Button className="!gap-1.5 !rounded-[8px] [font-weight:550]" onClick={() => setDialogOpen(true)}>
-            <Plus className="h-4 w-4" />
+          <Button className="!gap-1.5 !rounded-[8px] !px-2 [font-weight:550]" onClick={() => setDialogOpen(true)}>
+            <CdsIconGlyph glyph="" className="h-5 w-5 text-current text-[20px] [font-weight:566.5]" />
             Create vault
           </Button>
         }
@@ -2234,8 +2237,8 @@ function MemoryStoresPage() {
         description="Browse and manage persistent memory for your agents."
         action={
           <div className="flex items-center gap-2">
-            <Button className="!gap-1.5 !rounded-[8px] [font-weight:550]" onClick={() => setDialogOpen(true)}>
-              <Plus className="h-4 w-4" />
+            <Button className="!gap-1.5 !rounded-[8px] !px-2 [font-weight:550]" onClick={() => setDialogOpen(true)}>
+              <CdsIconGlyph glyph="" className="h-5 w-5 text-current text-[20px] [font-weight:566.5]" />
               Create memory store
             </Button>
             <Button variant="icon" className="h-8 w-8 !rounded-[8px] [font-weight:550]" aria-label="Refresh memory stores" onClick={refreshStores}>
@@ -2596,8 +2599,8 @@ function FilesPage() {
         action={
           <div className="flex items-center gap-2">
             {files.length ? (
-              <Button onClick={() => setDialogOpen(true)}>
-                <Plus className="h-4 w-4" />
+              <Button className="!gap-1.5 !rounded-[8px] !px-2 [font-weight:550]" onClick={() => setDialogOpen(true)}>
+                <CdsIconGlyph glyph="" className="h-5 w-5 text-current text-[20px] [font-weight:566.5]" />
                 Add local file
               </Button>
             ) : null}
@@ -2607,7 +2610,7 @@ function FilesPage() {
               className="inline-flex h-8 w-8 items-center justify-center rounded-[8px] text-sm !leading-5 [font-weight:550] hover:bg-fill"
               href="https://docs.claude.com/en/docs/build-with-claude/files"
             >
-              <ExternalLink className="h-5 w-5" />
+              <CdsIconGlyph glyph="" />
             </a>
           </div>
         }
@@ -2867,8 +2870,8 @@ function SkillsPage() {
         description="Skills are repeatable and customizable instructions that Claude API can follow. Only skills from the Default workspace are shown. To see other workspace's skills, select a workspace."
         action={
           <div className="flex items-center gap-2">
-            <Button className="!h-8 !w-[120px] !gap-1.5 !rounded-[8px] [font-weight:550]" onClick={() => setDialogOpen(true)}>
-              <Plus className="h-4 w-4" />
+            <Button className="!h-8 !w-[120px] !gap-1.5 !rounded-[8px] !px-2 [font-weight:550]" onClick={() => setDialogOpen(true)}>
+              <CdsIconGlyph glyph="" className="h-5 w-5 text-current text-[20px] [font-weight:566.5]" />
               Create skill
             </Button>
             <a
@@ -2877,7 +2880,7 @@ function SkillsPage() {
               aria-label="View documentation"
               href="https://docs.claude.com/en/docs/agents-and-tools/agent-skills/overview"
             >
-              <ExternalLink className="h-5 w-5" />
+              <CdsIconGlyph glyph="" />
             </a>
           </div>
         }
