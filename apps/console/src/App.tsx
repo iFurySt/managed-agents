@@ -144,12 +144,8 @@ function Sidebar() {
     <aside className="sticky top-0 flex h-screen w-64 shrink-0 flex-col border-r-[0.5px] border-line bg-[#f9f9f7] p-3">
       <div className="flex h-10 w-full flex-col pb-3">
         <div className="-mr-2 flex w-full translate-y-px items-center justify-between">
-          <Link className="pl-2" to="/">
-            <span className="inline-flex flex-col items-start gap-[3px]">
-              <span className="ml-[-0.1em] whitespace-nowrap font-serif text-base leading-none text-ink [font-feature-settings:'dlig','ss01'] [font-optical-sizing:auto] [font-weight:550]">
-                Claude Console
-              </span>
-            </span>
+          <Link className="pl-2 text-sm font-normal leading-[21px] text-ink" to="/">
+            Claude Console
           </Link>
           <Button
             variant="ghost"
@@ -212,10 +208,10 @@ function Sidebar() {
 
 function SidebarCollapseIcon() {
   return (
-    <svg aria-hidden="true" className="h-5 w-5" viewBox="0 0 20 20" fill="none">
-      <rect x="3" y="3.25" width="14" height="13.5" rx="1.75" stroke="currentColor" strokeWidth="1.8" />
-      <path d="M7.85 3.25v13.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-    </svg>
+    <span data-cds="Icon" aria-hidden="true" className="relative flex h-5 w-5 shrink-0 items-center justify-center text-current">
+      <span className="absolute left-[3px] top-[3.25px] h-[13.5px] w-3.5 rounded-[2px] border-[1.6px] border-current" />
+      <span className="absolute left-[7.75px] top-[3.75px] h-[12.5px] border-l-[1.6px] border-current" />
+    </span>
   );
 }
 
