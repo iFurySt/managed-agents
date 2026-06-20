@@ -177,10 +177,10 @@ function Sidebar() {
   }
 
   return (
-    <aside className="sticky top-0 flex h-screen w-[212px] shrink-0 flex-col border-r-[0.5px] border-line bg-[#f9f9f7] p-3">
+    <aside className="sticky top-0 flex h-screen w-64 shrink-0 flex-col border-r-[0.5px] border-line bg-[#f9f9f7] p-3">
       <div className="flex h-10 w-full flex-col pb-3">
-        <div className="flex w-full translate-y-px items-center justify-start">
-          <Link className="pl-px" to="/">
+        <div className="flex w-full translate-y-px items-center justify-between">
+          <Link className="pl-1.5" to="/">
             <div data-cds="ProductLogo" className="inline-flex flex-col items-start">
               <span className="whitespace-nowrap font-voice text-[16px] leading-4 text-ink [font-weight:550]">
                 Claude Console
@@ -189,7 +189,7 @@ function Sidebar() {
           </Link>
           <Button
             variant="ghost"
-            className="-ml-1.5 !h-7 !w-7 !gap-1.5 !rounded-control !px-0 text-sm !leading-5 !text-[#6f6d68] [font-weight:550] hover:!text-ink"
+            className="!h-7 !w-7 !gap-1.5 !rounded-control !px-0 text-sm !leading-5 !text-[#6f6d68] [font-weight:550] hover:!text-ink"
             aria-label="Collapse"
             onClick={() => setCollapsed(true)}
           >
