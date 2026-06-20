@@ -32,7 +32,8 @@ import {
   Shield,
   Terminal,
   Trash2,
-  Wrench
+  Wrench,
+  X
 } from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useEffect, useMemo, useState, type DragEvent } from "react";
@@ -108,7 +109,7 @@ export default function App() {
         <main className="min-w-0 flex-1">
           <div className="mx-auto w-full max-w-[1600px] px-3 pb-8 pt-3">
             <Banner />
-            <div className="px-5">
+            <div className="px-5 pt-6">
               <Routes>
                 <Route path="/" element={<Navigate to="/agents" replace />} />
                 <Route path="/agents" element={<AgentsPage />} />
@@ -286,19 +287,28 @@ function Banner() {
   const [visible, setVisible] = useState(true);
   if (!visible) return null;
   return (
-    <div data-cds="Banner" className="mb-10 flex h-[76px] items-start gap-2 rounded-[12px] bg-[#fcfcfb] px-4 py-3">
-      <Info className="h-5 w-5 shrink-0 text-muted" />
-      <div className="flex-1 text-sm leading-5">
-        <span>Update June 12: We've suspended access to Claude Fable 5 and Claude Mythos 5. Please use Opus 4.8 or another model.</span>
-        <div>
-          <Button className="-ml-0.5 mt-2 !h-7 !w-[130px] !gap-1.5 !px-2.5 !text-sm">
+    <div
+      data-cds="Banner"
+      className="mb-4 flex h-[76px] items-start gap-2 rounded-[12px] bg-[#fcfcfb] px-4 py-3 text-sm leading-5 shadow-[0_0_0_1px_rgba(11,11,11,0.1)]"
+    >
+      <span className="flex h-5 shrink-0 items-center text-[#52514e]">
+        <Info className="h-5 w-5" />
+      </span>
+      <div className="flex min-w-0 flex-1 flex-wrap items-start gap-x-4 gap-y-3">
+        <div className="max-w-full min-w-0 flex-auto">
+          Update June 12: We've suspended access to Claude Fable 5 and Claude Mythos 5. Please use Opus 4.8 or another model.
+        </div>
+        <span className="-ml-0.5 flex h-5 shrink-0 items-center">
+          <Button className="!h-7 !w-[130px] !gap-1.5 !px-2.5 !text-sm [font-weight:550]">
             Learn more here
           </Button>
-        </div>
+        </span>
       </div>
-      <Button variant="ghost" className="-mr-2.5 -mt-1.5 h-8 w-8 px-0" onClick={() => setVisible(false)} aria-label="Dismiss banner">
-        ×
-      </Button>
+      <span className="-mr-2.5 flex h-5 shrink-0 items-center">
+        <Button variant="ghost" className="!h-8 !w-8 !rounded-[8px] !px-0 [font-weight:550]" onClick={() => setVisible(false)} aria-label="Dismiss">
+          <X aria-hidden="true" className="h-5 w-5" strokeWidth={1.75} />
+        </Button>
+      </span>
     </div>
   );
 }
