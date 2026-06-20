@@ -256,9 +256,7 @@ export function ConsoleDialog({
             </div>
             <Dialog.Close asChild>
               <Button variant="ghost" className={closeButtonClassName} aria-label={closeLabel}>
-                <span aria-hidden="true" className="text-[20px] leading-none">
-                  {"\u00d7"}
-                </span>
+                <CdsIconGlyph glyph="" />
               </Button>
             </Dialog.Close>
           </div>
