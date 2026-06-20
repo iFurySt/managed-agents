@@ -1,6 +1,5 @@
 import {
   Archive,
-  Bot,
   Boxes,
   Braces,
   Check,
@@ -2991,7 +2990,7 @@ function AgentDetailPage() {
           <div className="mt-[9px] flex h-5 flex-wrap items-center gap-2 text-sm text-muted">
             <span className="font-mono">{agent.id}</span>
             <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${agent.id}`} onClick={() => copyText(agent.id)}>
-              <Copy className="h-3.5 w-3.5" />
+              <CdsIconGlyph glyph="" className="h-3.5 w-3.5 text-[#898781] text-[14px] [font-weight:628.5]" />
             </Button>
             <span>·</span>
             <span>Last updated {agent.updatedLabel || "2 days ago"}</span>
@@ -2999,7 +2998,7 @@ function AgentDetailPage() {
         </div>
         <div className="flex shrink-0 gap-2">
           <Button variant="secondary" className="!w-[71px] !gap-1.5 !border-0 !bg-transparent [font-weight:550]" onClick={() => setEditOpen(true)}>
-            <Pencil className="h-4 w-4" />
+            <CdsIconGlyph glyph="" />
             Edit
           </Button>
           <AgentRowActions agent={agent} onArchive={() => setArchiveOpen(true)} />
@@ -3044,25 +3043,25 @@ function AgentDetailPage() {
                 aria-label="Copy to clipboard"
                 onClick={() => copyText(agent.systemPrompt)}
               >
-                <Copy className="h-4 w-4" />
+                <CdsIconGlyph glyph="" className="h-3.5 w-3.5 text-[#898781] text-[14px] [font-weight:628.5]" />
               </Button>
             </div>
           </section>
           <div className="h-6" aria-hidden="true" />
           <DetailSection title="MCPs and tools" headingClassName={agentDetailHeadingClass}>
             <div className="flex items-center gap-3 rounded-cds border border-line bg-white p-4">
-              <Bot className="h-5 w-5 text-muted" />
+              <CdsIconGlyph glyph="" className="h-5 w-5 text-[#898781] text-[20px] [font-weight:433.25]" />
               <div>
                 <div className="text-sm font-semibold">Built-in tools</div>
                 <div className="font-mono text-sm text-muted">{agent.tools}</div>
               </div>
               <Badge>
-                <Shield className="mr-1 h-3.5 w-3.5" />
+                <CdsIconGlyph glyph="" className="mr-1 h-3.5 w-3.5 text-[14px] [font-weight:628.5]" />
                 Tool permissions
               </Badge>
               <Badge>8</Badge>
               <Badge tone="green">
-                <Check className="mr-1 h-3.5 w-3.5" />
+                <CdsIconGlyph glyph="" className="mr-1 h-3.5 w-3.5 text-[14px] [font-weight:628.5]" />
                 Always allow
               </Badge>
             </div>
