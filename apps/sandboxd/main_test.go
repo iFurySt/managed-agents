@@ -161,6 +161,38 @@ func TestProcessAPIService(t *testing.T) {
 	}
 }
 
+func TestGuestCommandServiceUsesFixedRunner(t *testing.T) {
+	service := guestCommandService()
+	for _, want := range []string{
+		"Description=Managed Agents One Shot Command",
+		"After=local-fs.target",
+		"ExecStart=/bin/sh /opt/managed-agents/run/runner.sh",
+		"TimeoutStartSec=0",
+		"WantedBy=multi-user.target",
+	} {
+		if !strings.Contains(service, want) {
+			t.Fatalf("command service missing %q:\n%s", want, service)
+		}
+	}
+	if strings.Contains(service, "%s") || strings.Contains(service, "base64 -d") {
+		t.Fatalf("command service should not inline shell formatting or base64 decode:\n%s", service)
+	}
+}
+
+func TestGuestCommandRunnerScriptWritesResultAndPowersOff(t *testing.T) {
+	runner := guestCommandRunnerScript()
+	for _, want := range []string{
+		`base64 -d "$run_dir/command.b64" >"$run_dir/command.sh"`,
+		`/bin/sh "$run_dir/command.sh" >"$run_dir/stdout" 2>"$run_dir/stderr"`,
+		`printf '{"exit_code":%s}\n' "$code" >"$run_dir/result.json"`,
+		`systemctl poweroff --force --force || poweroff -f || true`,
+	} {
+		if !strings.Contains(runner, want) {
+			t.Fatalf("command runner missing %q:\n%s", want, runner)
+		}
+	}
+}
+
 func TestManagedAgentsNetworkService(t *testing.T) {
 	service := managedAgentsNetworkService(processNetwork{
 		guestIP: "172.16.50.2",

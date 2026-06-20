@@ -1291,7 +1291,15 @@ func injectGuestCommand(ctx context.Context, opt options, rootfsPath, sandboxDir
 		return err
 	}
 	servicePath := filepath.Join(sandboxDir, "managed-agents-command.service")
-	if err := os.WriteFile(servicePath, []byte(guestCommandService(opt.guestCommand)), 0o644); err != nil {
+	if err := os.WriteFile(servicePath, []byte(guestCommandService()), 0o644); err != nil {
+		return err
+	}
+	runnerPath := filepath.Join(sandboxDir, "managed-agents-command-runner.sh")
+	if err := os.WriteFile(runnerPath, []byte(guestCommandRunnerScript()), 0o755); err != nil {
+		return err
+	}
+	commandPath := filepath.Join(sandboxDir, "command.b64")
+	if err := os.WriteFile(commandPath, []byte(base64.StdEncoding.EncodeToString([]byte(opt.guestCommand))), 0o644); err != nil {
 		return err
 	}
 	mounted := false
@@ -1314,6 +1322,15 @@ func injectGuestCommand(ctx context.Context, opt options, rootfsPath, sandboxDir
 	if err := runPassthrough(ctx, true, "cp", servicePath, filepath.Join(mountDir, "etc/systemd/system/managed-agents-command.service")); err != nil {
 		return err
 	}
+	if err := runPassthrough(ctx, true, "cp", runnerPath, filepath.Join(mountDir, "opt/managed-agents/run/runner.sh")); err != nil {
+		return err
+	}
+	if err := runPassthrough(ctx, true, "chmod", "0755", filepath.Join(mountDir, "opt/managed-agents/run/runner.sh")); err != nil {
+		return err
+	}
+	if err := runPassthrough(ctx, true, "cp", commandPath, filepath.Join(mountDir, "opt/managed-agents/run/command.b64")); err != nil {
+		return err
+	}
 	if err := runPassthrough(ctx, true, "ln", "-sf", "../managed-agents-command.service", filepath.Join(mountDir, "etc/systemd/system/multi-user.target.wants/managed-agents-command.service")); err != nil {
 		return err
 	}
@@ -1327,21 +1344,46 @@ func injectGuestCommand(ctx context.Context, opt options, rootfsPath, sandboxDir
 	return nil
 }
 
-func guestCommandService(command string) string {
-	encoded := base64.StdEncoding.EncodeToString([]byte(command))
-	return fmt.Sprintf(`[Unit]
+func guestCommandService() string {
+	return `[Unit]
 Description=Managed Agents One Shot Command
-After=basic.target
+After=local-fs.target
 
 [Service]
 Type=oneshot
-ExecStart=/bin/sh -c 'set +e; mkdir -p /opt/managed-agents/run; printf %%s %s | base64 -d >/opt/managed-agents/run/command.sh; chmod +x /opt/managed-agents/run/command.sh; /bin/sh /opt/managed-agents/run/command.sh >/opt/managed-agents/run/stdout 2>/opt/managed-agents/run/stderr; code=$?; printf "{\"exit_code\":%%s}\n" "$code" >/opt/managed-agents/run/result.json; sync; poweroff -f'
+ExecStart=/bin/sh /opt/managed-agents/run/runner.sh
+TimeoutStartSec=0
 StandardOutput=journal+console
 StandardError=journal+console
 
 [Install]
 WantedBy=multi-user.target
-`, encoded)
+`
+}
+
+func guestCommandRunnerScript() string {
+	return `#!/bin/sh
+set +e
+run_dir=/opt/managed-agents/run
+mkdir -p "$run_dir"
+echo "managed-agents-command: starting"
+base64 -d "$run_dir/command.b64" >"$run_dir/command.sh" 2>"$run_dir/decode.stderr"
+decode_code=$?
+if [ "$decode_code" -ne 0 ]; then
+	printf '{"exit_code":%s,"error":"command_decode_failed"}\n' "$decode_code" >"$run_dir/result.json"
+	sync
+	systemctl poweroff --force --force || poweroff -f || true
+	exit 0
+fi
+chmod +x "$run_dir/command.sh"
+/bin/sh "$run_dir/command.sh" >"$run_dir/stdout" 2>"$run_dir/stderr"
+code=$?
+printf '{"exit_code":%s}\n' "$code" >"$run_dir/result.json"
+sync
+echo "managed-agents-command: finished exit_code=$code"
+systemctl poweroff --force --force || poweroff -f || true
+exit 0
+`
 }
 
 func injectProcessAPI(ctx context.Context, opt options, rootfsPath, sandboxDir string, network processNetwork) error {

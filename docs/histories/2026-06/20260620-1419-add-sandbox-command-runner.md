@@ -21,6 +21,9 @@
   - Added orchestrator `sandbox-command` runtime that consumes normal queued
     work through this Firecracker command path.
   - Documented the fallback runtime command in the README.
+  - Follow-up: moved guest command decoding and result writing out of the
+    systemd `ExecStart=` line into an injected runner script plus `command.b64`,
+    avoiding systemd `%` specifier expansion and fragile nested shell quoting.
 
 ### Design Intent
 
@@ -35,10 +38,14 @@ image ships a reliable host-to-guest control channel.
 - `go test ./...`
 - N2 runs identified the process-api transport failure mode that this fallback
   is designed to bypass.
+- Follow-up unit coverage verifies the command service now executes a fixed
+  runner and that the runner decodes the command, captures stdout/stderr, writes
+  `result.json`, and powers off the guest.
 
 ### Files Modified
 
 - `apps/orchestrator/main.go`
 - `apps/sandboxd/main.go`
+- `apps/sandboxd/main_test.go`
 - `README.md`
 - `docs/histories/2026-06/20260620-1419-add-sandbox-command-runner.md`
