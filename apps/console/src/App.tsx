@@ -1523,10 +1523,20 @@ function EnvironmentsPage() {
         title="Environments"
         description="Configuration template for containers, such as sessions or code execution."
         action={
-          <Button className="!gap-1.5 !rounded-[8px] !px-2 [font-weight:550]" onClick={() => setDialogOpen(true)}>
-            <CdsIconGlyph glyph="" className="h-5 w-5 text-current text-[20px] [font-weight:566.5]" />
-            Create environment
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button className="!gap-1.5 !rounded-[8px] !px-2 [font-weight:550]" onClick={() => setDialogOpen(true)}>
+              <CdsIconGlyph glyph="" className="h-5 w-5 text-current text-[20px] [font-weight:566.5]" />
+              Create environment
+            </Button>
+            <a
+              data-cds="Button"
+              className="cds-focus inline-flex h-8 w-8 items-center justify-center gap-1.5 rounded-[8px] text-sm !leading-5 text-ink [font-weight:550] hover:bg-fill"
+              aria-label="View documentation"
+              href="https://platform.claude.com/docs/en/managed-agents/environments"
+            >
+              <CdsIconGlyph glyph="" />
+            </a>
+          </div>
         }
       />
       <div className="mt-4 flex h-10 flex-wrap items-start gap-2">
@@ -1555,7 +1565,7 @@ function EnvironmentsPage() {
       <div className="overflow-x-auto">
         <DataTable
           className="-mx-2 w-[calc(100%+16px)] overflow-x-auto p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
-          tableClassName="border-separate border-spacing-0 whitespace-nowrap"
+          tableClassName="w-[1552px] border-separate border-spacing-0 whitespace-nowrap"
           rows={visibleEnvironments}
           getKey={(environment) => environment.id}
           actionsWidth="56px"
@@ -1582,7 +1592,7 @@ function EnvironmentsPage() {
             {
               key: "name",
               header: "Name",
-              width: "296px",
+              width: "880px",
               render: (environment) => (
                 <Link className="block truncate [font-weight:400]" to={`/environments/${environment.id}`}>
                   {environment.name}
