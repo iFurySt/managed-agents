@@ -440,43 +440,49 @@ function AgentsPage() {
           triggerClassName="ml-2 w-[123px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2"
         />
       </div>
-      <div className="-mx-2 -my-2 overflow-x-auto p-2">
-        <DataTable
-          rows={agents}
-          getKey={(agent) => agent.id}
-          columns={[
-            {
-              key: "id",
-              header: "ID",
-              width: "180px",
-              render: (agent) => (
-                <div className="flex items-center gap-2 font-mono font-semibold">
-                  <span>{shortId(agent.id)}</span>
-                  <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${agent.id}`} onClick={() => copyText(agent.id)}>
-                    <CdsIconGlyph glyph="" className="h-3.5 w-3.5 text-[#898781] text-[14px] [font-weight:628.5]" />
-                  </Button>
-                </div>
-              )
-            },
-            {
-              key: "name",
-              header: "Name",
-              width: "240px",
-              render: (agent) => (
-                <Link className="block truncate font-medium hover:underline" to={`/agents/${agent.id}`}>
-                  {agent.name}
-                </Link>
-              )
-            },
-            { key: "model", header: "Model", width: "170px", render: (agent) => <span className="font-mono text-muted">{agent.model}</span> },
-            { key: "status", header: "Status", width: "120px", render: (agent) => <Badge tone={agent.status === "Archived" ? "neutral" : "green"}>{agent.status}</Badge> },
-            { key: "created", header: "Created", width: "150px", render: (agent) => <span className="text-muted">{agent.createdLabel || "2 days ago"}</span> },
-            { key: "updated", header: "Last updated", width: "150px", render: (agent) => <span className="text-muted">{agent.updatedLabel || "2 days ago"}</span> }
-          ]}
-          actionsWidth="56px"
-          renderActions={(agent) => <AgentRowActions agent={agent} onArchive={() => setArchivingAgent(agent)} />}
-        />
-      </div>
+      <DataTable
+        className="-mx-2 -my-2 overflow-x-auto p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
+        tableClassName="border-separate border-spacing-0 whitespace-nowrap"
+        rows={agents}
+        getKey={(agent) => agent.id}
+        columns={[
+          {
+            key: "id",
+            header: "ID",
+            width: "180px",
+            render: (agent) => (
+              <div className="group/cid flex items-center gap-2 font-mono font-semibold">
+                <span>{shortId(agent.id)}</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="-my-1 h-[22px] w-[22px] !rounded-[8px] !px-0 !text-[#898781] !opacity-0 hover:!bg-fill hover:!text-[#52514e] group-hover/cid:!opacity-100"
+                  aria-label={`Copy ${agent.id}`}
+                  onClick={() => copyText(agent.id)}
+                >
+                  <CdsIconGlyph glyph="" className="h-3.5 w-3.5 text-current text-[14px] [font-weight:628.5]" />
+                </Button>
+              </div>
+            )
+          },
+          {
+            key: "name",
+            header: "Name",
+            width: "240px",
+            render: (agent) => (
+              <Link className="block truncate [font-weight:400]" to={`/agents/${agent.id}`}>
+                {agent.name}
+              </Link>
+            )
+          },
+          { key: "model", header: "Model", width: "170px", render: (agent) => <span className="font-mono text-muted">{agent.model}</span> },
+          { key: "status", header: "Status", width: "120px", render: (agent) => <Badge tone={agent.status === "Archived" ? "neutral" : "green"}>{agent.status}</Badge> },
+          { key: "created", header: "Created", width: "150px", render: (agent) => <span className="text-muted">{agent.createdLabel || "2 days ago"}</span> },
+          { key: "updated", header: "Last updated", width: "150px", render: (agent) => <span className="text-muted">{agent.updatedLabel || "2 days ago"}</span> }
+        ]}
+        actionsWidth="56px"
+        renderActions={(agent) => <AgentRowActions agent={agent} onArchive={() => setArchivingAgent(agent)} />}
+      />
       <div className="-mt-[1.5px] flex gap-2">
         <Button variant="icon" className="!h-8 !w-8 !gap-1.5 !rounded-[8px] !leading-5" aria-label="Previous page">
           <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
