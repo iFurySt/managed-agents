@@ -21,7 +21,6 @@ import {
   KeyRound,
   MessageSquare,
   MoreHorizontal,
-  PanelLeft,
   Pause,
   Pencil,
   Play,
@@ -212,7 +211,12 @@ function Sidebar() {
 }
 
 function SidebarCollapseIcon() {
-  return <PanelLeft aria-hidden="true" className="h-5 w-5" strokeWidth={1.75} />;
+  return (
+    <svg aria-hidden="true" className="h-5 w-5" viewBox="0 0 20 20" fill="none">
+      <rect x="3" y="3.25" width="14" height="13.5" rx="1.75" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M7.85 3.25v13.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
 }
 
 function MoreActionsIcon() {
