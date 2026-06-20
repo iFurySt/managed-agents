@@ -191,7 +191,7 @@ function Sidebar() {
   }
 
   return (
-    <aside aria-label="Main navigation" className="sticky top-0 flex h-screen w-[206px] shrink-0 flex-col border-r-[0.5px] border-line bg-[#f9f9f7] p-3">
+    <aside aria-label="Main navigation" className="sticky top-0 flex h-screen w-64 shrink-0 flex-col border-r-[0.5px] border-line bg-[#f9f9f7] p-3">
       <div className="flex h-10 w-full flex-col pb-3">
         <div className="-mr-2 flex w-full translate-y-px items-center justify-between">
           <Link className="pl-2" to="/">
