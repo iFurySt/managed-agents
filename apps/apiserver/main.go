@@ -1945,6 +1945,7 @@ func seedVaults(ts time.Time) ([]Vault, []VaultCredential) {
 		vaultCredential("vcrd_01EnvVarApiKey", "vlt_011Cc6ULi3DaPNjN1LZLTenB", "Unnamed", "Environment variable", "API_TOKEN", "Active", "Never", "Jun 16", ts),
 		vaultCredential("vcrd_01BearerInternal", "vlt_011Cc6ULi3DaPNjN1LZLTenB", "bearertoken", "Bearer token", "https://api.example.com/", "Active", "Never", "Jun 16", ts),
 		vaultCredential("vcrd_01McpOAuthGmail", "vlt_011Cc6ULi3DaPNjN1LZLTenB", "mcpoauth", "MCP OAuth", "https://gmail.mcp.example.com/mcp", "Active", "Never", "Jun 16", ts),
+		vaultCredential("vcrd_01ExpLeoKey", "vlt_011Cc6ULi3DaPNjN1LZLTenB", "exp", "Environment variable", "X_LEO_KEY", "Active", "Never", "Jun 16", ts),
 		vaultCredential("vcrd_01GithubToken", "vault_01GitHub", "github-token", "Bearer token", "https://api.github.com/", "Active", "2 days ago", "Jun 16", ts),
 	}
 	return vaults, credentials

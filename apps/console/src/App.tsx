@@ -2152,10 +2152,16 @@ function VaultDetailPage() {
             <h1 className="truncate text-[22px] leading-[26px] [font-weight:580]">{vault.name}</h1>
             <Badge className="!h-5 !rounded-[5px] px-2 text-xs !leading-[15px] [font-weight:550]" tone={vaultTone(vault.status)}>{vault.status}</Badge>
           </div>
-          <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
+          <div className="group/cid flex flex-wrap items-center gap-2 text-sm text-muted">
             <span className="rounded-md px-1 font-mono text-xs leading-5">{vault.id}</span>
-            <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${vault.id}`} onClick={() => copyText(vault.id)}>
-              <Copy className="h-3.5 w-3.5" />
+            <Button
+              variant="ghost"
+              size="sm"
+              className="-my-1 h-[22px] w-[22px] !rounded-[8px] !px-0 !text-[#898781] !opacity-0 hover:!bg-fill hover:!text-[#52514e] group-hover/cid:!opacity-100"
+              aria-label={`Copy ${vault.id}`}
+              onClick={() => copyText(vault.id)}
+            >
+              <CdsIconGlyph glyph="" className="h-3.5 w-3.5 text-current text-[14px] [font-weight:628.5]" />
             </Button>
             <span>·</span>
             <span>Created {vault.createdLabel}</span>
@@ -2165,14 +2171,14 @@ function VaultDetailPage() {
         </div>
         <div className="flex gap-2">
           <Button className="h-8 w-[143px] !gap-1.5 rounded-[8px] px-0 [font-weight:550]" onClick={() => setDialogOpen(true)}>
-            <Plus className="h-4 w-4" />
+            <CdsIconGlyph glyph="" className="h-5 w-5 text-current text-[20px] [font-weight:566.5]" />
             Add credential
           </Button>
           <VaultRowActions vault={vault} onArchive={() => setArchiveOpen(true)} onDelete={() => setDeleteOpen(true)} />
         </div>
       </div>
 
-      <div className="ml-1 mt-[18px] flex h-8 items-start gap-2">
+      <div className="mt-5 flex h-8 items-start gap-2">
         <FieldSelect
           label="Status"
           value={status}
@@ -2181,45 +2187,51 @@ function VaultDetailPage() {
           triggerClassName="w-[98px] rounded-none !border-transparent !bg-transparent px-0 hover:!bg-transparent"
         />
       </div>
-      <div className="-mx-1 -my-2 mt-2 overflow-x-auto p-2">
-        <DataTable
-          rows={visibleCredentials}
-          getKey={(credential) => credential.id}
-          showSelection={false}
-          actionsWidth="48px"
-          columns={[
-            {
-              key: "id",
-              header: "ID",
-              width: "200px",
-              render: (credential) => (
-                <div className="flex items-center gap-2">
-                  <span className="font-mono font-semibold">{shortId(credential.id)}</span>
-                  <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${credential.id}`} onClick={() => copyText(credential.id)}>
-                    <Copy className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-              )
-            },
-            { key: "name", header: "Name", width: "180px", render: (credential) => <span className="font-medium">{credential.name}</span> },
-            {
-              key: "auth",
-              header: "Auth",
-              width: "220px",
-              render: (credential) => (
-                <div>
-                  <div>{credential.authType}</div>
-                  <div className="truncate font-mono text-xs text-muted">{credential.target}</div>
-                </div>
-              )
-            },
-            { key: "status", header: "Status", width: "100px", render: (credential) => <Badge tone={vaultTone(credential.status)}>{credential.status}</Badge> },
-            { key: "lastUsed", header: "Last used", width: "180px", render: (credential) => <span className="text-muted">{credential.lastUsed}</span> },
-            { key: "updated", header: "Updated", width: "180px", render: (credential) => <span className="text-muted">{credential.updatedLabel}</span> }
-          ]}
-          renderActions={(credential) => <CredentialActions credential={credential} onArchive={() => archiveCredential(credential)} onDelete={() => deleteCredential(credential)} />}
-        />
-      </div>
+      <DataTable
+        className="-mx-2 overflow-x-auto p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
+        tableClassName="border-separate border-spacing-0 whitespace-nowrap"
+        rows={visibleCredentials}
+        getKey={(credential) => credential.id}
+        showSelection={false}
+        actionsWidth="48px"
+        columns={[
+          {
+            key: "id",
+            header: "ID",
+            width: "200px",
+            render: (credential) => (
+              <div className="group/cid flex items-center gap-2">
+                <span className="font-mono font-semibold">{shortId(credential.id)}</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="-my-1 h-[22px] w-[22px] !rounded-[8px] !px-0 !text-[#898781] !opacity-0 hover:!bg-fill hover:!text-[#52514e] group-hover/cid:!opacity-100"
+                  aria-label={`Copy ${credential.id}`}
+                  onClick={() => copyText(credential.id)}
+                >
+                  <CdsIconGlyph glyph="" className="h-3.5 w-3.5 text-current text-[14px] [font-weight:628.5]" />
+                </Button>
+              </div>
+            )
+          },
+          { key: "name", header: "Name", width: "180px", render: (credential) => <span className="font-medium">{credential.name}</span> },
+          {
+            key: "auth",
+            header: "Auth",
+            width: "220px",
+            render: (credential) => (
+              <div>
+                <div>{credential.authType}</div>
+                <div className="truncate font-mono text-xs text-muted">{credential.target}</div>
+              </div>
+            )
+          },
+          { key: "status", header: "Status", width: "100px", render: (credential) => <Badge tone={vaultTone(credential.status)}>{credential.status}</Badge> },
+          { key: "lastUsed", header: "Last used", width: "180px", render: (credential) => <span className="text-muted">{credential.lastUsed}</span> },
+          { key: "updated", header: "Updated", width: "180px", render: (credential) => <span className="text-muted">{credential.updatedLabel}</span> }
+        ]}
+        renderActions={(credential) => <CredentialActions credential={credential} onArchive={() => archiveCredential(credential)} onDelete={() => deleteCredential(credential)} />}
+      />
       <div className="mt-3 flex gap-2">
         <Button
           variant="icon"
@@ -2228,7 +2240,7 @@ function VaultDetailPage() {
           disabled={credentialPage === 0}
           onClick={() => setCredentialPage((value) => Math.max(0, value - 1))}
         >
-          <ChevronLeft className="h-4 w-4" />
+          <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
         </Button>
         <Button
           variant="icon"
@@ -2237,7 +2249,7 @@ function VaultDetailPage() {
           disabled={credentialPage >= credentialMaxPage}
           onClick={() => setCredentialPage((value) => Math.min(credentialMaxPage, value + 1))}
         >
-          <ChevronRight className="h-4 w-4" />
+          <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
         </Button>
       </div>
       <CreateCredentialDialog
