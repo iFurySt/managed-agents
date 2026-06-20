@@ -790,23 +790,29 @@ function SessionDetailPage() {
         </div>
         <div className="mt-2 flex h-[25px] flex-wrap items-center gap-2 text-sm text-muted">
           <Button variant="ghost" className="h-[25px] px-2 font-normal text-[#4e4a45]">
-            <Braces className="h-4 w-4" />
+            <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
             {session.agentName}
           </Button>
           <span>·</span>
           <Button variant="ghost" className="h-[25px] px-2 font-normal text-[#4e4a45]">
-            <Database className="h-4 w-4" />
+            <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
             {session.environmentName}
           </Button>
           <span>·</span>
           <span className="inline-flex items-center gap-1">
-            <Clock className="h-4 w-4" />
+            <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
             {session.duration}
           </span>
           <span>·</span>
-          <span>{session.tokens}</span>
+          <span className="inline-flex items-center gap-1">
+            <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
+            {session.tokens}
+          </span>
           <span>·</span>
-          <span>{session.createdLabel}</span>
+          <span className="inline-flex items-center gap-1">
+            <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
+            {session.createdLabel}
+          </span>
         </div>
       </div>
 
@@ -826,7 +832,7 @@ function SessionDetailPage() {
             </CdsTabs.List>
             <FieldSelect label="" value={eventFilter} options={["All events", "User", "Agent", "Tool", "System"]} onValueChange={setEventFilter} triggerClassName="!h-7 w-[97px] px-2" />
             <Button variant="icon" aria-label="Open search filter" onClick={() => setEventSearchOpen((open) => !open)}>
-              <Search className="h-4 w-4" />
+              <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
             </Button>
             {eventSearchOpen ? (
               <TextInput className="w-[220px]" aria-label="Filter events" placeholder="Filter events" value={eventSearch} onChange={(event) => setEventSearch(event.target.value)} />
@@ -834,13 +840,13 @@ function SessionDetailPage() {
           </div>
           <div className="flex gap-2">
             <Button variant="icon" aria-label="Keyboard shortcuts">
-              <Terminal className="h-4 w-4" />
+              <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
             </Button>
             <Button variant="icon" aria-label="Copy all" onClick={() => copyText(transcriptText)}>
-              <Copy className="h-4 w-4" />
+              <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
             </Button>
             <Button variant="icon" aria-label="Download" onClick={() => downloadText(`${session.id}-transcript.txt`, transcriptText)}>
-              <Download className="h-4 w-4" />
+              <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
             </Button>
           </div>
         </div>
@@ -872,7 +878,7 @@ function SessionDetailPage() {
           {selectedEvent ? (
             <aside className="relative mt-[53px] border-l border-line bg-canvas px-6 pt-3">
               <Button variant="ghost" className="absolute right-3 top-3 h-7 w-7 px-0" aria-label="Close detail panel" onClick={closeEventDetail}>
-                ×
+                <CdsIconGlyph glyph="" />
               </Button>
               <div className="text-sm">
                 <div className="pr-10">
@@ -881,7 +887,7 @@ function SessionDetailPage() {
                     <span className="font-mono">{shortId(selectedEvent.id)}</span>
                     <span className="hidden font-mono">{selectedEvent.id}</span>
                     <Button variant="ghost" size="sm" className="h-[20px] w-[20px] px-0" aria-label={`Copy ${selectedEvent.id}`} onClick={() => copyText(selectedEvent.id)}>
-                      <Copy className="h-3 w-3" />
+                      <CdsIconGlyph glyph="" className="h-3.5 w-3.5 text-current text-[14px] [font-weight:628.5]" />
                     </Button>
                     <span>·</span>
                     <span>{selectedEvent.offset}</span>
