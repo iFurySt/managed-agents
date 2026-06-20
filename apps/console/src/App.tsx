@@ -2874,27 +2874,29 @@ function FilesEmptyState({ language, onLanguageChange }: { language: string; onL
       <p className="mb-3 text-sm leading-5 text-[#898781]">
         No files have been uploaded to the <span className="font-bold">Default</span> workspace. Copy the template below to upload your first file:
       </p>
-      <div className="overflow-hidden rounded-cds bg-fill">
-        <div className="flex h-9 items-center gap-2 px-3">
+      <div className="group relative flex flex-col overflow-hidden rounded-lg bg-fill">
+        <div className="flex h-9 shrink-0 items-center gap-2 pl-3 pr-2">
           <FilesLanguageMenu language={language} onLanguageChange={onLanguageChange} />
           <div className="ml-auto flex items-center gap-1">
             <a data-cds="Button" className="inline-flex h-6 w-[96px] items-center gap-1.5 whitespace-nowrap rounded-md px-2 text-[13px] leading-5 [font-weight:550] hover:bg-[#eeeeeb]" href="https://docs.claude.com/en/docs/build-with-claude/files">
               View docs
               <CdsIconGlyph glyph="" className="h-3.5 w-3.5 text-[#898781] text-[14px] [font-weight:628.5]" />
             </a>
-            <Button variant="ghost" size="sm" className="!-mr-1 !h-6 !w-6 !gap-1.5 !rounded-md !px-0 !text-[13px] !leading-5 [font-weight:550]" aria-label="Copy code" onClick={() => copyText(code)}>
+            <Button variant="ghost" size="sm" className="!h-6 !w-6 !gap-1.5 !rounded-md !px-0 !text-[13px] !leading-5 [font-weight:550]" aria-label="Copy code" onClick={() => copyText(code)}>
               <CdsIconGlyph glyph="" className="h-3.5 w-3.5 text-current text-[14px] [font-weight:628.5]" />
             </Button>
           </div>
         </div>
-        <pre className="overflow-x-auto px-3 pb-3 pt-3 font-mono text-[13px] leading-[21.125px] text-ink">
-          {code.split("\n").map((line, index) => (
-            <span key={`${line}-${index}`} className="relative block min-h-[21px] whitespace-pre-wrap pl-10">
-              <span className="absolute left-0 w-10 select-none pr-4 text-right text-[#898781]">{index + 1}</span>
-              <span>{renderFilesCodeLine(line, language)}</span>
-            </span>
-          ))}
-        </pre>
+        <div className="code-scroll-region min-h-0 flex-1 overflow-auto focus-visible:outline-none">
+          <div className="px-3 pb-3 pt-3 font-mono text-[13px] leading-[21.125px] text-ink [overflow-wrap:anywhere]">
+            {code.split("\n").map((line, index) => (
+              <div key={`${line}-${index}`} className="relative min-h-[21px] whitespace-pre-wrap pl-10">
+                <span className="absolute left-0 w-10 select-none pr-4 text-right text-[#898781]">{index + 1}</span>
+                <span>{renderFilesCodeLine(line, language)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
