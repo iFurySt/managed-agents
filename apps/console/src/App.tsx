@@ -4529,10 +4529,13 @@ function DeploymentEnvironmentPicker({
 
 function DeploymentVaultPicker({ value, onValueChange }: { value: string; onValueChange: (value: string) => void }) {
   const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
   const options = [
-    { value: "test_secret", name: "test_secret", updated: "3 days ago", summary: "3 credentials" },
+    { value: "temporary_vault", name: "Temporary vault", updated: "2 days ago", summary: "No credentials" },
+    { value: "test_secret", name: "test_secret", updated: "5 days ago", summary: "3 credentials" },
     { value: "vault_01GitHub", name: "GitHub source access", updated: "2 days ago", summary: "1 credential" }
   ];
+  const filteredOptions = options.filter((option) => option.name.toLowerCase().includes(search.toLowerCase()));
   const selected = options.find((option) => option.value === value);
 
   return (
@@ -4543,7 +4546,7 @@ function DeploymentVaultPicker({ value, onValueChange }: { value: string; onValu
           role="combobox"
           aria-expanded={open}
           aria-label="Add credential vault"
-          className="flex h-8 w-full items-center justify-between rounded-[8px] bg-transparent px-2 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-[#c6613f]/35"
+          className="flex h-8 w-[464px] items-center justify-between rounded-[8px] bg-transparent px-2 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-[#c6613f]/35"
           onClick={() => setOpen((current) => !current)}
         >
           <span className="inline-flex min-w-0 items-center gap-2 truncate">
@@ -4557,27 +4560,36 @@ function DeploymentVaultPicker({ value, onValueChange }: { value: string; onValu
         <div
           data-cds="Combobox"
           role="dialog"
-          className="absolute left-0 top-[39px] z-50 w-full rounded-[12px] bg-white p-1 shadow-[0_10px_28px_rgba(0,0,0,0.12)]"
+          className="absolute left-0 top-[38px] z-50 max-h-[137px] w-[472px] overflow-hidden rounded-[12px] bg-white p-1 shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
         >
-          <div role="listbox" className="grid gap-0">
-            {options.map((option) => (
+          <div role="combobox" aria-expanded="true" className="-mx-1 -mt-1 mb-1 flex h-[37px] w-[calc(100%+8px)] items-center border-b border-line px-4 py-2">
+            <input
+              className="h-full min-w-0 flex-1 bg-transparent text-sm leading-5 text-ink outline-none placeholder:text-transparent"
+              aria-label="Search credential vaults"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              onKeyDown={(event) => event.stopPropagation()}
+            />
+          </div>
+          <div role="listbox" className="grid max-h-[92px] gap-0 overflow-y-auto overflow-x-hidden">
+            {filteredOptions.map((option) => (
               <button
                 key={option.value}
                 type="button"
                 role="option"
                 aria-selected={value === option.value}
-                className="flex h-[46px] w-full items-center justify-between rounded-[8px] px-3 text-left outline-none hover:bg-fill"
+                className="flex min-h-[46px] w-full items-center justify-between rounded-[8px] px-3 py-1 text-left outline-none hover:bg-fill"
                 onClick={() => {
                   onValueChange(option.value);
                   setOpen(false);
                 }}
               >
                 <span className="grid min-w-0 gap-0.5">
-                  <span className="truncate text-sm leading-4 text-ink">{option.name}</span>
-                  <span className="truncate text-xs leading-4 text-muted">{option.updated}</span>
+                  <span className="truncate text-sm leading-5 text-ink">{option.name}</span>
+                  <span className="truncate text-[13px] leading-4 text-muted">{option.updated}</span>
                 </span>
                 <span className="inline-flex shrink-0 items-center gap-1.5 text-xs leading-4 text-muted">
-                  <KeyRound className="h-3.5 w-3.5" />
+                  {option.summary === "No credentials" ? null : <KeyRound className="h-3.5 w-3.5" />}
                   {option.summary}
                 </span>
               </button>
