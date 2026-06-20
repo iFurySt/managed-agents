@@ -17,6 +17,7 @@ import {
   Info,
   KeyRound,
   MessageSquare,
+  PanelLeft,
   Pause,
   Play,
   Plus,
@@ -327,7 +328,7 @@ function CollapsedSidebarButton({ glyph, label, active = false }: { glyph: strin
 }
 
 function SidebarPanelIcon() {
-  return <SidebarGlyph glyph="" className="h-5 w-5 text-current text-[20px] [font-weight:433.3]" />;
+  return <PanelLeft aria-hidden="true" className="h-5 w-5 text-current" strokeWidth={1.75} />;
 }
 
 function MoreActionsIcon() {
