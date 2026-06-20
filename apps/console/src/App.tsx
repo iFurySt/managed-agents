@@ -5292,6 +5292,7 @@ function CreateCredentialDialog({
       contentClassName="h-[349px] w-[510px] max-w-[calc(100vw-32px)] !rounded-[12px] border-0 !shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]"
       headerClassName="flex items-start justify-between pl-6 pr-4 pt-4"
       titleClassName="mt-1 w-[431px] text-[22px] leading-[26px] text-ink [font-weight:580]"
+      descriptionClassName="mt-1 text-sm text-[#52514e]"
       closeButtonClassName="h-[31px] w-[31px] rounded-[8px] px-0"
       closeLabel="Close"
     >
