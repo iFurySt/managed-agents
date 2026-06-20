@@ -3695,10 +3695,10 @@ function CreateAgentDialog({
               </div>
             ) : (
               <div className="mt-3 grid h-[245px] auto-rows-min grid-cols-3 gap-3 bg-white">
-                {agentStartingTemplates.map((template) => (
+                {agentStartingTemplates.map((template, index) => (
                   <button
                     key={template.name}
-                    className={`flex w-full cursor-pointer flex-col items-start overflow-hidden rounded-[8px] bg-white p-3 text-left text-sm transition hover:bg-fill ${selectedTemplate.name === template.name ? "border-[1.5px] border-black/20" : "border-[0.5px]"}`}
+                    className={`flex w-full cursor-pointer flex-col items-start overflow-hidden rounded-[8px] bg-white p-3 text-left text-sm transition hover:bg-fill ${index >= 3 ? "h-[138px]" : "h-[95px]"} ${selectedTemplate.name === template.name ? "border-[1.5px] border-black/20" : "border-[0.5px]"}`}
                     style={selectedTemplate.name === template.name ? undefined : { borderColor: "rgba(11, 11, 11, 0.1)" }}
                     type="button"
                     onClick={() => selectTemplate(template)}
