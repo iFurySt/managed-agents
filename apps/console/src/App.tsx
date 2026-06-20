@@ -222,8 +222,8 @@ function Sidebar() {
           items={["Quickstart", "Agents", "Sessions", "Deployments", "Environments", "Credential vaults", "Memory stores"]}
           managed
         />
-        <Group icon={<SidebarGlyph glyph="" />} label="Analytics" items={["Usage", "Caching", "Rate limits", "Cost", "Logs"]} />
-        <Group icon={<SidebarGlyph glyph="" />} label="Claude Code" items={["Usage", "Settings"]} />
+        <Group icon={<SidebarGlyph glyph="" />} label="Analytics" items={["Usage", "Caching", "Rate limits", "Cost", "Logs"]} defaultExpanded={false} />
+        <Group icon={<SidebarGlyph glyph="" />} label="Claude Code" items={["Usage", "Settings"]} defaultExpanded={false} />
         <Group icon={<SidebarGlyph glyph="" />} label="Manage" items={["Limits", "Service accounts", "Privacy controls", "Security", "Webhooks", "Tags"]} />
       </nav>
       <div className="-mx-3 flex flex-col gap-1 border-t-[0.5px] border-line bg-transparent px-3 pb-0 pt-2">
@@ -338,7 +338,8 @@ function FooterItem({ icon, label, right }: { icon: React.ReactNode; label: stri
   );
 }
 
-function Group({ icon, label, items, managed = false }: { icon: React.ReactNode; label: string; items: string[]; managed?: boolean }) {
+function Group({ icon, label, items, managed = false, defaultExpanded = true }: { icon: React.ReactNode; label: string; items: string[]; managed?: boolean; defaultExpanded?: boolean }) {
+  const [expanded, setExpanded] = useState(defaultExpanded);
   const toPath = (item: string) => {
     if (!managed) return "#";
     if (item === "Quickstart") return "#";
@@ -352,14 +353,19 @@ function Group({ icon, label, items, managed = false }: { icon: React.ReactNode;
   const groupWeight = managed ? "[font-weight:580]" : "[font-weight:550]";
   return (
     <div className="mb-1 flex shrink-0 flex-col gap-1">
-      <div className={`flex shrink-0 items-center gap-3 rounded-lg px-2 text-sm text-[#52514e] ${groupWeight}`} style={{ height: 36 }}>
+      <button
+        className={`flex h-9 shrink-0 items-center gap-3 rounded-lg px-2 text-left text-sm text-[#52514e] hover:bg-fill ${groupWeight}`}
+        type="button"
+        aria-expanded={expanded}
+        onClick={() => setExpanded((value) => !value)}
+      >
         {icon}
         <span className="min-w-0 flex-1 truncate">{label}</span>
         <span aria-hidden="true" className="relative h-4 w-4 shrink-0 text-[#898781]">
-          <span className="absolute left-[5px] top-[4px] h-[7px] w-[7px] rotate-45 border-b-[1.5px] border-r-[1.5px] border-current" />
+          <span className={`absolute left-[5px] top-[4px] h-[7px] w-[7px] border-b-[1.5px] border-r-[1.5px] border-current ${expanded ? "rotate-45" : "-rotate-45"}`} />
         </span>
-      </div>
-      <div className="flex flex-col gap-1">
+      </button>
+      {expanded ? <div className="flex flex-col gap-1">
         {items.map((item) => {
           const route = buildPath(item);
           return managed && item !== "Quickstart" ? (
@@ -376,7 +382,7 @@ function Group({ icon, label, items, managed = false }: { icon: React.ReactNode;
             </div>
           );
         })}
-      </div>
+      </div> : null}
     </div>
   );
 }
