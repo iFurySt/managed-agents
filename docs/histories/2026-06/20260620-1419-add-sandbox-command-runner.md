@@ -24,6 +24,12 @@
   - Follow-up: moved guest command decoding and result writing out of the
     systemd `ExecStart=` line into an injected runner script plus `command.b64`,
     avoiding systemd `%` specifier expansion and fragile nested shell quoting.
+  - Follow-up: taught `sandboxd` to treat the injected command's console
+    completion marker or guest halt as a completed run, then terminate the
+    Firecracker process and read the already-synced result from the rootfs.
+  - Follow-up: gave the orchestrator sandbox-command HTTP call a response
+    window slightly longer than the guest runtime timeout so sandboxd can return
+    the final result instead of racing the caller context.
 
 ### Design Intent
 
@@ -41,6 +47,7 @@ image ships a reliable host-to-guest control channel.
 - Follow-up unit coverage verifies the command service now executes a fixed
   runner and that the runner decodes the command, captures stdout/stderr, writes
   `result.json`, and powers off the guest.
+- Follow-up unit coverage verifies the guest command console completion signals.
 
 ### Files Modified
 

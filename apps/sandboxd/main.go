@@ -1085,7 +1085,7 @@ func runSandboxCommand(ctx context.Context, opt options, request sandboxdRunRequ
 			_ = removeSandbox(context.Background(), opt, state.ID, true)
 		}
 	}()
-	timedOut, err := waitForSandboxExit(ctx, state.PID, runOpt.timeout)
+	timedOut, err := waitForGuestCommandCompletion(ctx, state, runOpt.timeout)
 	if err != nil {
 		return sandboxdRunResponse{}, err
 	}
@@ -1619,6 +1619,52 @@ func waitForSandboxExit(ctx context.Context, pid int, timeout time.Duration) (bo
 		return true, err
 	}
 	return true, nil
+}
+
+func waitForGuestCommandCompletion(ctx context.Context, state sandboxState, timeout time.Duration) (bool, error) {
+	deadline := time.Now().Add(timeout)
+	var lastConsole string
+	for time.Now().Before(deadline) {
+		if !isProcessAlive(state.PID) {
+			return false, nil
+		}
+		data, _ := os.ReadFile(state.ConsolePath)
+		lastConsole = string(data)
+		if guestCommandCompletedFromConsole(lastConsole) {
+			if err := terminatePID(state.PID); err != nil && isProcessAlive(state.PID) {
+				return false, err
+			}
+			return false, nil
+		}
+		select {
+		case <-ctx.Done():
+			return false, ctx.Err()
+		case <-time.After(250 * time.Millisecond):
+		}
+	}
+	if err := terminatePID(state.PID); err != nil {
+		return true, err
+	}
+	if len(lastConsole) > 2000 {
+		lastConsole = lastConsole[len(lastConsole)-2000:]
+	}
+	if strings.TrimSpace(lastConsole) != "" {
+		return true, fmt.Errorf("guest command timed out before completion; console tail:\n%s", lastConsole)
+	}
+	return true, nil
+}
+
+func guestCommandCompletedFromConsole(console string) bool {
+	for _, signal := range []string{
+		"managed-agents-command: finished",
+		"reboot: System halted",
+		"Powering off.",
+	} {
+		if strings.Contains(console, signal) {
+			return true
+		}
+	}
+	return false
 }
 
 func readGuestCommandResult(ctx context.Context, state sandboxState) (sandboxdRunResponse, error) {

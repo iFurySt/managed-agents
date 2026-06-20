@@ -193,6 +193,21 @@ func TestGuestCommandRunnerScriptWritesResultAndPowersOff(t *testing.T) {
 	}
 }
 
+func TestGuestCommandCompletedFromConsole(t *testing.T) {
+	for _, console := range []string{
+		"managed-agents-command: finished exit_code=0",
+		"[  1.637541] sh[468]: Powering off.",
+		"[  1.913863] reboot: System halted",
+	} {
+		if !guestCommandCompletedFromConsole(console) {
+			t.Fatalf("console was not recognized as complete: %q", console)
+		}
+	}
+	if guestCommandCompletedFromConsole("managed-agents-command: starting") {
+		t.Fatal("start-only console was recognized as complete")
+	}
+}
+
 func TestManagedAgentsNetworkService(t *testing.T) {
 	service := managedAgentsNetworkService(processNetwork{
 		guestIP: "172.16.50.2",

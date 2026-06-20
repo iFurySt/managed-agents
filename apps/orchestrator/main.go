@@ -544,7 +544,9 @@ func runSandboxCommand(ctx context.Context, opt options, work EnvironmentWork, p
 		return runResult{OK: false, Error: err.Error(), StartedAt: started, EndedAt: time.Now().UTC()}
 	}
 	client := &http.Client{Timeout: opt.runtimeTimeout + 30*time.Second}
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, strings.TrimRight(opt.sandboxdURL, "/")+"/runs", &body)
+	httpCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), opt.runtimeTimeout+30*time.Second)
+	defer cancel()
+	req, err := http.NewRequestWithContext(httpCtx, http.MethodPost, strings.TrimRight(opt.sandboxdURL, "/")+"/runs", &body)
 	if err != nil {
 		return runResult{OK: false, Error: err.Error(), StartedAt: started, EndedAt: time.Now().UTC()}
 	}
