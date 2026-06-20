@@ -20,6 +20,7 @@ import {
   Info,
   KeyRound,
   MessageSquare,
+  MoreHorizontal,
   PanelLeft,
   Pause,
   Pencil,
@@ -212,6 +213,10 @@ function Sidebar() {
 
 function SidebarCollapseIcon() {
   return <PanelLeft aria-hidden="true" className="h-5 w-5" strokeWidth={1.75} />;
+}
+
+function MoreActionsIcon() {
+  return <MoreHorizontal aria-hidden="true" className="h-5 w-5" strokeWidth={1.75} />;
 }
 
 function WorkspaceBoxIcon() {
@@ -5486,7 +5491,7 @@ function EnvironmentActions({ environment, onArchive, onDelete }: { environment:
     <CdsDropdownMenu.Root>
       <CdsDropdownMenu.Trigger asChild>
         <Button variant="icon" className="ml-1" aria-label="More actions">
-          <span className="text-lg leading-none">⋯</span>
+          <MoreActionsIcon />
         </Button>
       </CdsDropdownMenu.Trigger>
       <CdsDropdownMenu.Portal>
@@ -5567,7 +5572,7 @@ function VaultRowActions({ vault, onArchive, onDelete }: { vault: Vault; onArchi
     <CdsDropdownMenu.Root>
       <CdsDropdownMenu.Trigger asChild>
         <Button variant="icon" aria-label="More actions">
-          <span className="text-lg leading-none">⋯</span>
+          <MoreActionsIcon />
         </Button>
       </CdsDropdownMenu.Trigger>
       <CdsDropdownMenu.Portal>
@@ -5648,7 +5653,7 @@ function CredentialActions({ credential, onArchive, onDelete }: { credential: Va
     <CdsDropdownMenu.Root>
       <CdsDropdownMenu.Trigger asChild>
         <Button variant="icon" aria-label="More actions">
-          <span className="text-lg leading-none">⋯</span>
+          <MoreActionsIcon />
         </Button>
       </CdsDropdownMenu.Trigger>
       <CdsDropdownMenu.Portal>
@@ -5685,7 +5690,7 @@ function MemoryStoreActions({ store, onArchive, onDelete }: { store: MemoryStore
     <CdsDropdownMenu.Root>
       <CdsDropdownMenu.Trigger asChild>
         <Button variant="icon" aria-label="More actions">
-          <span className="text-lg leading-none">⋯</span>
+          <MoreActionsIcon />
         </Button>
       </CdsDropdownMenu.Trigger>
       <CdsDropdownMenu.Portal>
@@ -5763,7 +5768,7 @@ function MemoryRecordActions({ record, onDelete }: { record: MemoryRecord; onDel
     <CdsDropdownMenu.Root>
       <CdsDropdownMenu.Trigger asChild>
         <Button variant="icon" className="!h-7 !w-7 !gap-1.5 text-sm !leading-5 [font-weight:550]" aria-label="More actions">
-          <span className="text-lg leading-none">⋯</span>
+          <MoreActionsIcon />
         </Button>
       </CdsDropdownMenu.Trigger>
       <CdsDropdownMenu.Portal>
@@ -5792,7 +5797,7 @@ function FileActions({ file, onDelete }: { file: WorkspaceFile; onDelete: () => 
     <CdsDropdownMenu.Root>
       <CdsDropdownMenu.Trigger asChild>
         <Button variant="icon" aria-label="More actions">
-          <span className="text-lg leading-none">⋯</span>
+          <MoreActionsIcon />
         </Button>
       </CdsDropdownMenu.Trigger>
       <CdsDropdownMenu.Portal>
@@ -5862,7 +5867,7 @@ function SessionRowActions({ session, onArchive }: { session: Session; onArchive
     <CdsDropdownMenu.Root>
       <CdsDropdownMenu.Trigger asChild>
         <Button variant="icon" aria-label="More actions">
-          <span className="text-lg leading-none">⋯</span>
+          <MoreActionsIcon />
         </Button>
       </CdsDropdownMenu.Trigger>
       <CdsDropdownMenu.Portal>
@@ -5938,7 +5943,7 @@ function DeploymentActions({
     <CdsDropdownMenu.Root>
       <CdsDropdownMenu.Trigger asChild>
         <Button variant="icon" className="ml-1" aria-label="More actions">
-          <span className="text-lg leading-none">⋯</span>
+          <MoreActionsIcon />
         </Button>
       </CdsDropdownMenu.Trigger>
       <CdsDropdownMenu.Portal>
@@ -6160,7 +6165,7 @@ function AgentRowActions({ agent, onArchive }: { agent: Agent; onArchive: () => 
     <CdsDropdownMenu.Root>
       <CdsDropdownMenu.Trigger asChild>
         <Button variant="icon" className="!gap-1.5 [font-weight:550]" aria-label="More actions">
-          <span className="text-lg leading-none">⋯</span>
+          <MoreActionsIcon />
         </Button>
       </CdsDropdownMenu.Trigger>
       <CdsDropdownMenu.Portal>
@@ -6184,7 +6189,7 @@ function SkillActions({ onDelete }: { onDelete: () => void }) {
     <CdsDropdownMenu.Root>
       <CdsDropdownMenu.Trigger asChild>
         <Button variant="icon" aria-label="More actions">
-          ⋯
+          <MoreActionsIcon />
         </Button>
       </CdsDropdownMenu.Trigger>
       <CdsDropdownMenu.Portal>

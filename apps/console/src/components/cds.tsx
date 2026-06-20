@@ -2,7 +2,7 @@ import * as Dialog from "@radix-ui/react-dialog";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import * as Select from "@radix-ui/react-select";
 import * as Tabs from "@radix-ui/react-tabs";
-import { Check, ChevronDown } from "lucide-react";
+import { Check, ChevronDown, MoreHorizontal } from "lucide-react";
 import { forwardRef, type ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 
@@ -181,7 +181,7 @@ export function DataTable<T>({
                     renderActions(row)
                   ) : (
                     <Button variant="icon" aria-label="Open row actions">
-                      <span className="text-lg leading-none">⋯</span>
+                      <MoreHorizontal aria-hidden="true" className="h-5 w-5" strokeWidth={1.75} />
                     </Button>
                   )}
                 </td>
