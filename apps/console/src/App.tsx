@@ -3578,11 +3578,14 @@ function CreateAgentDialog({
   onCreated: (agent: Agent) => void;
 }) {
   const [description, setDescription] = useState("");
+  const [startingPointOpen, setStartingPointOpen] = useState(true);
   const [startingPointMode, setStartingPointMode] = useState<"describe" | "template">("describe");
   const [selectedTemplate, setSelectedTemplate] = useState(agentStartingTemplates[0]);
   const [format, setFormat] = useState<"YAML" | "JSON">("YAML");
   const [configYaml, setConfigYaml] = useState(defaultAgentYaml());
   const jsonConfig = useMemo(() => JSON.stringify(agentConfigFromYaml(configYaml), null, 2), [configYaml]);
+  const startingPointPanelId = "create-agent-starting-point-panel";
+  const startingPointPanelHeight = startingPointOpen ? (startingPointMode === "template" ? 167 : 157) : 0;
 
   function selectTemplate(template: (typeof agentStartingTemplates)[number]) {
     setSelectedTemplate(template);
@@ -3607,6 +3610,7 @@ function CreateAgentDialog({
     onCreated(agent);
     onOpenChange(false);
     setDescription("");
+    setStartingPointOpen(true);
     setStartingPointMode("describe");
     setSelectedTemplate(agentStartingTemplates[0]);
     setConfigYaml(defaultAgentYaml());
@@ -3627,7 +3631,13 @@ function CreateAgentDialog({
       overlayClassName="fixed inset-0 z-40 bg-transparent"
     >
       <div className="flex h-[calc(65vh+74px)] max-h-[calc(100dvh-112px)] flex-col overflow-y-auto px-6 pb-6 pt-[10px]">
-        <button className="mb-[11px] flex h-5 w-full items-center gap-1.5 rounded-[8px] text-sm text-[#52514e]" type="button">
+        <button
+          aria-controls={startingPointPanelId}
+          aria-expanded={startingPointOpen}
+          className="mb-[11px] flex h-5 w-full items-center gap-1.5 rounded-[8px] text-sm text-[#52514e]"
+          type="button"
+          onClick={() => setStartingPointOpen((current) => !current)}
+        >
           <CdsIconGlyph glyph="" className="h-4 w-4 text-[#52514e] text-[16px] [font-weight:533.25]" />
           <span className="flex items-center gap-1.5">
             <span>Starting point</span>
@@ -3635,62 +3645,70 @@ function CreateAgentDialog({
             <span>{selectedTemplate.name}</span>
           </span>
         </button>
-        <div className={`rounded-cds bg-fill ${startingPointMode === "template" ? "h-[167px] overflow-hidden" : ""}`}>
-          <div className="grid h-[31px] grid-cols-2 rounded-cds bg-fill p-px text-sm" role="radiogroup" aria-label="Starting point">
-            <button
-              aria-checked={startingPointMode === "describe"}
-              className={`h-[29px] rounded-control ${startingPointMode === "describe" ? "bg-white font-medium shadow-sm" : "text-muted"}`}
-              role="radio"
-              type="button"
-              onClick={() => setStartingPointMode("describe")}
-            >
-              Describe your agent
-            </button>
-            <button
-              aria-checked={startingPointMode === "template"}
-              className={`h-[29px] rounded-control ${startingPointMode === "template" ? "bg-white font-medium shadow-sm" : "text-muted"}`}
-              role="radio"
-              type="button"
-              onClick={() => setStartingPointMode("template")}
-            >
-              Template
-            </button>
-          </div>
-          {startingPointMode === "describe" ? (
-            <div className="mt-[12px] min-h-[113px] rounded-[8px] border border-[#d4d0c8] bg-white px-3 pb-3 pt-3">
-              <textarea
-                className="h-[45px] w-full resize-none border-0 bg-transparent p-0 text-sm leading-[22.75px] outline-none placeholder:text-muted"
-                aria-label="Describe your agent"
-                placeholder="Summarizes new GitHub PRs and posts a digest to Slack."
-                value={description}
-                onChange={(event) => setDescription(event.target.value)}
-              />
-              <div className="mt-[10px] flex justify-end">
-                <Button
-                  variant="ghost"
-                  className={`h-[27px] w-[82px] !gap-1.5 rounded-control bg-transparent !px-[10px] [font-weight:550] ${description.trim() ? "!opacity-100" : ""}`}
-                  disabled={!description.trim()}
-                  onClick={generateFromDescription}
-                >
-                  Generate
-                </Button>
+        <div
+          id={startingPointPanelId}
+          className="overflow-hidden transition-[height] duration-150 ease-out"
+          data-open={startingPointOpen ? "" : undefined}
+          hidden={!startingPointOpen}
+          style={{ height: startingPointPanelHeight }}
+        >
+          <div className={`rounded-cds bg-fill ${startingPointMode === "template" ? "h-[167px] overflow-hidden" : ""}`}>
+            <div className="grid h-[31px] grid-cols-2 rounded-cds bg-fill p-px text-sm" role="radiogroup" aria-label="Starting point">
+              <button
+                aria-checked={startingPointMode === "describe"}
+                className={`h-[29px] rounded-control ${startingPointMode === "describe" ? "bg-white font-medium shadow-sm" : "text-muted"}`}
+                role="radio"
+                type="button"
+                onClick={() => setStartingPointMode("describe")}
+              >
+                Describe your agent
+              </button>
+              <button
+                aria-checked={startingPointMode === "template"}
+                className={`h-[29px] rounded-control ${startingPointMode === "template" ? "bg-white font-medium shadow-sm" : "text-muted"}`}
+                role="radio"
+                type="button"
+                onClick={() => setStartingPointMode("template")}
+              >
+                Template
+              </button>
+            </div>
+            {startingPointMode === "describe" ? (
+              <div className="mt-[12px] min-h-[113px] rounded-[8px] border border-[#d4d0c8] bg-white px-3 pb-3 pt-3">
+                <textarea
+                  className="h-[45px] w-full resize-none border-0 bg-transparent p-0 text-sm leading-[22.75px] outline-none placeholder:text-muted"
+                  aria-label="Describe your agent"
+                  placeholder="Summarizes new GitHub PRs and posts a digest to Slack."
+                  value={description}
+                  onChange={(event) => setDescription(event.target.value)}
+                />
+                <div className="mt-[10px] flex justify-end">
+                  <Button
+                    variant="ghost"
+                    className={`h-[27px] w-[82px] !gap-1.5 rounded-control bg-transparent !px-[10px] [font-weight:550] ${description.trim() ? "!opacity-100" : ""}`}
+                    disabled={!description.trim()}
+                    onClick={generateFromDescription}
+                  >
+                    Generate
+                  </Button>
+                </div>
               </div>
-            </div>
-          ) : (
-            <div className="mt-3 grid h-[245px] auto-rows-min grid-cols-3 gap-3 bg-white">
-              {agentStartingTemplates.map((template) => (
-                <button
-                  key={template.name}
-                  className={`flex w-full cursor-pointer flex-col items-start overflow-hidden rounded-[8px] bg-white p-3 text-left text-sm transition hover:bg-fill ${selectedTemplate.name === template.name ? "border-[1.5px] border-black/20" : "border border-line"}`}
-                  type="button"
-                  onClick={() => selectTemplate(template)}
-                >
-                  <span className="text-sm leading-5 text-ink">{template.name}</span>
-                  <span className="mt-px text-xs leading-4 text-muted">{template.description}</span>
-                </button>
-              ))}
-            </div>
-          )}
+            ) : (
+              <div className="mt-3 grid h-[245px] auto-rows-min grid-cols-3 gap-3 bg-white">
+                {agentStartingTemplates.map((template) => (
+                  <button
+                    key={template.name}
+                    className={`flex w-full cursor-pointer flex-col items-start overflow-hidden rounded-[8px] bg-white p-3 text-left text-sm transition hover:bg-fill ${selectedTemplate.name === template.name ? "border-[1.5px] border-black/20" : "border border-line"}`}
+                    type="button"
+                    onClick={() => selectTemplate(template)}
+                  >
+                    <span className="text-sm leading-5 text-ink">{template.name}</span>
+                    <span className="mt-px text-xs leading-4 text-muted">{template.description}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
         <div className="mt-[14px] flex min-h-0 flex-1 flex-col">
           <h2 className="mb-[11px] text-sm leading-5 [font-weight:580]">Agent config</h2>
