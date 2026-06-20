@@ -139,10 +139,10 @@ export default function App() {
 
 function Sidebar() {
   return (
-    <aside className="sticky top-0 flex h-screen w-64 shrink-0 flex-col border-r border-line bg-[#f9f9f7] p-3">
+    <aside className="sticky top-0 flex h-screen w-64 shrink-0 flex-col border-r-[0.5px] border-line bg-[#f9f9f7] p-3">
       <div className="flex h-10 items-start justify-between">
         <Link className="mt-[5px] pl-2 text-sm leading-[21px] [font-weight:400]" to="/">
-          <span className="inline-flex flex-col items-start gap-[3px]">
+          <span className="inline-flex -translate-y-px flex-col items-start gap-[3px]">
             <span className="ml-[-0.1em] whitespace-nowrap font-serif text-base leading-none text-ink [font-feature-settings:'dlig','ss01'] [font-optical-sizing:auto] [font-weight:550]">
               Claude Console
             </span>
@@ -150,7 +150,7 @@ function Sidebar() {
         </Link>
         <Button
           variant="ghost"
-          className="mt-px !h-7 !w-7 !gap-1.5 !rounded-[8px] !px-0 text-sm !leading-5 text-muted [font-weight:550] hover:text-ink"
+          className="mt-px !h-7 !w-7 !gap-1.5 !rounded-control !px-0 text-sm !leading-5 !text-[#898781] [font-weight:550] hover:!text-ink"
           aria-label="Collapse"
         >
           <SidebarCollapseIcon />
@@ -199,7 +199,7 @@ function SidebarCollapseIcon() {
   return (
     <span
       aria-hidden="true"
-      className="relative block h-[18px] w-[18px] rounded-[3px] border-[1.5px] border-current after:absolute after:bottom-[2px] after:left-[7px] after:top-[2px] after:w-[1.5px] after:rounded-full after:bg-current"
+      className="relative block h-5 w-5 before:absolute before:left-[3px] before:top-[2px] before:h-4 before:w-[14px] before:rounded-[3px] before:border-[1.5px] before:border-current after:absolute after:bottom-[2px] after:left-[8.5px] after:top-[2px] after:w-[1.5px] after:rounded-full after:bg-current"
     />
   );
 }
