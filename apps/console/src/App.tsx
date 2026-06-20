@@ -336,6 +336,7 @@ function FooterItem({ icon, label, right }: { icon: React.ReactNode; label: stri
 
 function Group({ icon, label, items, managed = false, defaultExpanded = true }: { icon: React.ReactNode; label: string; items: string[]; managed?: boolean; defaultExpanded?: boolean }) {
   const [expanded, setExpanded] = useState(defaultExpanded);
+  const location = useLocation();
   const toPath = (item: string) => {
     if (!managed) return "#";
     if (item === "Quickstart") return "#";
@@ -346,21 +347,19 @@ function Group({ icon, label, items, managed = false, defaultExpanded = true }: 
     if (item === "Skills") return "/skills";
     return null;
   };
-  const groupWeight = managed ? "[font-weight:580]" : "[font-weight:550]";
+  const groupRoutes = items.map((item) => buildPath(item) ?? (managed ? toPath(item) : null)).filter((route): route is string => Boolean(route && route !== "#"));
+  const groupActive = groupRoutes.some((route) => location.pathname === route || location.pathname.startsWith(`${route}/`));
   return (
     <div className="mb-1 flex shrink-0 flex-col gap-1">
       <button
-        className={`flex h-9 shrink-0 items-center gap-3 rounded-lg px-2 text-left text-sm text-[#52514e] hover:bg-fill ${groupWeight}`}
+        className="flex h-9 shrink-0 items-center gap-3 rounded-lg px-2 text-left text-sm text-[#52514e] hover:bg-fill"
         type="button"
         aria-expanded={expanded}
         onClick={() => setExpanded((value) => !value)}
       >
         {icon}
-        <span className="min-w-0 flex-1 truncate">{label}</span>
-        <span aria-hidden="true" className={`relative h-4 w-4 shrink-0 text-[#898781] ${expanded ? "" : "-rotate-90"}`}>
-          <span className="absolute left-[3px] top-[7px] h-[1.5px] w-[6px] rotate-45 rounded-full bg-current" />
-          <span className="absolute left-[7px] top-[7px] h-[1.5px] w-[6px] -rotate-45 rounded-full bg-current" />
-        </span>
+        <span className={`min-w-0 flex-1 truncate text-left ${groupActive ? "[font-weight:580]" : "[font-weight:550]"}`}>{label}</span>
+        <CdsIconGlyph glyph="" className={`h-3 w-3 shrink-0 text-[#898781] text-[12px] [font-weight:577.75] ${expanded ? "rotate-90" : ""}`} />
       </button>
       {expanded ? <div className="flex flex-col gap-1">
         {items.map((item) => {
