@@ -5522,7 +5522,7 @@ function CreateCredentialForm({
             </div>
           ) : (
             <TextInput
-              className="h-[31px] rounded-[8px] border-0 bg-white/50 px-3 font-normal"
+              className="h-[31px] rounded-[8px] border-0 bg-white/50 px-3 font-normal shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]"
               placeholder={targetPlaceholder}
               value={target}
               onChange={(event) => setTarget(event.target.value)}
