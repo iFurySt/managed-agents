@@ -3213,39 +3213,41 @@ function SkillsPage() {
         {skills.map((skill) => (
           <article
             key={skill.id}
-            className="grid min-h-[137px] grid-cols-[minmax(0,1fr)_28px] gap-4 border-b border-line px-3 py-3 transition-colors hover:bg-fill focus-within:bg-fill"
+            className="flex h-[137px] flex-col border-b border-line px-3 py-3 transition-colors hover:bg-fill focus-within:bg-fill"
             onMouseEnter={() => setHoveredSkillId(skill.id)}
             onMouseLeave={() => setHoveredSkillId((current) => (current === skill.id ? null : current))}
             onFocusCapture={() => setHoveredSkillId(skill.id)}
             onBlurCapture={() => setHoveredSkillId((current) => (current === skill.id ? null : current))}
           >
-            <div className="min-w-0">
-              <h3 className="mb-0 text-base leading-6 [font-weight:550]">{skill.name}</h3>
-              <p className="cds-line-clamp-2 max-w-[720px] whitespace-pre-wrap text-sm leading-5 text-[#898781]">{skill.description}</p>
-              <div className="mt-[26px] flex h-[22px] flex-wrap items-center gap-2 text-xs leading-4 text-[#898781]">
-                <span
-                  data-cds="Badge"
-                  className="inline-flex h-[22px] items-center rounded-[5.5px] bg-fill px-2 font-mono text-xs leading-[15px] text-[#52514e] [font-weight:550]"
+            <div className="mb-2 flex min-h-0 flex-1 items-start justify-between">
+              <div className="min-w-0 flex-1">
+                <h3 className="mb-0 text-base leading-6 [font-weight:550]">{skill.name}</h3>
+                <p className="cds-line-clamp-2 max-w-[720px] whitespace-pre-wrap text-sm leading-5 text-[#898781]">{skill.description}</p>
+              </div>
+              <div className="flex flex-col items-end gap-2">
+                <Button
+                  variant="icon"
+                  className="!h-7 !w-7 !gap-1.5 !border-0 !px-0 !text-ink text-sm !leading-5 transition-opacity [font-weight:550]"
+                  style={{ opacity: hoveredSkillId === skill.id ? 1 : 0 }}
+                  aria-label={`View version history for ${skill.name}`}
+                  onClick={() => setVersionSkillId(skill.id)}
                 >
-                  <span>{skill.slug}</span>
-                </span>
-                <span>•</span>
-                <span>{skill.owner}</span>
-                <span>•</span>
-                <span>{skill.updatedLabel}</span>
+                  <CdsIconGlyph glyph="" />
+                </Button>
+                {skill.owner !== "Anthropic" ? <SkillActions onDelete={() => deleteCurrent(skill)} /> : null}
               </div>
             </div>
-            <div className="flex flex-col items-end gap-2">
-              <Button
-                variant="icon"
-                className="!h-7 !w-7 !gap-1.5 !border-0 !px-0 !text-ink text-sm !leading-5 transition-opacity [font-weight:550]"
-                style={{ opacity: hoveredSkillId === skill.id ? 1 : 0 }}
-                aria-label={`View version history for ${skill.name}`}
-                onClick={() => setVersionSkillId(skill.id)}
+            <div className="flex h-[22px] flex-wrap items-center gap-2 text-xs leading-4 text-[#898781]">
+              <span
+                data-cds="Badge"
+                className="inline-flex h-[22px] items-center rounded-[5.5px] bg-fill px-2 font-mono text-xs leading-[15px] text-[#52514e] [font-weight:550]"
               >
-                <CdsIconGlyph glyph="" />
-              </Button>
-              {skill.owner !== "Anthropic" ? <SkillActions onDelete={() => deleteCurrent(skill)} /> : null}
+                <span>{skill.slug}</span>
+              </span>
+              <span>•</span>
+              <span>{skill.owner}</span>
+              <span>•</span>
+              <span>{skill.updatedLabel}</span>
             </div>
           </article>
         ))}
