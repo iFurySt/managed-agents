@@ -3229,7 +3229,12 @@ function FilesLanguageMenu({ language, onLanguageChange }: { language: string; o
         </Button>
       </CdsDropdownMenu.Trigger>
       <CdsDropdownMenu.Portal>
-        <CdsDropdownMenu.Content data-cds="DropdownButton" className="z-50 w-[128px] rounded-[12px] bg-white p-1 shadow-lg" align="start" sideOffset={6}>
+        <CdsDropdownMenu.Content
+          data-cds="DropdownButton"
+          className="z-50 w-[128px] rounded-[12px] bg-white p-1 shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
+          align="start"
+          sideOffset={6}
+        >
           <CdsDropdownMenu.RadioGroup value={language} onValueChange={onLanguageChange}>
             {["Python", "cURL"].map((option) => (
               <CdsDropdownMenu.RadioItem
@@ -3239,7 +3244,7 @@ function FilesLanguageMenu({ language, onLanguageChange }: { language: string; o
               >
                 <span className="min-w-0 flex-1 truncate">{option}</span>
                 <CdsDropdownMenu.ItemIndicator>
-                  <Check className="h-5 w-5 text-[#2a78d6]" />
+                  <CdsIconGlyph glyph="" className="h-4 w-4 shrink-0 text-[#898781] text-[16px] [font-weight:533.25]" />
                 </CdsDropdownMenu.ItemIndicator>
               </CdsDropdownMenu.RadioItem>
             ))}
