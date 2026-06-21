@@ -837,10 +837,10 @@ function AgentsPage() {
         renderActions={(agent) => <AgentRowActions agent={agent} onArchive={() => setArchivingAgent(agent)} />}
       />
       <div className="-mt-[1.5px] flex gap-2">
-        <Button variant="icon" className="!h-8 !w-8 !gap-1.5 !rounded-[8px] !leading-5" aria-label="Previous page">
+        <Button variant="icon" className="!h-8 !w-8 !gap-1.5 !rounded-[8px] !leading-5" aria-label="Previous page" disabled>
           <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
         </Button>
-        <Button variant="icon" className="!h-8 !w-8 !gap-1.5 !rounded-[8px] !leading-5" aria-label="Next page">
+        <Button variant="icon" className="!h-8 !w-8 !gap-1.5 !rounded-[8px] !leading-5" aria-label="Next page" disabled>
           <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
         </Button>
       </div>
