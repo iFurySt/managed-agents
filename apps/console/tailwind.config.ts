@@ -9,7 +9,7 @@ export default {
         ink: "#0b0b0b",
         primary: "#0b0b0b",
         muted: "#898781",
-        line: "#e8e6e1",
+        line: "rgba(11,11,11,0.1)",
         clay: "#c6613f",
         fill: "#f2f1ee"
       },
