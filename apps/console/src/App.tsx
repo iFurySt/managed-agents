@@ -271,7 +271,10 @@ function Sidebar() {
         <div className="-mr-2 flex w-full translate-y-px items-center justify-between">
           <Link className="pl-2" to="/">
             <div data-cds="ProductLogo" className="inline-flex flex-col items-start">
-              <span className="whitespace-nowrap font-voice text-base leading-none text-ink [font-weight:550]">
+              <span
+                className="whitespace-nowrap font-voice text-base leading-none text-ink [font-weight:550]"
+                style={{ marginLeft: "-0.1em", fontOpticalSizing: "auto", fontFeatureSettings: '"ss01", "dlig"' }}
+              >
                 Claude Console
               </span>
             </div>
