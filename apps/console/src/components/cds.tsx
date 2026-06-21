@@ -2,7 +2,6 @@ import * as Dialog from "@radix-ui/react-dialog";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import * as Select from "@radix-ui/react-select";
 import * as Tabs from "@radix-ui/react-tabs";
-import { Check } from "lucide-react";
 import { forwardRef, useMemo, useState, type KeyboardEvent, type MouseEvent, type ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 
@@ -132,7 +131,9 @@ export function FieldSelect({
   showLabel = true,
   ariaLabel,
   contentClassName = "",
-  itemClassName = ""
+  itemClassName = "",
+  contentPosition,
+  contentSideOffset
 }: {
   label: ReactNode;
   value: string;
@@ -144,6 +145,8 @@ export function FieldSelect({
   ariaLabel?: string;
   contentClassName?: string;
   itemClassName?: string;
+  contentPosition?: "item-aligned" | "popper";
+  contentSideOffset?: number;
 }) {
   const trigger = (
     <Select.Trigger
@@ -165,17 +168,21 @@ export function FieldSelect({
     <Select.Root value={value} onValueChange={onValueChange}>
       {triggerShellClassName ? <div data-cds="FieldSelect" className={triggerShellClassName}>{trigger}</div> : trigger}
       <Select.Portal>
-        <Select.Content className={`z-50 min-w-[150px] rounded-cds border border-line bg-white p-1 shadow-lg ${contentClassName}`}>
+        <Select.Content
+          position={contentPosition}
+          sideOffset={contentSideOffset}
+          className={`z-50 min-w-[150px] rounded-cds border border-line bg-white p-1 shadow-lg ${contentClassName}`}
+        >
           <Select.Viewport>
             {options.map((option) => (
               <Select.Item
                 key={option}
                 value={option}
-                className={`flex h-8 cursor-pointer items-center justify-between rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill ${itemClassName}`}
+                className={`flex h-8 cursor-pointer items-center justify-between rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill data-[state=checked]:bg-fill ${itemClassName}`}
               >
                 <Select.ItemText>{option}</Select.ItemText>
                 <Select.ItemIndicator>
-                  <Check className="h-4 w-4" />
+                  <CdsIconGlyph glyph="" className="h-4 w-4 shrink-0 text-[#898781] text-[16px] [font-weight:533.25]" />
                 </Select.ItemIndicator>
               </Select.Item>
             ))}

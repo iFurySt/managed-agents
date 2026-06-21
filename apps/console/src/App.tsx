@@ -5914,6 +5914,10 @@ function CreateEnvironmentDialog({
               onValueChange={setHostingType}
               triggerShellClassName="inline-flex h-[31px] w-full items-center rounded-[8px] bg-white/50 pr-2 shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]"
               triggerClassName="!h-[31px] w-full"
+              contentPosition="popper"
+              contentSideOffset={6}
+              contentClassName="w-[462px] overflow-hidden !rounded-[12px] border-0 !shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]"
+              itemClassName="!rounded-[8px] px-3"
             />
             <p className={helperClass}>This cannot be changed after creation.</p>
           </div>
