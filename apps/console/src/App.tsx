@@ -193,9 +193,10 @@ function readSidebarCollapsedPreference() {
 
 function WorkspaceRouteRedirect() {
   const { section, "*": rest = "" } = useParams();
+  const location = useLocation();
   const targetSection = section === "credential-vaults" ? "vaults" : section;
   const suffix = rest ? `/${rest}` : "";
-  return <Navigate to={`/${targetSection || "agents"}${suffix}`} replace />;
+  return <Navigate to={`/${targetSection || "agents"}${suffix}${location.search}${location.hash}`} replace />;
 }
 
 function Sidebar() {
