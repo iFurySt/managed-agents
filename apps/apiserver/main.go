@@ -1993,7 +1993,7 @@ func seedResources(ts time.Time) []Resource {
 		resource("environment", "env_01UNo9NMB1ZQLKCZk21qryb8", "world-cup-digest-env", "Active", "Playwright / Python", "Firecracker", ts),
 		resource("environment", "env_01LiiuDCwZBtqZd5EYMk9D9x", "123", "Active", "Self-hosted", "customer-managed runner", ts),
 		resource("environment", "env_01AzQWp3SXQEATgdCFUNwteR", "myenv", "Active", "Self-hosted", "customer-managed runner", ts),
-		resource("vault", "vault_01GitHub", "GitHub source access", "Active", "3 bindings", "last used 2 days ago", ts),
+		resource("vault", "vlt_011CcAwAMQNPspfRCWurffJx", "Temporary vault", "Active", "No credentials", "created Jun 18", ts.Add(time.Second)),
 		resource("vault", "vault_01TestSecret", "test_secret", "Active", "1 binding", "last used 2 days ago", ts),
 		resource("file", "file_01Outputs", "session-output.tar.gz", "Available", "outputs", "2.4 MB", ts),
 	}
@@ -2028,8 +2028,8 @@ func environment(id, name, status, hostType, description, networkingType, packag
 
 func seedVaults(ts time.Time) ([]Vault, []VaultCredential) {
 	vaults := []Vault{
+		vault("vlt_011CcAwAMQNPspfRCWurffJx", "Temporary vault", "Active", "Jun 18", ts.Add(time.Second)),
 		vault("vlt_011Cc6ULi3DaPNjN1LZLTenB", "test_secret", "Active", "Jun 16", ts),
-		vault("vault_01GitHub", "GitHub source access", "Active", "Jun 16", ts),
 	}
 	credentials := []VaultCredential{
 		vaultCredential("vcrd_01Console9X2g5BB", "vlt_011Cc6ULi3DaPNjN1LZLTenB", "Unnamed", "Environment variable", "TEST", "Active", "Jun 18, 2026", "Jun 16", ts),
@@ -2037,7 +2037,6 @@ func seedVaults(ts time.Time) ([]Vault, []VaultCredential) {
 		vaultCredential("vcrd_01ConsoleGJKMDyK", "vlt_011Cc6ULi3DaPNjN1LZLTenB", "bearertoken", "Bearer token", "https://api.ifuryst.com/", "Active", "Never", "Jun 16", ts.Add(2*time.Second)),
 		vaultCredential("vcrd_01ConsoleWtXJ6BE", "vlt_011Cc6ULi3DaPNjN1LZLTenB", "mcpoauth", "MCP OAuth", "https://gmail.mcp.claude.com/mcp", "Active", "Never", "Jun 16", ts.Add(3*time.Second)),
 		vaultCredential("vcrd_01ConsoleiByG9Qr", "vlt_011Cc6ULi3DaPNjN1LZLTenB", "exp", "Environment variable", "X_LEO_KEY", "Active", "Jun 18, 2026", "Jun 16", ts.Add(4*time.Second)),
-		vaultCredential("vcrd_01GithubToken", "vault_01GitHub", "github-token", "Bearer token", "https://api.github.com/", "Active", "2 days ago", "Jun 16", ts),
 	}
 	return vaults, credentials
 }
