@@ -518,7 +518,9 @@ function WorkspaceChevronIcon() {
 }
 
 function IconItem({ icon, label, right, to, testId }: { icon: React.ReactNode; label: string; right?: string; to?: string; testId?: string }) {
-  const className = "flex h-9 shrink-0 items-center gap-3 rounded-lg px-2 text-sm leading-5 text-[#52514e] [font-weight:550] hover:bg-fill";
+  const location = useLocation();
+  const active = Boolean(to && (location.pathname === to || location.pathname.startsWith(`${to}/`)));
+  const className = `flex h-9 shrink-0 items-center gap-3 rounded-lg px-2 text-sm leading-5 text-[#52514e] [font-weight:550] hover:bg-fill ${active ? "bg-[rgba(11,11,11,0.05)] text-ink" : ""}`;
   const content = (
     <>
       {icon}
@@ -528,7 +530,7 @@ function IconItem({ icon, label, right, to, testId }: { icon: React.ReactNode; l
   );
 
   return to ? (
-    <Link className={className} to={to} data-testid={testId}>
+    <Link className={className} to={to} data-testid={testId} aria-current={active ? "page" : undefined}>
       {content}
     </Link>
   ) : (
