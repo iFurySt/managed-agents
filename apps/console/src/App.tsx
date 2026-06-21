@@ -30,7 +30,7 @@ import {
 } from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as Select from "@radix-ui/react-select";
-import { useEffect, useMemo, useState, type DragEvent, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ButtonHTMLAttributes, type DragEvent, type ReactNode } from "react";
 import { Link, Navigate, Route, Routes, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   archiveSession,
@@ -751,10 +751,7 @@ function AgentsPage() {
         description="Create and manage autonomous agents."
         action={
           <div className="flex items-center gap-2">
-            <Button className="!w-[132px] !gap-1.5 !rounded-[8px] !px-3 [font-weight:550]" onClick={() => setDialogOpen(true)}>
-              <CdsIconGlyph glyph="" className="h-5 w-5 text-current text-[20px] [font-weight:566.5]" />
-              Create agent
-            </Button>
+            <HeaderCreateButton className="!w-[132px]" onClick={() => setDialogOpen(true)}>Create agent</HeaderCreateButton>
             <a
               data-cds="Button"
               className="cds-focus inline-flex h-8 w-8 items-center justify-center gap-1.5 rounded-[8px] text-sm !leading-5 text-ink [font-weight:550] hover:bg-fill"
@@ -908,10 +905,7 @@ function SessionsPage() {
         description="Trace and debug Claude Managed Agents sessions."
         action={
           <div className="flex items-center gap-2">
-            <Button className="!w-[144px] !gap-1.5 !rounded-[8px] !px-2 [font-weight:550]" onClick={() => setDialogOpen(true)}>
-              <CdsIconGlyph glyph="" className="h-5 w-5 text-current text-[20px] [font-weight:566.5]" />
-              Create session
-            </Button>
+            <HeaderCreateButton className="!w-[144px]" onClick={() => setDialogOpen(true)}>Create session</HeaderCreateButton>
             <a
               data-cds="Button"
               className="cds-focus inline-flex h-8 w-8 items-center justify-center gap-1.5 rounded-[8px] text-sm !leading-5 text-ink [font-weight:550] hover:bg-fill"
@@ -1432,10 +1426,7 @@ function DeploymentsPage() {
         description="A deployment binds an agent to credentials, an environment, and a schedule so it can run on its own."
         action={
           <div className="flex items-center gap-2">
-            <Button className="!gap-1.5 !rounded-[8px] !px-2 [font-weight:550]" onClick={() => setDialogOpen(true)}>
-              <CdsIconGlyph glyph="" className="h-5 w-5 text-current text-[20px] [font-weight:566.5]" />
-              Create deployment
-            </Button>
+            <HeaderCreateButton onClick={() => setDialogOpen(true)}>Create deployment</HeaderCreateButton>
             <a
               data-cds="Button"
               className="cds-focus inline-flex h-8 w-8 items-center justify-center gap-1.5 rounded-[8px] text-sm !leading-5 text-ink [font-weight:550] hover:bg-fill"
@@ -1907,10 +1898,7 @@ function EnvironmentsPage() {
         description="Configuration template for containers, such as sessions or code execution."
         action={
           <div className="flex items-center gap-2">
-            <Button className="!gap-1.5 !rounded-[8px] !px-2 [font-weight:550]" onClick={() => setDialogOpen(true)}>
-              <CdsIconGlyph glyph="" className="h-5 w-5 text-current text-[20px] [font-weight:566.5]" />
-              Create environment
-            </Button>
+            <HeaderCreateButton onClick={() => setDialogOpen(true)}>Create environment</HeaderCreateButton>
             <a
               data-cds="Button"
               className="cds-focus inline-flex h-8 w-8 items-center justify-center gap-1.5 rounded-[8px] text-sm !leading-5 text-ink [font-weight:550] hover:bg-fill"
@@ -2372,10 +2360,7 @@ function VaultsPage() {
         title="Credential vaults"
         description="Manage credential vaults that provide your agents with access to MCP servers and other tools."
         action={
-          <Button className="!gap-1.5 !rounded-[8px] !px-2 [font-weight:550]" onClick={() => setDialogOpen(true)}>
-            <CdsIconGlyph glyph="" className="h-5 w-5 text-current text-[20px] [font-weight:566.5]" />
-            Create vault
-          </Button>
+          <HeaderCreateButton onClick={() => setDialogOpen(true)}>Create vault</HeaderCreateButton>
         }
       />
       <div className="mt-4 flex h-10 flex-wrap items-start gap-2">
@@ -2730,10 +2715,7 @@ function MemoryStoresPage() {
         description="Browse and manage persistent memory for your agents."
         action={
           <div className="flex items-center gap-2">
-            <Button className="!gap-1.5 !rounded-[8px] !px-2 [font-weight:550]" onClick={() => setDialogOpen(true)}>
-              <CdsIconGlyph glyph="" className="h-5 w-5 text-current text-[20px] [font-weight:566.5]" />
-              Create memory store
-            </Button>
+            <HeaderCreateButton onClick={() => setDialogOpen(true)}>Create memory store</HeaderCreateButton>
             <a
               data-cds="Button"
               className="cds-focus inline-flex h-8 w-8 items-center justify-center gap-1.5 rounded-[8px] text-sm !leading-5 text-ink [font-weight:550] hover:bg-fill"
@@ -3367,10 +3349,7 @@ function SkillsPage() {
         description="Skills are repeatable and customizable instructions that Claude API can follow. Only skills from the Default workspace are shown. To see other workspace's skills, select a workspace."
         action={
           <div className="flex items-center gap-2">
-            <Button className="!h-8 !w-[120px] !gap-1.5 !rounded-[8px] !px-2 [font-weight:550]" onClick={() => setDialogOpen(true)}>
-              <CdsIconGlyph glyph="" className="h-5 w-5 text-current text-[20px] [font-weight:566.5]" />
-              Create skill
-            </Button>
+            <HeaderCreateButton className="!w-[120px]" onClick={() => setDialogOpen(true)}>Create skill</HeaderCreateButton>
             <a
               data-cds="Button"
               className="cds-focus inline-flex h-8 w-8 items-center justify-center rounded-[8px] text-sm !leading-5 text-ink [font-weight:550] hover:bg-fill"
@@ -7359,6 +7338,17 @@ function PageHeader({ title, description, action, titleClassName = "" }: { title
       </div>
       {action ? <div className="shrink-0">{action}</div> : null}
     </div>
+  );
+}
+
+function HeaderCreateButton({ children, className = "", ...props }: ButtonHTMLAttributes<HTMLButtonElement>) {
+  return (
+    <Button className={`!gap-1.5 !rounded-[8px] !px-3 [font-weight:550] ${className}`} {...props}>
+      <span className="inline-flex items-center gap-1">
+        <CdsIconGlyph glyph="" className="-ml-1 h-5 w-5 text-current text-[20px] [font-weight:566.5]" />
+        {children}
+      </span>
+    </Button>
   );
 }
 
