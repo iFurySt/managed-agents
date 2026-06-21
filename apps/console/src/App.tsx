@@ -4591,9 +4591,8 @@ function DeploymentVaultPicker({ value, onValueChange }: { value: string; onValu
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const options = [
-    { value: "temporary_vault", name: "Temporary vault", updated: "2 days ago", summary: "No credentials" },
-    { value: "test_secret", name: "test_secret", updated: "5 days ago", summary: "5 credentials" },
-    { value: "vault_01GitHub", name: "GitHub source access", updated: "2 days ago", summary: "1 credential" }
+    { value: "temporary_vault", name: "Temporary vault", updated: "3 days ago", summary: "No credentials", credentialIcons: 0 },
+    { value: "test_secret", name: "test_secret", updated: "5 days ago", summary: "", credentialIcons: 3 }
   ];
   const filteredOptions = options.filter((option) => option.name.toLowerCase().includes(search.toLowerCase()));
   const selected = options.find((option) => option.value === value);
@@ -4649,8 +4648,9 @@ function DeploymentVaultPicker({ value, onValueChange }: { value: string; onValu
                   <span className="truncate text-[13px] leading-4 text-muted">{option.updated}</span>
                 </span>
                 <span className="inline-flex shrink-0 items-center gap-1.5 text-xs leading-4 text-muted">
-                  {option.summary === "No credentials" ? null : <KeyRound className="h-3.5 w-3.5" />}
-                  {option.summary}
+                  {option.credentialIcons > 0
+                    ? Array.from({ length: option.credentialIcons }, (_, index) => <CdsIconGlyph key={index} glyph="" className="h-4 w-4 text-[#898781] text-[16px] [font-weight:533.25]" />)
+                    : option.summary}
                 </span>
               </button>
             ))}
