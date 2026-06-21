@@ -307,9 +307,9 @@ export function DataTable<T>({
             const selected = selectedKeys.has(key);
 
             return (
-              <tr key={key} data-selected={selected ? "true" : undefined} className="group/cdsrow h-11 relative [transform:translate(0,0)] [cursor:var(--cds-cursor-interactive,pointer)] hover:bg-[#fbfaf7]">
+              <tr key={key} data-selected={selected ? "true" : undefined} className="group/cdsrow h-[43px] first:h-11 relative [transform:translate(0,0)] [cursor:var(--cds-cursor-interactive,pointer)] hover:bg-[#fbfaf7]">
                 {showSelection ? (
-                  <td className="relative border-b border-[rgba(11,11,11,0.05)] p-0 group-data-[selected=true]/cdsrow:border-transparent group-data-[selected=true]/cdsrow:bg-[rgba(11,11,11,0.05)] group-data-[selected=true]/cdsrow:first:rounded-l-[8px]">
+                  <td className="relative border-b border-[rgba(11,11,11,0.05)] p-0 [tr:first-child_&]:border-t group-data-[selected=true]/cdsrow:border-transparent group-data-[selected=true]/cdsrow:bg-[rgba(11,11,11,0.05)] group-data-[selected=true]/cdsrow:first:rounded-l-[8px]">
                     <div className="absolute inset-0 z-10 flex items-center justify-center">
                       <TableSelectionBox checked={selected} onToggle={() => toggleRow(key)} />
                     </div>
@@ -318,13 +318,13 @@ export function DataTable<T>({
                 {columns.map((column) => {
                   const alignClassName = column.align === "right" ? "text-right [&>.flex]:justify-end" : "";
                   return (
-                    <td key={column.key} className={`max-w-[260px] truncate border-b border-[rgba(11,11,11,0.05)] px-3 py-2 align-middle group-data-[selected=true]/cdsrow:border-transparent group-data-[selected=true]/cdsrow:bg-[rgba(11,11,11,0.05)] ${alignClassName}`} style={{ width: column.width }}>
+                    <td key={column.key} className={`max-w-[260px] truncate border-b border-[rgba(11,11,11,0.05)] px-3 py-2 align-middle [tr:first-child_&]:border-t group-data-[selected=true]/cdsrow:border-transparent group-data-[selected=true]/cdsrow:bg-[rgba(11,11,11,0.05)] ${alignClassName}`} style={{ width: column.width }}>
                       {column.render(row)}
                     </td>
                   );
                 })}
                 {showActions ? (
-                  <td className="border-b border-[rgba(11,11,11,0.05)] px-3 py-2 group-data-[selected=true]/cdsrow:border-transparent group-data-[selected=true]/cdsrow:bg-[rgba(11,11,11,0.05)] group-data-[selected=true]/cdsrow:last:rounded-r-[8px]" style={{ width: actionsWidth }}>
+                  <td className="border-b border-[rgba(11,11,11,0.05)] px-3 py-2 [tr:first-child_&]:border-t group-data-[selected=true]/cdsrow:border-transparent group-data-[selected=true]/cdsrow:bg-[rgba(11,11,11,0.05)] group-data-[selected=true]/cdsrow:last:rounded-r-[8px]" style={{ width: actionsWidth }}>
                     {renderActions ? (
                       renderActions(row)
                     ) : (
