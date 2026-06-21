@@ -5781,7 +5781,8 @@ function CreateEnvironmentDialog({
               value={hostingType}
               options={["Cloud", "Self-hosted"]}
               onValueChange={setHostingType}
-              triggerClassName="!h-[31px] w-full !rounded-[8px] border-0 bg-white/50 px-2 shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]"
+              triggerShellClassName="inline-flex h-[31px] w-full items-center rounded-[8px] bg-white/50 pr-2 shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]"
+              triggerClassName="!h-[31px] w-full"
             />
             <p className={helperClass}>This cannot be changed after creation.</p>
           </div>
