@@ -212,6 +212,7 @@ export function DataTable<T>({
   const selectedVisibleCount = rowKeys.filter((key) => selectedKeys.has(key)).length;
   const allVisibleSelected = rowKeys.length > 0 && selectedVisibleCount === rowKeys.length;
   const someVisibleSelected = selectedVisibleCount > 0 && !allVisibleSelected;
+  const headerTextClassName = showSelection ? "text-[13px]" : "text-xs";
 
   function toggleAllVisible() {
     setSelectedKeys((current) => {
@@ -248,7 +249,7 @@ export function DataTable<T>({
           {showActions ? <col style={{ width: actionsWidth }} /> : null}
         </colgroup>
         <thead>
-          <tr className="h-8 border-b border-line text-xs leading-4 text-[#52514e] [font-weight:550]">
+          <tr className={`h-8 border-b border-line ${headerTextClassName} leading-4 text-[#52514e] [font-weight:550]`}>
             {showSelection ? (
               <th className="relative w-10 p-0 [font-weight:550]">
                 <div className="absolute inset-0 flex items-center justify-center">
