@@ -104,10 +104,10 @@ const sessionAgentOptions = [
   { value: "agent_01MNpVPKyrSECHGA6HqAmREZ", name: "Untitled agent", updated: "5 days ago" }
 ];
 const sessionEnvironmentOptions = [
-  { value: "env_01UTaKkbFknSkQNEsZjUARMh", name: "managed-ssh-debug-env", updated: "4 days ago", type: "Cloud" },
-  { value: "env_01LiiuDCwZBtqZd5EYMk9D9x", name: "123", updated: "4 days ago", type: "Self-hosted" },
-  { value: "env_01AzQWp3SXQEATgdCFUNwteR", name: "myenv", updated: "4 days ago", type: "Self-hosted" },
-  { value: "env_01UNo9NMB1ZQLKCZk21qryb8", name: "world-cup-digest-env", updated: "4 days ago", type: "Cloud" }
+  { value: "env_01UTaKkbFknSkQNEsZjUARMh", name: "managed-ssh-debug-env", updated: "5 days ago", type: "Cloud" },
+  { value: "env_01LiiuDCwZBtqZd5EYMk9D9x", name: "123", updated: "5 days ago", type: "Self-hosted" },
+  { value: "env_01AzQWp3SXQEATgdCFUNwteR", name: "myenv", updated: "5 days ago", type: "Self-hosted" },
+  { value: "env_01UNo9NMB1ZQLKCZk21qryb8", name: "world-cup-digest-env", updated: "5 days ago", type: "Cloud" }
 ];
 const cdsMenuContentClass =
   "z-50 max-w-[320px] rounded-[12px] bg-white p-1 text-sm text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]";
