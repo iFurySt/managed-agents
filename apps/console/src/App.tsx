@@ -154,6 +154,7 @@ export default function App() {
             <div className={`px-7 ${showBanner ? "pt-6" : "pt-3"}`}>
               <Routes>
                 <Route path="/" element={<Navigate to="/agents" replace />} />
+                <Route path="/workspaces/:workspaceId/:section/*" element={<WorkspaceRouteRedirect />} />
                 <Route path="/agent-quickstart" element={<QuickstartPage />} />
                 <Route path="/agents" element={<AgentsPage />} />
                 <Route path="/agents/:id" element={<AgentDetailPage />} />
@@ -188,6 +189,13 @@ function readSidebarCollapsedPreference() {
   } catch {
     return false;
   }
+}
+
+function WorkspaceRouteRedirect() {
+  const { section, "*": rest = "" } = useParams();
+  const targetSection = section === "credential-vaults" ? "vaults" : section;
+  const suffix = rest ? `/${rest}` : "";
+  return <Navigate to={`/${targetSection || "agents"}${suffix}`} replace />;
 }
 
 function Sidebar() {
