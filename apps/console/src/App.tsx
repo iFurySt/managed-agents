@@ -137,7 +137,15 @@ function getDocumentTitle(pathname: string) {
 
 export default function App() {
   const location = useLocation();
-  const showBanner = location.pathname === "/vaults" || location.pathname.startsWith("/vaults/");
+  const bannerRoute = location.pathname === "/vaults" || location.pathname.startsWith("/vaults/");
+  const [bannerVisible, setBannerVisible] = useState(() => {
+    try {
+      return window.localStorage.getItem(bannerDismissedStorageKey) !== "true";
+    } catch {
+      return true;
+    }
+  });
+  const showBanner = bannerRoute && bannerVisible;
   const fullWidthRoute = location.pathname.startsWith("/memory-stores/");
   const contentShellClass = fullWidthRoute
     ? "w-full max-w-none px-1 pb-8 pt-3"
@@ -154,7 +162,7 @@ export default function App() {
         <Sidebar />
         <main className="min-w-0 flex-1">
           <div className={contentShellClass}>
-            {showBanner ? <Banner /> : null}
+            {showBanner ? <Banner onDismiss={() => setBannerVisible(false)} /> : null}
             <div className={routeShellClass}>
               <Routes>
                 <Route path="/" element={<Navigate to="/agents" replace />} />
@@ -508,23 +516,15 @@ function QuickstartPage() {
   );
 }
 
-function Banner() {
-  const [visible, setVisible] = useState(() => {
-    try {
-      return window.localStorage.getItem(bannerDismissedStorageKey) !== "true";
-    } catch {
-      return true;
-    }
-  });
+function Banner({ onDismiss }: { onDismiss: () => void }) {
   function dismiss() {
     try {
       window.localStorage.setItem(bannerDismissedStorageKey, "true");
     } catch {
       // Ignore unavailable storage; the banner still closes for this render.
     }
-    setVisible(false);
+    onDismiss();
   }
-  if (!visible) return null;
   return (
     <div
       data-cds="Banner"
