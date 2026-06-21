@@ -447,7 +447,7 @@ function CollapsedSidebarLink({ glyph, label, to = "#", testId }: { glyph: strin
   const active = managedActive || (to !== "#" && (location.pathname === to || location.pathname.startsWith(`${to}/`)));
 
   return (
-    <Link className={`flex h-9 w-9 items-center justify-center rounded-lg text-[#52514e] hover:bg-fill hover:text-ink ${active ? "bg-[rgba(11,11,11,0.05)] !text-ink" : ""}`} to={to} aria-label={label} data-testid={testId}>
+    <Link className={`flex h-9 w-9 items-center justify-center rounded-lg text-[#52514e] hover:bg-fill hover:text-ink ${active ? "bg-[rgba(11,11,11,0.05)] !text-ink" : ""}`} to={to} aria-label={label} data-testid={testId} aria-current={active ? "page" : undefined}>
       <SidebarGlyph glyph={glyph} className="h-5 w-5 text-current text-[20px] [font-weight:433.3]" />
     </Link>
   );
