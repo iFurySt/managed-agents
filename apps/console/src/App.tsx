@@ -1811,7 +1811,7 @@ function EnvironmentsPage() {
             },
             { key: "status", header: "Status", width: "100px", render: (environment) => <Badge tone={environmentTone(environment.status)}>{environment.status}</Badge> },
             { key: "type", header: "Type", width: "120px", render: (environment) => <Badge tone="neutral" className="bg-[#f6f6f4] text-[#52514e]">{environment.type}</Badge> },
-            { key: "updated", header: "Updated at", width: "140px", render: (environment) => <span className="text-muted">{environment.updatedLabel}</span> }
+            { key: "updated", header: "Updated at", width: "140px", align: "right", render: (environment) => <span className="text-muted">{environment.updatedLabel}</span> }
           ]}
           renderActions={(environment) => (
             <EnvironmentActions

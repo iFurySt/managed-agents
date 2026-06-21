@@ -194,7 +194,7 @@ export function DataTable<T>({
   className = "",
   tableClassName = ""
 }: {
-  columns: { key: string; header: string; render: (row: T) => ReactNode; width?: string }[];
+  columns: { key: string; header: string; render: (row: T) => ReactNode; width?: string; align?: "left" | "right" }[];
   rows: T[];
   getKey: (row: T) => string;
   renderActions?: (row: T) => ReactNode;
@@ -257,11 +257,14 @@ export function DataTable<T>({
                 </div>
               </th>
             ) : null}
-            {columns.map((column) => (
-              <th key={column.key} className="px-3 py-0 [font-weight:550]" style={{ width: column.width }}>
-                {column.header}
-              </th>
-            ))}
+            {columns.map((column) => {
+              const alignClassName = column.align === "right" ? "text-right [&>.flex]:justify-end" : "";
+              return (
+                <th key={column.key} className={`px-3 py-0 [font-weight:550] ${alignClassName}`} style={{ width: column.width }}>
+                  {column.header}
+                </th>
+              );
+            })}
             {showActions ? (
               <th className="px-3 py-0 [font-weight:550]" style={{ width: actionsWidth }}>
                 {actionsHeader}
@@ -277,13 +280,16 @@ export function DataTable<T>({
                   <span className="block h-4 w-4 rounded-[4px] bg-fill text-transparent">Loading</span>
                 </td>
               ) : null}
-              {columns.map((column, columnIndex) => (
-                <td key={column.key} className="border-b border-[#efede8] px-3 py-2 align-middle" style={{ width: column.width }}>
-                  <span className={`block h-4 rounded-md bg-fill text-transparent ${columnIndex === 0 ? "w-[72px]" : columnIndex === 1 ? "w-[160px]" : "w-[96px]"}`}>
-                    Loading
-                  </span>
-                </td>
-              ))}
+              {columns.map((column, columnIndex) => {
+                const alignClassName = column.align === "right" ? "text-right [&>.flex]:justify-end" : "";
+                return (
+                  <td key={column.key} className={`border-b border-[#efede8] px-3 py-2 align-middle ${alignClassName}`} style={{ width: column.width }}>
+                    <span className={`block h-4 rounded-md bg-fill text-transparent ${columnIndex === 0 ? "w-[72px]" : columnIndex === 1 ? "w-[160px]" : "w-[96px]"}`}>
+                      Loading
+                    </span>
+                  </td>
+                );
+              })}
               {showActions ? (
                 <td className="border-b border-[#efede8] px-3 py-2 align-middle" style={{ width: actionsWidth }}>
                   <span className="block h-4 w-6 rounded-md bg-fill text-transparent">Loading</span>
@@ -303,11 +309,14 @@ export function DataTable<T>({
                     </div>
                   </td>
                 ) : null}
-                {columns.map((column) => (
-                  <td key={column.key} className="max-w-[260px] truncate border-b border-[#efede8] px-3 py-2 align-middle group-data-[selected=true]/cdsrow:border-transparent group-data-[selected=true]/cdsrow:bg-[rgba(11,11,11,0.05)]" style={{ width: column.width }}>
-                    {column.render(row)}
-                  </td>
-                ))}
+                {columns.map((column) => {
+                  const alignClassName = column.align === "right" ? "text-right [&>.flex]:justify-end" : "";
+                  return (
+                    <td key={column.key} className={`max-w-[260px] truncate border-b border-[#efede8] px-3 py-2 align-middle group-data-[selected=true]/cdsrow:border-transparent group-data-[selected=true]/cdsrow:bg-[rgba(11,11,11,0.05)] ${alignClassName}`} style={{ width: column.width }}>
+                      {column.render(row)}
+                    </td>
+                  );
+                })}
                 {showActions ? (
                   <td className="border-b border-[#efede8] px-3 py-2 group-data-[selected=true]/cdsrow:border-transparent group-data-[selected=true]/cdsrow:bg-[rgba(11,11,11,0.05)] group-data-[selected=true]/cdsrow:last:rounded-r-[8px]" style={{ width: actionsWidth }}>
                     {renderActions ? (
