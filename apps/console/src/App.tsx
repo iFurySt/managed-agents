@@ -109,6 +109,12 @@ const sessionEnvironmentOptions = [
   { value: "env_01SelfHostedMyenv", name: "myenv", updated: "4 days ago", type: "Self-hosted" },
   { value: "env_01WorldCupDigest", name: "world-cup-digest-env", updated: "4 days ago", type: "Cloud" }
 ];
+const cdsMenuContentClass =
+  "z-50 max-w-[320px] rounded-[12px] bg-white p-1 text-sm text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]";
+const cdsMenuItemClass =
+  "flex h-8 w-full cursor-pointer items-center gap-2 rounded-[8px] px-2.5 py-1.5 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-fill";
+const cdsMenuDangerItemClass = `${cdsMenuItemClass} text-[#8e2626] data-[highlighted]:bg-[#fff1ef]`;
+const cdsMenuSeparatorClass = "my-1 h-px bg-line";
 
 export default function App() {
   const location = useLocation();
@@ -6070,8 +6076,6 @@ function fileTone(status: string): "neutral" | "green" | "blue" | "red" {
 
 function EnvironmentActions({ environment, onArchive, onDelete }: { environment: Environment; onArchive: () => void; onDelete: () => void }) {
   const archived = environment.status === "Archived";
-  const menuItemClass =
-    "flex h-8 w-full cursor-pointer items-center gap-2 rounded-[8px] px-2.5 py-1.5 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-fill";
 
   return (
     <CdsDropdownMenu.Root>
@@ -6083,12 +6087,12 @@ function EnvironmentActions({ environment, onArchive, onDelete }: { environment:
       <CdsDropdownMenu.Portal>
         <CdsDropdownMenu.Content
           data-cds="Menu"
-          className="z-50 w-[128px] max-w-[320px] rounded-[12px] bg-white p-1 text-sm text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
+          className={`${cdsMenuContentClass} w-[128px]`}
           align="end"
           sideOffset={6}
         >
           <CdsDropdownMenu.Item
-            className={menuItemClass}
+            className={cdsMenuItemClass}
             onSelect={onArchive}
             disabled={archived}
           >
@@ -6096,7 +6100,7 @@ function EnvironmentActions({ environment, onArchive, onDelete }: { environment:
             {archived ? "Archived" : "Archive"}
           </CdsDropdownMenu.Item>
           <CdsDropdownMenu.Item
-            className={`${menuItemClass} text-[#8e2626] data-[highlighted]:bg-[#fff1ef]`}
+            className={cdsMenuDangerItemClass}
             onSelect={onDelete}
           >
             <MenuDeleteIcon />
@@ -6159,7 +6163,6 @@ function EnvironmentConfirmationDialog({
 
 function VaultRowActions({ vault, onArchive, onDelete }: { vault: Vault; onArchive: () => void; onDelete: () => void }) {
   const archived = vault.status === "Archived";
-  const menuItemClass = "flex h-8 w-full cursor-pointer items-center gap-2 rounded-[8px] px-2.5 py-1.5 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-fill";
   return (
     <CdsDropdownMenu.Root>
       <CdsDropdownMenu.Trigger asChild>
@@ -6170,12 +6173,12 @@ function VaultRowActions({ vault, onArchive, onDelete }: { vault: Vault; onArchi
       <CdsDropdownMenu.Portal>
         <CdsDropdownMenu.Content
           data-cds="Menu"
-          className="z-50 min-w-[128px] max-w-[320px] rounded-[12px] bg-white p-1 text-sm text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
+          className={`${cdsMenuContentClass} min-w-[128px]`}
           align="end"
           sideOffset={6}
         >
           <CdsDropdownMenu.Item
-            className={menuItemClass}
+            className={cdsMenuItemClass}
             onSelect={onArchive}
             disabled={archived}
           >
@@ -6183,7 +6186,7 @@ function VaultRowActions({ vault, onArchive, onDelete }: { vault: Vault; onArchi
             {archived ? "Archived" : "Archive"}
           </CdsDropdownMenu.Item>
           <CdsDropdownMenu.Item
-            className={`${menuItemClass} text-[#8e2626] data-[highlighted]:bg-[#fff1ef]`}
+            className={cdsMenuDangerItemClass}
             onSelect={onDelete}
           >
             <MenuDeleteIcon />
@@ -6246,8 +6249,6 @@ function VaultConfirmationDialog({
 
 function CredentialActions({ credential, onArchive, onDelete }: { credential: VaultCredential; onArchive: () => void; onDelete: () => void }) {
   const archived = credential.status === "Archived";
-  const menuItemClass =
-    "flex h-8 w-full cursor-pointer items-center gap-2 rounded-[8px] px-2.5 py-1.5 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-fill";
 
   return (
     <CdsDropdownMenu.Root>
@@ -6259,17 +6260,17 @@ function CredentialActions({ credential, onArchive, onDelete }: { credential: Va
       <CdsDropdownMenu.Portal>
         <CdsDropdownMenu.Content
           data-cds="Menu"
-          className="z-50 w-[160px] rounded-[12px] bg-white p-1 text-sm text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
+          className={`${cdsMenuContentClass} w-[160px]`}
           align="end"
           sideOffset={6}
         >
-          <CdsDropdownMenu.Item className={menuItemClass} onSelect={() => copyText(credential.id)}>
+          <CdsDropdownMenu.Item className={cdsMenuItemClass} onSelect={() => copyText(credential.id)}>
             <Copy className="h-4 w-4" />
             Copy ID
           </CdsDropdownMenu.Item>
-          <CdsDropdownMenu.Separator className="my-1 h-px bg-line" />
+          <CdsDropdownMenu.Separator className={cdsMenuSeparatorClass} />
           <CdsDropdownMenu.Item
-            className={menuItemClass}
+            className={cdsMenuItemClass}
             onSelect={onArchive}
             disabled={archived}
           >
@@ -6277,7 +6278,7 @@ function CredentialActions({ credential, onArchive, onDelete }: { credential: Va
             {archived ? "Archived" : "Archive"}
           </CdsDropdownMenu.Item>
           <CdsDropdownMenu.Item
-            className={`${menuItemClass} text-[#8e2626] data-[highlighted]:bg-[#fff1ef]`}
+            className={cdsMenuDangerItemClass}
             onSelect={onDelete}
           >
             <MenuDeleteIcon />
@@ -6291,8 +6292,6 @@ function CredentialActions({ credential, onArchive, onDelete }: { credential: Va
 
 function MemoryStoreActions({ store, onArchive, onDelete }: { store: MemoryStore; onArchive: () => void; onDelete: () => void }) {
   const archived = store.status === "Archived";
-  const menuItemClass =
-    "flex h-8 w-full cursor-pointer items-center gap-2 rounded-[8px] px-2.5 py-1.5 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-fill";
 
   return (
     <CdsDropdownMenu.Root>
@@ -6304,12 +6303,12 @@ function MemoryStoreActions({ store, onArchive, onDelete }: { store: MemoryStore
       <CdsDropdownMenu.Portal>
         <CdsDropdownMenu.Content
           data-cds="Menu"
-          className="z-50 w-[145px] max-w-[320px] rounded-[12px] bg-white p-1 text-sm text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
+          className={`${cdsMenuContentClass} w-[145px]`}
           align="end"
           sideOffset={6}
         >
           <CdsDropdownMenu.Item
-            className={menuItemClass}
+            className={cdsMenuItemClass}
             onSelect={onArchive}
             disabled={archived}
           >
@@ -6317,7 +6316,7 @@ function MemoryStoreActions({ store, onArchive, onDelete }: { store: MemoryStore
             {archived ? "Archived" : "Archive store"}
           </CdsDropdownMenu.Item>
           <CdsDropdownMenu.Item
-            className={`${menuItemClass} text-[#8e2626] data-[highlighted]:bg-[#fff1ef]`}
+            className={cdsMenuDangerItemClass}
             onSelect={onDelete}
           >
             <MenuDeleteIcon />
@@ -6385,14 +6384,14 @@ function MemoryRecordActions({ record, onDelete }: { record: MemoryRecord; onDel
         </Button>
       </CdsDropdownMenu.Trigger>
       <CdsDropdownMenu.Portal>
-        <CdsDropdownMenu.Content className="z-50 min-w-[150px] rounded-cds border border-line bg-white p-1 shadow-lg" align="end">
-          <CdsDropdownMenu.Item className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill" onSelect={() => copyText(record.id)}>
+        <CdsDropdownMenu.Content data-cds="Menu" className={`${cdsMenuContentClass} w-[160px]`} align="end" sideOffset={6}>
+          <CdsDropdownMenu.Item className={cdsMenuItemClass} onSelect={() => copyText(record.id)}>
             <Copy className="h-4 w-4" />
             Copy ID
           </CdsDropdownMenu.Item>
-          <CdsDropdownMenu.Separator className="my-1 h-px bg-line" />
+          <CdsDropdownMenu.Separator className={cdsMenuSeparatorClass} />
           <CdsDropdownMenu.Item
-            className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm text-[#a33a29] outline-none data-[highlighted]:bg-[#fff1ef]"
+            className={cdsMenuDangerItemClass}
             onSelect={onDelete}
           >
             <MenuDeleteIcon />
@@ -6414,18 +6413,18 @@ function FileActions({ file, onDelete }: { file: WorkspaceFile; onDelete: () => 
         </Button>
       </CdsDropdownMenu.Trigger>
       <CdsDropdownMenu.Portal>
-        <CdsDropdownMenu.Content className="z-50 min-w-[150px] rounded-cds border border-line bg-white p-1 shadow-lg" align="end">
-          <CdsDropdownMenu.Item className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill" onSelect={() => navigate(`/files/${file.id}`)}>
+        <CdsDropdownMenu.Content data-cds="Menu" className={`${cdsMenuContentClass} w-[160px]`} align="end" sideOffset={6}>
+          <CdsDropdownMenu.Item className={cdsMenuItemClass} onSelect={() => navigate(`/files/${file.id}`)}>
             <FileText className="h-4 w-4" />
             Open file
           </CdsDropdownMenu.Item>
-          <CdsDropdownMenu.Item className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill" onSelect={() => copyText(file.id)}>
+          <CdsDropdownMenu.Item className={cdsMenuItemClass} onSelect={() => copyText(file.id)}>
             <Copy className="h-4 w-4" />
             Copy ID
           </CdsDropdownMenu.Item>
-          <CdsDropdownMenu.Separator className="my-1 h-px bg-line" />
+          <CdsDropdownMenu.Separator className={cdsMenuSeparatorClass} />
           <CdsDropdownMenu.Item
-            className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm text-[#a33a29] outline-none data-[highlighted]:bg-[#fff1ef]"
+            className={cdsMenuDangerItemClass}
             onSelect={onDelete}
           >
             <MenuDeleteIcon />
@@ -6476,8 +6475,6 @@ function SessionArchiveDialog({
 
 function SessionRowActions({ session, onArchive }: { session: Session; onArchive: () => void }) {
   const archived = session.status === "Archived";
-  const menuItemClass =
-    "flex h-8 w-full cursor-pointer items-center gap-2 rounded-[8px] px-2.5 py-1.5 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-fill";
 
   return (
     <CdsDropdownMenu.Root>
@@ -6489,12 +6486,12 @@ function SessionRowActions({ session, onArchive }: { session: Session; onArchive
       <CdsDropdownMenu.Portal>
         <CdsDropdownMenu.Content
           data-cds="Menu"
-          className="z-50 w-[160px] max-w-[320px] rounded-[12px] bg-white p-1 text-sm text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
+          className={`${cdsMenuContentClass} w-[160px]`}
           align="end"
           sideOffset={8}
         >
           <CdsDropdownMenu.Item
-            className={menuItemClass}
+            className={cdsMenuItemClass}
             onSelect={onArchive}
             disabled={archived}
           >
@@ -6559,7 +6556,6 @@ function DeploymentActions({
 }) {
   const paused = deployment.status === "Paused";
   const archived = deployment.status === "Archived";
-  const itemClass = "flex h-8 w-[120px] cursor-pointer items-center gap-2 rounded-[7px] px-2.5 text-sm outline-none data-[highlighted]:bg-fill disabled:pointer-events-none disabled:opacity-50";
   return (
     <CdsDropdownMenu.Root>
       <CdsDropdownMenu.Trigger asChild>
@@ -6568,24 +6564,24 @@ function DeploymentActions({
         </Button>
       </CdsDropdownMenu.Trigger>
       <CdsDropdownMenu.Portal>
-        <CdsDropdownMenu.Content data-cds="Menu" className="z-50 w-[128px] rounded-[12px] bg-white p-1 shadow-[0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]" align="end" sideOffset={6}>
+        <CdsDropdownMenu.Content data-cds="Menu" className={`${cdsMenuContentClass} w-[128px]`} align="end" sideOffset={6}>
           {paused ? (
-            <CdsDropdownMenu.Item className={itemClass} onSelect={onResume} disabled={archived}>
+            <CdsDropdownMenu.Item className={cdsMenuItemClass} onSelect={onResume} disabled={archived}>
               <MenuResumeIcon />
               Resume
             </CdsDropdownMenu.Item>
           ) : (
-            <CdsDropdownMenu.Item className={itemClass} onSelect={onPause} disabled={archived}>
+            <CdsDropdownMenu.Item className={cdsMenuItemClass} onSelect={onPause} disabled={archived}>
               <Pause className="h-5 w-5 text-muted" />
               Pause
             </CdsDropdownMenu.Item>
           )}
-          <CdsDropdownMenu.Item className={itemClass} onSelect={onEdit} disabled={archived}>
+          <CdsDropdownMenu.Item className={cdsMenuItemClass} onSelect={onEdit} disabled={archived}>
             <MenuEditIcon />
             Edit
           </CdsDropdownMenu.Item>
           <CdsDropdownMenu.Item
-            className={`${itemClass} text-[#8e2626]`}
+            className={cdsMenuDangerItemClass}
             onSelect={onArchive}
             disabled={archived}
           >
@@ -6610,8 +6606,6 @@ function SessionDetailActions({
   onArchive: () => void;
 }) {
   const archived = session.status === "Archived";
-  const menuItemClass =
-    "flex h-8 w-full cursor-pointer items-center gap-2 rounded-[8px] px-2.5 py-1.5 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-fill";
   return (
     <CdsDropdownMenu.Root>
       <CdsDropdownMenu.Trigger asChild>
@@ -6623,27 +6617,27 @@ function SessionDetailActions({
       <CdsDropdownMenu.Portal>
         <CdsDropdownMenu.Content
           data-cds="Menu"
-          className="z-50 w-[160px] max-w-[320px] rounded-[12px] bg-white p-1 text-sm text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
+          className={`${cdsMenuContentClass} w-[160px]`}
           align="end"
           sideOffset={6}
         >
           <CdsDropdownMenu.Item
-            className={menuItemClass}
+            className={cdsMenuItemClass}
             onSelect={onSendInterrupt}
           >
             <Pause className="h-4 w-4 text-muted" />
             Send interrupt
           </CdsDropdownMenu.Item>
           <CdsDropdownMenu.Item
-            className={menuItemClass}
+            className={cdsMenuItemClass}
             onSelect={onSendEvent}
           >
             <Terminal className="h-4 w-4 text-muted" />
             Send event…
           </CdsDropdownMenu.Item>
-          <CdsDropdownMenu.Separator className="my-1 h-px bg-line" />
+          <CdsDropdownMenu.Separator className={cdsMenuSeparatorClass} />
           <CdsDropdownMenu.Item
-            className={menuItemClass}
+            className={cdsMenuItemClass}
             onSelect={onArchive}
             disabled={archived}
           >
@@ -6790,7 +6784,6 @@ function AgentArchiveDialog({
 function AgentRowActions({ agent, onArchive, onGuidedEdit }: { agent: Agent; onArchive: () => void; onGuidedEdit?: () => void }) {
   const archived = agent.status === "Archived";
   const navigate = useNavigate();
-  const menuItemClass = "flex h-8 w-full cursor-pointer items-center gap-2 rounded-[8px] px-2.5 py-1.5 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-fill";
   return (
     <CdsDropdownMenu.Root>
       <CdsDropdownMenu.Trigger asChild>
@@ -6801,29 +6794,29 @@ function AgentRowActions({ agent, onArchive, onGuidedEdit }: { agent: Agent; onA
       <CdsDropdownMenu.Portal>
         <CdsDropdownMenu.Content
           data-cds="Menu"
-          className="z-50 w-[148px] max-w-[320px] rounded-[12px] bg-white p-1 text-sm text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
+          className={`${cdsMenuContentClass} w-[148px]`}
           align="end"
           sideOffset={8}
         >
           {onGuidedEdit ? (
             <>
-              <CdsDropdownMenu.Item className={menuItemClass} onSelect={() => navigate(`/sessions?agentId=${agent.id}`)}>
+              <CdsDropdownMenu.Item className={cdsMenuItemClass} onSelect={() => navigate(`/sessions?agentId=${agent.id}`)}>
                 <MenuResumeIcon />
                 Start session
               </CdsDropdownMenu.Item>
-              <CdsDropdownMenu.Item className={menuItemClass} onSelect={onGuidedEdit}>
+              <CdsDropdownMenu.Item className={cdsMenuItemClass} onSelect={onGuidedEdit}>
                 <span className="h-5 w-5 shrink-0" aria-hidden="true" />
                 Guided edit
               </CdsDropdownMenu.Item>
-              <CdsDropdownMenu.Item className={menuItemClass} onSelect={() => navigate(`/deployments?agentId=${agent.id}`)}>
+              <CdsDropdownMenu.Item className={cdsMenuItemClass} onSelect={() => navigate(`/deployments?agentId=${agent.id}`)}>
                 <CdsIconGlyph glyph="" className="h-5 w-5 text-current text-[20px] [font-weight:566.5]" />
                 Create deployment
               </CdsDropdownMenu.Item>
-              <div className="my-1 h-px bg-line" />
+              <CdsDropdownMenu.Separator className={cdsMenuSeparatorClass} />
             </>
           ) : null}
           <CdsDropdownMenu.Item
-            className={menuItemClass}
+            className={cdsMenuItemClass}
             onSelect={onArchive}
             disabled={archived}
           >
@@ -6845,9 +6838,9 @@ function SkillActions({ onDelete }: { onDelete: () => void }) {
         </Button>
       </CdsDropdownMenu.Trigger>
       <CdsDropdownMenu.Portal>
-        <CdsDropdownMenu.Content className="z-50 min-w-[130px] rounded-cds border border-line bg-white p-1 shadow-lg" align="end">
+        <CdsDropdownMenu.Content data-cds="Menu" className={`${cdsMenuContentClass} w-[128px]`} align="end" sideOffset={6}>
           <CdsDropdownMenu.Item
-            className="flex h-8 cursor-pointer items-center gap-2 rounded-md px-2 text-sm text-[#a33a29] outline-none data-[highlighted]:bg-[#fff1ef]"
+            className={cdsMenuDangerItemClass}
             onSelect={onDelete}
           >
             <MenuDeleteIcon />
