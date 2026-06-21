@@ -4537,7 +4537,7 @@ function DeploymentVaultPicker({ value, onValueChange }: { value: string; onValu
   const [search, setSearch] = useState("");
   const options = [
     { value: "temporary_vault", name: "Temporary vault", updated: "2 days ago", summary: "No credentials" },
-    { value: "test_secret", name: "test_secret", updated: "5 days ago", summary: "3 credentials" },
+    { value: "test_secret", name: "test_secret", updated: "5 days ago", summary: "5 credentials" },
     { value: "vault_01GitHub", name: "GitHub source access", updated: "2 days ago", summary: "1 credential" }
   ];
   const filteredOptions = options.filter((option) => option.name.toLowerCase().includes(search.toLowerCase()));
