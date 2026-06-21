@@ -294,7 +294,7 @@ export function DataTable<T>({
             const selected = selectedKeys.has(key);
 
             return (
-              <tr key={key} data-selected={selected ? "true" : undefined} className="group/cdsrow h-[46px] hover:bg-[#fbfaf7]">
+              <tr key={key} data-selected={selected ? "true" : undefined} className="group/cdsrow h-[46px] [cursor:var(--cds-cursor-interactive,pointer)] hover:bg-[#fbfaf7]">
                 {showSelection ? (
                   <td className="relative border-b border-[#efede8] p-0 group-data-[selected=true]/cdsrow:border-transparent group-data-[selected=true]/cdsrow:bg-[rgba(11,11,11,0.05)] group-data-[selected=true]/cdsrow:first:rounded-l-[8px]">
                     <div className="absolute inset-0 z-10 flex items-center justify-center">
