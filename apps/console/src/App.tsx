@@ -2604,7 +2604,7 @@ function MemoryStoresPage() {
       <div className="overflow-x-auto">
         <DataTable
           className="-mx-2 w-[calc(100%+16px)] overflow-x-auto p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
-          tableClassName="w-[1552px] border-separate border-spacing-0 whitespace-nowrap"
+          tableClassName="w-[968px] border-separate border-spacing-0 whitespace-nowrap"
           rows={visibleStores}
           getKey={(store) => store.id}
           actionsWidth="56px"
@@ -2631,7 +2631,7 @@ function MemoryStoresPage() {
             {
               key: "name",
               header: "Name",
-              width: "936px",
+              width: "352px",
               render: (store) => (
                 <Link className="block truncate [font-weight:400]" to={`/memory-stores/${store.id}`}>
                   {store.name}
