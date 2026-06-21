@@ -665,8 +665,8 @@ func createSession(db *gorm.DB) gin.HandlerFunc {
 		if err := db.First(&agent, "id = ?", agentID).Error; err == nil {
 			agentName = agent.Name
 		}
-		envID := defaultString(req.EnvironmentID, "env_01ManagedDebug")
-		envName := lookupEnvironmentName(db, envID, "managed-sh-debug-env")
+		envID := defaultString(req.EnvironmentID, "env_01UTaKkbFknSkQNEsZjUARMh")
+		envName := lookupEnvironmentName(db, envID, "managed-ssh-debug-env")
 		name := strings.TrimSpace(req.Title)
 		if name == "" {
 			name = "Untitled session"
@@ -886,7 +886,7 @@ func createDeployment(db *gorm.DB) gin.HandlerFunc {
 		if err := db.First(&agent, "id = ?", agentID).Error; err == nil {
 			agentName = agent.Name
 		}
-		envID := defaultString(req.EnvironmentID, "env_01PythonBrowser")
+		envID := defaultString(req.EnvironmentID, "env_01UNo9NMB1ZQLKCZk21qryb8")
 		envName := lookupEnvironmentName(db, envID, "world-cup-digest-env")
 		name := strings.TrimSpace(req.Name)
 		if name == "" {
@@ -1973,10 +1973,10 @@ func agent(id, name, model, description, prompt, label string, ts time.Time) Age
 
 func seedResources(ts time.Time) []Resource {
 	return []Resource{
-		resource("environment", "env_01ManagedDebug", "managed-sh-debug-env", "Active", "4 vCPU / 16 GB", "Firecracker", ts),
-		resource("environment", "env_01WorldCupDigest", "world-cup-digest-env", "Active", "Playwright / Python", "Firecracker", ts),
-		resource("environment", "env_01UbuntuNode", "Ubuntu Node sandbox", "Active", "4 vCPU / 16 GB", "Firecracker", ts),
-		resource("environment", "env_01PythonBrowser", "Python browser workspace", "Active", "Playwright / Python", "Firecracker", ts),
+		resource("environment", "env_01UTaKkbFknSkQNEsZjUARMh", "managed-ssh-debug-env", "Active", "4 vCPU / 16 GB", "Firecracker", ts),
+		resource("environment", "env_01UNo9NMB1ZQLKCZk21qryb8", "world-cup-digest-env", "Active", "Playwright / Python", "Firecracker", ts),
+		resource("environment", "env_01LiiuDCwZBtqZd5EYMk9D9x", "123", "Active", "Self-hosted", "customer-managed runner", ts),
+		resource("environment", "env_01AzQWp3SXQEATgdCFUNwteR", "myenv", "Active", "Self-hosted", "customer-managed runner", ts),
 		resource("vault", "vault_01GitHub", "GitHub source access", "Active", "3 bindings", "last used 2 days ago", ts),
 		resource("vault", "vault_01TestSecret", "test_secret", "Active", "1 binding", "last used 2 days ago", ts),
 		resource("file", "file_01Outputs", "session-output.tar.gz", "Available", "outputs", "2.4 MB", ts),
@@ -2154,7 +2154,7 @@ func seedDeployments(now time.Time) ([]Deployment, []DeploymentRun) {
 			AgentID:         "agent_017k8CPYuCFRD9AmupUeXd2Z",
 			AgentName:       "World Cup Daily Digest",
 			AgentVersion:    "v2",
-			EnvironmentID:   "env_01WorldCupDigest",
+			EnvironmentID:   "env_01UNo9NMB1ZQLKCZk21qryb8",
 			EnvironmentName: "world-cup-digest-env",
 			Vaults:          "test_secret",
 			MemoryStores:    "world cup",
@@ -2195,14 +2195,14 @@ func deploymentRun(id, deploymentID, startedAt, startedLabel, trigger, result, a
 
 func seedSessions(now time.Time) ([]Session, []SessionEvent) {
 	sessionRows := []Session{
-		session("sesn_01MwRxWt4Enabbz8a2Vk66M7", "Runtime inventory via SSH 2026-06-18", "Idle", "agent_013mi1SmR2hJ6Hk6wNTeJvF9", "Managed SSH Reverse Tunnel Bootstrapper", "env_01ManagedDebug", "managed-sh-debug-env", "", "34m 34s", "168k / 5.6k", "$4.81", "Jun 18", now.Add(-5*time.Hour)),
-		session("sesn_01DpRMTNY1P3gNrELQEXitXN", "1111", "Idle", "agent_017k8CPYuCFRD9AmupUeXd2Z", "World Cup Daily Digest", "env_01UbuntuNode", "Ubuntu Node sandbox", "", "7m 12s", "31k / 1.2k", "$0.74", "Jun 18", now.Add(-6*time.Hour)),
-		session("sesn_01Dvrq7VjSGUeke6b4fSjBUC", "CronWorldCupDailyDigest", "Idle", "agent_017k8CPYuCFRD9AmupUeXd2Z", "World Cup Daily Digest", "env_01WorldCupDigest", "world-cup-digest-env", "depl_01ERmHnRJWQSLyxk7pVCMZXs", "11m 02s", "42k / 2.1k", "$1.10", "Jun 17", now.Add(-28*time.Hour)),
-		session("sesn_017yutQbshtPvaCw9efKDP5r", "Reverse SSH bootstrap via amoylab", "Idle", "agent_013mi1SmR2hJ6Hk6wNTeJvF9", "Managed SSH Reverse Tunnel Bootstrapper", "env_01ManagedDebug", "managed-sh-debug-env", "", "18m 45s", "81k / 3.4k", "$2.34", "Jun 16", now.Add(-54*time.Hour)),
-		session("sesn_01NVn9pEgoscvpdrNE95mMPd", "CronWorldCupDailyDigest", "Idle", "agent_017k8CPYuCFRD9AmupUeXd2Z", "World Cup Daily Digest", "env_01WorldCupDigest", "world-cup-digest-env", "depl_01ERmHnRJWQSLyxk7pVCMZXs", "8m 54s", "38k / 1.8k", "$0.96", "Jun 16", now.Add(-58*time.Hour)),
-		session("sesn_01NxEc3HZBVGJhooULZnMyM5", "CronWorldCupDailyDigest", "Idle", "agent_017k8CPYuCFRD9AmupUeXd2Z", "World Cup Daily Digest", "env_01WorldCupDigest", "world-cup-digest-env", "depl_01ERmHnRJWQSLyxk7pVCMZXs", "8m 31s", "37k / 1.6k", "$0.91", "Jun 16", now.Add(-60*time.Hour)),
-		session("sesn_01R5Mm2LwFTLZtimNNTShPCP", "CronWorldCupDailyDigest", "Idle", "agent_017k8CPYuCFRD9AmupUeXd2Z", "World Cup Daily Digest", "env_01WorldCupDigest", "world-cup-digest-env", "depl_01ERmHnRJWQSLyxk7pVCMZXs", "8m 40s", "39k / 1.7k", "$0.93", "Jun 16", now.Add(-62*time.Hour)),
-		session("sesn_01Fhy2Hd5TMwWJvMYmjK19vn", "–", "Idle", "agent_017k8CPYuCFRD9AmupUeXd2Z", "World Cup Daily Digest", "env_01PythonBrowser", "Python browser workspace", "", "2m 10s", "9k / 340", "$0.22", "Jun 16", now.Add(-64*time.Hour)),
+		session("sesn_01MwRxWt4Enabbz8a2Vk66M7", "Runtime inventory via SSH 2026-06-18", "Idle", "agent_013mi1SmR2hJ6Hk6wNTeJvF9", "Managed SSH Reverse Tunnel Bootstrapper", "env_01UTaKkbFknSkQNEsZjUARMh", "managed-ssh-debug-env", "", "34m 34s", "168k / 5.6k", "$4.81", "Jun 18", now.Add(-5*time.Hour)),
+		session("sesn_01DpRMTNY1P3gNrELQEXitXN", "1111", "Idle", "agent_017k8CPYuCFRD9AmupUeXd2Z", "World Cup Daily Digest", "env_01LiiuDCwZBtqZd5EYMk9D9x", "123", "", "7m 12s", "31k / 1.2k", "$0.74", "Jun 18", now.Add(-6*time.Hour)),
+		session("sesn_01Dvrq7VjSGUeke6b4fSjBUC", "CronWorldCupDailyDigest", "Idle", "agent_017k8CPYuCFRD9AmupUeXd2Z", "World Cup Daily Digest", "env_01UNo9NMB1ZQLKCZk21qryb8", "world-cup-digest-env", "depl_01ERmHnRJWQSLyxk7pVCMZXs", "11m 02s", "42k / 2.1k", "$1.10", "Jun 17", now.Add(-28*time.Hour)),
+		session("sesn_017yutQbshtPvaCw9efKDP5r", "Reverse SSH bootstrap via amoylab", "Idle", "agent_013mi1SmR2hJ6Hk6wNTeJvF9", "Managed SSH Reverse Tunnel Bootstrapper", "env_01UTaKkbFknSkQNEsZjUARMh", "managed-ssh-debug-env", "", "18m 45s", "81k / 3.4k", "$2.34", "Jun 16", now.Add(-54*time.Hour)),
+		session("sesn_01NVn9pEgoscvpdrNE95mMPd", "CronWorldCupDailyDigest", "Idle", "agent_017k8CPYuCFRD9AmupUeXd2Z", "World Cup Daily Digest", "env_01UNo9NMB1ZQLKCZk21qryb8", "world-cup-digest-env", "depl_01ERmHnRJWQSLyxk7pVCMZXs", "8m 54s", "38k / 1.8k", "$0.96", "Jun 16", now.Add(-58*time.Hour)),
+		session("sesn_01NxEc3HZBVGJhooULZnMyM5", "CronWorldCupDailyDigest", "Idle", "agent_017k8CPYuCFRD9AmupUeXd2Z", "World Cup Daily Digest", "env_01UNo9NMB1ZQLKCZk21qryb8", "world-cup-digest-env", "depl_01ERmHnRJWQSLyxk7pVCMZXs", "8m 31s", "37k / 1.6k", "$0.91", "Jun 16", now.Add(-60*time.Hour)),
+		session("sesn_01R5Mm2LwFTLZtimNNTShPCP", "CronWorldCupDailyDigest", "Idle", "agent_017k8CPYuCFRD9AmupUeXd2Z", "World Cup Daily Digest", "env_01UNo9NMB1ZQLKCZk21qryb8", "world-cup-digest-env", "depl_01ERmHnRJWQSLyxk7pVCMZXs", "8m 40s", "39k / 1.7k", "$0.93", "Jun 16", now.Add(-62*time.Hour)),
+		session("sesn_01Fhy2Hd5TMwWJvMYmjK19vn", "–", "Idle", "agent_017k8CPYuCFRD9AmupUeXd2Z", "World Cup Daily Digest", "env_01AzQWp3SXQEATgdCFUNwteR", "myenv", "", "2m 10s", "9k / 340", "$0.22", "Jun 16", now.Add(-64*time.Hour)),
 	}
 	events := []SessionEvent{
 		sessionEvent("sesn_01MwRxWt4Enabbz8a2Vk66M7", "sevt_01UserBootstrap", "User", "Message", "Bootstrap debug SSH for runtime inventory. Use exactly one bash tool if possible.", "", "", "", "0:00:43", now.Add(-5*time.Hour)),

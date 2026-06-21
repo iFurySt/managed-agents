@@ -104,10 +104,10 @@ const sessionAgentOptions = [
   { value: "agent_01UntitledAgentCopy", name: "Untitled agent", updated: "4 days ago" }
 ];
 const sessionEnvironmentOptions = [
-  { value: "env_01ManagedDebug", name: "managed-ssh-debug-env", updated: "4 days ago", type: "Cloud" },
-  { value: "env_01Cloud123", name: "123", updated: "4 days ago", type: "Self-hosted" },
-  { value: "env_01SelfHostedMyenv", name: "myenv", updated: "4 days ago", type: "Self-hosted" },
-  { value: "env_01WorldCupDigest", name: "world-cup-digest-env", updated: "4 days ago", type: "Cloud" }
+  { value: "env_01UTaKkbFknSkQNEsZjUARMh", name: "managed-ssh-debug-env", updated: "4 days ago", type: "Cloud" },
+  { value: "env_01LiiuDCwZBtqZd5EYMk9D9x", name: "123", updated: "4 days ago", type: "Self-hosted" },
+  { value: "env_01AzQWp3SXQEATgdCFUNwteR", name: "myenv", updated: "4 days ago", type: "Self-hosted" },
+  { value: "env_01UNo9NMB1ZQLKCZk21qryb8", name: "world-cup-digest-env", updated: "4 days ago", type: "Cloud" }
 ];
 const cdsMenuContentClass =
   "z-50 max-w-[320px] rounded-[12px] bg-white p-1 text-sm text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]";
@@ -3546,7 +3546,7 @@ function AgentDeploymentsPanel({ agent }: { agent: Agent }) {
         initialAgentId={agent.id}
         initialAgentName={agent.name}
         initialAgentVersion={agent.version || "v1"}
-        initialEnvironmentId="env_01ManagedDebug"
+        initialEnvironmentId="env_01UTaKkbFknSkQNEsZjUARMh"
         initialEnvironmentName="managed-ssh-debug-env"
         onCreated={(deployment) => setDeployments((items) => (deployment.agentId === agent.id ? [deployment, ...items] : items))}
       />
