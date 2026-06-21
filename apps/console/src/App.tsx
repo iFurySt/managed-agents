@@ -317,7 +317,7 @@ function Sidebar() {
       <div className="-mx-3 flex flex-col gap-1 border-t-[0.5px] border-line bg-transparent px-3 pb-0 pt-2">
         <FooterItem icon={<SidebarGlyph glyph="" className="h-5 w-5 text-[#52514e] text-[20px] [font-weight:433.3]" />} label="Documentation" />
         <FooterItem icon={<SidebarGlyph glyph="" className="h-5 w-5 text-[#52514e] text-[20px] [font-weight:433.3]" />} label="Credits" right={"USD\u00a03.10"} />
-        <div className="flex h-11 items-center gap-3 rounded-lg px-2 py-1.5">
+        <button className="flex h-11 w-full items-center justify-between gap-3 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-fill" type="button" aria-label="User menu">
           <div className="grid h-8 w-8 shrink-0 place-items-center rounded-md border-[0.5px] border-black/10 bg-[rgba(11,11,11,0.05)] text-[#52514e]">
             <SidebarGlyph glyph="" className="h-5 w-5 text-[#52514e] text-[20px] [font-weight:433.3]" />
           </div>
@@ -330,7 +330,7 @@ function Sidebar() {
             </div>
           </div>
           <SidebarGlyph glyph="" className="h-4 w-4 text-[#898781] text-[16px] [font-weight:533.3]" />
-        </div>
+        </button>
       </div>
     </aside>
   );
