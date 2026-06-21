@@ -3878,7 +3878,17 @@ const agentStartingTemplates = [
   {
     name: "Incident commander",
     description: "Triages a Sentry alert, opens a Linear incident ticket, and runs the Slack war room.",
-    system: "You coordinate incident response. Triage alerts, summarize impact, assign next actions, and keep the incident channel updated."
+    system: [
+      "You are an on-call incident commander. When handed a Sentry issue ID or an error fingerprint:",
+      "",
+      "1. Pull the full event payload, stack trace, release tag, and affected-user count from Sentry.",
+      "2. Grep the repo for the top frame's file path and surrounding commits (last 72h).",
+      "3. Open a Linear incident ticket with severity, suspected blast radius, and your rollback recommendation.",
+      "4. Post a threaded status to the incident Slack channel: what broke, who's looking, ETA for next update.",
+      "5. Every 15 minutes, re-check Sentry event volume and update the thread until the user closes the incident.",
+      "",
+      "Be decisive. If you're >70% confident it's a specific deploy, say so and recommend the revert."
+    ].join("\n")
   }
 ];
 
@@ -7529,6 +7539,50 @@ metadata:
   template: support-agent`;
   }
 
+  if (template.name === "Incident commander") {
+    return `name: ${template.name}
+description: ${template.description}
+model: claude-opus-4-8
+${yamlField("system", template.system)}
+mcp_servers:
+  - name: sentry
+    type: url
+    url: https://mcp.sentry.dev/mcp
+  - name: linear
+    type: url
+    url: https://mcp.linear.app/mcp
+  - name: slack
+    type: url
+    url: https://mcp.slack.com/mcp
+  - name: github
+    type: url
+    url: https://api.githubcopilot.com/mcp/
+tools:
+  - type: agent_toolset_20260401
+  - type: mcp_toolset
+    mcp_server_name: sentry
+    default_config:
+      permission_policy:
+        type: always_allow
+  - type: mcp_toolset
+    mcp_server_name: linear
+    default_config:
+      permission_policy:
+        type: always_allow
+  - type: mcp_toolset
+    mcp_server_name: slack
+    default_config:
+      permission_policy:
+        type: always_allow
+  - type: mcp_toolset
+    mcp_server_name: github
+    default_config:
+      permission_policy:
+        type: always_allow
+metadata:
+  template: incident-commander`;
+  }
+
   return `name: ${template.name === "Blank agent" ? "Untitled agent" : template.name}
 description: ${template.description}
 model: claude-sonnet-4-6
@@ -7590,6 +7644,9 @@ function agentConfigFromYaml(source: string) {
   const modelId = yamlValue(source, "id", yamlValue(source, "model", "claude-sonnet-4-6"));
   const hasNotionMcp = source.includes("name: notion") && source.includes("https://mcp.notion.com/mcp");
   const hasSlackMcp = source.includes("name: slack") && source.includes("https://mcp.slack.com/mcp");
+  const hasSentryMcp = source.includes("name: sentry") && source.includes("https://mcp.sentry.dev/mcp");
+  const hasLinearMcp = source.includes("name: linear") && source.includes("https://mcp.linear.app/mcp");
+  const hasGithubMcp = source.includes("name: github") && source.includes("https://api.githubcopilot.com/mcp/");
   const hasMcpToolset = source.includes("type: mcp_toolset");
   const mcpServers = [
     ...(hasNotionMcp
@@ -7601,12 +7658,39 @@ function agentConfigFromYaml(source: string) {
           }
         ]
       : []),
+    ...(hasSentryMcp
+      ? [
+          {
+            name: "sentry",
+            type: "url",
+            url: "https://mcp.sentry.dev/mcp"
+          }
+        ]
+      : []),
+    ...(hasLinearMcp
+      ? [
+          {
+            name: "linear",
+            type: "url",
+            url: "https://mcp.linear.app/mcp"
+          }
+        ]
+      : []),
     ...(hasSlackMcp
       ? [
           {
             name: "slack",
             type: "url",
             url: "https://mcp.slack.com/mcp"
+          }
+        ]
+      : []),
+    ...(hasGithubMcp
+      ? [
+          {
+            name: "github",
+            type: "url",
+            url: "https://api.githubcopilot.com/mcp/"
           }
         ]
       : [])
@@ -7635,6 +7719,30 @@ function agentConfigFromYaml(source: string) {
       configs: []
     });
   }
+  if (hasMcpToolset && hasSentryMcp) {
+    tools.push({
+      type: "mcp_toolset",
+      mcp_server_name: "sentry",
+      default_config: {
+        permission_policy: {
+          type: "always_allow"
+        }
+      },
+      configs: []
+    });
+  }
+  if (hasMcpToolset && hasLinearMcp) {
+    tools.push({
+      type: "mcp_toolset",
+      mcp_server_name: "linear",
+      default_config: {
+        permission_policy: {
+          type: "always_allow"
+        }
+      },
+      configs: []
+    });
+  }
   if (hasMcpToolset && hasSlackMcp) {
     tools.push({
       type: "mcp_toolset",
@@ -7647,12 +7755,26 @@ function agentConfigFromYaml(source: string) {
       configs: []
     });
   }
+  if (hasMcpToolset && hasGithubMcp) {
+    tools.push({
+      type: "mcp_toolset",
+      mcp_server_name: "github",
+      default_config: {
+        permission_policy: {
+          type: "always_allow"
+        }
+      },
+      configs: []
+    });
+  }
 
   const metadata = source.includes("template: support-agent")
     ? { template: "support-agent" }
-    : source.includes("template: field-monitor")
-      ? { template: "field-monitor" }
-      : {};
+    : source.includes("template: incident-commander")
+      ? { template: "incident-commander" }
+      : source.includes("template: field-monitor")
+        ? { template: "field-monitor" }
+        : {};
 
   return {
     name: yamlValue(source, "name", "Untitled agent"),
