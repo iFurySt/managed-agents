@@ -243,7 +243,7 @@ function Sidebar() {
         </div>
         <div data-testid="sidebar-workspace-scope-picker-concise" className="ml-2 mt-1 h-8 w-8 shrink-0">
           <button
-            className="m-px flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-[8px] border border-black/10 bg-transparent text-[#9b87f5] shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
+            className="m-px flex h-[30px] w-[30px] shrink-0 items-center justify-center border-0 bg-transparent text-ink shadow-none"
             aria-expanded="false"
             aria-label="Workspace"
             role="combobox"
