@@ -117,6 +117,7 @@ const cdsMenuItemClass =
 const cdsMenuDangerItemClass = `${cdsMenuItemClass} text-[#8e2626] data-[highlighted]:bg-[#fff1ef]`;
 const cdsMenuSeparatorClass = "my-1 h-px bg-line";
 const pageTitles: Record<string, string> = {
+  dashboard: "Dashboard",
   workbench: "Workbench",
   batches: "Batches",
   "agent-quickstart": "Quickstart",
@@ -169,6 +170,7 @@ export default function App() {
               <Routes>
                 <Route path="/" element={<Navigate to="/agents" replace />} />
                 <Route path="/workspaces/:workspaceId/:section/*" element={<WorkspaceRouteRedirect />} />
+                <Route path="/dashboard" element={<DashboardPage />} />
                 <Route path="/workbench" element={<BuildSurfacePage title="Workbench" description="Create and test prompts, files, and tools before promoting work into managed agents." />} />
                 <Route path="/batches" element={<BuildSurfacePage title="Batches" description="Run and inspect batch jobs for repeatable Claude workloads." />} />
                 <Route path="/agent-quickstart" element={<QuickstartPage />} />
@@ -273,7 +275,7 @@ function Sidebar() {
     <aside aria-label="Main navigation" className="sticky top-0 flex h-screen w-64 shrink-0 flex-col border-r-[0.5px] border-line bg-[#f9f9f7] p-3">
       <div className="flex h-10 w-full flex-col pb-3">
         <div className="-mr-2 flex w-full translate-y-px items-center justify-between">
-          <Link className="pl-2" to="/">
+          <Link className="pl-2" to="/dashboard" data-testid="sidebar-logo-home">
             <div data-cds="ProductLogo" className="inline-flex flex-col items-start">
               <span
                 className="whitespace-nowrap font-voice text-base leading-none text-ink [font-weight:550]"
@@ -637,6 +639,17 @@ function BuildSurfacePage({ title, description }: { title: string; description: 
       <PageHeader title={title} description={description} />
       <div className="mt-10">
         <EmptyState title={`${title} is ready`} description="This surface is available from the Build navigation and will show workspace data as the implementation expands." />
+      </div>
+    </section>
+  );
+}
+
+function DashboardPage() {
+  return (
+    <section className="max-w-[968px]">
+      <PageHeader title="Dashboard" description="Review workspace activity, resources, and managed agent entry points." />
+      <div className="mt-10">
+        <EmptyState title="Dashboard is ready" description="Workspace activity and product summaries will appear here as the control-plane surfaces expand." />
       </div>
     </section>
   );
