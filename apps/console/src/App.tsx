@@ -317,22 +317,72 @@ function Sidebar() {
       <div className="-mx-3 flex flex-col gap-1 border-t-[0.5px] border-line bg-transparent px-3 pb-0 pt-2">
         <FooterItem icon={<SidebarGlyph glyph="" className="h-5 w-5 text-[#52514e] text-[20px] [font-weight:433.3]" />} label="Documentation" />
         <FooterItem icon={<SidebarGlyph glyph="" className="h-5 w-5 text-[#52514e] text-[20px] [font-weight:433.3]" />} label="Credits" right={"USD\u00a03.10"} />
-        <button className="flex h-11 w-full items-center justify-between gap-3 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-fill" type="button" aria-label="User menu">
-          <div className="grid h-8 w-8 shrink-0 place-items-center rounded-md border-[0.5px] border-black/10 bg-[rgba(11,11,11,0.05)] text-[#52514e]">
-            <SidebarGlyph glyph="" className="h-5 w-5 text-[#52514e] text-[20px] [font-weight:433.3]" />
-          </div>
-          <div className="min-w-0 flex-1 pr-4">
-            <div className="truncate text-sm leading-5 text-ink [font-weight:550]">Leo</div>
-            <div className="flex min-w-0 items-baseline gap-1.5 text-xs leading-4 text-[#52514e] [font-weight:430]">
-              <span className="shrink-0">Admin</span>
-              <span className="shrink-0">·</span>
-              <span className="truncate">Leo’s Individual Org</span>
-            </div>
-          </div>
-          <SidebarGlyph glyph="" className="h-4 w-4 text-[#898781] text-[16px] [font-weight:533.3]" />
-        </button>
+        <CdsDropdownMenu.Root>
+          <CdsDropdownMenu.Trigger asChild>
+            <button className="flex h-11 w-full items-center justify-between gap-3 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-fill data-[state=open]:bg-fill" type="button" aria-label="User menu">
+              <div className="grid h-8 w-8 shrink-0 place-items-center rounded-md border-[0.5px] border-black/10 bg-[rgba(11,11,11,0.05)] text-[#52514e]">
+                <SidebarGlyph glyph="" className="h-5 w-5 text-[#52514e] text-[20px] [font-weight:433.3]" />
+              </div>
+              <div className="min-w-0 flex-1 pr-4">
+                <div className="truncate text-sm leading-5 text-ink [font-weight:550]">Leo</div>
+                <div className="flex min-w-0 items-baseline gap-1.5 text-xs leading-4 text-[#52514e] [font-weight:430]">
+                  <span className="shrink-0">Admin</span>
+                  <span className="shrink-0">·</span>
+                  <span className="truncate">Leo’s Individual Org</span>
+                </div>
+              </div>
+              <SidebarGlyph glyph="" className="h-4 w-4 text-[#898781] text-[16px] [font-weight:533.3]" />
+            </button>
+          </CdsDropdownMenu.Trigger>
+          <CdsDropdownMenu.Portal>
+            <CdsDropdownMenu.Content
+              data-cds="Menu"
+              className="z-50 flex w-72 flex-col rounded-[12px] bg-white p-1 text-sm leading-5 text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
+              side="right"
+              align="end"
+              sideOffset={6}
+              alignOffset={-2}
+              avoidCollisions={false}
+            >
+              <div className="truncate px-2.5 py-1 text-[13px] leading-4 text-[#898781] [font-weight:550]">iterx.internal@gmail.com</div>
+              <CdsDropdownMenu.RadioGroup value="leo">
+                <CdsDropdownMenu.RadioItem value="leo" className="flex h-12 w-full items-center gap-2 rounded-[8px] bg-[rgba(11,11,11,0.05)] px-2.5 py-1.5 text-sm outline-none">
+                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-[rgba(11,11,11,0.05)] text-[#52514e]">
+                    <SidebarGlyph glyph="" className="h-5 w-5 text-[#52514e] text-[20px] [font-weight:433.3]" />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate leading-5 [font-weight:580]">Leo’s Individual Org</span>
+                    <span className="block truncate text-[13px] leading-4 text-[#52514e]">API plan</span>
+                  </span>
+                  <CdsDropdownMenu.ItemIndicator>
+                    <SidebarGlyph glyph="" className="h-4 w-4 text-[#52514e] text-[16px] [font-weight:700]" />
+                  </CdsDropdownMenu.ItemIndicator>
+                </CdsDropdownMenu.RadioItem>
+              </CdsDropdownMenu.RadioGroup>
+              <CdsDropdownMenu.Separator className="my-1 h-px bg-transparent" />
+              <SidebarUserMenuItem glyph="">Organization settings</SidebarUserMenuItem>
+              <CdsDropdownMenu.Separator className="my-1 h-px bg-transparent" />
+              <SidebarUserMenuItem glyph="">Feedback</SidebarUserMenuItem>
+              <SidebarUserMenuItem glyph="">Get help</SidebarUserMenuItem>
+              <SidebarUserMenuItem glyph="" trailing="">Language</SidebarUserMenuItem>
+              <SidebarUserMenuItem glyph="" trailing="">Legal center</SidebarUserMenuItem>
+              <CdsDropdownMenu.Separator className="my-1 h-px bg-transparent" />
+              <SidebarUserMenuItem glyph="">Log out</SidebarUserMenuItem>
+            </CdsDropdownMenu.Content>
+          </CdsDropdownMenu.Portal>
+        </CdsDropdownMenu.Root>
       </div>
     </aside>
+  );
+}
+
+function SidebarUserMenuItem({ glyph, children, trailing }: { glyph: string; children: React.ReactNode; trailing?: string }) {
+  return (
+    <CdsDropdownMenu.Item className="flex h-8 w-full items-center gap-2 rounded-[8px] px-2.5 py-1.5 text-sm leading-5 text-ink outline-none data-[highlighted]:bg-fill">
+      <SidebarGlyph glyph={glyph} className="h-5 w-5 text-[#52514e] text-[20px] [font-weight:433.3]" />
+      <span className="min-w-0 flex-1 truncate">{children}</span>
+      {trailing ? <SidebarGlyph glyph={trailing} className="h-4 w-4 text-[#898781] text-[16px] [font-weight:533.3]" /> : null}
+    </CdsDropdownMenu.Item>
   );
 }
 
