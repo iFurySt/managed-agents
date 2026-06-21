@@ -284,7 +284,7 @@ function Sidebar() {
           <Link className="pl-2" to="/dashboard" data-testid="sidebar-logo-home">
             <div data-cds="ProductLogo" className="inline-flex flex-col items-start">
               <span
-                className="whitespace-nowrap font-voice text-base leading-none text-ink [font-weight:550]"
+                className="whitespace-nowrap font-voice font-medium leading-none text-primary [font-size:16px] [font-weight:550]"
                 style={{ marginLeft: "-0.1em", fontOpticalSizing: "auto", fontFeatureSettings: '"ss01", "dlig"' }}
               >
                 Claude Console
