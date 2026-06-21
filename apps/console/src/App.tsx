@@ -262,8 +262,8 @@ function Sidebar() {
           items={["Quickstart", "Agents", "Sessions", "Deployments", "Environments", "Credential vaults", "Memory stores"]}
           managed
         />
-        <Group icon={<SidebarGlyph glyph="" />} label="Analytics" items={["Usage", "Caching", "Rate limits", "Cost", "Logs"]} />
-        <Group icon={<SidebarGlyph glyph="" />} label="Claude Code" items={["Usage", "Settings"]} />
+        <Group icon={<SidebarGlyph glyph="" />} label="Analytics" items={["Usage", "Caching", "Rate limits", "Cost", "Logs"]} defaultExpanded={false} />
+        <Group icon={<SidebarGlyph glyph="" />} label="Claude Code" items={["Usage", "Settings"]} defaultExpanded={false} />
         <Group icon={<SidebarGlyph glyph="" />} label="Manage" items={["Limits", "Service accounts", "Privacy controls", "Security", "Webhooks", "Tags"]} />
       </nav>
       <div className="-mx-3 flex flex-col gap-1 border-t-[0.5px] border-line bg-transparent px-3 pb-0 pt-2">
@@ -417,7 +417,7 @@ function Group({ icon, label, items, managed = false, defaultExpanded = true }: 
   const groupRoutes = items.map((item) => buildPath(item) ?? (managed ? toPath(item) : null)).filter((route): route is string => Boolean(route && route !== "#"));
   const groupActive = groupRoutes.some((route) => location.pathname === route || location.pathname.startsWith(`${route}/`));
   return (
-    <div className="mb-1 flex shrink-0 flex-col gap-1">
+    <div className={`${expanded ? "mb-1" : ""} flex shrink-0 flex-col gap-1`}>
       <button
         className="flex h-9 shrink-0 items-center gap-3 rounded-lg px-2 text-left text-sm leading-5 text-[#52514e] hover:bg-fill"
         type="button"
