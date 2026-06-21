@@ -4739,11 +4739,13 @@ function DeploymentAgentPicker({
           role="combobox"
           aria-expanded={open}
           aria-label="Select deployment agent"
-          className={`flex h-8 items-center justify-between rounded-[8px] bg-transparent px-2 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-[#c6613f]/35 ${wide ? "w-[464px]" : "w-[292px]"}`}
+          className={`flex h-8 min-w-0 items-center gap-1.5 rounded-[8px] bg-transparent p-0 pl-2 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-[#c6613f]/35 ${wide ? "w-[464px]" : "w-[292px]"}`}
           onClick={() => setOpen((current) => !current)}
         >
-          <span className={`truncate ${selected ? "" : "text-muted [font-weight:430]"}`}>{selected?.name ?? "Select an agent"}</span>
-          <ChevronDown className="h-4 w-4 shrink-0 text-muted" />
+          <span className="min-w-0 flex-1 truncate">
+            <span className={selected ? "" : "font-normal text-muted [font-weight:430]"}>{selected?.name ?? "Select an agent"}</span>
+          </span>
+          <CdsIconGlyph glyph="" className="mr-0.5 h-4 w-4 shrink-0 text-[#898781] text-[16px] [font-weight:533.25]" />
         </button>
       </div>
       {open ? (
@@ -4819,11 +4821,13 @@ function DeploymentEnvironmentPicker({
           role="combobox"
           aria-expanded={open}
           aria-label="Select deployment environment"
-          className="flex h-8 w-[464px] items-center justify-between rounded-[8px] bg-transparent px-2 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-[#c6613f]/35"
+          className="flex h-8 w-[464px] min-w-0 items-center gap-1.5 rounded-[8px] bg-transparent p-0 pl-2 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-[#c6613f]/35"
           onClick={() => setOpen((current) => !current)}
         >
-          <span className={`truncate ${selected ? "" : "text-muted [font-weight:430]"}`}>{selected?.name ?? "Select an environment"}</span>
-          <ChevronDown className="h-4 w-4 shrink-0 text-muted" />
+          <span className="min-w-0 flex-1 truncate">
+            <span className={selected ? "" : "font-normal text-muted [font-weight:430]"}>{selected?.name ?? "Select an environment"}</span>
+          </span>
+          <CdsIconGlyph glyph="" className="mr-0.5 h-4 w-4 shrink-0 text-[#898781] text-[16px] [font-weight:533.25]" />
         </button>
       </div>
       {open ? (
@@ -4949,14 +4953,16 @@ function DeploymentVaultPicker({ value, onValueChange }: { value: string; onValu
           role="combobox"
           aria-expanded={open}
           aria-label="Add credential vault"
-          className="flex h-8 w-[464px] items-center justify-between rounded-[8px] bg-transparent px-2 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-[#c6613f]/35"
+          className="flex h-8 w-[464px] min-w-0 items-center gap-1.5 rounded-[8px] bg-transparent p-0 pl-2 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-[#c6613f]/35"
           onClick={() => setOpen((current) => !current)}
         >
-          <span className="inline-flex min-w-0 items-center gap-2 truncate">
-            {selected ? <Shield className="h-4 w-4 shrink-0 text-muted" /> : <Plus className="h-4 w-4 shrink-0 text-muted" />}
-            <span className={`truncate ${selected ? "" : "text-muted [font-weight:430]"}`}>{selected?.name ?? "Add vault"}</span>
+          <span className="min-w-0 flex-1 truncate">
+            <span className={`flex items-center gap-2 ${selected ? "" : "font-normal text-muted [font-weight:430]"}`}>
+              {selected ? <Shield className="h-4 w-4 shrink-0 text-muted" /> : <CdsIconGlyph glyph="" className="h-4 w-4 shrink-0 text-[16px] [font-weight:533.25]" />}
+              <span className="truncate">{selected?.name ?? "Add vault"}</span>
+            </span>
           </span>
-          <ChevronDown className="h-4 w-4 shrink-0 text-muted" />
+          <CdsIconGlyph glyph="" className="mr-0.5 h-4 w-4 shrink-0 text-[#898781] text-[16px] [font-weight:533.25]" />
         </button>
       </div>
       {open ? (
@@ -5051,14 +5057,16 @@ function DeploymentMemoryStorePicker({ value, onValueChange }: { value: string; 
           role="combobox"
           aria-expanded={open}
           aria-label="Add memory store"
-          className="flex h-8 w-full items-center justify-between rounded-[8px] bg-transparent px-2 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-[#c6613f]/35"
+          className="flex h-8 w-full min-w-0 items-center gap-1.5 rounded-[8px] bg-transparent p-0 pl-2 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-[#c6613f]/35"
           onClick={() => setOpen((current) => !current)}
         >
-          <span className="inline-flex min-w-0 items-center gap-2 truncate">
-            <Plus className="h-4 w-4 shrink-0 text-muted" />
-            <span className="truncate text-muted [font-weight:430]">Add memory store</span>
+          <span className="min-w-0 flex-1 truncate">
+            <span className="flex items-center gap-2 font-normal text-muted [font-weight:430]">
+              <CdsIconGlyph glyph="" className="h-4 w-4 shrink-0 text-[16px] [font-weight:533.25]" />
+              <span className="truncate">Add memory store</span>
+            </span>
           </span>
-          <ChevronDown className="h-4 w-4 shrink-0 text-muted" />
+          <CdsIconGlyph glyph="" className="mr-0.5 h-4 w-4 shrink-0 text-[#898781] text-[16px] [font-weight:533.25]" />
         </button>
       </div>
       {open ? (
@@ -5113,14 +5121,14 @@ function DeploymentTriggerPicker({ value, onValueChange }: { value: string; onVa
           role="combobox"
           aria-expanded={open}
           aria-label="Select deployment trigger"
-          className="flex h-8 w-[464px] items-center justify-between rounded-[8px] bg-transparent px-2 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-[#c6613f]/35"
+          className="flex h-8 w-[464px] min-w-0 items-center gap-1.5 rounded-[8px] bg-transparent p-0 pl-2 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-[#c6613f]/35"
           onClick={() => setOpen((current) => !current)}
         >
-          <span className="inline-flex min-w-0 items-center gap-2 truncate">
+          <span className="min-w-0 flex-1 truncate">
             {selected ? <selected.icon className="h-4 w-4 text-muted" /> : null}
-            <span className={`truncate ${selected ? "" : "text-muted [font-weight:430]"}`}>{selected?.value ?? "Select a trigger"}</span>
+            <span className={selected ? "" : "font-normal text-muted [font-weight:430]"}>{selected?.value ?? "Select a trigger"}</span>
           </span>
-          <ChevronDown className="h-4 w-4 shrink-0 text-muted" />
+          <CdsIconGlyph glyph="" className="mr-0.5 h-4 w-4 shrink-0 text-[#898781] text-[16px] [font-weight:533.25]" />
         </button>
       </div>
       {open ? (
