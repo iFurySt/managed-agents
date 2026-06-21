@@ -522,7 +522,7 @@ function WorkspaceChevronIcon() {
 function IconItem({ icon, label, right, to, testId }: { icon: React.ReactNode; label: string; right?: string; to?: string; testId?: string }) {
   const location = useLocation();
   const active = Boolean(to && (location.pathname === to || location.pathname.startsWith(`${to}/`)));
-  const className = `flex h-9 shrink-0 items-center gap-3 rounded-lg px-2 text-sm leading-5 text-[#52514e] [font-weight:400] hover:bg-fill ${active ? "bg-[rgba(11,11,11,0.05)] text-ink" : ""}`;
+  const className = `flex h-9 shrink-0 items-center gap-3 rounded-lg px-2 text-sm leading-5 text-[#52514e] [font-weight:550] hover:bg-fill ${active ? "bg-[rgba(11,11,11,0.05)] text-ink" : ""}`;
   const content = (
     <>
       {icon}
@@ -623,7 +623,7 @@ function Group({ icon, label, items, managed = false, defaultExpanded = true, te
         onClick={() => setExpanded((value) => !value)}
       >
         {icon}
-        <span className="truncate text-left [font-weight:400]">{label}</span>
+        <span className={`truncate text-left ${groupActive ? "[font-weight:580]" : "[font-weight:550]"}`}>{label}</span>
         <CdsIconGlyph glyph="" className={`ml-auto h-3 w-3 shrink-0 text-[#898781] text-[12px] [font-weight:577.75] ${expanded ? "rotate-90" : ""}`} />
       </button>
       {expanded ? <div className="flex flex-col gap-1">
