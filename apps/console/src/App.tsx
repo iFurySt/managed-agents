@@ -86,6 +86,7 @@ import type { Agent, CollectionName, Deployment, Environment, MemoryRecord, Memo
 
 const managedRoutes: { path: CollectionName; title: string; description: string; action: string }[] = [];
 const sidebarCollapsedStorageKey = "managed-agents.sidebar.collapsed";
+const bannerDismissedStorageKey = "managed-agents.banner.dismissed";
 const defaultDeploymentEnvironmentId = "env_01UTaKkbFknSkQNEsZjUARMh";
 const deploymentAgentOptions = [
   { value: "agent_011VCSqwTBQSr7SqT2Mwmus2", name: "Untitled agent", updated: "2 days ago" },
@@ -451,7 +452,21 @@ function Group({ icon, label, items, managed = false, defaultExpanded = true }: 
 }
 
 function Banner() {
-  const [visible, setVisible] = useState(true);
+  const [visible, setVisible] = useState(() => {
+    try {
+      return window.localStorage.getItem(bannerDismissedStorageKey) !== "true";
+    } catch {
+      return true;
+    }
+  });
+  function dismiss() {
+    try {
+      window.localStorage.setItem(bannerDismissedStorageKey, "true");
+    } catch {
+      // Ignore unavailable storage; the banner still closes for this render.
+    }
+    setVisible(false);
+  }
   if (!visible) return null;
   return (
     <div
@@ -472,7 +487,7 @@ function Banner() {
         </span>
       </div>
       <span className="-mr-2.5 flex h-5 shrink-0 items-center">
-        <Button variant="ghost" className="!h-8 !w-8 !rounded-[8px] !px-0 [font-weight:550]" onClick={() => setVisible(false)} aria-label="Dismiss">
+        <Button variant="ghost" className="!h-8 !w-8 !rounded-[8px] !px-0 [font-weight:550]" onClick={dismiss} aria-label="Dismiss">
           <CdsIconGlyph glyph="" />
         </Button>
       </span>
