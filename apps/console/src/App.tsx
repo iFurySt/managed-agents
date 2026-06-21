@@ -110,6 +110,8 @@ const sessionEnvironmentOptions = [
   { value: "env_01AzQWp3SXQEATgdCFUNwteR", name: "myenv", updated: "5 days ago", type: "Self-hosted" },
   { value: "env_01UNo9NMB1ZQLKCZk21qryb8", name: "world-cup-digest-env", updated: "5 days ago", type: "Cloud" }
 ];
+const sessionResourceKinds = ["GitHub Repository", "File", "Memory Store"] as const;
+type SessionResourceKind = (typeof sessionResourceKinds)[number];
 const cdsMenuContentClass =
   "z-50 max-w-[320px] rounded-[12px] bg-white p-1 text-sm text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]";
 const cdsMenuItemClass =
@@ -4184,6 +4186,97 @@ function EditAgentDialog({
   );
 }
 
+function CreateSessionResourceMenu({ onAdd, onOpenChange }: { onAdd: (kind: SessionResourceKind) => void; onOpenChange?: (open: boolean) => void }) {
+  return (
+    <CdsDropdownMenu.Root onOpenChange={onOpenChange}>
+      <CdsDropdownMenu.Trigger asChild>
+        <button
+          type="button"
+          data-cds="Button"
+          className="cds-focus inline-flex h-[27px] w-[121px] items-center justify-center gap-1.5 justify-self-start rounded-control bg-transparent px-[10px] text-sm text-ink outline-none [font-weight:550] hover:bg-fill"
+        >
+          <CdsIconGlyph glyph="" className="-ml-1 h-5 w-5 text-ink text-[20px] [font-weight:433.25]" />
+          <span>Resource</span>
+          <CdsIconGlyph glyph="" className="h-4 w-4 text-[#898781] text-[16px] [font-weight:533.25]" />
+        </button>
+      </CdsDropdownMenu.Trigger>
+      <CdsDropdownMenu.Portal>
+        <CdsDropdownMenu.Content
+          data-cds="Menu"
+          side="bottom"
+          align="start"
+          sideOffset={6}
+          className="z-50 w-[151px] rounded-[12px] bg-white p-1 text-sm text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
+        >
+          {sessionResourceKinds.map((kind) => (
+            <CdsDropdownMenu.Item
+              key={kind}
+              className="flex h-8 w-full cursor-pointer items-center rounded-[8px] px-2.5 text-sm leading-5 text-ink outline-none data-[highlighted]:bg-fill"
+              onSelect={() => onAdd(kind)}
+            >
+              {kind}
+            </CdsDropdownMenu.Item>
+          ))}
+        </CdsDropdownMenu.Content>
+      </CdsDropdownMenu.Portal>
+    </CdsDropdownMenu.Root>
+  );
+}
+
+function CreateSessionResourceCard({ kind, onRemove }: { kind: SessionResourceKind; onRemove: () => void }) {
+  const fieldClass = "grid gap-[5px]";
+  const labelClass = "text-sm leading-[20px] text-[#52514e] [font-weight:430]";
+  const inputClass = "h-[35px] rounded-[8px] border border-line bg-white px-3 text-sm leading-5 text-ink outline-none placeholder:text-[#898781] focus-visible:ring-2 focus-visible:ring-[#c6613f]/35";
+
+  return (
+    <div className="rounded-[8px] border border-line bg-white/50 px-3 pb-3 pt-2">
+      <div className="mb-3 flex h-7 items-center justify-between">
+        <div className="flex items-center gap-2 text-sm leading-5 text-ink [font-weight:550]">
+          <span>{kind}</span>
+        </div>
+        <button type="button" aria-label="Remove resource" className="grid h-[27px] w-[27px] place-items-center rounded-[8px] text-ink hover:bg-fill" onClick={onRemove}>
+          <CdsIconGlyph glyph="" className="h-4 w-4 text-[16px] [font-weight:533.25]" />
+        </button>
+      </div>
+      {kind === "File" ? (
+        <div className="grid gap-3">
+          <label className={fieldClass}>
+            <span className={labelClass}>File ID *</span>
+            <input className={inputClass} placeholder="file_abc123..." />
+          </label>
+          <label className={fieldClass}>
+            <span className={labelClass}>Mount Path *</span>
+            <input className={inputClass} placeholder="/uploads/myfile.txt" />
+            <span className="text-xs leading-4 text-[#52514e]">Must start with /uploads/</span>
+          </label>
+        </div>
+      ) : kind === "GitHub Repository" ? (
+        <div className="grid gap-3">
+          <label className={fieldClass}>
+            <span className={labelClass}>Repository URL *</span>
+            <input className={inputClass} placeholder="https://github.com/org/repo" />
+          </label>
+          <label className={fieldClass}>
+            <span className={labelClass}>Mount Path *</span>
+            <input className={inputClass} placeholder="/workspace/repo" />
+          </label>
+        </div>
+      ) : (
+        <div className="grid gap-3">
+          <label className={fieldClass}>
+            <span className={labelClass}>Memory Store ID *</span>
+            <input className={inputClass} placeholder="memstore_abc123..." />
+          </label>
+          <label className={fieldClass}>
+            <span className={labelClass}>Mount Path *</span>
+            <input className={inputClass} placeholder="/memory" />
+          </label>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function CreateSessionDialog({
   open,
   onOpenChange,
@@ -4197,10 +4290,12 @@ function CreateSessionDialog({
   const [agentId, setAgentId] = useState("");
   const [environmentId, setEnvironmentId] = useState("");
   const [vault, setVault] = useState("");
-  const [resource, setResource] = useState("");
+  const [resources, setResources] = useState<SessionResourceKind[]>([]);
+  const [resourceMenuOpen, setResourceMenuOpen] = useState(false);
   const [createAgentOpen, setCreateAgentOpen] = useState(false);
   const canCreate = true;
   const fieldLabelClass = "text-sm leading-none [font-weight:550]";
+  const dialogHeightClass = resources.length ? "h-[706px]" : resourceMenuOpen ? "h-[541px]" : "h-[526px]";
 
   async function submit() {
     const session = await createSession({
@@ -4208,7 +4303,7 @@ function CreateSessionDialog({
       agentId,
       environmentId,
       vaults: vault ? [vault] : [],
-      resources: resource ? [resource] : []
+      resources
     });
     onCreated(session);
     onOpenChange(false);
@@ -4216,7 +4311,7 @@ function CreateSessionDialog({
     setAgentId("");
     setEnvironmentId("");
     setVault("");
-    setResource("");
+    setResources([]);
   }
 
   return (
@@ -4226,7 +4321,7 @@ function CreateSessionDialog({
         description="Set up an instance of your agent in its environment."
         open={open}
         onOpenChange={onOpenChange}
-        contentClassName="h-[526px] w-[706px] max-w-[calc(100vw-32px)] !rounded-[12px] border-0 !shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]"
+        contentClassName={`${dialogHeightClass} !max-h-[calc(100dvh-32px)] w-[706px] max-w-[calc(100vw-32px)] !rounded-[12px] border-0 !shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]`}
         headerClassName="flex items-start justify-between pl-6 pr-4 pt-4"
         titleClassName="mt-1 text-[22px] leading-[26px] text-ink [font-weight:580]"
         descriptionClassName="mt-1 text-sm text-[#52514e]"
@@ -4269,12 +4364,22 @@ function CreateSessionDialog({
             <div className="grid gap-[7px]">
               <label className={fieldLabelClass}>Resources</label>
               <p className="text-[13px] leading-[18px] text-[#898781]">Mount files, GitHub repositories, or memory stores into the session.</p>
-              <FieldSelect
-                label={<CdsIconGlyph glyph="" className="-ml-1 h-5 w-5 text-ink text-[20px] [font-weight:433.25]" />}
-                value={resource || "Resource"}
-                options={["Resource", "session-output.tar.gz", "operations-memory", "No resources"]}
-                onValueChange={(value) => setResource(value === "Resource" || value === "No resources" ? "" : value)}
-                triggerClassName="!h-[27px] w-[121px] justify-self-start !gap-1.5 rounded-control border-0 !bg-transparent px-[10px] [font-weight:550] [&>span:first-child]:!items-center [&>span:first-child]:!gap-1"
+              {resources.length ? (
+                <div className="grid gap-3 pt-1">
+                  {resources.map((resource, index) => (
+                    <CreateSessionResourceCard
+                      key={`${resource}-${index}`}
+                      kind={resource}
+                      onRemove={() => setResources((current) => current.filter((_, resourceIndex) => resourceIndex !== index))}
+                    />
+                  ))}
+                </div>
+              ) : null}
+              <CreateSessionResourceMenu
+                onAdd={(kind) => {
+                  setResources((current) => [...current, kind]);
+                }}
+                onOpenChange={setResourceMenuOpen}
               />
             </div>
           </div>
