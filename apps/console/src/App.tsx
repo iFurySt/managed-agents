@@ -6320,7 +6320,7 @@ function AddMemoryDialog({
           <div className="grid gap-2">
             <label className={fieldLabelClass}>Path</label>
             <TextInput
-              className="h-[31px] rounded-[8px] border-0 bg-white/50 px-3 font-normal"
+              className="h-[31px] rounded-[8px] border-0 bg-white/50 px-3 font-normal shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]"
               placeholder="/notes/ideas.md"
               value={path}
               onChange={(event) => setPath(event.target.value)}
@@ -6330,14 +6330,14 @@ function AddMemoryDialog({
           <div className="mt-[15px] grid gap-2">
             <label className={fieldLabelClass}>Content</label>
             <textarea
-              className="cds-focus h-[251px] resize-none rounded-[8px] border-0 bg-white/50 px-3 py-2 font-mono text-sm font-normal leading-5"
+              className="cds-focus h-[251px] resize-none rounded-[8px] border-0 bg-white/50 px-3 py-2 font-mono text-sm font-normal leading-5 shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]"
               value={content}
               onChange={(event) => setContent(event.target.value)}
             />
           </div>
         </div>
         <div className="sticky bottom-0 -mx-6 mt-[15px] flex justify-end bg-white px-6 py-0">
-          <Button variant="ghost" className="h-[31px] w-[69px] rounded-[8px] px-0 [font-weight:550]" onClick={submit} disabled={!canCreate}>Create</Button>
+          <Button className="h-[31px] w-[69px] rounded-[8px] px-0 [font-weight:550]" onClick={submit} disabled={!canCreate}>Create</Button>
         </div>
       </div>
     </ConsoleDialog>
