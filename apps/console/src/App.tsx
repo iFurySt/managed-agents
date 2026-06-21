@@ -5485,7 +5485,7 @@ function CreateVaultDialog({
       {step === "vault" ? (
         <div className="px-6 pb-0 pt-[11px]">
           <div className="mb-4 flex h-[82px] gap-2 rounded-[12px] border-0 bg-[#f9dca4] px-4 py-3 text-sm leading-5 text-[#734500]">
-            <Info className="h-5 w-5 shrink-0 text-[#734500]" />
+            <CdsIconGlyph glyph="" className="h-5 w-5 shrink-0 text-[#734500] text-[20px] [font-weight:433.25]" />
             <p>
               Vaults are shared across this workspace. Credentials added to this vault will be usable by anyone with API key access.{" "}
               <span className="font-medium text-[#184f95]">Learn more here</span>
