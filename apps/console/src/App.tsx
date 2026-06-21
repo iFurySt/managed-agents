@@ -371,7 +371,7 @@ function Sidebar() {
                   <span className="truncate">Leo’s Individual Org</span>
                 </div>
               </div>
-              <SidebarGlyph glyph="" className="h-4 w-4 text-[#898781] text-[16px] [font-weight:533.3]" />
+              <SidebarGlyph glyph="" className="mr-2 h-4 w-4 text-[#898781] text-[16px] [font-weight:533.3]" />
             </button>
           </CdsDropdownMenu.Trigger>
           <CdsDropdownMenu.Portal>
