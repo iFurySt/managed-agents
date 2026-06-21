@@ -4884,7 +4884,7 @@ function CreateSessionVaultPicker({ value, onValueChange }: { value: string; onV
         onClick={() => setOpen((current) => !current)}
       >
         <span className={`truncate ${selected ? "" : "text-muted [font-weight:430]"}`}>{selected?.name ?? "Select one or more vaults"}</span>
-        <ChevronDown className="h-4 w-4 shrink-0 text-muted" />
+        <CdsIconGlyph glyph="" className="mr-0.5 h-4 w-4 shrink-0 text-[#898781] text-[16px] [font-weight:533.25]" />
       </button>
       {open ? (
         <div
