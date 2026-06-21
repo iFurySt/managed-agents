@@ -6888,7 +6888,7 @@ function SessionRowActions({ session, onArchive }: { session: Session; onArchive
           data-cds="Menu"
           className={`${cdsMenuContentClass} w-[160px]`}
           align="end"
-          sideOffset={8}
+          sideOffset={6}
         >
           <CdsDropdownMenu.Item
             className={cdsMenuItemClass}
