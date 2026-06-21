@@ -248,11 +248,11 @@ function Sidebar() {
         <nav className="mt-[17px] flex min-h-0 flex-1 flex-col items-start gap-1 overflow-y-auto pb-0 pl-1.5">
           <CollapsedSidebarLink glyph="" label="Dashboard" to="/dashboard" />
           <CollapsedSidebarLink glyph="" label="API keys" to="/settings/workspaces/default/keys" />
-          <CollapsedSidebarButton glyph="" label="Build" active={buildSectionActive} />
-          <CollapsedSidebarButton glyph="" label="Managed Agents" active={managedSectionActive} />
-          <CollapsedSidebarButton glyph="" label="Analytics" />
-          <CollapsedSidebarButton glyph="" label="Claude Code" />
-          <CollapsedSidebarButton glyph="" label="Manage" />
+          <CollapsedSidebarButton glyph="" label="Build" active={buildSectionActive} testId="sidebar-section-build-concise" />
+          <CollapsedSidebarButton glyph="" label="Managed Agents" active={managedSectionActive} testId="sidebar-section-managed-agents-concise" />
+          <CollapsedSidebarButton glyph="" label="Analytics" testId="sidebar-section-analytics-concise" />
+          <CollapsedSidebarButton glyph="" label="Claude Code" testId="sidebar-section-claude-code-concise" />
+          <CollapsedSidebarButton glyph="" label="Manage" testId="sidebar-section-manage-concise" />
         </nav>
         <div className="flex flex-col items-start gap-1 border-t-[0.5px] border-line pl-1.5 pt-2">
           <CollapsedSidebarLink glyph="" label="Documentation" to="/docs/en/home" />
@@ -332,16 +332,17 @@ function Sidebar() {
       <nav className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto pb-0">
         <IconItem icon={<SidebarGlyph glyph="" />} label="Dashboard" to="/dashboard" testId="sidebar-nav-dashboard-full" />
         <IconItem icon={<SidebarGlyph glyph="" />} label="API keys" to="/settings/workspaces/default/keys" testId="sidebar-nav-api-keys-full" />
-        <Group icon={<SidebarGlyph glyph="" />} label="Build" items={["Workbench", "Files", "Skills", "Batches"]} />
+        <Group icon={<SidebarGlyph glyph="" />} label="Build" items={["Workbench", "Files", "Skills", "Batches"]} testId="sidebar-section-build" />
         <Group
           icon={<SidebarGlyph glyph="" />}
           label="Managed Agents"
           items={["Quickstart", "Agents", "Sessions", "Deployments", "Environments", "Credential vaults", "Memory stores"]}
           managed
+          testId="sidebar-section-managed-agents"
         />
-        <Group icon={<SidebarGlyph glyph="" />} label="Analytics" items={["Usage", "Caching", "Rate limits", "Cost", "Logs"]} defaultExpanded={false} />
-        <Group icon={<SidebarGlyph glyph="" />} label="Claude Code" items={["Usage", "Settings"]} defaultExpanded={false} />
-        <Group icon={<SidebarGlyph glyph="" />} label="Manage" items={["Limits", "Service accounts", "Privacy controls", "Security", "Webhooks", "Tags"]} />
+        <Group icon={<SidebarGlyph glyph="" />} label="Analytics" items={["Usage", "Caching", "Rate limits", "Cost", "Logs"]} defaultExpanded={false} testId="sidebar-section-analytics" />
+        <Group icon={<SidebarGlyph glyph="" />} label="Claude Code" items={["Usage", "Settings"]} defaultExpanded={false} testId="sidebar-section-claude-code" />
+        <Group icon={<SidebarGlyph glyph="" />} label="Manage" items={["Limits", "Service accounts", "Privacy controls", "Security", "Webhooks", "Tags"]} testId="sidebar-section-manage" />
       </nav>
       <div className="-mx-3 flex flex-col gap-1 border-t-[0.5px] border-line bg-transparent px-3 pb-0 pt-2">
         <FooterItem icon={<SidebarGlyph glyph="" className="h-5 w-5 text-[#52514e] text-[20px] [font-weight:433.3]" />} label="Documentation" to="/docs/en/home" />
@@ -444,13 +445,14 @@ function CollapsedSidebarLink({ glyph, label, to = "#" }: { glyph: string; label
   );
 }
 
-function CollapsedSidebarButton({ glyph, label, active = false }: { glyph: string; label: string; active?: boolean }) {
+function CollapsedSidebarButton({ glyph, label, active = false, testId }: { glyph: string; label: string; active?: boolean; testId?: string }) {
   return (
     <button
       className={`flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-[#52514e] transition-colors hover:bg-fill hover:text-ink ${active ? "bg-[rgba(11,11,11,0.05)] !text-ink" : ""}`}
       type="button"
       aria-expanded={false}
       aria-label={label}
+      data-testid={testId}
     >
       <SidebarGlyph glyph={glyph} className="h-5 w-5 text-current text-[20px] [font-weight:433.3]" />
     </button>
@@ -564,7 +566,7 @@ function FooterItem({
   );
 }
 
-function Group({ icon, label, items, managed = false, defaultExpanded = true }: { icon: React.ReactNode; label: string; items: string[]; managed?: boolean; defaultExpanded?: boolean }) {
+function Group({ icon, label, items, managed = false, defaultExpanded = true, testId }: { icon: React.ReactNode; label: string; items: string[]; managed?: boolean; defaultExpanded?: boolean; testId?: string }) {
   const [expanded, setExpanded] = useState(defaultExpanded);
   const location = useLocation();
   const toPath = (item: string) => {
@@ -604,6 +606,7 @@ function Group({ icon, label, items, managed = false, defaultExpanded = true }: 
         className="flex h-9 shrink-0 items-center gap-3 rounded-lg px-2 text-left text-sm leading-5 text-[#52514e] hover:bg-fill"
         type="button"
         aria-expanded={expanded}
+        data-testid={testId}
         onClick={() => setExpanded((value) => !value)}
       >
         {icon}
