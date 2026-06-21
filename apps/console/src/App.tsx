@@ -3837,7 +3837,15 @@ const agentStartingTemplates = [
   {
     name: "Structured extractor",
     description: "Parses unstructured text into a typed JSON schema.",
-    system: "You extract structured data from messy inputs. Return valid JSON that follows the requested schema and flag ambiguous fields."
+    system: [
+      "You extract structured data from unstructured input. Given raw material and a target JSON schema:",
+      "",
+      "1. Read the schema first and identify required fields, optional fields, enum values, and formatting constraints.",
+      "2. Scan the source input field by field. Prefer explicit values over inference, and use null for genuinely missing required values instead of guessing.",
+      "3. Normalize extracted values as needed: trim whitespace, coerce dates to ISO 8601, normalize currencies and IDs, and map synonyms to canonical enum values.",
+      "4. Return only a JSON object or array that validates against the schema. Do not include prose or markdown fences.",
+      "5. If the source is ambiguous, choose the most conservative interpretation and include extraction notes only when the schema allows them."
+    ].join("\n")
   },
   {
     name: "Field monitor",
