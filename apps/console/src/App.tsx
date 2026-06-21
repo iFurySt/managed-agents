@@ -580,6 +580,22 @@ function Group({ icon, label, items, managed = false, defaultExpanded = true }: 
     if (item === "Batches") return "/workspaces/default/batches";
     return null;
   };
+  const sidebarTestId = (item: string) => {
+    const ids: Record<string, string> = {
+      Workbench: "sidebar-nav-workbench-full",
+      Files: "sidebar-nav-files-full",
+      Skills: "sidebar-nav-skills-full",
+      Batches: "sidebar-nav-batches-full",
+      Quickstart: "sidebar-nav-agent-quickstart-full",
+      Agents: "sidebar-nav-agents-full",
+      Sessions: "sidebar-nav-sessions-full",
+      Deployments: "sidebar-nav-deployments-full",
+      Environments: "sidebar-nav-environments-full",
+      "Credential vaults": "sidebar-nav-bergamot-full",
+      "Memory stores": "sidebar-nav-memory-stores-full"
+    };
+    return ids[item];
+  };
   const groupRoutes = items.map((item) => buildPath(item) ?? (managed ? toPath(item) : null)).filter((route): route is string => Boolean(route && route !== "#"));
   const groupActive = groupRoutes.some((route) => location.pathname === route || location.pathname.startsWith(`${route}/`));
   return (
@@ -598,7 +614,7 @@ function Group({ icon, label, items, managed = false, defaultExpanded = true }: 
         {items.map((item) => {
           const route = buildPath(item) ?? (managed ? toPath(item) : null);
           return route && route !== "#" ? (
-            <SidebarItem key={item} to={route} inset badge={item === "Deployments" ? "New" : undefined}>
+            <SidebarItem key={item} to={route} inset badge={item === "Deployments" ? "New" : undefined} testId={sidebarTestId(item)}>
               {item}
             </SidebarItem>
           ) : (

@@ -337,13 +337,14 @@ export function DataTable<T>({
   );
 }
 
-export function SidebarItem({ to, children, inset = false, badge }: { to: string; children: ReactNode; inset?: boolean; badge?: string }) {
+export function SidebarItem({ to, children, inset = false, badge, testId }: { to: string; children: ReactNode; inset?: boolean; badge?: string; testId?: string }) {
   const location = useLocation();
   const activeTo = normalizeSidebarPath(to);
   const active = location.pathname === to || location.pathname.startsWith(`${to}/`) || location.pathname === activeTo || location.pathname.startsWith(`${activeTo}/`);
   return (
     <Link
       to={to}
+      data-testid={testId}
       className={`flex shrink-0 items-center ${badge ? "gap-2" : "gap-3"} rounded-lg px-2 text-sm leading-[21px] text-[#52514e] hover:bg-fill ${inset ? "pl-10" : ""} ${active ? "bg-[rgba(11,11,11,0.05)] text-ink" : ""}`}
       style={{ height: 36 }}
     >
