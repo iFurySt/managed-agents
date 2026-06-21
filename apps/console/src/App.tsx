@@ -340,7 +340,7 @@ function Sidebar() {
         <Group icon={<SidebarGlyph glyph="" />} label="Manage" items={["Limits", "Service accounts", "Privacy controls", "Security", "Webhooks", "Tags"]} />
       </nav>
       <div className="-mx-3 flex flex-col gap-1 border-t-[0.5px] border-line bg-transparent px-3 pb-0 pt-2">
-        <FooterItem icon={<SidebarGlyph glyph="" className="h-5 w-5 text-[#52514e] text-[20px] [font-weight:433.3]" />} label="Documentation" />
+        <FooterItem icon={<SidebarGlyph glyph="" className="h-5 w-5 text-[#52514e] text-[20px] [font-weight:433.3]" />} label="Documentation" to="/docs/en/home" />
         <FooterItem icon={<SidebarGlyph glyph="" className="h-5 w-5 text-[#52514e] text-[20px] [font-weight:433.3]" />} label="Credits" right={"USD\u00a03.10"} />
         <CdsDropdownMenu.Root>
           <CdsDropdownMenu.Trigger asChild>
@@ -513,13 +513,22 @@ function IconItem({ icon, label, right }: { icon: React.ReactNode; label: string
   );
 }
 
-function FooterItem({ icon, label, right }: { icon: React.ReactNode; label: string; right?: string }) {
-  return (
-    <div className="flex h-9 shrink-0 items-center gap-3 rounded-lg px-2 text-sm leading-5 text-[#52514e] [font-weight:400]">
+function FooterItem({ icon, label, right, to }: { icon: React.ReactNode; label: string; right?: string; to?: string }) {
+  const className = "flex h-9 shrink-0 items-center gap-3 rounded-lg px-2 text-sm leading-5 text-[#52514e] [font-weight:400] hover:bg-fill";
+  const content = (
+    <>
       {icon}
       <span className="min-w-0 flex-1 truncate">{label}</span>
       {right ? <span className="text-[#898781] tabular-nums">{right}</span> : null}
-    </div>
+    </>
+  );
+
+  return to ? (
+    <Link className={className} to={to}>
+      {content}
+    </Link>
+  ) : (
+    <div className={className}>{content}</div>
   );
 }
 
