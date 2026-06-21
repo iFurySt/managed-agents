@@ -256,7 +256,7 @@ function Sidebar() {
           <CollapsedSidebarButton glyph="" label="Claude Code" testId="sidebar-section-claude-code-concise" />
           <CollapsedSidebarButton glyph="" label="Manage" testId="sidebar-section-manage-concise" />
         </nav>
-        <div className="flex flex-col items-start gap-1 border-t-[0.5px] border-line pl-1.5 pt-2">
+        <div className="flex flex-col items-start gap-1 border-t-[0.5px] border-line pb-5 pl-1.5 pt-2">
           <CollapsedSidebarLink glyph="" label="Documentation" to="/docs/en/home" testId="sidebar-nav-documentation-concise" />
           <CollapsedSidebarLink glyph="" label="Credits" to="/settings/billing" testId="sidebar-nav-credits-concise" />
           <button
