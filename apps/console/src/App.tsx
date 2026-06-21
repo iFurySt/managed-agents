@@ -116,6 +116,8 @@ const cdsMenuItemClass =
   "flex h-8 w-full cursor-pointer items-center gap-2 rounded-[8px] px-2.5 py-1.5 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-fill";
 const cdsMenuDangerItemClass = `${cdsMenuItemClass} text-[#8e2626] data-[highlighted]:bg-[#fff1ef]`;
 const cdsMenuSeparatorClass = "my-1 h-px bg-line";
+const topFilterShellClassName =
+  "inline-flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[8px] bg-white/50 pl-0 pr-2 text-sm leading-5 text-ink shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]";
 const pageTitles: Record<string, string> = {
   dashboard: "Dashboard",
   workbench: "Workbench",
@@ -779,14 +781,16 @@ function AgentsPage() {
           value={created}
           options={["All time", "Last 24 hours", "Last 7 days", "Last 30 days"]}
           onValueChange={setCreated}
-          triggerClassName="w-[142px] !gap-1.5 !rounded-none !border-0 !bg-transparent !pl-2 !pr-0 !shadow-none"
+          triggerShellClassName={topFilterShellClassName}
+          triggerClassName="w-[142px]"
         />
         <FieldSelect
           label="Status"
           value={status}
           options={["Active", "Archived", "All"]}
           onValueChange={setStatus}
-          triggerClassName="ml-2 w-[123px] !gap-1.5 !rounded-none !border-0 !bg-transparent !pl-2 !pr-0 !shadow-none"
+          triggerShellClassName={topFilterShellClassName}
+          triggerClassName="w-[123px]"
         />
       </div>
       <DataTable
@@ -936,28 +940,32 @@ function SessionsPage() {
           value={created}
           options={["All time", "Last 24 hours", "Last 7 days", "Last 30 days"]}
           onValueChange={setCreated}
-          triggerClassName="w-[142px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2 !shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]"
+          triggerShellClassName={topFilterShellClassName}
+          triggerClassName="w-[142px]"
         />
         <FieldSelect
           label="Agent"
           value={agent}
           options={["All", "agent_013mi1SmR2hJ6Hk6wNTeJvF9", "agent_017k8CPYuCFRD9AmupUeXd2Z"]}
           onValueChange={setAgent}
-          triggerClassName="ml-2 w-[112px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2 !shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]"
+          triggerShellClassName={topFilterShellClassName}
+          triggerClassName="w-[112px]"
         />
         <FieldSelect
           label="Deployment"
           value={deployment}
           options={["All", "depl_01ERmHnRJWQSLyxk7pVCMZXs"]}
           onValueChange={setDeployment}
-          triggerClassName="ml-2 w-[136px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2 !shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]"
+          triggerShellClassName={topFilterShellClassName}
+          triggerClassName="w-[136px]"
         />
         <FieldSelect
           label="Status"
           value={status}
           options={["Active", "Idle", "Archived", "All"]}
           onValueChange={setStatus}
-          triggerClassName="ml-2 w-[123px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2 !shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]"
+          triggerShellClassName={topFilterShellClassName}
+          triggerClassName="w-[123px]"
         />
       </div>
       <div className="-mt-2">
@@ -1323,13 +1331,13 @@ function DeploymentFilterSelect({
 
   return (
     <div data-cds="Field" className="relative h-10">
-      <div className="h-8 rounded-[8px] bg-white/50 shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]">
+      <div className="inline-flex h-8 items-center rounded-[8px] bg-white/50 pr-2 shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]">
         <button
           type="button"
           role="combobox"
           aria-expanded={open}
           aria-label={`${label} filter`}
-          className={`flex h-8 items-center justify-between rounded-[8px] bg-transparent px-2 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-[#c6613f]/35 ${triggerWidth}`}
+          className={`flex h-8 items-center justify-between rounded-[8px] bg-transparent pl-2 pr-0 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-[#c6613f]/35 ${triggerWidth}`}
           onClick={() => setOpen((current) => !current)}
         >
           <span className="inline-flex min-w-0 items-center gap-1.5 truncate">
@@ -1929,7 +1937,8 @@ function EnvironmentsPage() {
           value={status}
           options={["All", "Active", "Archived"]}
           onValueChange={setStatus}
-          triggerClassName="w-[98px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2 !shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]"
+          triggerShellClassName={topFilterShellClassName}
+          triggerClassName="w-[98px]"
         />
       </div>
       <div className="overflow-x-auto">
@@ -2382,7 +2391,8 @@ function VaultsPage() {
           value={status}
           options={["All", "Active", "Archived"]}
           onValueChange={setStatus}
-          triggerClassName="w-[98px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2 !shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]"
+          triggerShellClassName={topFilterShellClassName}
+          triggerClassName="w-[98px]"
         />
       </div>
       <div className="overflow-x-auto">
@@ -2746,14 +2756,16 @@ function MemoryStoresPage() {
           value={created}
           options={["All time", "Last 24 hours", "Last 7 days", "Last 30 days"]}
           onValueChange={setCreated}
-          triggerClassName="w-[142px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2 !shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]"
+          triggerShellClassName={topFilterShellClassName}
+          triggerClassName="w-[142px]"
         />
         <FieldSelect
           label="Status"
           value={status}
           options={["Active", "Archived", "All"]}
           onValueChange={setStatus}
-          triggerClassName="ml-2 w-[123px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2 !shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]"
+          triggerShellClassName={topFilterShellClassName}
+          triggerClassName="w-[123px]"
         />
       </div>
       <div className="overflow-x-auto">

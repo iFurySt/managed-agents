@@ -128,6 +128,7 @@ export function FieldSelect({
   options,
   onValueChange,
   triggerClassName = "",
+  triggerShellClassName = "",
   showLabel = true,
   ariaLabel,
   contentClassName = "",
@@ -138,26 +139,31 @@ export function FieldSelect({
   options: string[];
   onValueChange: (value: string) => void;
   triggerClassName?: string;
+  triggerShellClassName?: string;
   showLabel?: boolean;
   ariaLabel?: string;
   contentClassName?: string;
   itemClassName?: string;
 }) {
+  const trigger = (
+    <Select.Trigger
+      data-cds="Button"
+      aria-label={ariaLabel}
+      className={`cds-focus inline-flex h-8 items-center gap-2 rounded-control border border-line bg-white px-3 text-sm text-ink ${triggerShellClassName ? "min-w-0 flex-1 self-stretch !gap-1.5 !rounded-none !border-0 !bg-transparent !p-0 !pl-2 !pr-0 !shadow-none" : ""} ${triggerClassName}`}
+    >
+      <span className="flex min-w-0 flex-1 items-baseline gap-1.5 whitespace-nowrap">
+        {showLabel ? <span className="shrink-0 text-muted">{label}</span> : null}
+        <Select.Value className="min-w-0 truncate" />
+      </span>
+      <Select.Icon className="shrink-0">
+        <CdsIconGlyph glyph="" className="mr-0.5 h-4 w-4 text-[#898781] text-[16px] [font-weight:533.25]" />
+      </Select.Icon>
+    </Select.Trigger>
+  );
+
   return (
     <Select.Root value={value} onValueChange={onValueChange}>
-      <Select.Trigger
-        data-cds="Button"
-        aria-label={ariaLabel}
-        className={`cds-focus inline-flex h-8 items-center gap-2 rounded-control border border-line bg-white px-3 text-sm text-ink ${triggerClassName}`}
-      >
-        <span className="flex min-w-0 flex-1 items-baseline gap-1.5 whitespace-nowrap">
-          {showLabel ? <span className="shrink-0 text-muted">{label}</span> : null}
-          <Select.Value className="min-w-0 truncate" />
-        </span>
-        <Select.Icon className="shrink-0">
-          <CdsIconGlyph glyph="" className="mr-0.5 h-4 w-4 text-[#898781] text-[16px] [font-weight:533.25]" />
-        </Select.Icon>
-      </Select.Trigger>
+      {triggerShellClassName ? <div data-cds="FieldSelect" className={triggerShellClassName}>{trigger}</div> : trigger}
       <Select.Portal>
         <Select.Content className={`z-50 min-w-[150px] rounded-cds border border-line bg-white p-1 shadow-lg ${contentClassName}`}>
           <Select.Viewport>
