@@ -88,20 +88,20 @@ const managedRoutes: { path: CollectionName; title: string; description: string;
 const sidebarCollapsedStorageKey = "managed-agents.sidebar.collapsed";
 const defaultDeploymentEnvironmentId = "env_01UTaKkbFknSkQNEsZjUARMh";
 const deploymentAgentOptions = [
-  { value: "agent_01MNpVPKyrSECHGA6HqAmREZ", name: "Untitled agent", updated: "yesterday" },
+  { value: "agent_011VCSqwTBQSr7SqT2Mwmus2", name: "Untitled agent", updated: "2 days ago" },
   { value: "agent_013mi1SmR2hJ6Hk6wNTeJvF9", name: "Managed SSH Reverse Tunnel Bootstrapper", updated: "5 days ago" },
   { value: "agent_01AVRPTGyYareCeoUasn66q5", name: "Incident commander", updated: "5 days ago" },
   { value: "agent_019BdsR2v3NW1DiEG62wpu3e", name: "World Cup Daily Digest (self-hosted clone)", updated: "5 days ago" },
   { value: "agent_017k8CPYuCFRD9AmupUeXd2Z", name: "World Cup Daily Digest", updated: "5 days ago" },
-  { value: "agent_01UntitledAgentCopy", name: "Untitled agent", updated: "5 days ago" }
+  { value: "agent_01MNpVPKyrSECHGA6HqAmREZ", name: "Untitled agent", updated: "5 days ago" }
 ];
 const sessionAgentOptions = [
-  { value: "agent_01MNpVPKyrSECHGA6HqAmREZ", name: "Untitled agent", updated: "23 hours ago" },
-  { value: "agent_013mi1SmR2hJ6Hk6wNTeJvF9", name: "Managed SSH Reverse Tunnel Bootstrapper", updated: "4 days ago" },
-  { value: "agent_01AVRPTGyYareCeoUasn66q5", name: "Incident commander", updated: "4 days ago" },
-  { value: "agent_019BdsR2v3NW1DiEG62wpu3e", name: "World Cup Daily Digest (self-hosted clone)", updated: "4 days ago" },
-  { value: "agent_017k8CPYuCFRD9AmupUeXd2Z", name: "World Cup Daily Digest", updated: "4 days ago" },
-  { value: "agent_01UntitledAgentCopy", name: "Untitled agent", updated: "4 days ago" }
+  { value: "agent_011VCSqwTBQSr7SqT2Mwmus2", name: "Untitled agent", updated: "2 days ago" },
+  { value: "agent_013mi1SmR2hJ6Hk6wNTeJvF9", name: "Managed SSH Reverse Tunnel Bootstrapper", updated: "5 days ago" },
+  { value: "agent_01AVRPTGyYareCeoUasn66q5", name: "Incident commander", updated: "5 days ago" },
+  { value: "agent_019BdsR2v3NW1DiEG62wpu3e", name: "World Cup Daily Digest (self-hosted clone)", updated: "5 days ago" },
+  { value: "agent_017k8CPYuCFRD9AmupUeXd2Z", name: "World Cup Daily Digest", updated: "5 days ago" },
+  { value: "agent_01MNpVPKyrSECHGA6HqAmREZ", name: "Untitled agent", updated: "5 days ago" }
 ];
 const sessionEnvironmentOptions = [
   { value: "env_01UTaKkbFknSkQNEsZjUARMh", name: "managed-ssh-debug-env", updated: "4 days ago", type: "Cloud" },
