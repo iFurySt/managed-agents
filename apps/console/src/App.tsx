@@ -3972,14 +3972,7 @@ function CreateSessionDialog({
                 <label className={fieldLabelClass}>Credential vaults</label>
                 <DialogTextLink href="/vaults">Manage credential vaults</DialogTextLink>
               </div>
-              <FieldSelect
-                label=""
-                value={vault || "Select one or more vaults"}
-                options={["Select one or more vaults", "test_secret", "GitHub source access", "No vaults"]}
-                onValueChange={(value) => setVault(value === "Select one or more vaults" || value === "No vaults" ? "" : value)}
-                showLabel={false}
-                triggerClassName="!h-[31px] w-[651px] !gap-1.5 !rounded-none border-0 !bg-transparent !pl-2 !pr-0"
-              />
+              <CreateSessionVaultPicker value={vault} onValueChange={setVault} />
             </div>
             <div className="grid gap-[7px]">
               <label className={fieldLabelClass}>Resources</label>
@@ -4587,13 +4580,72 @@ function DeploymentEnvironmentPicker({
   );
 }
 
+const credentialVaultPickerOptions = [
+  { value: "Temporary vault", name: "Temporary vault", updated: "3 days ago", summary: "No credentials", credentialIcons: 0 },
+  { value: "test_secret", name: "test_secret", updated: "5 days ago", summary: "", credentialIcons: 3 }
+];
+
+function CreateSessionVaultPicker({ value, onValueChange }: { value: string; onValueChange: (value: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const filteredOptions = credentialVaultPickerOptions.filter((option) => option.name.toLowerCase().includes(search.toLowerCase()));
+  const selected = credentialVaultPickerOptions.find((option) => option.value === value);
+
+  return (
+    <div data-cds="Field" className="relative">
+      <button
+        type="button"
+        role="combobox"
+        aria-expanded={open}
+        aria-label="Select credential vaults"
+        className="flex h-[31px] w-[651px] items-center justify-between rounded-none border-0 bg-transparent pl-2 pr-0 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.03]"
+        onClick={() => setOpen((current) => !current)}
+      >
+        <span className={`truncate ${selected ? "" : "text-muted [font-weight:430]"}`}>{selected?.name ?? "Select one or more vaults"}</span>
+        <ChevronDown className="h-4 w-4 shrink-0 text-muted" />
+      </button>
+      {open ? (
+        <div
+          data-cds="Combobox"
+          role="dialog"
+          className="absolute left-0 top-[37px] z-50 max-h-[137px] w-[659px] overflow-hidden rounded-[12px] bg-white p-1 shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
+        >
+          <div role="combobox" aria-expanded="true" className="-mx-1 -mt-1 mb-1 flex h-[37px] w-[calc(100%+8px)] items-center border-b border-line px-4 py-2">
+            <input
+              className="h-full min-w-0 flex-1 bg-transparent text-sm leading-5 text-ink outline-none placeholder:text-transparent"
+              aria-label="Search credential vaults"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              onKeyDown={(event) => event.stopPropagation()}
+            />
+          </div>
+          <div role="listbox" className="grid max-h-[92px] gap-0 overflow-y-auto overflow-x-hidden">
+            {filteredOptions.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                role="option"
+                aria-selected={value === option.value}
+                className="flex min-h-[46px] w-full items-center justify-between rounded-[8px] px-3 py-1 text-left outline-none hover:bg-fill"
+                onClick={() => {
+                  onValueChange(option.value);
+                  setOpen(false);
+                }}
+              >
+                <CredentialVaultOptionContent option={option} />
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function DeploymentVaultPicker({ value, onValueChange }: { value: string; onValueChange: (value: string) => void }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const options = [
-    { value: "temporary_vault", name: "Temporary vault", updated: "3 days ago", summary: "No credentials", credentialIcons: 0 },
-    { value: "test_secret", name: "test_secret", updated: "5 days ago", summary: "", credentialIcons: 3 }
-  ];
+  const options = credentialVaultPickerOptions;
   const filteredOptions = options.filter((option) => option.name.toLowerCase().includes(search.toLowerCase()));
   const selected = options.find((option) => option.value === value);
 
@@ -4643,21 +4695,29 @@ function DeploymentVaultPicker({ value, onValueChange }: { value: string; onValu
                   setOpen(false);
                 }}
               >
-                <span className="grid min-w-0 gap-0.5">
-                  <span className="truncate text-sm leading-5 text-ink">{option.name}</span>
-                  <span className="truncate text-[13px] leading-4 text-muted">{option.updated}</span>
-                </span>
-                <span className="inline-flex shrink-0 items-center gap-1.5 text-xs leading-4 text-muted">
-                  {option.credentialIcons > 0
-                    ? Array.from({ length: option.credentialIcons }, (_, index) => <CdsIconGlyph key={index} glyph="" className="h-4 w-4 text-[#898781] text-[16px] [font-weight:533.25]" />)
-                    : option.summary}
-                </span>
+                <CredentialVaultOptionContent option={option} />
               </button>
             ))}
           </div>
         </div>
       ) : null}
     </div>
+  );
+}
+
+function CredentialVaultOptionContent({ option }: { option: (typeof credentialVaultPickerOptions)[number] }) {
+  return (
+    <>
+      <span className="grid min-w-0 gap-0.5">
+        <span className="truncate text-sm leading-5 text-ink">{option.name}</span>
+        <span className="truncate text-[13px] leading-4 text-muted">{option.updated}</span>
+      </span>
+      <span className="inline-flex shrink-0 items-center gap-1.5 text-xs leading-4 text-muted">
+        {option.credentialIcons > 0
+          ? Array.from({ length: option.credentialIcons }, (_, index) => <CdsIconGlyph key={index} glyph="" className="h-4 w-4 text-[#898781] text-[16px] [font-weight:533.25]" />)
+          : option.summary}
+      </span>
+    </>
   );
 }
 

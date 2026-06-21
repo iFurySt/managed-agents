@@ -2242,7 +2242,7 @@ func session(id, name, status, agentID, agentName, environmentID, environmentNam
 		EnvironmentID:   environmentID,
 		EnvironmentName: environmentName,
 		DeploymentID:    deploymentID,
-		Vaults:          "vault_01GitHub",
+		Vaults:          "test_secret",
 		Resources:       "session-output.tar.gz\noperations-memory",
 		Duration:        duration,
 		Tokens:          tokens,
