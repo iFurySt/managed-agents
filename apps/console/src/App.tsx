@@ -1344,7 +1344,7 @@ function DeploymentFilterSelect({
             <span className="text-muted">{label}</span>
             <span className="truncate">{selectedLabel}</span>
           </span>
-          <ChevronDown className="h-4 w-4 shrink-0 text-muted" />
+          <CdsIconGlyph glyph="" className="mr-0.5 h-4 w-4 shrink-0 text-[#898781] text-[16px] [font-weight:533.25]" />
         </button>
       </div>
       {open ? (
@@ -1471,16 +1471,14 @@ function DeploymentsPage() {
           fallbackLabel="All"
           showSearch
         />
-        <div className="ml-2">
-          <DeploymentFilterSelect
-            label="Status"
-            value={status}
-            options={["All", "Active", "Paused"].map((option) => ({ value: option, label: option }))}
-            onValueChange={setStatus}
-            triggerWidth="w-[98px]"
-            menuWidth="w-[192px]"
-          />
-        </div>
+        <DeploymentFilterSelect
+          label="Status"
+          value={status}
+          options={["All", "Active", "Paused"].map((option) => ({ value: option, label: option }))}
+          onValueChange={setStatus}
+          triggerWidth="w-[98px]"
+          menuWidth="w-[192px]"
+        />
       </div>
       <div className="mt-2 overflow-x-auto">
         <DataTable
