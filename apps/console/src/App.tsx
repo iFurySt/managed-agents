@@ -3906,6 +3906,7 @@ function CreateSessionDialog({
   const [environmentId, setEnvironmentId] = useState("");
   const [vault, setVault] = useState("");
   const [resource, setResource] = useState("");
+  const [createAgentOpen, setCreateAgentOpen] = useState(false);
   const canCreate = true;
   const fieldLabelClass = "text-sm leading-none [font-weight:550]";
 
@@ -3927,75 +3928,85 @@ function CreateSessionDialog({
   }
 
   return (
-    <ConsoleDialog
-      title="Create session"
-      description="Set up an instance of your agent in its environment."
-      open={open}
-      onOpenChange={onOpenChange}
-      contentClassName="h-[526px] w-[706px] max-w-[calc(100vw-32px)] !rounded-[12px] border-0 !shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]"
-      headerClassName="flex items-start justify-between pl-6 pr-4 pt-4"
-      titleClassName="mt-1 text-[22px] leading-[26px] text-ink [font-weight:580]"
-      descriptionClassName="mt-1 text-sm text-[#52514e]"
-      closeButtonClassName="h-[31px] w-[31px] !gap-1.5 !rounded-[8px] !px-0 [font-weight:550]"
-      closeLabel="Close"
-      overlayClassName="fixed inset-0 z-40 bg-transparent"
-    >
-      <div className="px-6 pb-0 pt-[10px]">
-        <div className="grid gap-4">
-          <label className={`grid gap-[7px] ${fieldLabelClass}`}>
-            Title
-            <TextInput
-              className="h-[31px] border-0 bg-white/50 !rounded-[8px] px-3 font-normal shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]"
-              placeholder="Optional – name this run"
-              value={title}
-              onChange={(event) => setTitle(event.target.value)}
-            />
-          </label>
-          <div className="grid gap-2">
-            <div className="flex items-center justify-between">
-              <label className={fieldLabelClass}>Agent</label>
-              <DialogTextLink href="/agents">Manage agents</DialogTextLink>
+    <>
+      <ConsoleDialog
+        title="Create session"
+        description="Set up an instance of your agent in its environment."
+        open={open}
+        onOpenChange={onOpenChange}
+        contentClassName="h-[526px] w-[706px] max-w-[calc(100vw-32px)] !rounded-[12px] border-0 !shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]"
+        headerClassName="flex items-start justify-between pl-6 pr-4 pt-4"
+        titleClassName="mt-1 text-[22px] leading-[26px] text-ink [font-weight:580]"
+        descriptionClassName="mt-1 text-sm text-[#52514e]"
+        closeButtonClassName="h-[31px] w-[31px] !gap-1.5 !rounded-[8px] !px-0 [font-weight:550]"
+        closeLabel="Close"
+        overlayClassName="fixed inset-0 z-40 bg-transparent"
+      >
+        <div className="px-6 pb-0 pt-[10px]">
+          <div className="grid gap-4">
+            <label className={`grid gap-[7px] ${fieldLabelClass}`}>
+              Title
+              <TextInput
+                className="h-[31px] border-0 bg-white/50 !rounded-[8px] px-3 font-normal shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]"
+                placeholder="Optional – name this run"
+                value={title}
+                onChange={(event) => setTitle(event.target.value)}
+              />
+            </label>
+            <div className="grid gap-2">
+              <div className="flex items-center justify-between">
+                <label className={fieldLabelClass}>Agent</label>
+                <DialogTextLink href="/agents">Manage agents</DialogTextLink>
+              </div>
+              <CreateSessionAgentPicker value={agentId} onValueChange={setAgentId} onCreateNewAgent={() => setCreateAgentOpen(true)} />
             </div>
-            <CreateSessionAgentPicker value={agentId} onValueChange={setAgentId} />
-          </div>
-          <div className="grid gap-2">
-            <div className="flex items-center justify-between">
-              <label className={fieldLabelClass}>Environment</label>
-              <DialogTextLink href="/environments">Manage environments</DialogTextLink>
+            <div className="grid gap-2">
+              <div className="flex items-center justify-between">
+                <label className={fieldLabelClass}>Environment</label>
+                <DialogTextLink href="/environments">Manage environments</DialogTextLink>
+              </div>
+              <CreateSessionEnvironmentPicker value={environmentId} onValueChange={setEnvironmentId} />
             </div>
-            <CreateSessionEnvironmentPicker value={environmentId} onValueChange={setEnvironmentId} />
-          </div>
-          <div className="grid gap-2">
-            <div className="flex items-center justify-between">
-              <label className={fieldLabelClass}>Credential vaults</label>
-              <DialogTextLink href="/vaults">Manage credential vaults</DialogTextLink>
+            <div className="grid gap-2">
+              <div className="flex items-center justify-between">
+                <label className={fieldLabelClass}>Credential vaults</label>
+                <DialogTextLink href="/vaults">Manage credential vaults</DialogTextLink>
+              </div>
+              <FieldSelect
+                label=""
+                value={vault || "Select one or more vaults"}
+                options={["Select one or more vaults", "test_secret", "GitHub source access", "No vaults"]}
+                onValueChange={(value) => setVault(value === "Select one or more vaults" || value === "No vaults" ? "" : value)}
+                showLabel={false}
+                triggerClassName="!h-[31px] w-[651px] !gap-1.5 !rounded-none border-0 !bg-transparent !pl-2 !pr-0"
+              />
             </div>
-            <FieldSelect
-              label=""
-              value={vault || "Select one or more vaults"}
-              options={["Select one or more vaults", "test_secret", "GitHub source access", "No vaults"]}
-              onValueChange={(value) => setVault(value === "Select one or more vaults" || value === "No vaults" ? "" : value)}
-              showLabel={false}
-              triggerClassName="!h-[31px] w-[651px] !gap-1.5 !rounded-none border-0 !bg-transparent !pl-2 !pr-0"
-            />
+            <div className="grid gap-[7px]">
+              <label className={fieldLabelClass}>Resources</label>
+              <p className="text-[13px] leading-[18px] text-[#898781]">Mount files, GitHub repositories, or memory stores into the session.</p>
+              <FieldSelect
+                label={<CdsIconGlyph glyph="" className="-ml-1 h-5 w-5 text-ink text-[20px] [font-weight:433.25]" />}
+                value={resource || "Resource"}
+                options={["Resource", "session-output.tar.gz", "operations-memory", "No resources"]}
+                onValueChange={(value) => setResource(value === "Resource" || value === "No resources" ? "" : value)}
+                triggerClassName="!h-[27px] w-[121px] justify-self-start !gap-1.5 rounded-control border-0 !bg-transparent px-[10px] [font-weight:550] [&>span:first-child]:!items-center [&>span:first-child]:!gap-1"
+              />
+            </div>
           </div>
-          <div className="grid gap-[7px]">
-            <label className={fieldLabelClass}>Resources</label>
-            <p className="text-[13px] leading-[18px] text-[#898781]">Mount files, GitHub repositories, or memory stores into the session.</p>
-            <FieldSelect
-              label={<CdsIconGlyph glyph="" className="-ml-1 h-5 w-5 text-ink text-[20px] [font-weight:433.25]" />}
-              value={resource || "Resource"}
-              options={["Resource", "session-output.tar.gz", "operations-memory", "No resources"]}
-              onValueChange={(value) => setResource(value === "Resource" || value === "No resources" ? "" : value)}
-              triggerClassName="!h-[27px] w-[121px] justify-self-start !gap-1.5 rounded-control border-0 !bg-transparent px-[10px] [font-weight:550] [&>span:first-child]:!items-center [&>span:first-child]:!gap-1"
-            />
+          <div className="sticky bottom-0 -mx-6 mt-[37px] flex justify-end bg-white px-6 pb-[23px] pt-0">
+            <Button className="h-[31px] w-[122px] !gap-1.5 !rounded-[8px] !px-3 [font-weight:550]" onClick={submit} disabled={!canCreate}>Create session</Button>
           </div>
         </div>
-        <div className="sticky bottom-0 -mx-6 mt-[37px] flex justify-end bg-white px-6 pb-[23px] pt-0">
-          <Button className="h-[31px] w-[122px] !gap-1.5 !rounded-[8px] !px-3 [font-weight:550]" onClick={submit} disabled={!canCreate}>Create session</Button>
-        </div>
-      </div>
-    </ConsoleDialog>
+      </ConsoleDialog>
+      <CreateAgentDialog
+        open={createAgentOpen}
+        onOpenChange={setCreateAgentOpen}
+        onCreated={(agent) => {
+          setAgentId(agent.id);
+          setCreateAgentOpen(false);
+        }}
+      />
+    </>
   );
 }
 
@@ -4017,13 +4028,14 @@ function DialogTextLink({ href, children }: { href: string; children: ReactNode 
   );
 }
 
-function CreateSessionAgentPicker({ value, onValueChange }: { value: string; onValueChange: (value: string) => void }) {
+function CreateSessionAgentPicker({ value, onValueChange, onCreateNewAgent }: { value: string; onValueChange: (value: string) => void; onCreateNewAgent: () => void }) {
   const selected = sessionAgentOptions.find((option) => option.value === value);
   const [search, setSearch] = useState("");
+  const [open, setOpen] = useState(false);
   const filteredOptions = sessionAgentOptions.filter((option) => option.name.toLowerCase().includes(search.toLowerCase()));
 
   return (
-    <Select.Root value={value || undefined} onValueChange={onValueChange}>
+    <Select.Root value={value || undefined} open={open} onOpenChange={setOpen} onValueChange={onValueChange}>
       <Select.Trigger
         data-cds="Button"
         className="cds-focus inline-flex h-[31px] w-[651px] items-center gap-1.5 rounded-none border-0 bg-transparent pl-2 pr-0 text-left text-sm leading-5 text-ink outline-none"
@@ -4038,7 +4050,7 @@ function CreateSessionAgentPicker({ value, onValueChange }: { value: string; onV
           position="popper"
           sideOffset={6}
           data-cds="ComboboxPopover"
-          className="z-50 max-h-[320px] w-[658px] overflow-hidden rounded-[12px] bg-white p-1 shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]"
+          className="z-50 flex max-h-[320px] w-[658px] flex-col overflow-hidden rounded-[12px] bg-white p-1 shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]"
         >
           <div role="combobox" aria-expanded="true" className="-mx-1 -mt-1 mb-1 flex h-[37px] w-[calc(100%+8px)] items-center border-b border-line px-4 py-2">
             <input
@@ -4049,7 +4061,7 @@ function CreateSessionAgentPicker({ value, onValueChange }: { value: string; onV
               onKeyDown={(event) => event.stopPropagation()}
             />
           </div>
-          <Select.Viewport className="max-h-[278px] overflow-y-auto overflow-x-hidden">
+          <Select.Viewport className="max-h-[238px] overflow-y-auto overflow-x-hidden">
             {filteredOptions.map((option) => (
               <Select.Item
                 key={option.value}
@@ -4068,6 +4080,20 @@ function CreateSessionAgentPicker({ value, onValueChange }: { value: string; onV
               </Select.Item>
             ))}
           </Select.Viewport>
+          <div className="shrink-0 p-1">
+            <button
+              type="button"
+              className="flex min-h-[32px] w-full items-center gap-2 rounded-[8px] px-3 text-left text-sm leading-5 text-ink outline-none hover:bg-fill focus-visible:bg-fill"
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => {
+                setOpen(false);
+                onCreateNewAgent();
+              }}
+            >
+              <CdsIconGlyph glyph="" className="h-5 w-5 text-current text-[20px] [font-weight:433.25]" />
+              <span>Create new agent</span>
+            </button>
+          </div>
         </Select.Content>
       </Select.Portal>
     </Select.Root>
