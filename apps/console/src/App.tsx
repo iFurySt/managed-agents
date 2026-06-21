@@ -3824,7 +3824,15 @@ const agentStartingTemplates = [
   {
     name: "Deep researcher",
     description: "Conducts multi-step web research with source synthesis and citations.",
-    system: "You are a deep research agent. Plan the investigation, gather evidence, compare sources, and produce a concise answer with citations."
+    system: [
+      "You are a research agent. Given a question or topic:",
+      "",
+      "1. Break it into 3-5 concrete sub-questions that cover the topic.",
+      "2. For each sub-question, run targeted web searches and prefer primary sources, official documentation, standards, papers, or other authoritative references.",
+      "3. Read sources carefully and extract specific claims, data points, and short attributed evidence.",
+      "4. Synthesize a report that answers the original question, organized by sub-question, with citations for non-obvious claims.",
+      "5. Close with a confidence and gaps section that calls out uncertainty, source disagreement, and follow-up research needed."
+    ].join("\n")
   },
   {
     name: "Structured extractor",
@@ -7450,7 +7458,7 @@ function agentTemplateYaml(template: (typeof agentStartingTemplates)[number]) {
   return `name: ${template.name === "Blank agent" ? "Untitled agent" : template.name}
 description: ${template.description}
 model: claude-sonnet-4-6
-system: ${template.system}
+${yamlField("system", template.system)}
 mcp_servers: []
 tools:
   - type: agent_toolset_20260401
@@ -7499,6 +7507,11 @@ function yamlScalar(value: string) {
   return JSON.stringify(value);
 }
 
+function yamlField(key: string, value: string) {
+  if (!value.includes("\n")) return `${key}: ${value}`;
+  return `${key}: |-\n${value.split("\n").map((line) => `  ${line}`).join("\n")}`;
+}
+
 function agentConfigFromYaml(source: string) {
   const modelId = yamlValue(source, "id", yamlValue(source, "model", "claude-sonnet-4-6"));
   return {
@@ -7528,10 +7541,26 @@ function agentConfigFromYaml(source: string) {
 }
 
 function yamlValue(source: string, key: string, fallback: string) {
-  const line = source.split("\n").find((item) => item.trim().startsWith(`${key}:`));
+  const lines = source.split("\n");
+  const lineIndex = lines.findIndex((item) => item.trim().startsWith(`${key}:`));
+  if (lineIndex === -1) return fallback;
+  const line = lines[lineIndex];
   if (!line) return fallback;
   const value = line.trim().slice(key.length + 1).trim();
   if (!value) return fallback;
+  if (value === "|-" || value === "|") {
+    const blockLines: string[] = [];
+    for (const item of lines.slice(lineIndex + 1)) {
+      if (item === "") {
+        blockLines.push("");
+        continue;
+      }
+      if (!item.startsWith(" ")) break;
+      blockLines.push(item.replace(/^ {1,2}/, ""));
+    }
+    const block = blockLines.join("\n").trimEnd();
+    return block || fallback;
+  }
   if (value.startsWith("\"") && value.endsWith("\"")) {
     try {
       return JSON.parse(value);
