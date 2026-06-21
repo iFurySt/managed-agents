@@ -3,8 +3,6 @@ import {
   Braces,
   Check,
   ChevronDown,
-  ChevronLeft,
-  ChevronRight,
   Clock,
   Copy,
   CircleDollarSign,
@@ -521,6 +519,22 @@ function WorkspaceChevronIcon() {
   );
 }
 
+function PaginationButton({
+  direction,
+  ...props
+}: Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, "children"> & { direction: "previous" | "next" }) {
+  return (
+    <button
+      data-cds="Button"
+      type="button"
+      className="cds-focus inline-flex h-8 w-8 shrink-0 select-none items-center justify-center gap-1.5 whitespace-nowrap rounded-[8px] border border-line bg-white p-0 text-sm leading-5 text-[#898781] shadow-[0_1px_2px_rgba(0,0,0,0.02)] transition-colors hover:bg-fill hover:text-ink disabled:pointer-events-none disabled:text-[#b9b6ad] [font-weight:550]"
+      {...props}
+    >
+      <CdsIconGlyph glyph={direction === "previous" ? "" : ""} className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
+    </button>
+  );
+}
+
 function IconItem({ icon, label, right, to, testId }: { icon: React.ReactNode; label: string; right?: string; to?: string; testId?: string }) {
   const location = useLocation();
   const active = Boolean(to && (location.pathname === to || location.pathname.startsWith(`${to}/`)));
@@ -839,12 +853,8 @@ function AgentsPage() {
         renderActions={(agent) => <AgentRowActions agent={agent} onArchive={() => setArchivingAgent(agent)} />}
       />
       <div className="-mt-[1.5px] flex gap-2">
-        <Button variant="icon" className="!h-8 !w-8 !gap-1.5 !rounded-[8px] !leading-5" aria-label="Previous page" disabled>
-          <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
-        </Button>
-        <Button variant="icon" className="!h-8 !w-8 !gap-1.5 !rounded-[8px] !leading-5" aria-label="Next page" disabled>
-          <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
-        </Button>
+        <PaginationButton direction="previous" aria-label="Previous page" disabled />
+        <PaginationButton direction="next" aria-label="Next page" disabled />
       </div>
       <AgentArchiveDialog
         open={Boolean(archivingAgent)}
@@ -1028,24 +1038,18 @@ function SessionsPage() {
         />
       </div>
       <div className="mt-[5px] flex gap-2">
-        <Button
-          variant="icon"
-          className="!h-8 !w-8 !gap-1.5 !rounded-[8px] !leading-5"
+        <PaginationButton
+          direction="previous"
           aria-label="Previous page"
           disabled={page === 0}
           onClick={() => setPage((value) => Math.max(0, value - 1))}
-        >
-          <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
-        </Button>
-        <Button
-          variant="icon"
-          className="!h-8 !w-8 !gap-1.5 !rounded-[8px] !leading-5"
+        />
+        <PaginationButton
+          direction="next"
           aria-label="Next page"
           disabled={page >= maxPage}
           onClick={() => setPage((value) => Math.min(maxPage, value + 1))}
-        >
-          <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
-        </Button>
+        />
       </div>
       <CreateSessionDialog
         open={dialogOpen}
@@ -1556,24 +1560,18 @@ function DeploymentsPage() {
         />
       </div>
       <div className="mt-5 flex gap-2">
-        <Button
-          variant="icon"
-          className="!h-8 !w-8 !gap-1.5 !rounded-[8px] !leading-5"
+        <PaginationButton
+          direction="previous"
           aria-label="Previous page"
           disabled={page === 0}
           onClick={() => setPage((value) => Math.max(0, value - 1))}
-        >
-          <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
-        </Button>
-        <Button
-          variant="icon"
-          className="!h-8 !w-8 !gap-1.5 !rounded-[8px] !leading-5"
+        />
+        <PaginationButton
+          direction="next"
           aria-label="Next page"
           disabled={page >= maxPage}
           onClick={() => setPage((value) => Math.min(maxPage, value + 1))}
-        >
-          <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
-        </Button>
+        />
       </div>
       <CreateDeploymentDialog
         open={dialogOpen}
@@ -1842,12 +1840,8 @@ function DeploymentDetailPage() {
             ]}
           />
           <div className="flex gap-2">
-            <Button variant="icon" className="h-8 w-8 rounded-[8px] text-muted" aria-label="Previous page" disabled>
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button variant="icon" className="h-8 w-8 rounded-[8px] text-muted" aria-label="Next page" disabled>
-              <ChevronRight className="h-4 w-4" />
-            </Button>
+            <PaginationButton direction="previous" aria-label="Previous page" disabled />
+            <PaginationButton direction="next" aria-label="Next page" disabled />
           </div>
         </CdsTabs.Content>
       </CdsTabs.Root>
@@ -1994,24 +1988,18 @@ function EnvironmentsPage() {
         />
       </div>
       <div className="mt-[8.5px] flex gap-2">
-        <Button
-          variant="icon"
-          className="!h-8 !w-8 !gap-1.5 !rounded-[8px] !leading-5"
+        <PaginationButton
+          direction="previous"
           aria-label="Previous page"
           disabled={page === 0}
           onClick={() => setPage((value) => Math.max(0, value - 1))}
-        >
-          <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
-        </Button>
-        <Button
-          variant="icon"
-          className="!h-8 !w-8 !gap-1.5 !rounded-[8px] !leading-5"
+        />
+        <PaginationButton
+          direction="next"
           aria-label="Next page"
           disabled={page >= maxPage}
           onClick={() => setPage((value) => Math.min(maxPage, value + 1))}
-        >
-          <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
-        </Button>
+        />
       </div>
       <CreateEnvironmentDialog
         open={dialogOpen}
@@ -2457,24 +2445,18 @@ function VaultsPage() {
         />
       </div>
       <div className="mt-[10.5px] flex gap-2">
-        <Button
-          variant="icon"
-          className="!h-8 !w-8 !gap-1.5 !rounded-[8px] !leading-5"
+        <PaginationButton
+          direction="previous"
           aria-label="Previous page"
           disabled={page === 0}
           onClick={() => setPage((value) => Math.max(0, value - 1))}
-        >
-          <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
-        </Button>
-        <Button
-          variant="icon"
-          className="!h-8 !w-8 !gap-1.5 !rounded-[8px] !leading-5"
+        />
+        <PaginationButton
+          direction="next"
           aria-label="Next page"
           disabled={page >= maxPage}
           onClick={() => setPage((value) => Math.min(maxPage, value + 1))}
-        >
-          <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
-        </Button>
+        />
       </div>
       <CreateVaultDialog
         open={dialogOpen}
@@ -2653,24 +2635,18 @@ function VaultDetailPage() {
         renderActions={(credential) => <CredentialActions credential={credential} onArchive={() => archiveCredential(credential)} onDelete={() => deleteCredential(credential)} />}
       />
       <div className="mt-3 flex gap-2">
-        <Button
-          variant="icon"
-          className="!h-8 !w-8 !gap-1.5 !rounded-[8px] !leading-5"
+        <PaginationButton
+          direction="previous"
           aria-label="Previous page"
           disabled={credentialPage === 0}
           onClick={() => setCredentialPage((value) => Math.max(0, value - 1))}
-        >
-          <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
-        </Button>
-        <Button
-          variant="icon"
-          className="!h-8 !w-8 !gap-1.5 !rounded-[8px] !leading-5"
+        />
+        <PaginationButton
+          direction="next"
           aria-label="Next page"
           disabled={credentialPage >= credentialMaxPage}
           onClick={() => setCredentialPage((value) => Math.min(credentialMaxPage, value + 1))}
-        >
-          <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
-        </Button>
+        />
       </div>
       <CreateCredentialDialog
         open={dialogOpen}
@@ -2829,24 +2805,18 @@ function MemoryStoresPage() {
         />
       </div>
       <div className="mt-[8.5px] flex gap-2">
-        <Button
-          variant="icon"
-          className="!h-8 !w-8 !gap-1.5 !rounded-[8px] !leading-5"
+        <PaginationButton
+          direction="previous"
           aria-label="Previous page"
           disabled={page === 0}
           onClick={() => setPage((value) => Math.max(0, value - 1))}
-        >
-          <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
-        </Button>
-        <Button
-          variant="icon"
-          className="!h-8 !w-8 !gap-1.5 !rounded-[8px] !leading-5"
+        />
+        <PaginationButton
+          direction="next"
           aria-label="Next page"
           disabled={page >= maxPage}
           onClick={() => setPage((value) => Math.min(maxPage, value + 1))}
-        >
-          <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
-        </Button>
+        />
       </div>
       <CreateMemoryStoreDialog
         open={dialogOpen}
