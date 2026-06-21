@@ -117,6 +117,8 @@ const cdsMenuItemClass =
 const cdsMenuDangerItemClass = `${cdsMenuItemClass} text-[#8e2626] data-[highlighted]:bg-[#fff1ef]`;
 const cdsMenuSeparatorClass = "my-1 h-px bg-line";
 const pageTitles: Record<string, string> = {
+  workbench: "Workbench",
+  batches: "Batches",
   "agent-quickstart": "Quickstart",
   agents: "Agents",
   sessions: "Sessions",
@@ -167,6 +169,8 @@ export default function App() {
               <Routes>
                 <Route path="/" element={<Navigate to="/agents" replace />} />
                 <Route path="/workspaces/:workspaceId/:section/*" element={<WorkspaceRouteRedirect />} />
+                <Route path="/workbench" element={<BuildSurfacePage title="Workbench" description="Create and test prompts, files, and tools before promoting work into managed agents." />} />
+                <Route path="/batches" element={<BuildSurfacePage title="Batches" description="Run and inspect batch jobs for repeatable Claude workloads." />} />
                 <Route path="/agent-quickstart" element={<QuickstartPage />} />
                 <Route path="/agents" element={<AgentsPage />} />
                 <Route path="/agents/:id" element={<AgentDetailPage />} />
@@ -569,8 +573,10 @@ function Group({ icon, label, items, managed = false, defaultExpanded = true }: 
     return `/${item.toLowerCase().replaceAll(" ", "-").replace("credential-vaults", "vaults")}`;
   };
   const buildPath = (item: string) => {
-    if (item === "Files") return "/files";
-    if (item === "Skills") return "/skills";
+    if (item === "Workbench") return "/workbench";
+    if (item === "Files") return "/workspaces/default/files";
+    if (item === "Skills") return "/workspaces/default/skills";
+    if (item === "Batches") return "/workspaces/default/batches";
     return null;
   };
   const groupRoutes = items.map((item) => buildPath(item) ?? (managed ? toPath(item) : null)).filter((route): route is string => Boolean(route && route !== "#"));
@@ -602,6 +608,17 @@ function Group({ icon, label, items, managed = false, defaultExpanded = true }: 
         })}
       </div> : null}
     </div>
+  );
+}
+
+function BuildSurfacePage({ title, description }: { title: string; description: string }) {
+  return (
+    <section className="max-w-[968px]">
+      <PageHeader title={title} description={description} />
+      <div className="mt-10">
+        <EmptyState title={`${title} is ready`} description="This surface is available from the Build navigation and will show workspace data as the implementation expands." />
+      </div>
+    </section>
   );
 }
 
