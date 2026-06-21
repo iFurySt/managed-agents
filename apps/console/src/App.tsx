@@ -422,9 +422,8 @@ function WorkspaceBoxIcon() {
 
 function WorkspaceChevronIcon() {
   return (
-    <span data-cds="Icon" aria-hidden="true" className="relative mr-0.5 flex h-4 w-4 shrink-0 select-none items-center justify-center text-[16px] leading-none text-[#898781] [font-family:var(--font-anthropicons,Anthropicons-Variable)] [font-weight:533.3]">
-      <span className="sr-only"></span>
-      <span className="absolute left-1 top-[5px] h-2 w-2 rotate-45 border-b-[1.5px] border-r-[1.5px] border-current" />
+    <span data-cds="Icon" aria-hidden="true" className="mr-0.5 flex h-4 w-4 shrink-0 select-none items-center justify-center text-[16px] leading-none text-[#898781] [font-family:var(--font-anthropicons,Anthropicons-Variable)] [font-weight:533.25]">
+      
     </span>
   );
 }
