@@ -4333,11 +4333,11 @@ function CreateSessionAgentPicker({ value, onValueChange, onCreateNewAgent }: { 
       <Select.Portal>
         <Select.Content
           position="popper"
-          sideOffset={6}
+          sideOffset={7}
           data-cds="ComboboxPopover"
           className="z-50 flex max-h-[320px] w-[658px] flex-col overflow-hidden rounded-[12px] bg-white p-1 shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]"
         >
-          <div role="combobox" aria-expanded="true" className="-mx-1 -mt-1 mb-1 flex h-[37px] w-[calc(100%+8px)] items-center border-b border-line px-4 py-2">
+          <div role="combobox" aria-expanded="true" className="-mx-1 -mt-1 mb-1 flex h-[37px] w-[calc(100%+8px)] shrink-0 items-center border-b border-line px-4 py-2">
             <input
               className="h-full min-w-0 flex-1 bg-transparent text-sm leading-5 text-ink outline-none placeholder:text-transparent"
               aria-label="Search agents"
@@ -4346,7 +4346,7 @@ function CreateSessionAgentPicker({ value, onValueChange, onCreateNewAgent }: { 
               onKeyDown={(event) => event.stopPropagation()}
             />
           </div>
-          <Select.Viewport className="max-h-[238px] overflow-y-auto overflow-x-hidden">
+          <Select.Viewport className="max-h-[230px] overflow-y-auto overflow-x-hidden">
             {filteredOptions.map((option) => (
               <Select.Item
                 key={option.value}
@@ -4365,7 +4365,7 @@ function CreateSessionAgentPicker({ value, onValueChange, onCreateNewAgent }: { 
               </Select.Item>
             ))}
           </Select.Viewport>
-          <div className="shrink-0 p-1">
+          <div className="mt-[5px] shrink-0 p-1">
             <button
               type="button"
               className="flex min-h-[32px] w-full items-center gap-2 rounded-[8px] px-3 text-left text-sm leading-5 text-ink outline-none hover:bg-fill focus-visible:bg-fill"
