@@ -7206,7 +7206,9 @@ function EmptyState({ title, description, compact = false }: { title: string; de
 
 function shortId(id: string) {
   if (id.length <= 14) return id;
-  return `${id.slice(0, 7)}…${id.slice(-6)}`;
+  const prefixEnd = id.indexOf("_") + 1;
+  const prefix = prefixEnd > 0 ? id.slice(0, prefixEnd) : id.slice(0, 4);
+  return `${prefix}…${id.slice(-7)}`;
 }
 
 function shortMemoryStoreId(id: string) {
