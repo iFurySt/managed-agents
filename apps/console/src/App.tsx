@@ -981,7 +981,7 @@ function SessionsPage() {
               header: "ID",
               width: "160px",
               render: (session) => (
-                <div className="group/cid flex items-center gap-2">
+                <div className="group/cid flex items-center gap-1">
                   <span className="font-mono font-semibold">{shortId(session.id)}</span>
                   <Button
                     variant="ghost"
