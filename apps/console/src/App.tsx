@@ -3865,7 +3865,15 @@ const agentStartingTemplates = [
   {
     name: "Support agent",
     description: "Answers customer questions from your docs and knowledge base, and escalates when needed.",
-    system: "You are a support agent. Answer from the provided knowledge base, ask clarifying questions when needed, and escalate unresolved issues."
+    system: [
+      "You are a customer support agent. For each inbound question:",
+      "",
+      "1. Search the product docs and knowledge base in Notion for an answer. Quote the relevant passage and link to the source — never paraphrase policy from memory.",
+      "2. Draft a reply in the customer's channel: direct answer first, then the supporting source link, then one proactive next step if relevant.",
+      "3. If you can't answer with ≥80% confidence, don't guess — post a handoff message to the internal escalation Slack channel with the full question, what you searched, what you found, and your best hypothesis. Tell the customer a human is taking a look.",
+      "",
+      "Match the customer's tone. Be warm but don't pad. One emoji max."
+    ].join("\n")
   },
   {
     name: "Incident commander",
@@ -7493,6 +7501,34 @@ metadata:
   template: field-monitor`;
   }
 
+  if (template.name === "Support agent") {
+    return `name: ${template.name}
+description: ${template.description}
+model: claude-sonnet-4-6
+${yamlField("system", template.system)}
+mcp_servers:
+  - name: notion
+    type: url
+    url: https://mcp.notion.com/mcp
+  - name: slack
+    type: url
+    url: https://mcp.slack.com/mcp
+tools:
+  - type: agent_toolset_20260401
+  - type: mcp_toolset
+    mcp_server_name: notion
+    default_config:
+      permission_policy:
+        type: always_allow
+  - type: mcp_toolset
+    mcp_server_name: slack
+    default_config:
+      permission_policy:
+        type: always_allow
+metadata:
+  template: support-agent`;
+  }
+
   return `name: ${template.name === "Blank agent" ? "Untitled agent" : template.name}
 description: ${template.description}
 model: claude-sonnet-4-6
@@ -7553,7 +7589,28 @@ function yamlField(key: string, value: string) {
 function agentConfigFromYaml(source: string) {
   const modelId = yamlValue(source, "id", yamlValue(source, "model", "claude-sonnet-4-6"));
   const hasNotionMcp = source.includes("name: notion") && source.includes("https://mcp.notion.com/mcp");
+  const hasSlackMcp = source.includes("name: slack") && source.includes("https://mcp.slack.com/mcp");
   const hasMcpToolset = source.includes("type: mcp_toolset");
+  const mcpServers = [
+    ...(hasNotionMcp
+      ? [
+          {
+            name: "notion",
+            type: "url",
+            url: "https://mcp.notion.com/mcp"
+          }
+        ]
+      : []),
+    ...(hasSlackMcp
+      ? [
+          {
+            name: "slack",
+            type: "url",
+            url: "https://mcp.slack.com/mcp"
+          }
+        ]
+      : [])
+  ];
   const tools: Array<Record<string, unknown>> = [
     {
       type: "agent_toolset_20260401",
@@ -7566,7 +7623,7 @@ function agentConfigFromYaml(source: string) {
       configs: []
     }
   ];
-  if (hasMcpToolset) {
+  if (hasMcpToolset && hasNotionMcp) {
     tools.push({
       type: "mcp_toolset",
       mcp_server_name: "notion",
@@ -7578,6 +7635,24 @@ function agentConfigFromYaml(source: string) {
       configs: []
     });
   }
+  if (hasMcpToolset && hasSlackMcp) {
+    tools.push({
+      type: "mcp_toolset",
+      mcp_server_name: "slack",
+      default_config: {
+        permission_policy: {
+          type: "always_allow"
+        }
+      },
+      configs: []
+    });
+  }
+
+  const metadata = source.includes("template: support-agent")
+    ? { template: "support-agent" }
+    : source.includes("template: field-monitor")
+      ? { template: "field-monitor" }
+      : {};
 
   return {
     name: yamlValue(source, "name", "Untitled agent"),
@@ -7587,18 +7662,10 @@ function agentConfigFromYaml(source: string) {
       speed: "standard"
     },
     system: yamlValue(source, "system", "You are a general-purpose agent that can research, write code, run commands, and use connected tools to complete the user's task end to end."),
-    mcp_servers: hasNotionMcp
-      ? [
-          {
-            name: "notion",
-            type: "url",
-            url: "https://mcp.notion.com/mcp"
-          }
-        ]
-      : [],
+    mcp_servers: mcpServers,
     tools,
     skills: [],
-    metadata: source.includes("template: field-monitor") ? { template: "field-monitor" } : {}
+    metadata
   };
 }
 
