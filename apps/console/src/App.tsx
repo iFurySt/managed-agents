@@ -359,7 +359,7 @@ function Sidebar() {
         <FooterItem icon={<SidebarGlyph glyph="" className="h-5 w-5 text-[#52514e] text-[20px] [font-weight:433.3]" />} label="Credits" right={"USD\u00a03.10"} overlayTo="/settings/billing" overlayAriaLabel="Credits — view billing" />
         <CdsDropdownMenu.Root>
           <CdsDropdownMenu.Trigger asChild>
-            <button className="flex h-11 w-full items-center justify-between gap-3 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-fill data-[state=open]:bg-fill" type="button" aria-label="User menu">
+            <button className="-my-0.5 flex h-12 w-full items-center justify-between gap-3 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-fill data-[state=open]:bg-fill" type="button" aria-label="User menu">
               <div className="grid h-8 w-8 shrink-0 place-items-center rounded-md border-[0.5px] border-black/10 bg-[rgba(11,11,11,0.05)] text-[#52514e]">
                 <SidebarGlyph glyph="" className="h-5 w-5 text-[#52514e] text-[20px] [font-weight:433.3]" />
               </div>
