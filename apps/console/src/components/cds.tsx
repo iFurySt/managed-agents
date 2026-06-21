@@ -270,21 +270,21 @@ export function DataTable<T>({
             const selected = selectedKeys.has(key);
 
             return (
-              <tr key={key} data-selected={selected ? "true" : undefined} className="h-[46px] border-b border-[#efede8] hover:bg-[#fbfaf7]">
+              <tr key={key} data-selected={selected ? "true" : undefined} className="group/cdsrow h-[46px] hover:bg-[#fbfaf7]">
                 {showSelection ? (
-                  <td className="relative p-0">
+                  <td className="relative border-b border-[#efede8] p-0 group-data-[selected=true]/cdsrow:border-transparent group-data-[selected=true]/cdsrow:bg-[rgba(11,11,11,0.05)] group-data-[selected=true]/cdsrow:first:rounded-l-[8px]">
                     <div className="absolute inset-0 z-10 flex items-center justify-center">
                       <TableSelectionBox checked={selected} onToggle={() => toggleRow(key)} />
                     </div>
                   </td>
                 ) : null}
                 {columns.map((column) => (
-                  <td key={column.key} className="max-w-[260px] truncate px-3 py-2 align-middle" style={{ width: column.width }}>
+                  <td key={column.key} className="max-w-[260px] truncate border-b border-[#efede8] px-3 py-2 align-middle group-data-[selected=true]/cdsrow:border-transparent group-data-[selected=true]/cdsrow:bg-[rgba(11,11,11,0.05)]" style={{ width: column.width }}>
                     {column.render(row)}
                   </td>
                 ))}
                 {showActions ? (
-                  <td className="px-3 py-2" style={{ width: actionsWidth }}>
+                  <td className="border-b border-[#efede8] px-3 py-2 group-data-[selected=true]/cdsrow:border-transparent group-data-[selected=true]/cdsrow:bg-[rgba(11,11,11,0.05)] group-data-[selected=true]/cdsrow:last:rounded-r-[8px]" style={{ width: actionsWidth }}>
                     {renderActions ? (
                       renderActions(row)
                     ) : (
