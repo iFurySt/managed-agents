@@ -4227,6 +4227,7 @@ function CreateSessionResourceCard({ kind, onRemove }: { kind: SessionResourceKi
   const fieldClass = "grid gap-[5px]";
   const labelClass = "text-sm leading-[20px] text-[#52514e] [font-weight:430]";
   const inputClass = "h-[35px] rounded-[8px] border border-line bg-white px-3 text-sm leading-5 text-ink outline-none placeholder:text-[#898781] focus-visible:ring-2 focus-visible:ring-[#c6613f]/35";
+  const resourceButtonClass = "flex h-[35px] items-center justify-between rounded-[8px] border border-line bg-white px-3 text-sm leading-5 text-ink outline-none hover:bg-fill";
 
   return (
     <div className="rounded-[8px] border border-line bg-white/50 px-3 pb-3 pt-2">
@@ -4240,37 +4241,61 @@ function CreateSessionResourceCard({ kind, onRemove }: { kind: SessionResourceKi
       </div>
       {kind === "File" ? (
         <div className="grid gap-3">
-          <label className={fieldClass}>
+          <div className={fieldClass}>
             <span className={labelClass}>File ID *</span>
             <input className={inputClass} placeholder="file_abc123..." />
-          </label>
-          <label className={fieldClass}>
+          </div>
+          <div className={fieldClass}>
             <span className={labelClass}>Mount Path *</span>
             <input className={inputClass} placeholder="/uploads/myfile.txt" />
             <span className="text-xs leading-4 text-[#52514e]">Must start with /uploads/</span>
-          </label>
+          </div>
         </div>
       ) : kind === "GitHub Repository" ? (
         <div className="grid gap-3">
-          <label className={fieldClass}>
-            <span className={labelClass}>Repository URL *</span>
-            <input className={inputClass} placeholder="https://github.com/org/repo" />
-          </label>
-          <label className={fieldClass}>
-            <span className={labelClass}>Mount Path *</span>
-            <input className={inputClass} placeholder="/workspace/repo" />
-          </label>
+          <div className={fieldClass}>
+            <span className={labelClass}>URL *</span>
+            <input className={inputClass} placeholder="https://github.com/owner/repo" />
+          </div>
+          <div className={fieldClass}>
+            <span className={labelClass}>Authorization Token *</span>
+            <input className={inputClass} placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className={fieldClass}>
+              <span className={labelClass}>Checkout</span>
+              <button type="button" className={resourceButtonClass}>
+                <span>None</span>
+              </button>
+            </div>
+          </div>
+          <div className={fieldClass}>
+            <span className={labelClass}>Mount Path</span>
+            <input className={inputClass} placeholder="/workspace/repo-name (default)" />
+          </div>
         </div>
       ) : (
         <div className="grid gap-3">
-          <label className={fieldClass}>
-            <span className={labelClass}>Memory Store ID *</span>
-            <input className={inputClass} placeholder="memstore_abc123..." />
-          </label>
-          <label className={fieldClass}>
-            <span className={labelClass}>Mount Path *</span>
-            <input className={inputClass} placeholder="/memory" />
-          </label>
+          <div className={fieldClass}>
+            <div className="flex items-center justify-between">
+              <span className={labelClass}>Memory store *</span>
+              <DialogTextLink href="/memory-stores">Manage memory stores</DialogTextLink>
+            </div>
+            <button type="button" role="combobox" aria-label="Memory store" className={resourceButtonClass}>
+              <span className="text-[#898781] [font-weight:430]">Select a memory store</span>
+              <CdsIconGlyph glyph="" className="h-4 w-4 text-[#898781] text-[16px] [font-weight:533.25]" />
+            </button>
+          </div>
+          <div className={fieldClass}>
+            <span className={labelClass}>Access</span>
+            <button type="button" className={resourceButtonClass}>
+              <span>Read &amp; write</span>
+            </button>
+          </div>
+          <div className={fieldClass}>
+            <span className={labelClass}>Instructions (optional)</span>
+            <textarea className="h-[65px] resize-none rounded-[8px] border border-line bg-white px-3 py-2 text-sm leading-5 text-ink outline-none placeholder:text-[#898781] focus-visible:ring-2 focus-visible:ring-[#c6613f]/35" placeholder="Tell the agent what this store contains and when to use it." />
+          </div>
         </div>
       )}
     </div>
@@ -4296,6 +4321,17 @@ function CreateSessionDialog({
   const canCreate = true;
   const fieldLabelClass = "text-sm leading-none [font-weight:550]";
   const dialogHeightClass = resources.length ? "h-[706px]" : resourceMenuOpen ? "h-[541px]" : "h-[526px]";
+
+  useEffect(() => {
+    if (!open) return;
+    const resetDialogScroll = () => {
+      const dialog = Array.from(document.querySelectorAll<HTMLElement>('[data-cds="Dialog"]')).find((element) => element.textContent?.includes("Create session"));
+      if (dialog) dialog.scrollTop = 0;
+    };
+    requestAnimationFrame(resetDialogScroll);
+    window.setTimeout(resetDialogScroll, 0);
+    window.setTimeout(resetDialogScroll, 80);
+  }, [open, resourceMenuOpen, resources.length]);
 
   async function submit() {
     const session = await createSession({
