@@ -126,7 +126,7 @@ export default function App() {
       <div className="flex min-h-screen">
         <Sidebar />
         <main className="min-w-0 flex-1">
-          <div className={`mx-auto w-full px-3 pb-8 pt-3 ${fullWidthRoute ? "max-w-none" : "max-w-[1600px]"}`}>
+          <div className={`w-full px-1 pb-8 pt-3 ${fullWidthRoute ? "max-w-none" : "max-w-[1584px]"}`}>
             {showBanner ? <Banner /> : null}
             <div className={`px-5 ${showBanner ? "pt-6" : "pt-3"}`}>
               <Routes>
