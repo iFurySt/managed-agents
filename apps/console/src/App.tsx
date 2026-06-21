@@ -284,22 +284,47 @@ function Sidebar() {
           </SidebarIconButton>
         </div>
       </div>
-      <div className="mb-[17px] mt-[4px] inline-flex h-8 w-full items-center gap-1.5 rounded-cds border border-black/10 bg-transparent pr-2 text-sm leading-5">
-        <button
-          className="flex min-w-0 flex-1 items-center gap-1.5 self-stretch border-0 bg-transparent p-0 pl-2 text-left outline-none"
-          role="combobox"
-          aria-expanded="false"
-          aria-label="Workspace"
-        >
-          <span className="flex w-full min-w-0 items-center gap-2">
-            <WorkspaceBoxIcon />
-            <span className="flex min-w-0 flex-col">
-              <span className="truncate text-sm">Default</span>
-            </span>
-          </span>
-          <WorkspaceChevronIcon />
-        </button>
-      </div>
+      <CdsDropdownMenu.Root>
+        <div className="mb-[17px] mt-[4px] inline-flex h-8 w-full items-center gap-1.5 rounded-cds border border-black/10 bg-transparent pr-2 text-sm leading-5">
+          <CdsDropdownMenu.Trigger asChild>
+            <button
+              className="flex min-w-0 flex-1 items-center gap-1.5 self-stretch border-0 bg-transparent p-0 pl-2 text-left outline-none"
+              role="combobox"
+              aria-label="Workspace"
+            >
+              <span className="flex w-full min-w-0 items-center gap-2">
+                <WorkspaceBoxIcon />
+                <span className="flex min-w-0 flex-col">
+                  <span className="truncate text-sm">Default</span>
+                </span>
+              </span>
+              <WorkspaceChevronIcon />
+            </button>
+          </CdsDropdownMenu.Trigger>
+        </div>
+        <CdsDropdownMenu.Portal>
+          <CdsDropdownMenu.Content
+            data-cds="Menu"
+            className="z-50 w-[232px] rounded-[12px] bg-white p-1 text-sm leading-5 text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
+            side="bottom"
+            align="start"
+            sideOffset={6}
+            alignOffset={-1}
+            avoidCollisions={false}
+          >
+            <CdsDropdownMenu.Item className="flex h-10 w-full items-center gap-2 rounded-[8px] bg-[rgba(11,11,11,0.05)] px-2 text-sm outline-none">
+              <WorkspaceBoxIcon />
+              <span className="min-w-0 flex-1 truncate">Default</span>
+              <SidebarGlyph glyph="" className="h-4 w-4 text-[#52514e] text-[16px] [font-weight:700]" />
+            </CdsDropdownMenu.Item>
+            <CdsDropdownMenu.Separator className="my-1 h-px bg-line" />
+            <CdsDropdownMenu.Item className="flex h-8 w-full items-center gap-2 rounded-[8px] px-2 text-sm outline-none data-[highlighted]:bg-fill">
+              <SidebarGlyph glyph="" className="h-5 w-5 text-[#52514e] text-[20px] [font-weight:566.5]" />
+              <span className="min-w-0 flex-1 truncate">Create workspace</span>
+            </CdsDropdownMenu.Item>
+          </CdsDropdownMenu.Content>
+        </CdsDropdownMenu.Portal>
+      </CdsDropdownMenu.Root>
       <nav className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto pb-0">
         <IconItem icon={<SidebarGlyph glyph="" />} label="Dashboard" />
         <IconItem icon={<SidebarGlyph glyph="" />} label="API keys" />
