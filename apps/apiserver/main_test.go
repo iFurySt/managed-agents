@@ -41,3 +41,19 @@ func TestSeedRuntimeRowsReferenceSeededEnvironments(t *testing.T) {
 		}
 	}
 }
+
+func TestSeedMemoryStoresMatchesSourceCreatedLabels(t *testing.T) {
+	stores, _ := seedMemoryStores(time.Date(2026, 6, 21, 0, 0, 0, 0, time.UTC))
+
+	want := map[string]string{
+		"memstore_01TFhvAtMizQJLWU29TaW5AZ": "3 days ago",
+		"memstore_01GYUDt8DBmRPDfhs5i9in8M": "5 days ago",
+		"memstore_01GToktzJyefFL2DVxmgyT5e": "5 days ago",
+		"memstore_014LoF1P4MoTKK9HYDmacJuB": "5 days ago",
+	}
+	for _, store := range stores {
+		if label, ok := want[store.ID]; ok && store.CreatedLabel != label {
+			t.Fatalf("memory store %s created label = %q, want %q", store.ID, store.CreatedLabel, label)
+		}
+	}
+}
