@@ -139,6 +139,10 @@ export default function App() {
   const location = useLocation();
   const showBanner = location.pathname === "/vaults" || location.pathname.startsWith("/vaults/");
   const fullWidthRoute = location.pathname.startsWith("/memory-stores/");
+  const contentShellClass = fullWidthRoute
+    ? "w-full max-w-none px-1 pb-8 pt-3"
+    : `mx-auto w-full max-w-7xl overflow-hidden px-6 pb-8 md:px-8 ${showBanner ? "pt-3" : "pt-6"}`;
+  const routeShellClass = fullWidthRoute ? `px-7 ${showBanner ? "pt-6" : "pt-3"}` : showBanner ? "pt-6" : "";
 
   useEffect(() => {
     document.title = getDocumentTitle(location.pathname);
@@ -149,9 +153,9 @@ export default function App() {
       <div className="flex min-h-screen">
         <Sidebar />
         <main className="min-w-0 flex-1">
-          <div className={`w-full px-1 pb-8 pt-3 ${fullWidthRoute ? "max-w-none" : "max-w-[1584px]"}`}>
+          <div className={contentShellClass}>
             {showBanner ? <Banner /> : null}
-            <div className={`px-7 ${showBanner ? "pt-6" : "pt-3"}`}>
+            <div className={routeShellClass}>
               <Routes>
                 <Route path="/" element={<Navigate to="/agents" replace />} />
                 <Route path="/workspaces/:workspaceId/:section/*" element={<WorkspaceRouteRedirect />} />
