@@ -339,7 +339,8 @@ export function DataTable<T>({
 
 export function SidebarItem({ to, children, inset = false, badge }: { to: string; children: ReactNode; inset?: boolean; badge?: string }) {
   const location = useLocation();
-  const active = location.pathname === to || location.pathname.startsWith(`${to}/`);
+  const activeTo = normalizeSidebarPath(to);
+  const active = location.pathname === to || location.pathname.startsWith(`${to}/`) || location.pathname === activeTo || location.pathname.startsWith(`${activeTo}/`);
   return (
     <Link
       to={to}
@@ -350,6 +351,12 @@ export function SidebarItem({ to, children, inset = false, badge }: { to: string
       {badge ? <span className="rounded-md bg-[#d7e8ff] px-2 py-0.5 text-xs font-semibold text-[#1b5eb8]">{badge}</span> : null}
     </Link>
   );
+}
+
+function normalizeSidebarPath(path: string) {
+  const workspacePrefix = "/workspaces/default/";
+  if (!path.startsWith(workspacePrefix)) return path;
+  return `/${path.slice(workspacePrefix.length)}`;
 }
 
 export function ConsoleDialog({

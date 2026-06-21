@@ -569,8 +569,9 @@ function Group({ icon, label, items, managed = false, defaultExpanded = true }: 
   const location = useLocation();
   const toPath = (item: string) => {
     if (!managed) return "#";
-    if (item === "Quickstart") return "/agent-quickstart";
-    return `/${item.toLowerCase().replaceAll(" ", "-").replace("credential-vaults", "vaults")}`;
+    if (item === "Quickstart") return "/workspaces/default/agent-quickstart";
+    const section = item.toLowerCase().replaceAll(" ", "-").replace("credential-vaults", "vaults");
+    return `/workspaces/default/${section}`;
   };
   const buildPath = (item: string) => {
     if (item === "Workbench") return "/workbench";
