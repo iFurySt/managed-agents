@@ -189,6 +189,8 @@ export function DataTable<T>({
   showSelection = true,
   showActions = true,
   actionsWidth = "48px",
+  loading = false,
+  loadingRows = 12,
   className = "",
   tableClassName = ""
 }: {
@@ -200,6 +202,8 @@ export function DataTable<T>({
   showSelection?: boolean;
   showActions?: boolean;
   actionsWidth?: string;
+  loading?: boolean;
+  loadingRows?: number;
   className?: string;
   tableClassName?: string;
 }) {
@@ -265,7 +269,27 @@ export function DataTable<T>({
           </tr>
         </thead>
         <tbody>
-          {rows.map((row) => {
+          {loading ? Array.from({ length: loadingRows }, (_, rowIndex) => (
+            <tr key={`loading-${rowIndex}`} className="h-[46px]">
+              {showSelection ? (
+                <td className="border-b border-[#efede8] px-3 py-2 align-middle">
+                  <span className="block h-4 w-4 rounded-[4px] bg-fill text-transparent">Loading</span>
+                </td>
+              ) : null}
+              {columns.map((column, columnIndex) => (
+                <td key={column.key} className="border-b border-[#efede8] px-3 py-2 align-middle" style={{ width: column.width }}>
+                  <span className={`block h-4 rounded-md bg-fill text-transparent ${columnIndex === 0 ? "w-[72px]" : columnIndex === 1 ? "w-[160px]" : "w-[96px]"}`}>
+                    Loading
+                  </span>
+                </td>
+              ))}
+              {showActions ? (
+                <td className="border-b border-[#efede8] px-3 py-2 align-middle" style={{ width: actionsWidth }}>
+                  <span className="block h-4 w-6 rounded-md bg-fill text-transparent">Loading</span>
+                </td>
+              ) : null}
+            </tr>
+          )) : rows.map((row) => {
             const key = getKey(row);
             const selected = selectedKeys.has(key);
 

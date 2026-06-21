@@ -620,6 +620,7 @@ function AgentsPage() {
 function SessionsPage() {
   const [searchParams] = useSearchParams();
   const [sessions, setSessions] = useState<Session[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [created, setCreated] = useState("All time");
   const [agent, setAgent] = useState(searchParams.get("agentId") ?? "All");
@@ -630,8 +631,22 @@ function SessionsPage() {
   const [archivingSession, setArchivingSession] = useState<Session | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
     setPage(0);
-    listSessions({ q: search, status, agentId: agent, deploymentId: deployment, created }).then(setSessions).catch(() => setSessions([]));
+    setLoading(true);
+    listSessions({ q: search, status, agentId: agent, deploymentId: deployment, created })
+      .then((items) => {
+        if (!cancelled) setSessions(items);
+      })
+      .catch(() => {
+        if (!cancelled) setSessions([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [agent, created, deployment, search, status]);
 
   const pageSize = 8;
@@ -715,6 +730,7 @@ function SessionsPage() {
           tableClassName="border-separate border-spacing-0 whitespace-nowrap"
           rows={visibleSessions}
           getKey={(session) => session.id}
+          loading={loading}
           columns={[
             {
               key: "id",
@@ -1599,6 +1615,7 @@ function DeploymentDetailPage() {
 
 function EnvironmentsPage() {
   const [environments, setEnvironments] = useState<Environment[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All");
   const [page, setPage] = useState(0);
@@ -1607,8 +1624,22 @@ function EnvironmentsPage() {
   const [deletingEnvironment, setDeletingEnvironment] = useState<Environment | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
     setPage(0);
-    listEnvironments({ q: search, status }).then(setEnvironments).catch(() => setEnvironments([]));
+    setLoading(true);
+    listEnvironments({ q: search, status })
+      .then((items) => {
+        if (!cancelled) setEnvironments(items);
+      })
+      .catch(() => {
+        if (!cancelled) setEnvironments([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [search, status]);
 
   const pageSize = 8;
@@ -1677,6 +1708,7 @@ function EnvironmentsPage() {
           tableClassName="w-[968px] border-separate border-spacing-0 whitespace-nowrap"
           rows={visibleEnvironments}
           getKey={(environment) => environment.id}
+          loading={loading}
           actionsWidth="56px"
           columns={[
             {
