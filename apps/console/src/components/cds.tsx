@@ -327,13 +327,15 @@ export function DataTable<T>({
                 })}
                 {showActions ? (
                   <td className="border-b border-[rgba(11,11,11,0.05)] px-3 py-2 [tr:first-child_&]:border-t group-data-[selected=true]/cdsrow:border-transparent group-data-[selected=true]/cdsrow:bg-[rgba(11,11,11,0.05)] group-data-[selected=true]/cdsrow:last:rounded-r-[8px]" style={{ width: actionsWidth }}>
-                    {renderActions ? (
-                      renderActions(row)
-                    ) : (
-                      <Button variant="icon" aria-label="Open row actions">
-                        <CdsIconGlyph glyph="" />
-                      </Button>
-                    )}
+                    <span className="relative z-10 inline-flex max-w-full align-middle">
+                      {renderActions ? (
+                        renderActions(row)
+                      ) : (
+                        <Button variant="icon" aria-label="Open row actions">
+                          <CdsIconGlyph glyph="" />
+                        </Button>
+                      )}
+                    </span>
                   </td>
                 ) : null}
               </tr>
