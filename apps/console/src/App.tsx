@@ -326,8 +326,8 @@ function Sidebar() {
         </CdsDropdownMenu.Portal>
       </CdsDropdownMenu.Root>
       <nav className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto pb-0">
-        <IconItem icon={<SidebarGlyph glyph="" />} label="Dashboard" />
-        <IconItem icon={<SidebarGlyph glyph="" />} label="API keys" />
+        <IconItem icon={<SidebarGlyph glyph="" />} label="Dashboard" to="/dashboard" testId="sidebar-nav-dashboard-full" />
+        <IconItem icon={<SidebarGlyph glyph="" />} label="API keys" to="/settings/workspaces/default/keys" testId="sidebar-nav-api-keys-full" />
         <Group icon={<SidebarGlyph glyph="" />} label="Build" items={["Workbench", "Files", "Skills", "Batches"]} />
         <Group
           icon={<SidebarGlyph glyph="" />}
@@ -503,13 +503,22 @@ function WorkspaceChevronIcon() {
   );
 }
 
-function IconItem({ icon, label, right }: { icon: React.ReactNode; label: string; right?: string }) {
-  return (
-    <div className="flex shrink-0 items-center gap-3 rounded-lg px-2 text-sm leading-5 text-[#52514e] [font-weight:550]" style={{ height: 36 }}>
+function IconItem({ icon, label, right, to, testId }: { icon: React.ReactNode; label: string; right?: string; to?: string; testId?: string }) {
+  const className = "flex h-9 shrink-0 items-center gap-3 rounded-lg px-2 text-sm leading-5 text-[#52514e] [font-weight:550] hover:bg-fill";
+  const content = (
+    <>
       {icon}
       <span className="min-w-0 flex-1 truncate">{label}</span>
       {right ? <span className="text-muted">{right}</span> : null}
-    </div>
+    </>
+  );
+
+  return to ? (
+    <Link className={className} to={to} data-testid={testId}>
+      {content}
+    </Link>
+  ) : (
+    <div className={className}>{content}</div>
   );
 }
 
