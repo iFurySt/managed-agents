@@ -35,6 +35,17 @@ type Agent struct {
 	UpdatedAt    time.Time `json:"updatedAt"`
 }
 
+const sourceAgentOrderSQL = `
+CASE id
+WHEN 'agent_011VCSqwTBQSr7SqT2Mwmus2' THEN 1
+WHEN 'agent_013mi1SmR2hJ6Hk6wNTeJvF9' THEN 2
+WHEN 'agent_01AVRPTGyYareCeoUasn66q5' THEN 3
+WHEN 'agent_019BdsR2v3NW1DiEG62wpu3e' THEN 4
+WHEN 'agent_017k8CPYuCFRD9AmupUeXd2Z' THEN 5
+WHEN 'agent_01MNpVPKyrSECHGA6HqAmREZ' THEN 6
+ELSE 0
+END`
+
 type Resource struct {
 	ID          string    `json:"id" gorm:"primaryKey"`
 	Kind        string    `json:"kind" gorm:"index"`
@@ -447,7 +458,10 @@ func openDB() (*gorm.DB, error) {
 func listAgents(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var agents []Agent
-		query := db.Order("created_at desc")
+		query := db.
+			Order("CASE WHEN id IN ('agent_011VCSqwTBQSr7SqT2Mwmus2', 'agent_013mi1SmR2hJ6Hk6wNTeJvF9', 'agent_01AVRPTGyYareCeoUasn66q5', 'agent_019BdsR2v3NW1DiEG62wpu3e', 'agent_017k8CPYuCFRD9AmupUeXd2Z', 'agent_01MNpVPKyrSECHGA6HqAmREZ') THEN 1 ELSE 0 END ASC").
+			Order(sourceAgentOrderSQL).
+			Order("created_at desc")
 		if search := strings.TrimSpace(c.Query("q")); search != "" {
 			query = query.Where("name ILIKE ? OR id ILIKE ?", "%"+search+"%", "%"+search+"%")
 		}
@@ -1755,21 +1769,34 @@ func listResources(db *gorm.DB) gin.HandlerFunc {
 
 func seed(db *gorm.DB) error {
 	var count int64
-	if err := db.Model(&Agent{}).Count(&count).Error; err != nil {
-		return err
-	}
 	now := time.Now().UTC().Add(-48 * time.Hour)
-	if count == 0 {
-		agents := []Agent{
-			agent("agent_013mi1SmR2hJ6Hk6wNTeJvF9", "Managed SSH Reverse Tunnel Bootstrapper", "claude-sonnet-4-6", "Bootstraps SSH access to a Managed Agents cloud environment through an amoylab reverse SSH tunnel.", reverseTunnelPrompt, now),
-			agent("agent_01AVRPTGyYareCeoUasn66q5", "Incident commander", "claude-opus-4-8", "Coordinates incident triage, diagnosis, mitigation, and status updates.", "You are an incident commander. Build a clear timeline, identify owners, and keep communications concise.", now),
-			agent("agent_019BdsR2v3NW1DiEG62wpu3e", "World Cup Daily Digest (self-hosted clone)", "claude-sonnet-4-6", "Collects World Cup news and prepares a daily digest.", "You summarize sports updates into a concise daily digest with sources.", now),
-			agent("agent_017k8CPYuCFRD9AmupUeXd2Z", "World Cup Daily Digest", "claude-sonnet-4-6", "Collects World Cup news and prepares a daily digest.", "You summarize sports updates into a concise daily digest with sources.", now),
-			agent("agent_01MNpVPKyrSECHGA6HqAmREZ", "Untitled agent", "claude-sonnet-4-6", "A blank starting point with the core toolset.", defaultSystemPrompt, now),
-		}
-		if err := db.Create(&agents).Error; err != nil {
-			return err
-		}
+	agents := []Agent{
+		agent("agent_011VCSqwTBQSr7SqT2Mwmus2", "Untitled agent", "claude-sonnet-4-6", "A blank starting point with the core toolset.", defaultSystemPrompt, now),
+		agent("agent_013mi1SmR2hJ6Hk6wNTeJvF9", "Managed SSH Reverse Tunnel Bootstrapper", "claude-sonnet-4-6", "Bootstraps SSH access to a Managed Agents cloud environment through an amoylab reverse SSH tunnel.", reverseTunnelPrompt, now),
+		agent("agent_01AVRPTGyYareCeoUasn66q5", "Incident commander", "claude-opus-4-8", "Coordinates incident triage, diagnosis, mitigation, and status updates.", "You are an incident commander. Build a clear timeline, identify owners, and keep communications concise.", now),
+		agent("agent_019BdsR2v3NW1DiEG62wpu3e", "World Cup Daily Digest (self-hosted clone)", "claude-sonnet-4-6", "Collects World Cup news and prepares a daily digest.", "You summarize sports updates into a concise daily digest with sources.", now),
+		agent("agent_017k8CPYuCFRD9AmupUeXd2Z", "World Cup Daily Digest", "claude-sonnet-4-6", "Collects World Cup news and prepares a daily digest.", "You summarize sports updates into a concise daily digest with sources.", now),
+		agent("agent_01MNpVPKyrSECHGA6HqAmREZ", "Untitled agent", "claude-sonnet-4-6", "A blank starting point with the core toolset.", defaultSystemPrompt, now),
+	}
+	if err := db.Clauses(clause.OnConflict{
+		Columns: []clause.Column{{Name: "id"}},
+		DoUpdates: clause.AssignmentColumns([]string{
+			"name",
+			"model",
+			"status",
+			"description",
+			"system_prompt",
+			"tools",
+			"skills",
+			"version",
+			"config_yaml",
+			"created_label",
+			"updated_label",
+			"created_at",
+			"updated_at",
+		}),
+	}).Create(&agents).Error; err != nil {
+		return err
 	}
 
 	if err := db.Model(&Resource{}).Count(&count).Error; err != nil {
