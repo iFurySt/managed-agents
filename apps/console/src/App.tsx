@@ -3180,7 +3180,7 @@ function FilesEmptyState({ language, onLanguageChange }: { language: string; onL
   return (
     <div className="mt-2 flex w-full flex-col gap-3">
       <span className="text-sm leading-5 text-[#898781]">
-        No files have been uploaded to the <span className="font-bold">Default</span> workspace. Copy the template below to upload your first file:
+        No files have been uploaded to the <span className="[font-weight:600]">Default</span> workspace. Copy the template below to upload your first file:
       </span>
       <div className="group relative flex flex-col overflow-hidden rounded-lg bg-black/[0.05]">
         <div className="flex h-9 shrink-0 items-center gap-2 pl-3 pr-2">
