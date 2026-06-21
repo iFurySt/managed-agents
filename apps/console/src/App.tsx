@@ -248,8 +248,8 @@ function Sidebar() {
           <WorkspaceBoxIcon />
         </button>
         <nav className="mt-[17px] flex min-h-0 flex-1 flex-col items-start gap-1 overflow-y-auto pb-0 pl-1.5">
-          <CollapsedSidebarLink glyph="" label="Dashboard" to="/dashboard" />
-          <CollapsedSidebarLink glyph="" label="API keys" to="/settings/workspaces/default/keys" />
+          <CollapsedSidebarLink glyph="" label="Dashboard" to="/dashboard" testId="sidebar-nav-dashboard-concise" />
+          <CollapsedSidebarLink glyph="" label="API keys" to="/settings/workspaces/default/keys" testId="sidebar-nav-api-keys-concise" />
           <CollapsedSidebarButton glyph="" label="Build" active={buildSectionActive} testId="sidebar-section-build-concise" />
           <CollapsedSidebarButton glyph="" label="Managed Agents" active={managedSectionActive} testId="sidebar-section-managed-agents-concise" />
           <CollapsedSidebarButton glyph="" label="Analytics" testId="sidebar-section-analytics-concise" />
@@ -257,8 +257,8 @@ function Sidebar() {
           <CollapsedSidebarButton glyph="" label="Manage" testId="sidebar-section-manage-concise" />
         </nav>
         <div className="flex flex-col items-start gap-1 border-t-[0.5px] border-line pl-1.5 pt-2">
-          <CollapsedSidebarLink glyph="" label="Documentation" to="/docs/en/home" />
-          <CollapsedSidebarLink glyph="" label="Credits" to="/settings/billing" />
+          <CollapsedSidebarLink glyph="" label="Documentation" to="/docs/en/home" testId="sidebar-nav-documentation-concise" />
+          <CollapsedSidebarLink glyph="" label="Credits" to="/settings/billing" testId="sidebar-nav-credits-concise" />
           <button
             className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-ink transition-colors hover:bg-fill"
             type="button"
@@ -433,7 +433,7 @@ function SidebarIconButton({ children, className = "", ...props }: React.ButtonH
   );
 }
 
-function CollapsedSidebarLink({ glyph, label, to = "#" }: { glyph: string; label: string; to?: string }) {
+function CollapsedSidebarLink({ glyph, label, to = "#", testId }: { glyph: string; label: string; to?: string; testId?: string }) {
   const location = useLocation();
   const managedActive =
     label === "Managed Agents" &&
@@ -441,7 +441,7 @@ function CollapsedSidebarLink({ glyph, label, to = "#" }: { glyph: string; label
   const active = managedActive || (to !== "#" && (location.pathname === to || location.pathname.startsWith(`${to}/`)));
 
   return (
-    <Link className={`flex h-9 w-9 items-center justify-center rounded-lg text-[#52514e] hover:bg-fill hover:text-ink ${active ? "bg-[rgba(11,11,11,0.05)] !text-ink" : ""}`} to={to} aria-label={label}>
+    <Link className={`flex h-9 w-9 items-center justify-center rounded-lg text-[#52514e] hover:bg-fill hover:text-ink ${active ? "bg-[rgba(11,11,11,0.05)] !text-ink" : ""}`} to={to} aria-label={label} data-testid={testId}>
       <SidebarGlyph glyph={glyph} className="h-5 w-5 text-current text-[20px] [font-weight:433.3]" />
     </Link>
   );
