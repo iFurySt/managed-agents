@@ -751,7 +751,7 @@ function AgentsPage() {
         description="Create and manage autonomous agents."
         action={
           <div className="flex items-center gap-2">
-            <Button className="!w-[132px] !gap-1.5 !rounded-[8px] !px-2 [font-weight:550]" onClick={() => setDialogOpen(true)}>
+            <Button className="!w-[132px] !gap-1.5 !rounded-[8px] !px-3 [font-weight:550]" onClick={() => setDialogOpen(true)}>
               <CdsIconGlyph glyph="" className="h-5 w-5 text-current text-[20px] [font-weight:566.5]" />
               Create agent
             </Button>
