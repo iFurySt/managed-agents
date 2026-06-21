@@ -1954,8 +1954,8 @@ function EnvironmentsPage() {
               header: "ID",
               width: "216px",
               render: (environment) => (
-                <div className="group/cid flex min-w-0 items-center gap-2">
-                  <span className="truncate font-mono font-semibold">{shortEnvironmentId(environment.id)}</span>
+                <div className="group/cid relative z-10 inline-flex max-w-full items-center gap-1 align-middle font-mono text-xs [font-weight:550]">
+                  <span className="truncate">{shortEnvironmentId(environment.id)}</span>
                   <Button
                     variant="ghost"
                     size="sm"
