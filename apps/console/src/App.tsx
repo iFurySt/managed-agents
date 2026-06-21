@@ -341,7 +341,7 @@ function Sidebar() {
       </nav>
       <div className="-mx-3 flex flex-col gap-1 border-t-[0.5px] border-line bg-transparent px-3 pb-0 pt-2">
         <FooterItem icon={<SidebarGlyph glyph="" className="h-5 w-5 text-[#52514e] text-[20px] [font-weight:433.3]" />} label="Documentation" to="/docs/en/home" />
-        <FooterItem icon={<SidebarGlyph glyph="" className="h-5 w-5 text-[#52514e] text-[20px] [font-weight:433.3]" />} label="Credits" right={"USD\u00a03.10"} />
+        <FooterItem icon={<SidebarGlyph glyph="" className="h-5 w-5 text-[#52514e] text-[20px] [font-weight:433.3]" />} label="Credits" right={"USD\u00a03.10"} overlayTo="/settings/billing" overlayAriaLabel="Credits — view billing" />
         <CdsDropdownMenu.Root>
           <CdsDropdownMenu.Trigger asChild>
             <button className="flex h-11 w-full items-center justify-between gap-3 rounded-lg px-2 py-1.5 text-left transition-colors hover:bg-fill data-[state=open]:bg-fill" type="button" aria-label="User menu">
@@ -513,7 +513,21 @@ function IconItem({ icon, label, right }: { icon: React.ReactNode; label: string
   );
 }
 
-function FooterItem({ icon, label, right, to }: { icon: React.ReactNode; label: string; right?: string; to?: string }) {
+function FooterItem({
+  icon,
+  label,
+  right,
+  to,
+  overlayTo,
+  overlayAriaLabel
+}: {
+  icon: React.ReactNode;
+  label: string;
+  right?: string;
+  to?: string;
+  overlayTo?: string;
+  overlayAriaLabel?: string;
+}) {
   const className = "flex h-9 shrink-0 items-center gap-3 rounded-lg px-2 text-sm leading-5 text-[#52514e] [font-weight:400] hover:bg-fill";
   const content = (
     <>
@@ -527,6 +541,11 @@ function FooterItem({ icon, label, right, to }: { icon: React.ReactNode; label: 
     <Link className={className} to={to}>
       {content}
     </Link>
+  ) : overlayTo ? (
+    <div className={`${className} relative`}>
+      {content}
+      <Link className="absolute inset-0 rounded-lg" to={overlayTo} aria-label={overlayAriaLabel || label} />
+    </div>
   ) : (
     <div className={className}>{content}</div>
   );
