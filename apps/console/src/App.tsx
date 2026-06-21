@@ -116,21 +116,21 @@ const cdsMenuItemClass =
   "flex h-8 w-full cursor-pointer items-center gap-2 rounded-[8px] px-2.5 py-1.5 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 data-[highlighted]:bg-fill";
 const cdsMenuDangerItemClass = `${cdsMenuItemClass} text-[#8e2626] data-[highlighted]:bg-[#fff1ef]`;
 const cdsMenuSeparatorClass = "my-1 h-px bg-line";
-const pageTitles: Record<string, { list: string; detail: string }> = {
-  agents: { list: "Agents", detail: "Agent" },
-  sessions: { list: "Sessions", detail: "Session" },
-  deployments: { list: "Deployments", detail: "Deployment" },
-  environments: { list: "Environments", detail: "Environment" },
-  vaults: { list: "Credential vaults", detail: "Credential vault" },
-  "memory-stores": { list: "Memory stores", detail: "Memory store" },
-  files: { list: "Files", detail: "File" },
-  skills: { list: "Skills", detail: "Skill" }
+const pageTitles: Record<string, string> = {
+  agents: "Agents",
+  sessions: "Sessions",
+  deployments: "Deployments",
+  environments: "Environments",
+  vaults: "Credential vaults",
+  "memory-stores": "Memory stores",
+  files: "Files",
+  skills: "Skills"
 };
 
 function getDocumentTitle(pathname: string) {
-  const [segment, id] = pathname.split("/").filter(Boolean);
+  const [segment] = pathname.split("/").filter(Boolean);
   const pageTitle = segment ? pageTitles[segment] : null;
-  const title = pageTitle ? (id ? pageTitle.detail : pageTitle.list) : "Claude Platform";
+  const title = pageTitle || "Claude Platform";
   return title === "Claude Platform" ? title : `${title} | Claude Platform`;
 }
 
