@@ -271,7 +271,7 @@ function Sidebar() {
       </nav>
       <div className="-mx-3 flex flex-col gap-1 border-t-[0.5px] border-line bg-transparent px-3 pb-0 pt-2">
         <FooterItem icon={<SidebarGlyph glyph="" className="h-5 w-5 text-[#52514e] text-[20px] [font-weight:433.3]" />} label="Documentation" />
-        <FooterItem icon={<SidebarGlyph glyph="" className="h-5 w-5 text-[#52514e] text-[20px] [font-weight:433.3]" />} label="Credits" right="USD 3.10" />
+        <FooterItem icon={<SidebarGlyph glyph="" className="h-5 w-5 text-[#52514e] text-[20px] [font-weight:433.3]" />} label="Credits" right={"USD\u00a03.10"} />
         <div className="flex h-11 items-center gap-3 rounded-lg px-2 py-1.5">
           <div className="grid h-8 w-8 shrink-0 place-items-center rounded-md border-[0.5px] border-black/10 bg-[rgba(11,11,11,0.05)] text-[#52514e]">
             <SidebarGlyph glyph="" className="h-5 w-5 text-[#52514e] text-[20px] [font-weight:433.3]" />
@@ -281,7 +281,7 @@ function Sidebar() {
             <div className="flex min-w-0 items-baseline gap-1.5 text-xs leading-4 text-[#52514e] [font-weight:430]">
               <span className="shrink-0">Admin</span>
               <span className="shrink-0">·</span>
-              <span className="truncate">Leo's Individual Org</span>
+              <span className="truncate">Leo’s Individual Org</span>
             </div>
           </div>
           <SidebarGlyph glyph="" className="h-4 w-4 text-[#898781] text-[16px] [font-weight:533.3]" />
