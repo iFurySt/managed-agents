@@ -2367,7 +2367,17 @@ function VaultsPage() {
         title="Credential vaults"
         description="Manage credential vaults that provide your agents with access to MCP servers and other tools."
         action={
-          <HeaderCreateButton onClick={() => setDialogOpen(true)}>Create vault</HeaderCreateButton>
+          <div className="flex items-center gap-2">
+            <HeaderCreateButton onClick={() => setDialogOpen(true)}>Create vault</HeaderCreateButton>
+            <a
+              data-cds="Button"
+              className="cds-focus inline-flex h-8 w-8 items-center justify-center gap-1.5 rounded-[8px] text-sm !leading-5 text-ink [font-weight:550] hover:bg-fill"
+              aria-label="View documentation"
+              href="https://platform.claude.com/docs/en/managed-agents/vaults"
+            >
+              <CdsIconGlyph glyph="" />
+            </a>
+          </div>
         }
       />
       <div className="mt-4 flex h-10 flex-wrap items-start gap-2">
