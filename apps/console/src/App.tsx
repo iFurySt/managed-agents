@@ -4708,9 +4708,12 @@ function DeploymentVaultPicker({ value, onValueChange }: { value: string; onValu
 function CredentialVaultOptionContent({ option }: { option: (typeof credentialVaultPickerOptions)[number] }) {
   return (
     <>
-      <span className="grid min-w-0 gap-0.5">
-        <span className="truncate text-sm leading-5 text-ink">{option.name}</span>
-        <span className="truncate text-[13px] leading-4 text-muted">{option.updated}</span>
+      <span className="flex min-w-0 items-center gap-2">
+        <CdsIconGlyph glyph="" className="h-5 w-5 shrink-0 text-[#898781] text-[20px] [font-weight:433.25]" />
+        <span className="grid min-w-0 gap-0.5">
+          <span className="truncate text-sm leading-5 text-ink">{option.name}</span>
+          <span className="truncate text-[13px] leading-4 text-muted">{option.updated}</span>
+        </span>
       </span>
       <span className="inline-flex shrink-0 items-center gap-1.5 text-xs leading-4 text-muted">
         {option.credentialIcons > 0
