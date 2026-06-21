@@ -5045,7 +5045,7 @@ function DeploymentMemoryStorePicker({ value, onValueChange }: { value: string; 
           </button>
         </div>
       ) : null}
-      <div className="h-8 rounded-[8px] bg-white/50">
+      <div className="h-8 w-[464px] rounded-[8px] bg-white/50">
         <button
           type="button"
           role="combobox"
