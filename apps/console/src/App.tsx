@@ -3948,7 +3948,7 @@ function CreateAgentDialog({
       closeLabel="Close"
       overlayClassName="fixed inset-0 z-40 bg-transparent"
     >
-      <div className="flex h-[calc(65vh+74px)] max-h-[calc(100dvh-112px)] flex-col overflow-y-auto px-6 pb-6 pt-[10px]">
+      <div className="flex h-[calc(65vh+74px)] max-h-[calc(100dvh-112px)] flex-col overflow-y-auto px-6 pb-6 pt-3">
         <button
           aria-controls={startingPointPanelId}
           aria-expanded={startingPointOpen}
