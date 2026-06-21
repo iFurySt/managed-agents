@@ -235,7 +235,7 @@ function Sidebar() {
 
   if (collapsed) {
     return (
-      <aside aria-label="Main navigation" className="sticky top-0 flex h-screen w-12 shrink-0 flex-col border-r-[0.5px] border-line bg-[#f9f9f7] p-0">
+      <aside aria-label="Main navigation" className="sticky top-0 flex h-screen w-12 shrink-0 flex-col border-r-[0.5px] border-line bg-[#f9f9f7] p-0 shadow-[inset_-4px_0px_6px_-4px_rgba(0,0,0,0.04)]">
         <div className="flex h-[52px] items-start justify-start pl-2 pt-3">
           <SidebarIconButton aria-label="Expand" data-testid="menu-sidebar-open" onClick={() => setCollapsed(false)}>
             <SidebarPanelIcon />
@@ -278,7 +278,7 @@ function Sidebar() {
   }
 
   return (
-    <aside aria-label="Main navigation" className="sticky top-0 flex h-screen w-64 shrink-0 flex-col border-r-[0.5px] border-line bg-[#f9f9f7] p-3">
+    <aside aria-label="Main navigation" className="sticky top-0 flex h-screen w-64 shrink-0 flex-col border-r-[0.5px] border-line bg-[#f9f9f7] p-3 shadow-[inset_-4px_0px_6px_-4px_rgba(0,0,0,0.04)]">
       <div className="flex h-10 w-full flex-col pb-3">
         <div className="-mr-2 flex w-full translate-y-px items-center justify-between">
           <Link className="-ml-[5.4px] origin-left scale-[0.95] pl-2" to="/dashboard" data-testid="sidebar-logo-home">
