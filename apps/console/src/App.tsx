@@ -3002,11 +3002,11 @@ function FilesPage() {
 function FilesEmptyState({ language, onLanguageChange }: { language: string; onLanguageChange: (value: string) => void }) {
   const code = language === "Python" ? filesPythonTemplate : filesCurlTemplate;
   return (
-    <div className="mt-2 w-full">
-      <p className="mb-3 text-sm leading-5 text-[#898781]">
+    <div className="mt-2 flex w-full flex-col gap-3">
+      <span className="text-sm leading-5 text-[#898781]">
         No files have been uploaded to the <span className="font-bold">Default</span> workspace. Copy the template below to upload your first file:
-      </p>
-      <div className="group relative flex flex-col overflow-hidden rounded-lg bg-fill">
+      </span>
+      <div className="group relative flex flex-col overflow-hidden rounded-lg bg-black/[0.05]">
         <div className="flex h-9 shrink-0 items-center gap-2 pl-3 pr-2">
           <FilesLanguageMenu language={language} onLanguageChange={onLanguageChange} />
           <div className="ml-auto flex items-center gap-1">
