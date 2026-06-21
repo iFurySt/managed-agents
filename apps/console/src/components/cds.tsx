@@ -3,7 +3,7 @@ import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import * as Select from "@radix-ui/react-select";
 import * as Tabs from "@radix-ui/react-tabs";
 import { Check } from "lucide-react";
-import { forwardRef, type ReactNode } from "react";
+import { forwardRef, useMemo, useState, type KeyboardEvent, type MouseEvent, type ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 
 function CdsIconGlyph({ glyph, className = "h-5 w-5 text-current text-[20px] [font-weight:433.3]" }: { glyph: string; className?: string }) {
@@ -14,11 +14,50 @@ function CdsIconGlyph({ glyph, className = "h-5 w-5 text-current text-[20px] [fo
   );
 }
 
-function TableSelectionBox({ label = "Select row" }: { label?: string }) {
+function TableSelectionBox({
+  label = "Select row",
+  checked = false,
+  mixed = false,
+  onToggle
+}: {
+  label?: string;
+  checked?: boolean;
+  mixed?: boolean;
+  onToggle?: () => void;
+}) {
+  const state = mixed ? "mixed" : checked ? "true" : "false";
+  const glyph = mixed ? "" : "";
+
+  function handleMouseDown(event: MouseEvent<HTMLSpanElement>) {
+    event.preventDefault();
+    event.stopPropagation();
+    onToggle?.();
+  }
+
+  function handleKeyDown(event: KeyboardEvent<HTMLSpanElement>) {
+    if (event.key === " " || event.key === "Enter") {
+      event.preventDefault();
+      event.stopPropagation();
+      onToggle?.();
+    }
+  }
+
   return (
-    <span data-cds="Checkbox" role="checkbox" tabIndex={0} aria-checked="false" aria-label={label} className="inline-flex h-4 w-4 shrink-0 items-center justify-center text-left outline-none">
-      <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-[4px] border border-[rgba(11,11,11,0.2)] bg-transparent">
-        <CdsIconGlyph glyph="" className="h-4 w-4 text-white text-[16px] opacity-0 [font-weight:700]" />
+    <span
+      data-cds="Checkbox"
+      data-checked={checked && !mixed ? "" : undefined}
+      data-indeterminate={mixed ? "" : undefined}
+      data-unchecked={!checked && !mixed ? "" : undefined}
+      role="checkbox"
+      tabIndex={0}
+      aria-checked={state}
+      aria-label={label}
+      onMouseDown={handleMouseDown}
+      onKeyDown={handleKeyDown}
+      className="inline-flex h-4 w-4 shrink-0 items-center justify-center text-left outline-none"
+    >
+      <span className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-[4px] ${checked || mixed ? "border-0 bg-[#2a78d6]" : "border border-[rgba(11,11,11,0.2)] bg-transparent"}`}>
+        <CdsIconGlyph glyph={glyph} className={`h-4 w-4 text-white text-[16px] [font-weight:700] ${checked || mixed ? "opacity-100" : "opacity-0"}`} />
       </span>
     </span>
   );
@@ -164,6 +203,36 @@ export function DataTable<T>({
   className?: string;
   tableClassName?: string;
 }) {
+  const [selectedKeys, setSelectedKeys] = useState<Set<string>>(() => new Set());
+  const rowKeys = useMemo(() => rows.map((row) => getKey(row)), [rows, getKey]);
+  const selectedVisibleCount = rowKeys.filter((key) => selectedKeys.has(key)).length;
+  const allVisibleSelected = rowKeys.length > 0 && selectedVisibleCount === rowKeys.length;
+  const someVisibleSelected = selectedVisibleCount > 0 && !allVisibleSelected;
+
+  function toggleAllVisible() {
+    setSelectedKeys((current) => {
+      const next = new Set(current);
+      if (allVisibleSelected) {
+        rowKeys.forEach((key) => next.delete(key));
+      } else {
+        rowKeys.forEach((key) => next.add(key));
+      }
+      return next;
+    });
+  }
+
+  function toggleRow(key: string) {
+    setSelectedKeys((current) => {
+      const next = new Set(current);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
+  }
+
   return (
     <div data-cds="DataTable" className={`w-full overflow-hidden ${className}`}>
       <table data-cds="Table" className={`w-full table-fixed border-collapse text-left text-sm ${tableClassName}`}>
@@ -179,7 +248,7 @@ export function DataTable<T>({
             {showSelection ? (
               <th className="relative w-10 p-0 [font-weight:550]">
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <TableSelectionBox label="Select all rows" />
+                  <TableSelectionBox label="Select all rows" checked={allVisibleSelected} mixed={someVisibleSelected} onToggle={toggleAllVisible} />
                 </div>
               </th>
             ) : null}
@@ -196,33 +265,38 @@ export function DataTable<T>({
           </tr>
         </thead>
         <tbody>
-          {rows.map((row) => (
-            <tr key={getKey(row)} className="h-[46px] border-b border-[#efede8] hover:bg-[#fbfaf7]">
-              {showSelection ? (
-                <td className="relative p-0">
-                  <div className="absolute inset-0 z-10 flex items-center justify-center">
-                    <TableSelectionBox />
-                  </div>
-                </td>
-              ) : null}
-              {columns.map((column) => (
-                <td key={column.key} className="max-w-[260px] truncate px-3 py-2 align-middle" style={{ width: column.width }}>
-                  {column.render(row)}
-                </td>
-              ))}
-              {showActions ? (
-                <td className="px-3 py-2" style={{ width: actionsWidth }}>
-                  {renderActions ? (
-                    renderActions(row)
-                  ) : (
-                    <Button variant="icon" aria-label="Open row actions">
-                      <CdsIconGlyph glyph="" />
-                    </Button>
-                  )}
-                </td>
-              ) : null}
-            </tr>
-          ))}
+          {rows.map((row) => {
+            const key = getKey(row);
+            const selected = selectedKeys.has(key);
+
+            return (
+              <tr key={key} data-selected={selected ? "true" : undefined} className="h-[46px] border-b border-[#efede8] hover:bg-[#fbfaf7]">
+                {showSelection ? (
+                  <td className="relative p-0">
+                    <div className="absolute inset-0 z-10 flex items-center justify-center">
+                      <TableSelectionBox checked={selected} onToggle={() => toggleRow(key)} />
+                    </div>
+                  </td>
+                ) : null}
+                {columns.map((column) => (
+                  <td key={column.key} className="max-w-[260px] truncate px-3 py-2 align-middle" style={{ width: column.width }}>
+                    {column.render(row)}
+                  </td>
+                ))}
+                {showActions ? (
+                  <td className="px-3 py-2" style={{ width: actionsWidth }}>
+                    {renderActions ? (
+                      renderActions(row)
+                    ) : (
+                      <Button variant="icon" aria-label="Open row actions">
+                        <CdsIconGlyph glyph="" />
+                      </Button>
+                    )}
+                  </td>
+                ) : null}
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
