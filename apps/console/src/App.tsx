@@ -350,8 +350,8 @@ function Sidebar() {
           managed
           testId="sidebar-section-managed-agents"
         />
-        <Group icon={<SidebarGlyph glyph="" />} label="Analytics" items={["Usage", "Caching", "Rate limits", "Cost", "Logs"]} testId="sidebar-section-analytics" />
-        <Group icon={<SidebarGlyph glyph="" />} label="Claude Code" items={["Usage", "Settings"]} testId="sidebar-section-claude-code" />
+        <Group icon={<SidebarGlyph glyph="" />} label="Analytics" items={["Usage", "Caching", "Rate limits", "Cost", "Logs"]} defaultExpanded={false} testId="sidebar-section-analytics" />
+        <Group icon={<SidebarGlyph glyph="" />} label="Claude Code" items={["Usage", "Settings"]} defaultExpanded={false} testId="sidebar-section-claude-code" />
         <Group icon={<SidebarGlyph glyph="" />} label="Manage" items={["Limits", "Service accounts", "Privacy controls", "Security", "Webhooks", "Tags"]} testId="sidebar-section-manage" />
       </nav>
       <div className="-mx-3 flex flex-col gap-1 border-t-[0.5px] border-line bg-transparent px-3 pb-0 pt-2">
