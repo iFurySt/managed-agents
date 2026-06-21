@@ -354,7 +354,7 @@ export function ConsoleDialog({
   headerClassName = "flex items-start justify-between px-6 pt-6",
   closeButtonClassName = "h-8 w-8 px-0",
   closeLabel = "Close dialog",
-  overlayClassName = "fixed inset-0 z-40 bg-black/35 backdrop-blur-[1px]"
+  overlayClassName = "fixed inset-0 z-40 bg-black/40 backdrop-blur-[2px]"
 }: {
   title: string;
   description?: string;
