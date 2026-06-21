@@ -3976,7 +3976,7 @@ function CreateSessionDialog({
             <FieldSelect
               label=""
               value={vault || "Select one or more vaults"}
-              options={["Select one or more vaults", "vault_01GitHub", "No vaults"]}
+              options={["Select one or more vaults", "test_secret", "GitHub source access", "No vaults"]}
               onValueChange={(value) => setVault(value === "Select one or more vaults" || value === "No vaults" ? "" : value)}
               showLabel={false}
               triggerClassName="!h-[31px] w-[651px] !gap-1.5 !rounded-none border-0 !bg-transparent !pl-2 !pr-0"
