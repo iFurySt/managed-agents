@@ -30,7 +30,7 @@ import {
 } from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as Select from "@radix-ui/react-select";
-import { useEffect, useMemo, useState, type ButtonHTMLAttributes, type DragEvent, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ButtonHTMLAttributes, type ChangeEventHandler, type ComponentProps, type DragEvent, type ReactNode } from "react";
 import { Link, Navigate, Route, Routes, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   archiveSession,
@@ -4068,11 +4068,11 @@ function CreateAgentDialog({
             {format === "YAML" ? (
               <div className="relative h-[calc(100%-43px)] min-h-0">
                 <span className="sr-only">Tab inserts indentation. Press Escape then Tab to move focus out of the editor.</span>
-                <textarea
-                  className="h-full w-full resize-none overflow-auto border-0 bg-transparent px-[11px] py-3 font-mono text-[13px] leading-[19px] outline-none"
+                <HighlightedConfigTextarea
                   aria-label="Agent config YAML. Tab inserts indentation. Press Escape then Tab to move focus out of the editor."
                   value={configYaml}
                   onChange={(event) => setConfigYaml(event.target.value)}
+                  language="YAML"
                 />
               </div>
             ) : (
@@ -4163,10 +4163,11 @@ function EditAgentDialog({
           <div className="relative flex-1 overflow-auto px-3 pb-3 pt-[13px] text-ink">
             <p className="sr-only">Tab inserts indentation. Press Escape then Tab to move focus out of the editor.</p>
             {format === "YAML" ? (
-              <textarea
-                className="h-[475px] w-full resize-none border-0 bg-transparent p-0 font-mono text-[13px] leading-[19px] outline-none"
+              <HighlightedConfigTextarea
+                className="h-[475px] px-0 py-0"
                 value={configYaml}
                 onChange={(event) => setConfigYaml(event.target.value)}
+                language="YAML"
               />
             ) : (
               <pre className="min-h-[475px] whitespace-pre-wrap p-0 font-mono text-[13px] leading-[19px]">
@@ -6416,13 +6417,50 @@ function CodeYaml({ source }: { source: string }) {
         const [key, rest] = line.includes(":") ? line.split(/:(.*)/s) : ["", line];
         return (
           <span key={`${line}-${index}`}>
-            {key ? <span className="text-[#d04444]">{key}:</span> : null}
-            <span className="text-[#348b34]">{key ? rest : line}</span>
+            {key ? <span className="text-[#b80a18]">{key}:</span> : null}
+            <span className="text-[#008000]">{key ? rest : line}</span>
             {"\n"}
           </span>
         );
       })}
     </>
+  );
+}
+
+function HighlightedConfigTextarea({
+  value,
+  onChange,
+  language,
+  className = "h-full px-[11px] py-3",
+  ...props
+}: {
+  value: string;
+  onChange: ChangeEventHandler<HTMLTextAreaElement>;
+  language: "YAML" | "JSON";
+  className?: string;
+} & Omit<ComponentProps<"textarea">, "value" | "onChange" | "children">) {
+  const [scroll, setScroll] = useState({ left: 0, top: 0 });
+  const textClassName = `absolute inset-0 font-mono text-[13px] leading-[19px] ${className}`;
+
+  return (
+    <div className="relative h-full min-h-0 overflow-hidden">
+      <div className={`${textClassName} pointer-events-none overflow-hidden whitespace-pre-wrap text-ink`} aria-hidden="true">
+        <pre
+          className="m-0 min-h-full whitespace-pre-wrap break-words p-0 font-inherit text-inherit"
+          style={{ transform: `translate(${-scroll.left}px, ${-scroll.top}px)` }}
+        >
+          {language === "YAML" ? <CodeYaml source={value} /> : value}
+        </pre>
+      </div>
+      <textarea
+        {...props}
+        className={`${textClassName} z-10 resize-none overflow-auto border-0 bg-transparent font-mono text-transparent caret-[#0b0b0b] outline-none selection:bg-[#cde2fb] selection:text-transparent`}
+        spellCheck={false}
+        value={value}
+        onChange={onChange}
+        onScroll={(event) => setScroll({ left: event.currentTarget.scrollLeft, top: event.currentTarget.scrollTop })}
+      />
+    </div>
   );
 }
 
