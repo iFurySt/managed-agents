@@ -607,7 +607,8 @@ function Group({ icon, label, items, managed = false, defaultExpanded = true, te
     return ids[item];
   };
   const groupRoutes = items.map((item) => buildPath(item) ?? (managed ? toPath(item) : null)).filter((route): route is string => Boolean(route && route !== "#"));
-  const groupActive = groupRoutes.some((route) => location.pathname === route || location.pathname.startsWith(`${route}/`));
+  const groupRouteAliases = groupRoutes.flatMap((route) => [route, route.replace("/workspaces/default", "")]);
+  const groupActive = groupRouteAliases.some((route) => location.pathname === route || location.pathname.startsWith(`${route}/`));
   return (
     <div className={`${expanded ? "mb-1" : ""} flex shrink-0 flex-col gap-1`}>
       <button
@@ -618,8 +619,8 @@ function Group({ icon, label, items, managed = false, defaultExpanded = true, te
         onClick={() => setExpanded((value) => !value)}
       >
         {icon}
-        <span className={`min-w-0 flex-1 truncate text-left ${groupActive ? "[font-weight:580]" : "[font-weight:550]"}`}>{label}</span>
-        <CdsIconGlyph glyph="" className={`h-3 w-3 shrink-0 text-[#898781] text-[12px] [font-weight:577.75] ${expanded ? "rotate-90" : ""}`} />
+        <span className={`truncate text-left ${groupActive ? "[font-weight:580]" : "[font-weight:550]"}`}>{label}</span>
+        <CdsIconGlyph glyph="" className={`ml-auto h-3 w-3 shrink-0 text-[#898781] text-[12px] [font-weight:577.75] ${expanded ? "rotate-90" : ""}`} />
       </button>
       {expanded ? <div className="flex flex-col gap-1">
         {items.map((item) => {
