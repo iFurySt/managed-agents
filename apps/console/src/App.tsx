@@ -2790,8 +2790,8 @@ function MemoryStoresPage() {
               header: "ID",
               width: "200px",
               render: (store) => (
-                <div className="group/cid flex items-center gap-2">
-                  <span className="font-mono font-semibold">{shortId(store.id)}</span>
+                <div className="group/cid relative z-10 inline-flex max-w-full items-center gap-1 align-middle font-mono text-xs [font-weight:550]">
+                  <span className="truncate">{shortMemoryStoreId(store.id)}</span>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -7444,7 +7444,7 @@ function shortId(id: string) {
 
 function shortMemoryStoreId(id: string) {
   if (id.length <= 15) return id;
-  return `${id.slice(0, 8)}…${id.slice(-6)}`;
+  return `${id.slice(0, 9)}…${id.slice(-7)}`;
 }
 
 function shortMemoryRecordId(id: string) {
