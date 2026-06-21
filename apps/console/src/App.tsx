@@ -117,6 +117,7 @@ const cdsMenuItemClass =
 const cdsMenuDangerItemClass = `${cdsMenuItemClass} text-[#8e2626] data-[highlighted]:bg-[#fff1ef]`;
 const cdsMenuSeparatorClass = "my-1 h-px bg-line";
 const pageTitles: Record<string, string> = {
+  "agent-quickstart": "Quickstart",
   agents: "Agents",
   sessions: "Sessions",
   deployments: "Deployments",
@@ -153,6 +154,7 @@ export default function App() {
             <div className={`px-7 ${showBanner ? "pt-6" : "pt-3"}`}>
               <Routes>
                 <Route path="/" element={<Navigate to="/agents" replace />} />
+                <Route path="/agent-quickstart" element={<QuickstartPage />} />
                 <Route path="/agents" element={<AgentsPage />} />
                 <Route path="/agents/:id" element={<AgentDetailPage />} />
                 <Route path="/sessions" element={<SessionsPage />} />
@@ -428,7 +430,7 @@ function Group({ icon, label, items, managed = false, defaultExpanded = true }: 
   const location = useLocation();
   const toPath = (item: string) => {
     if (!managed) return "#";
-    if (item === "Quickstart") return "#";
+    if (item === "Quickstart") return "/agent-quickstart";
     return `/${item.toLowerCase().replaceAll(" ", "-").replace("credential-vaults", "vaults")}`;
   };
   const buildPath = (item: string) => {
@@ -452,13 +454,9 @@ function Group({ icon, label, items, managed = false, defaultExpanded = true }: 
       </button>
       {expanded ? <div className="flex flex-col gap-1">
         {items.map((item) => {
-          const route = buildPath(item);
-          return managed && item !== "Quickstart" ? (
-            <SidebarItem key={item} to={toPath(item)} inset badge={item === "Deployments" ? "New" : undefined}>
-              {item}
-            </SidebarItem>
-          ) : route ? (
-            <SidebarItem key={item} to={route} inset>
+          const route = buildPath(item) ?? (managed ? toPath(item) : null);
+          return route && route !== "#" ? (
+            <SidebarItem key={item} to={route} inset badge={item === "Deployments" ? "New" : undefined}>
               {item}
             </SidebarItem>
           ) : (
@@ -469,6 +467,31 @@ function Group({ icon, label, items, managed = false, defaultExpanded = true }: 
         })}
       </div> : null}
     </div>
+  );
+}
+
+function QuickstartPage() {
+  return (
+    <section className="max-w-[968px]">
+      <PageHeader
+        title="Quickstart"
+        description="Create an agent, start a session, and connect environments, vaults, memory, files, and skills."
+      />
+      <div className="mt-10 grid gap-4 text-sm leading-5 text-[#52514e]">
+        <div className="rounded-cds border border-line bg-white px-4 py-3">
+          <div className="mb-1 text-ink [font-weight:550]">1. Create or choose an agent</div>
+          <p>Agents define the model, system prompt, tool permissions, skills, and runtime defaults used by sessions and deployments.</p>
+        </div>
+        <div className="rounded-cds border border-line bg-white px-4 py-3">
+          <div className="mb-1 text-ink [font-weight:550]">2. Start a session</div>
+          <p>Sessions provide the interactive execution surface for a selected agent, environment, mounted files, vault credentials, and memory stores.</p>
+        </div>
+        <div className="rounded-cds border border-line bg-white px-4 py-3">
+          <div className="mb-1 text-ink [font-weight:550]">3. Promote repeatable work to a deployment</div>
+          <p>Deployments capture scheduled or triggered runs once a workflow is stable enough to run repeatedly.</p>
+        </div>
+      </div>
+    </section>
   );
 }
 
