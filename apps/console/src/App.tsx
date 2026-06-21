@@ -1484,6 +1484,7 @@ function DeploymentsPage() {
         <DataTable
           className="-mx-2 !w-[calc(100%+16px)] overflow-x-auto p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
           tableClassName="border-separate border-spacing-0 whitespace-nowrap"
+          headerTextClassName="text-[13px]"
           rows={visibleDeployments}
           getKey={(deployment) => deployment.id}
           showSelection={false}
