@@ -3850,7 +3850,17 @@ const agentStartingTemplates = [
   {
     name: "Field monitor",
     description: "Scans software blogs for a topic and writes a weekly what-changed brief.",
-    system: "You monitor a technical field for meaningful changes. Compare recent sources and write a short weekly brief with links and impact."
+    system: [
+      "You track a fast-moving technical field. Given a topic and a lookback window, defaulting to 7 days:",
+      "",
+      "1. Search high-signal sources for posts, papers, and discussions in the window that match the topic.",
+      "2. Cluster findings by theme rather than source. Name each cluster by the claim or shift it represents.",
+      "3. For each cluster, write a one-paragraph synthesis, list the strongest sources, and add a practical so-what line for builders.",
+      "4. Separately list people or teams whose posts drove the most useful discussion this window.",
+      "5. Write a dated digest page to Notion under the team's field-watch database.",
+      "",
+      "Be ruthless about signal. A production post about what broke is signal; a paper that restates a known result with a new benchmark is usually noise."
+    ].join("\n")
   },
   {
     name: "Support agent",
@@ -7463,6 +7473,26 @@ skills: []`;
 }
 
 function agentTemplateYaml(template: (typeof agentStartingTemplates)[number]) {
+  if (template.name === "Field monitor") {
+    return `name: ${template.name}
+description: ${template.description}
+model: claude-sonnet-4-6
+${yamlField("system", template.system)}
+mcp_servers:
+  - name: notion
+    type: url
+    url: https://mcp.notion.com/mcp
+tools:
+  - type: agent_toolset_20260401
+  - type: mcp_toolset
+    mcp_server_name: notion
+    default_config:
+      permission_policy:
+        type: always_allow
+metadata:
+  template: field-monitor`;
+  }
+
   return `name: ${template.name === "Blank agent" ? "Untitled agent" : template.name}
 description: ${template.description}
 model: claude-sonnet-4-6
@@ -7522,6 +7552,33 @@ function yamlField(key: string, value: string) {
 
 function agentConfigFromYaml(source: string) {
   const modelId = yamlValue(source, "id", yamlValue(source, "model", "claude-sonnet-4-6"));
+  const hasNotionMcp = source.includes("name: notion") && source.includes("https://mcp.notion.com/mcp");
+  const hasMcpToolset = source.includes("type: mcp_toolset");
+  const tools: Array<Record<string, unknown>> = [
+    {
+      type: "agent_toolset_20260401",
+      default_config: {
+        enabled: true,
+        permission_policy: {
+          type: "always_allow"
+        }
+      },
+      configs: []
+    }
+  ];
+  if (hasMcpToolset) {
+    tools.push({
+      type: "mcp_toolset",
+      mcp_server_name: "notion",
+      default_config: {
+        permission_policy: {
+          type: "always_allow"
+        }
+      },
+      configs: []
+    });
+  }
+
   return {
     name: yamlValue(source, "name", "Untitled agent"),
     description: yamlValue(source, "description", "A blank starting point with the core toolset."),
@@ -7530,21 +7587,18 @@ function agentConfigFromYaml(source: string) {
       speed: "standard"
     },
     system: yamlValue(source, "system", "You are a general-purpose agent that can research, write code, run commands, and use connected tools to complete the user's task end to end."),
-    mcp_servers: [],
-    tools: [
-      {
-        type: "agent_toolset_20260401",
-        default_config: {
-          enabled: true,
-          permission_policy: {
-            type: "always_allow"
+    mcp_servers: hasNotionMcp
+      ? [
+          {
+            name: "notion",
+            type: "url",
+            url: "https://mcp.notion.com/mcp"
           }
-        },
-        configs: []
-      }
-    ],
+        ]
+      : [],
+    tools,
     skills: [],
-    metadata: {}
+    metadata: source.includes("template: field-monitor") ? { template: "field-monitor" } : {}
   };
 }
 
