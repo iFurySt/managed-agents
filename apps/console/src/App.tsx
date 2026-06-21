@@ -804,7 +804,7 @@ function AgentsPage() {
             header: "ID",
             width: agentTableWidths.id,
             render: (agent) => (
-              <div className="group/cid flex items-center gap-2 font-mono font-semibold">
+              <div className="group/cid flex items-center gap-1 font-mono text-xs [font-weight:550]">
                 <span>{shortId(agent.id)}</span>
                 <Button
                   variant="ghost"
@@ -7438,7 +7438,7 @@ function shortId(id: string) {
   if (id.length <= 14) return id;
   const prefixEnd = id.indexOf("_") + 1;
   const prefix = prefixEnd > 0 ? id.slice(0, prefixEnd) : id.slice(0, 4);
-  return `${prefix}…${id.slice(-7)}`;
+  return `${prefix}…${id.slice(-6)}`;
 }
 
 function shortMemoryStoreId(id: string) {
