@@ -26,6 +26,9 @@ DATABASE_URL=postgres://managed_agents:managed_agents@localhost:5432/managed_age
 APISERVER_ADDR=:8080
 ```
 
+`/healthz` verifies the database connection, so a local console should not be
+treated as ready until Postgres and `apiserver` are both healthy.
+
 Run one queued session or deployment work item through the orchestrator:
 
 ```sh
