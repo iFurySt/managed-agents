@@ -1495,6 +1495,7 @@ function DeploymentsPage() {
           getKey={(deployment) => deployment.id}
           showSelection={false}
           actionsWidth="56px"
+          actionsHeaderAlign="right"
           columns={[
             {
               key: "id",
@@ -1944,6 +1945,7 @@ function EnvironmentsPage() {
           getKey={(environment) => environment.id}
           loading={loading}
           actionsWidth="56px"
+          actionsHeaderAlign="right"
           columns={[
             {
               key: "id",
@@ -3712,6 +3714,7 @@ function AgentDeploymentsPanel({ agent }: { agent: Agent }) {
           getKey={(deployment) => deployment.id}
           showSelection={false}
           actionsWidth="56px"
+          actionsHeaderAlign="right"
           columns={[
             {
               key: "id",

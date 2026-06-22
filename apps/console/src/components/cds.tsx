@@ -202,6 +202,7 @@ export function DataTable<T>({
   showSelection = true,
   showActions = true,
   actionsWidth = "48px",
+  actionsHeaderAlign = "left",
   loading = false,
   loadingRows = 12,
   className = "",
@@ -216,6 +217,7 @@ export function DataTable<T>({
   showSelection?: boolean;
   showActions?: boolean;
   actionsWidth?: string;
+  actionsHeaderAlign?: "left" | "right";
   loading?: boolean;
   loadingRows?: number;
   className?: string;
@@ -281,7 +283,7 @@ export function DataTable<T>({
               );
             })}
             {showActions ? (
-              <th className="border-b border-[rgba(11,11,11,0.1)] px-3 py-0 text-right [font-weight:550] [&>.flex]:justify-end" style={{ width: actionsWidth }}>
+              <th className={`border-b border-[rgba(11,11,11,0.1)] px-3 py-0 [font-weight:550] ${actionsHeaderAlign === "right" ? "text-right [&>.flex]:justify-end" : ""}`} style={{ width: actionsWidth }}>
                 {actionsHeader}
               </th>
             ) : null}
