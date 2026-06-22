@@ -6203,7 +6203,7 @@ function CredentialAuthTypeSelect({ value, onValueChange }: { value: string; onV
               <Select.Item
                 key={option.value}
                 value={option.value}
-                className="flex min-h-12 w-full select-none items-center gap-2 rounded-[8px] px-3 py-1 text-sm leading-5 text-ink outline-none data-[highlighted]:bg-fill"
+                className="flex min-h-12 w-full select-none items-center gap-2 rounded-[8px] px-3 py-1 text-sm leading-5 text-ink outline-none data-[highlighted]:bg-fill data-[state=checked]:bg-[rgba(11,11,11,0.05)]"
               >
                 <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                   <Select.ItemText>
