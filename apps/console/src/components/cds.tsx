@@ -281,7 +281,7 @@ export function DataTable<T>({
               );
             })}
             {showActions ? (
-              <th className="border-b border-[rgba(11,11,11,0.1)] px-3 py-0 [font-weight:550]" style={{ width: actionsWidth }}>
+              <th className="border-b border-[rgba(11,11,11,0.1)] px-3 py-0 text-right [font-weight:550] [&>.flex]:justify-end" style={{ width: actionsWidth }}>
                 {actionsHeader}
               </th>
             ) : null}
