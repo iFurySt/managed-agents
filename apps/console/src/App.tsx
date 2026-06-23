@@ -2,7 +2,6 @@ import {
   Boxes,
   Check,
   ChevronDown,
-  Clock,
   Copy,
   CircleDollarSign,
   Database,
@@ -6169,16 +6168,16 @@ function DeploymentScheduleFields({
         )}
       </div>
       <div className="rounded-[12px] border-[0.5px] border-black/10 bg-canvas p-4">
-        <div className="mb-1.5 flex items-center gap-2 text-sm [font-weight:550]">
+        <div className="mb-2 inline-flex items-center gap-1.5 text-[13px] leading-4 text-[#52514e] [font-weight:550]">
           Next 5 runs
-          <button type="button" aria-label="About next runs" className="grid h-3 w-3 place-items-center text-muted hover:text-ink">
-            <Info className="h-3 w-3" />
+          <button type="button" aria-label="About next runs" className="inline-flex cursor-help text-[#898781] hover:text-[#4e4a45]">
+            <CdsIconGlyph glyph="" className="h-3 w-3 text-[12px] [font-weight:577.75]" />
           </button>
         </div>
         <div className="flex flex-col gap-1 text-sm text-[#4e4a45]">
           {nextRuns.map((run) => (
             <div key={run} className="flex h-5 items-center gap-2">
-              <Clock className="h-4 w-4 shrink-0 text-muted" />
+              <CdsIconGlyph glyph="" className="h-4 w-4 shrink-0 text-muted text-[16px] [font-weight:533.25]" />
               {run}
             </div>
           ))}

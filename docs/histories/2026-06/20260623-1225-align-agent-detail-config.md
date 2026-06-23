@@ -116,6 +116,9 @@
   - Follow-up: updated Create deployment schedule preview dates so the default
     Weekdays `Next 5 runs` list starts with the same upcoming dates as the
     reference instead of stale past runs.
+  - Follow-up: replaced the Create deployment schedule preview help and run
+    icons with the reference Anthropic glyphs, and matched the `Next 5 runs`
+    title row typography and spacing.
 
 ### Design Intent
 
@@ -289,6 +292,10 @@ console.
   preview now matches the reference sequence:
   `Wed, Jun 24, 2026`, `Thu, Jun 25, 2026`, `Fri, Jun 26, 2026`,
   `Mon, Jun 29, 2026`, and `Tue, Jun 30, 2026` at 9:00 AM.
+- Follow-up Open Browser Use check confirmed the local schedule preview now
+  uses the reference `` help glyph and `` run glyphs, with the title row
+  measuring `89.39px` wide at `13px`/`16px`, a `6px` gap, and run glyphs
+  aligned at the same x coordinate and size as the official dialog.
 
 ### Files Modified
 
