@@ -1983,7 +1983,8 @@ function EnvironmentsPage() {
               width: "216px",
               render: (environment) => (
                 <div className="group/cid relative z-10 inline-flex max-w-full items-center gap-1 align-middle font-mono text-xs [font-weight:550]">
-                  <span className="truncate">{shortEnvironmentId(environment.id)}</span>
+                  <span className="truncate">{shortEnvironmentListId(environment.id)}</span>
+                  <span className="hidden">{environment.id}</span>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -8055,6 +8056,13 @@ function shortUserId(id: string) {
 function shortEnvironmentId(id: string) {
   if (id.length <= 12) return id;
   return `${id.slice(0, 10)}…${id.slice(-7)}`;
+}
+
+function shortEnvironmentListId(id: string) {
+  if (id.length <= 12) return id;
+  const prefixEnd = id.indexOf("_") + 1;
+  const prefix = prefixEnd > 0 ? id.slice(0, prefixEnd) : id.slice(0, 4);
+  return `${prefix}…${id.slice(-7)}`;
 }
 
 function agentSessionCreatedLabel(session: Session) {

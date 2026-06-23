@@ -139,6 +139,9 @@
     two-line started-at cells, 44px rows, and reference relative run labels.
   - Follow-up: changed deployment-run seeding to upsert known sample runs so
     local persisted databases receive reference-data corrections on restart.
+  - Follow-up: aligned the Environments list ID cell with the reference short
+    format while preserving the longer environment short ID used on detail
+    headers.
 
 ### Design Intent
 
@@ -341,6 +344,12 @@ console.
 - Follow-up checks passed `npm run build:console`, `go test ./apps/apiserver`,
   a local Docker rebuild of `apiserver`/`console`, and cleanup of one local
   generated `drun_local_%` test row before visual comparison.
+- Follow-up Open Browser Use check confirmed the Environments list first ID
+  cell now renders `env_…ZjUARMh`, keeps the hidden full ID, preserves the
+  `` copy glyph, and retains the reference `1309px` table width and column
+  distribution.
+- Follow-up check passed `npm run build:console` and a local Docker rebuild of
+  `console`.
 
 ### Files Modified
 
