@@ -90,6 +90,10 @@
     the reference layout.
   - Follow-up: restored the Sessions list `Tokens in / out` column and matched
     the table width and column distribution to the reference layout.
+  - Follow-up: matched the Credential vault detail credentials table width,
+    column distribution, and empty-state row to the reference layout.
+  - Follow-up: added an optional DataTable empty-state slot used by the vault
+    credentials table.
 
 ### Design Intent
 
@@ -217,6 +221,13 @@ console.
   reference `720x619` shell, `672px` field controls, selected defaults, vault
   acknowledgement warning, and `121x31` Resource trigger after the list-table
   changes.
+- Follow-up Open Browser Use check confirmed the Credential vault detail
+  credentials table uses a `1293px` table at `x=288`, starts at `y=174`,
+  includes the empty-state row, and matches the reference column widths: `200`,
+  `180`, `405`, `100`, `180`, `180`, and `48px`.
+- Follow-up Open Browser Use check confirmed Add credential still keeps the
+  reference `510x349` shell, `463px` name field, `455px` select controls, and
+  Connect action after the table empty-state changes.
 
 ### Files Modified
 

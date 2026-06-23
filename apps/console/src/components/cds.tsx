@@ -207,7 +207,8 @@ export function DataTable<T>({
   loadingRows = 12,
   className = "",
   tableClassName = "",
-  headerTextClassName
+  headerTextClassName,
+  emptyState
 }: {
   columns: { key: string; header: string; render: (row: T) => ReactNode; width?: string; align?: "left" | "right" }[];
   rows: T[];
@@ -223,6 +224,7 @@ export function DataTable<T>({
   className?: string;
   tableClassName?: string;
   headerTextClassName?: string;
+  emptyState?: ReactNode;
 }) {
   const [selectedKeys, setSelectedKeys] = useState<Set<string>>(() => new Set());
   const rowKeys = useMemo(() => rows.map((row) => getKey(row)), [rows, getKey]);
@@ -313,7 +315,16 @@ export function DataTable<T>({
                 </td>
               ) : null}
             </tr>
-          )) : rows.map((row) => {
+          )) : rows.length === 0 && emptyState ? (
+            <tr className="h-[365px]">
+              <td
+                className="border-b border-[rgba(11,11,11,0.05)] px-3 py-2 align-middle [tr:first-child_&]:border-t"
+                colSpan={(showSelection ? 1 : 0) + columns.length + (showActions ? 1 : 0)}
+              >
+                {emptyState}
+              </td>
+            </tr>
+          ) : rows.map((row) => {
             const key = getKey(row);
             const selected = selectedKeys.has(key);
 

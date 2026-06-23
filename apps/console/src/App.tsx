@@ -2608,8 +2608,8 @@ function VaultDetailPage() {
         />
       </div>
       <DataTable
-        className="-mx-2 overflow-x-auto p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
-        tableClassName="border-separate border-spacing-0 whitespace-nowrap"
+        className="-mx-2 w-[1293px] overflow-x-auto p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
+        tableClassName="w-[1293px] border-separate border-spacing-0 whitespace-nowrap"
         rows={visibleCredentials}
         getKey={(credential) => credential.id}
         showSelection={false}
@@ -2638,7 +2638,7 @@ function VaultDetailPage() {
           {
             key: "auth",
             header: "Auth",
-            width: "220px",
+            width: "405px",
             render: (credential) => (
               <div>
                 <div>{credential.authType}</div>
@@ -2651,6 +2651,16 @@ function VaultDetailPage() {
           { key: "updated", header: "Updated", width: "180px", render: (credential) => <span className="text-muted">{credential.updatedLabel}</span> }
         ]}
         renderActions={(credential) => <CredentialActions credential={credential} onArchive={() => archiveCredential(credential)} onDelete={() => deleteCredential(credential)} />}
+        emptyState={
+          <div className="flex flex-col items-center justify-center text-center">
+            <h2 className="text-base leading-6 text-ink [font-weight:550]">No credentials yet</h2>
+            <p className="mt-1 text-sm leading-5 text-[#898781]">Add a credential to give agents access through this vault.</p>
+            <Button className="mt-4 h-8 w-[143px] !gap-1.5 rounded-[8px] px-0 [font-weight:550]" onClick={() => setDialogOpen(true)}>
+              <CdsIconGlyph glyph="" className="h-5 w-5 text-current text-[20px] [font-weight:566.5]" />
+              Add credential
+            </Button>
+          </div>
+        }
       />
       <div className="mt-3 flex gap-2">
         <PaginationButton
