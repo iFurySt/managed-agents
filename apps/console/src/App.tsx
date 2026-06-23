@@ -1509,10 +1509,10 @@ function DeploymentsPage() {
           menuWidth="w-[192px]"
         />
       </div>
-      <div className="mt-2 overflow-x-auto">
+      <div className="overflow-x-auto">
         <DataTable
-          className="-mx-2 !w-[calc(100%+16px)] overflow-x-auto p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
-          tableClassName="border-separate border-spacing-0 whitespace-nowrap"
+          className="-mx-2 w-[1309px] overflow-x-auto p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
+          tableClassName="w-[1309px] border-separate border-spacing-0 whitespace-nowrap"
           headerTextClassName="text-[13px]"
           rows={visibleDeployments}
           getKey={(deployment) => deployment.id}
@@ -1542,7 +1542,7 @@ function DeploymentsPage() {
             {
               key: "name",
               header: "Name",
-              width: "240px",
+              width: "403px",
               render: (deployment) => (
                 <Link className="block truncate [font-weight:400]" to={`/deployments/${deployment.id}`}>
                   {deployment.name}

@@ -84,6 +84,8 @@
     first-row created label to the reference layout and data.
   - Follow-up: matched the Environments table width and column distribution to
     the reference layout.
+  - Follow-up: matched the Deployments list table vertical position, fixed
+    width, and column distribution to the reference layout.
 
 ### Design Intent
 
@@ -194,6 +196,12 @@ console.
 - Follow-up Open Browser Use check confirmed the Create environment dialog
   keeps the reference `510x429` shell, centered placement, field sizes,
   hosting-type selector, and Cancel/Create actions.
+- Follow-up Open Browser Use check confirmed Deployments uses a `1309px` table
+  at `x=280`, starts at `y=148`, and matches the reference column widths:
+  `160`, `403`, `110`, `220`, `200`, `160`, and `56px`.
+- Follow-up Open Browser Use check confirmed Create deployment still keeps the
+  reference `520x718` shell, `464px` picker controls, `472px` text fields, and
+  the expected create action after the list-table changes.
 
 ### Files Modified
 
