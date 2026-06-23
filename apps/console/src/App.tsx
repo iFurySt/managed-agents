@@ -3440,7 +3440,8 @@ function AgentDetailPage() {
     setArchiveOpen(false);
   }
 
-  const agentDetailHeadingClass = "text-[#52514e] [font-weight:550]";
+  const agentDetailHeadingClass = "text-ink [font-weight:400]";
+  const agentDetailBodyClass = "text-sm leading-5 text-[#52514e]";
   const agentDetailTabWidths: Record<string, string> = {
     Agent: "w-[65px]",
     Sessions: "w-[83px]",
@@ -3506,58 +3507,64 @@ function AgentDetailPage() {
             </CdsTabs.Trigger>
           ))}
         </CdsTabs.List>
-        <CdsTabs.Content value="agent" className="grid max-w-[952px] gap-5">
+        <CdsTabs.Content value="agent" className="grid max-w-[952px]">
           <div>
             <FieldSelect
               label="Version:"
               value={agent.version || "v1"}
               options={[agent.version || "v1"]}
               onValueChange={() => undefined}
-              triggerClassName="w-[105px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2"
+              triggerShellClassName={topFilterShellClassName}
+              triggerClassName="w-[105px]"
             />
           </div>
-          <div className="mb-[31px]">
-            <DetailSection title="Model" headingClassName={agentDetailHeadingClass}>
-              <div className="font-mono text-sm">{agent.model}</div>
-            </DetailSection>
-          </div>
-          <section>
-            <h2 className={`text-sm leading-5 ${agentDetailHeadingClass}`}>System prompt</h2>
-            <div className="relative mt-6 max-w-[952px]">
-              <pre className="ml-4 mr-4 max-h-[120px] overflow-hidden whitespace-pre-wrap font-mono text-sm leading-5 text-ink">{agent.systemPrompt}</pre>
+          <AgentConfigSection title="Model" headingClassName={agentDetailHeadingClass}>
+            <div className={`mt-3 font-mono ${agentDetailBodyClass}`}>{agent.model}</div>
+          </AgentConfigSection>
+          <AgentConfigSection title="System prompt" headingClassName={agentDetailHeadingClass} separated>
+            <div className="relative mt-2 rounded-[8px] bg-[#f9f9f7] px-4 py-4">
+              <pre className="max-h-[120px] overflow-hidden whitespace-pre-wrap pr-10 font-mono text-sm leading-5 text-ink">{agent.systemPrompt}</pre>
               <Button
                 variant="ghost"
                 size="sm"
-                className="absolute -top-2 right-2 h-[29px] w-[22px] px-0 text-muted"
+                className="absolute right-2 top-2 h-7 w-7 px-0 text-muted"
                 aria-label="Copy to clipboard"
                 onClick={() => copyText(agent.systemPrompt)}
               >
                 <CdsIconGlyph glyph="" className="h-3.5 w-3.5 text-[#898781] text-[14px] [font-weight:628.5]" />
               </Button>
             </div>
-          </section>
-          <div className="h-6" aria-hidden="true" />
-          <DetailSection title="MCPs and tools" headingClassName={agentDetailHeadingClass}>
-            <div className="flex items-center gap-3 rounded-cds border border-line bg-white p-4">
-              <CdsIconGlyph glyph="" className="h-5 w-5 text-[#898781] text-[20px] [font-weight:433.25]" />
-              <div>
-                <div className="text-sm font-semibold">Built-in tools</div>
-                <div className="font-mono text-sm text-muted">{agent.tools}</div>
+          </AgentConfigSection>
+          <AgentConfigSection title="MCPs and tools" headingClassName={agentDetailHeadingClass} separated>
+            <div className="mt-2 flex min-h-[108px] items-start gap-3 rounded-[8px] bg-transparent py-2">
+              <button
+                type="button"
+                className="mt-0.5 flex h-6 w-6 items-center justify-center rounded-[6px] text-[#898781] hover:bg-fill"
+                aria-label="Toggle built-in tools"
+              >
+                <CdsIconGlyph glyph="" className="-rotate-90 text-[16px]" />
+              </button>
+              <CdsIconGlyph glyph="" className="mt-0.5 h-5 w-5 text-[#898781] text-[20px] [font-weight:433.25]" />
+              <div className="min-w-0 flex-1">
+                <div className="text-sm leading-5 text-ink [font-weight:550]">Built-in tools</div>
+                <div className="font-mono text-sm leading-5 text-[#52514e]">{agent.tools}</div>
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <Badge>
+                    <CdsIconGlyph glyph="" className="mr-1 h-3.5 w-3.5 text-[14px] [font-weight:628.5]" />
+                    Tool permissions
+                  </Badge>
+                  <Badge>8</Badge>
+                  <Badge tone="green">
+                    <CdsIconGlyph glyph="" className="mr-1 h-3.5 w-3.5 text-[14px] [font-weight:628.5]" />
+                    Always allow
+                  </Badge>
+                </div>
               </div>
-              <Badge>
-                <CdsIconGlyph glyph="" className="mr-1 h-3.5 w-3.5 text-[14px] [font-weight:628.5]" />
-                Tool permissions
-              </Badge>
-              <Badge>8</Badge>
-              <Badge tone="green">
-                <CdsIconGlyph glyph="" className="mr-1 h-3.5 w-3.5 text-[14px] [font-weight:628.5]" />
-                Always allow
-              </Badge>
             </div>
-          </DetailSection>
-          <DetailSection title="Skills" headingClassName={agentDetailHeadingClass}>
-            <EmptyState compact title="No skills configured." description="" />
-          </DetailSection>
+          </AgentConfigSection>
+          <AgentConfigSection title="Skills" headingClassName={agentDetailHeadingClass} separated>
+            <p className="mt-2 text-xs leading-4 text-[#898781]">No skills configured.</p>
+          </AgentConfigSection>
         </CdsTabs.Content>
         <CdsTabs.Content value="sessions" className="-mt-6">
           <AgentSessionsPanel agent={agent} />
@@ -3611,64 +3618,74 @@ function AgentSessionsPanel({ agent }: { agent: Agent }) {
           value={created}
           options={["All time", "Last 24 hours", "Last 7 days", "Last 30 days"]}
           onValueChange={setCreated}
-          triggerClassName="w-[150px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2"
+          triggerShellClassName={topFilterShellClassName}
+          triggerClassName="w-[150px]"
         />
         <FieldSelect
           label="Version"
           value={version}
           options={versionOptions}
           onValueChange={setVersion}
-          triggerClassName="w-[132px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2"
+          triggerShellClassName={topFilterShellClassName}
+          triggerClassName="w-[132px]"
         />
         <FieldSelect
           label="Deployment"
           value={deployment}
           options={deploymentOptions}
           onValueChange={setDeployment}
-          triggerClassName="w-[172px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2"
+          triggerShellClassName={topFilterShellClassName}
+          triggerClassName="w-[172px]"
         />
         <FieldSelect
           label="Status"
           value={status}
           options={["All", "Active", "Idle", "Archived"]}
           onValueChange={setStatus}
-          triggerClassName="w-[106px] !gap-1.5 !rounded-[8px] !border-0 !bg-white/50 !px-2"
+          triggerShellClassName={topFilterShellClassName}
+          triggerClassName="w-[106px]"
         />
       </div>
-      <DataTable
-        rows={visibleSessions}
-        getKey={(session) => session.id}
-        columns={[
-          {
-            key: "id",
-            header: "ID",
-            width: "160px",
-            render: (session) => (
-              <div className="flex items-center gap-2">
-                <span className="font-mono font-semibold">{shortId(session.id)}</span>
-                <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${session.id}`} onClick={() => copyText(session.id)}>
-                  <Copy className="h-3.5 w-3.5" />
-                </Button>
-              </div>
-            )
-          },
-          {
-            key: "name",
-            header: "Name",
-            width: "300px",
-            render: (session) => (
-              <Link className="block truncate font-medium hover:underline" to={`/sessions/${session.id}`}>
-                {session.name}
-              </Link>
-            )
-          },
-          { key: "status", header: "Status", width: "126px", render: (session) => <Badge tone={sessionTone(session.status)}>{session.status}</Badge> },
-          { key: "version", header: "Version", width: "126px", render: () => <span className="font-mono">{agentVersion}</span> },
-          { key: "created", header: "Created", width: "160px", render: (session) => <span className="text-muted">{agentSessionCreatedLabel(session)}</span> }
-        ]}
-        actionsWidth="56px"
-        renderActions={(session) => <SessionRowActions session={session} onArchive={() => setArchivingSession(session)} />}
-      />
+      {visibleSessions.length ? (
+        <DataTable
+          rows={visibleSessions}
+          getKey={(session) => session.id}
+          columns={[
+            {
+              key: "id",
+              header: "ID",
+              width: "160px",
+              render: (session) => (
+                <div className="flex items-center gap-2">
+                  <span className="font-mono font-semibold">{shortId(session.id)}</span>
+                  <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${session.id}`} onClick={() => copyText(session.id)}>
+                    <Copy className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              )
+            },
+            {
+              key: "name",
+              header: "Name",
+              width: "300px",
+              render: (session) => (
+                <Link className="block truncate font-medium hover:underline" to={`/sessions/${session.id}`}>
+                  {session.name}
+                </Link>
+              )
+            },
+            { key: "status", header: "Status", width: "126px", render: (session) => <Badge tone={sessionTone(session.status)}>{session.status}</Badge> },
+            { key: "version", header: "Version", width: "126px", render: () => <span className="font-mono">{agentVersion}</span> },
+            { key: "created", header: "Created", width: "160px", render: (session) => <span className="text-muted">{agentSessionCreatedLabel(session)}</span> }
+          ]}
+          actionsWidth="56px"
+          renderActions={(session) => <SessionRowActions session={session} onArchive={() => setArchivingSession(session)} />}
+        />
+      ) : (
+        <div className="flex h-[220px] items-center justify-center text-center text-sm leading-5 text-[#898781]">
+          No sessions yet, run this agent to create a session
+        </div>
+      )}
       <SessionArchiveDialog
         open={Boolean(archivingSession)}
         onOpenChange={(open) => {
@@ -3758,7 +3775,7 @@ function AgentDeploymentsPanel({ agent }: { agent: Agent }) {
         <div className="flex h-[268px] flex-col items-center pt-[120px] text-center">
           <p className="text-lg leading-7 text-ink [font-weight:550]">No deployments</p>
           <p className="mt-1 text-sm leading-5 text-[#898781]">Deploy this agent to run it on a schedule, via webhook, or manually.</p>
-          <Button variant="ghost" className="mt-4 h-8 w-[174px] gap-1.5 rounded-[8px] px-0 [font-weight:550]" onClick={() => setDialogOpen(true)}>
+          <Button variant="secondary" className="mt-4 h-8 w-[174px] gap-1.5 rounded-[8px] bg-white/50 px-0 shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)] [font-weight:550]" onClick={() => setDialogOpen(true)}>
             <Plus className="h-4 w-4" />
             Create deployment
           </Button>
@@ -7589,6 +7606,25 @@ function DetailSection({ title, children, headingClassName = "font-semibold" }: 
   return (
     <section>
       <h2 className={`mb-1.5 text-sm leading-5 ${headingClassName}`}>{title}</h2>
+      {children}
+    </section>
+  );
+}
+
+function AgentConfigSection({
+  title,
+  children,
+  headingClassName = "text-ink [font-weight:400]",
+  separated = false
+}: {
+  title: string;
+  children: React.ReactNode;
+  headingClassName?: string;
+  separated?: boolean;
+}) {
+  return (
+    <section className={`${separated ? "border-t-[0.5px] border-[rgba(11,11,11,0.1)] pt-6" : "pt-4"} pb-6`}>
+      <h2 className={`text-sm leading-5 ${headingClassName}`}>{title}</h2>
       {children}
     </section>
   );
