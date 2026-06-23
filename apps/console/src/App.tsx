@@ -5240,8 +5240,8 @@ function DeploymentEnvironmentPicker({
 }
 
 const credentialVaultPickerOptions = [
-  { value: "Temporary vault", name: "Temporary vault", updated: "3 days ago", summary: "No credentials", credentialIcons: 0 },
-  { value: "test_secret", name: "test_secret", updated: "5 days ago", summary: "", credentialIcons: 3 }
+  { value: "test_secret", name: "test_secret", updated: "Jun 16", summary: "", credentialIcons: 4 },
+  { value: "Temporary vault", name: "Temporary vault", updated: "5 days ago", summary: "No credentials", credentialIcons: 0 }
 ];
 
 function CreateSessionVaultPicker({
@@ -5258,7 +5258,9 @@ function CreateSessionVaultPicker({
   const [search, setSearch] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const filteredOptions = credentialVaultPickerOptions.filter((option) => option.name.toLowerCase().includes(search.toLowerCase()));
+  const filteredOptions = credentialVaultPickerOptions
+    .filter((option) => `${option.name} ${option.value}`.toLowerCase().includes(search.toLowerCase()))
+    .sort((left, right) => Number(value.includes(right.value)) - Number(value.includes(left.value)));
   const selectedOptions = credentialVaultPickerOptions.filter((option) => value.includes(option.value));
   const selectedLabel = selectedOptions.length > 1 ? `${selectedOptions.length} vaults selected` : selectedOptions[0]?.name;
 
@@ -5318,7 +5320,7 @@ function CreateSessionVaultPicker({
         <div
           data-cds="Combobox"
           role="dialog"
-          className="absolute left-0 top-[38px] z-50 max-h-[137px] w-[672px] overflow-hidden rounded-[12px] bg-white p-1 shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
+          className="absolute left-0 top-[38px] z-50 max-h-[238px] w-[672px] overflow-hidden rounded-[12px] bg-white p-1 shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
         >
           <div role="combobox" aria-expanded="true" className="-mx-1 -mt-1 mb-1 flex h-[37px] w-[calc(100%+8px)] items-center border-b border-line px-4 py-2">
             <input
@@ -5326,7 +5328,7 @@ function CreateSessionVaultPicker({
               className={createSessionSearchInputClass}
               aria-label="Search credential vaults"
               autoFocus
-              placeholder="Search credential vaults"
+              placeholder="Search vaults by name or exact ID"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               onPointerDown={(event) => event.stopPropagation()}
@@ -5334,18 +5336,18 @@ function CreateSessionVaultPicker({
               onKeyDown={(event) => event.stopPropagation()}
             />
           </div>
-          <div role="listbox" className="grid max-h-[92px] gap-0 overflow-y-auto overflow-x-hidden">
+          <div role="listbox" className="grid max-h-[156px] gap-0 overflow-y-auto overflow-x-hidden p-1">
             {filteredOptions.map((option) => (
               <button
                 key={option.value}
                 type="button"
                 role="option"
                 aria-selected={value.includes(option.value)}
-                className="flex min-h-[46px] w-full items-center gap-3 rounded-[8px] px-3 py-1 text-left outline-none hover:bg-fill aria-selected:bg-black/[0.04]"
+                className="flex min-h-[70px] w-full items-center gap-3 rounded-[8px] px-2 text-left outline-none hover:bg-fill data-[highlighted]:bg-fill"
                 onClick={() => toggleVault(option.value)}
               >
-                <span className="grid h-4 w-4 shrink-0 place-items-center rounded-[4px] bg-white shadow-[inset_0_0_0_1px_rgba(11,11,11,0.18)]" aria-hidden>
-                  {value.includes(option.value) ? <CdsIconGlyph glyph="" className="h-4 w-4 text-[#184f95] text-[16px] [font-weight:700]" /> : null}
+                <span className={`grid h-4 w-4 shrink-0 place-items-center rounded-[4px] ${value.includes(option.value) ? "bg-[#2b73d2] text-white shadow-none" : "bg-white text-transparent shadow-[inset_0_0_0_1px_rgba(11,11,11,0.18)]"}`} aria-hidden>
+                  <Check className="h-3.5 w-3.5" strokeWidth={2.8} />
                 </span>
                 <CredentialVaultOptionContent option={option} />
               </button>
@@ -5424,20 +5426,21 @@ function DeploymentVaultPicker({ value, onValueChange }: { value: string; onValu
 
 function CredentialVaultOptionContent({ option }: { option: (typeof credentialVaultPickerOptions)[number] }) {
   return (
-    <>
-      <span className="flex min-w-0 items-center gap-2">
-        <CdsIconGlyph glyph="" className="h-5 w-5 shrink-0 text-[#898781] text-[20px] [font-weight:433.25]" />
-        <span className="grid min-w-0 gap-0.5">
-          <span className="truncate text-sm leading-5 text-ink">{option.name}</span>
-          <span className="truncate text-[13px] leading-4 text-muted">{option.updated}</span>
-        </span>
+    <span className="flex min-w-0 flex-1 items-center justify-between gap-4">
+      <span className="grid min-w-0 gap-1">
+        <span className="truncate text-sm leading-5 text-ink">{option.name}</span>
+        <span className="truncate text-[13px] leading-4 text-muted">{option.updated}</span>
       </span>
-      <span className="inline-flex shrink-0 items-center gap-1.5 text-xs leading-4 text-muted">
+      <span className="inline-flex shrink-0 items-center justify-end text-sm leading-5 text-muted">
         {option.credentialIcons > 0
-          ? Array.from({ length: option.credentialIcons }, (_, index) => <CdsIconGlyph key={index} glyph="" className="h-4 w-4 text-[#898781] text-[16px] [font-weight:533.25]" />)
+          ? Array.from({ length: option.credentialIcons }, (_, index) => (
+              <span key={index} className="-ml-1 grid h-6 w-6 place-items-center rounded-full border border-line bg-white first:ml-0">
+                <CdsIconGlyph glyph="" className="h-4 w-4 text-[#52514e] text-[16px] [font-weight:533.25]" />
+              </span>
+            ))
           : option.summary}
       </span>
-    </>
+    </span>
   );
 }
 

@@ -67,6 +67,9 @@
   - Follow-up: changed the Create session dialog to use a fixed header with an
     internal scrollable body so expanded resource forms can be scrolled through
     without losing the sticky submit action.
+  - Follow-up: aligned the Create session credential-vault picker rows with
+    the reference ordering, search placeholder, checkbox treatment, dates, and
+    right-side credential metadata.
 
 ### Design Intent
 
@@ -138,6 +141,10 @@ console.
   `clientHeight`), and scrolling the internal body to the bottom reveals the
   Authorization Token and Mount Path fields while the submit action remains
   reachable.
+- Follow-up Open Browser Use check confirmed the credential-vault picker shows
+  `Search vaults by name or exact ID`, keeps selected `test_secret` first with
+  a blue checkbox, `Jun 16`, and four credential chips, and shows
+  `Temporary vault` second with an empty checkbox and `No credentials`.
 
 ### Files Modified
 
