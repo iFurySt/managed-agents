@@ -682,6 +682,13 @@ func TestDockerSandboxLifecycleExecAndStop(t *testing.T) {
 	if !execResp.OK || execResp.Stdout != "fake-exec-out\n" {
 		t.Fatalf("unexpected docker exec response: %#v", execResp)
 	}
+	commit, err := commitDockerSandbox(context.Background(), opt, state, "managed-agents/sandbox-test:local")
+	if err != nil {
+		t.Fatalf("commitDockerSandbox returned error: %v", err)
+	}
+	if commit.Image != "managed-agents/sandbox-test:local" || commit.ImageID != "sha256:fakecommit" {
+		t.Fatalf("unexpected commit response: %#v", commit)
+	}
 	stopped, err := stopSandbox(context.Background(), opt, state.ID)
 	if err != nil {
 		t.Fatalf("stopSandbox returned error: %v", err)
@@ -700,6 +707,8 @@ func TestDockerSandboxLifecycleExecAndStop(t *testing.T) {
 	for _, want := range []string{
 		"run -d --name managed-agents-sbx-docker-life",
 		"exec -w /workspace -e A=1 fake-container-id /bin/sh -c printf exec-ok",
+		"exec -w /workspace fake-container-id /bin/sh -c rm -rf /opt/managed-agents/workspace-snapshot",
+		"commit fake-container-id managed-agents/sandbox-test:local",
 		"rm -f fake-container-id",
 	} {
 		if !strings.Contains(log, want) {
@@ -732,6 +741,9 @@ case "$1" in
     ;;
   exec)
     printf 'fake-exec-out\n'
+    ;;
+  commit)
+    printf 'sha256:fakecommit\n'
     ;;
   *)
     printf 'unsupported fake docker command: %%s\n' "$1" >&2

@@ -57,6 +57,11 @@ Run the worker-host runtime with the local Docker sandbox backend:
 go run ./apps/sandboxd --backend docker --work-dir /tmp/managed-agents-docker --image alpine:3.20 serve
 ```
 
+Docker-backed sandboxes use a temporary `/workspace` bind mount. For local
+debugging, `POST /sandboxes/{id}/commit` first copies `/workspace` into
+`/opt/managed-agents/workspace-snapshot/` inside the container and then runs
+`docker commit`, so the committed image carries a best-effort workspace snapshot.
+
 Then point the orchestrator at it for fast local execution:
 
 ```sh

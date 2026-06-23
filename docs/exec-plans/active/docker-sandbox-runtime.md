@@ -85,6 +85,8 @@ and still keep Firecracker as the production isolation target.
   local compose stack.
 - [x] Verify compose stack from browser-visible console through orchestrator to
   Docker-backed sandboxd.
+- [x] Add and verify a Docker sandbox commit helper that snapshots the temporary
+  `/workspace` mount into the container before running `docker commit`.
 
 ## Decision Log
 
@@ -94,3 +96,7 @@ and still keep Firecracker as the production isolation target.
 - 2026-06-23: Reuse the existing `sandboxd` HTTP API for Docker instead of
   adding an orchestrator-specific Docker path. This keeps orchestration stable
   while the host-plane backend changes behind `sandboxd`.
+- 2026-06-23: Docker commits are a local debugging aid, not durable storage.
+  Because Docker does not include bind-mounted `/workspace` content in a
+  committed image, `sandboxd` first copies the workspace into
+  `/opt/managed-agents/workspace-snapshot/` inside the container.

@@ -206,6 +206,16 @@ type sandboxdRunRequest struct {
 	TimeoutMillis int64  `json:"timeout_millis,omitempty"`
 }
 
+type sandboxdCommitRequest struct {
+	Image string `json:"image,omitempty"`
+}
+
+type sandboxdCommitResponse struct {
+	ID      string `json:"id"`
+	Image   string `json:"image"`
+	ImageID string `json:"image_id"`
+}
+
 type sandboxdRunResponse struct {
 	ID             string       `json:"id"`
 	OK             bool         `json:"ok"`
@@ -932,6 +942,29 @@ func sandboxdHTTPHandler(opt options) http.Handler {
 				return
 			}
 			writeJSON(w, http.StatusOK, health)
+			return
+		}
+		if len(parts) == 2 && parts[1] == "commit" {
+			if r.Method != http.MethodPost {
+				writeAPIError(w, http.StatusMethodNotAllowed, "method not allowed")
+				return
+			}
+			state, err := readSandboxState(opt, id)
+			if err != nil {
+				writeAPIError(w, statusForError(err), err.Error())
+				return
+			}
+			var request sandboxdCommitRequest
+			if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 1<<20)).Decode(&request); err != nil && !errors.Is(err, io.EOF) {
+				writeAPIError(w, http.StatusBadRequest, "invalid json body")
+				return
+			}
+			result, err := commitDockerSandbox(r.Context(), opt, state, request.Image)
+			if err != nil {
+				writeAPIError(w, statusForError(err), err.Error())
+				return
+			}
+			writeJSON(w, http.StatusOK, result)
 			return
 		}
 		if len(parts) == 2 && parts[1] == "exec" {
@@ -1700,6 +1733,11 @@ func dockerContainerName(id string) string {
 	return "managed-agents-" + id
 }
 
+func dockerCommitImageName(id string) string {
+	safe := strings.ToLower(strings.ReplaceAll(id, "_", "-"))
+	return fmt.Sprintf("managed-agents/sandbox-%s:%s", safe, time.Now().UTC().Format("20060102150405"))
+}
+
 func startDockerSandbox(ctx context.Context, opt options, id string) (sandboxState, error) {
 	if id == "" {
 		id = generateSandboxID()
@@ -1879,6 +1917,49 @@ func execDockerSandbox(ctx context.Context, opt options, state sandboxState, req
 		result.Error = err.Error()
 	}
 	return result, nil
+}
+
+func commitDockerSandbox(ctx context.Context, opt options, state sandboxState, image string) (sandboxdCommitResponse, error) {
+	if state.Backend != backendDocker {
+		return sandboxdCommitResponse{}, errors.New("sandbox commit is only supported for docker backend")
+	}
+	if state.ContainerID == "" {
+		return sandboxdCommitResponse{}, errors.New("docker container id is missing")
+	}
+	if err := snapshotDockerWorkspace(ctx, opt, state); err != nil {
+		return sandboxdCommitResponse{}, err
+	}
+	target := strings.TrimSpace(image)
+	if target == "" {
+		target = dockerCommitImageName(state.ID)
+	}
+	output, err := exec.CommandContext(ctx, dockerBin(opt), "commit", state.ContainerID, target).CombinedOutput()
+	if err != nil {
+		return sandboxdCommitResponse{}, fmt.Errorf("docker commit failed: %v: %s", err, strings.TrimSpace(string(output)))
+	}
+	return sandboxdCommitResponse{
+		ID:      state.ID,
+		Image:   target,
+		ImageID: strings.TrimSpace(string(output)),
+	}, nil
+}
+
+func snapshotDockerWorkspace(ctx context.Context, opt options, state sandboxState) error {
+	request := processAPIExecRequest{
+		Argv: []string{"/bin/sh", "-c", "rm -rf /opt/managed-agents/workspace-snapshot && mkdir -p /opt/managed-agents/workspace-snapshot && cp -a /workspace/. /opt/managed-agents/workspace-snapshot/"},
+		Cwd:  "/workspace",
+	}
+	result, err := execDockerSandbox(ctx, opt, state, request)
+	if err != nil {
+		return err
+	}
+	if !result.OK {
+		if result.Error != "" {
+			return fmt.Errorf("snapshot docker workspace failed: %s", result.Error)
+		}
+		return fmt.Errorf("snapshot docker workspace exited with %d: %s", result.ExitCode, strings.TrimSpace(result.Stderr))
+	}
+	return nil
 }
 
 func stopDockerSandbox(ctx context.Context, opt options, state sandboxState) (sandboxState, error) {
