@@ -4406,7 +4406,7 @@ function CreateSessionDialog({
   const [vaultAcknowledged, setVaultAcknowledged] = useState(false);
   const [resources, setResources] = useState<SessionResourceKind[]>([]);
   const [resourceMenuOpen, setResourceMenuOpen] = useState(false);
-  const [openPicker, setOpenPicker] = useState<"agent" | "environment" | null>(null);
+  const [openPicker, setOpenPicker] = useState<"agent" | "environment" | "vault" | null>(null);
   const [createAgentOpen, setCreateAgentOpen] = useState(false);
   const canCreate = Boolean(agentId && environmentId && (!vaults.length || vaultAcknowledged));
   const fieldLabelClass = "text-sm leading-none [font-weight:550]";
@@ -4511,6 +4511,8 @@ function CreateSessionDialog({
               </div>
               <CreateSessionVaultPicker
                 value={vaults}
+                open={openPicker === "vault"}
+                onOpenChange={(nextOpen) => setOpenPicker(nextOpen ? "vault" : null)}
                 onValueChange={(nextVaults) => {
                   setVaults(nextVaults);
                   setVaultAcknowledged(false);
@@ -4549,7 +4551,10 @@ function CreateSessionDialog({
                 onAdd={(kind) => {
                   setResources((current) => [...current, kind]);
                 }}
-                onOpenChange={setResourceMenuOpen}
+                onOpenChange={(nextOpen) => {
+                  setResourceMenuOpen(nextOpen);
+                  if (nextOpen) setOpenPicker(null);
+                }}
               />
             </div>
           </div>
@@ -5239,8 +5244,17 @@ const credentialVaultPickerOptions = [
   { value: "test_secret", name: "test_secret", updated: "5 days ago", summary: "", credentialIcons: 3 }
 ];
 
-function CreateSessionVaultPicker({ value, onValueChange }: { value: string[]; onValueChange: (value: string[]) => void }) {
-  const [open, setOpen] = useState(false);
+function CreateSessionVaultPicker({
+  value,
+  open,
+  onOpenChange,
+  onValueChange
+}: {
+  value: string[];
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onValueChange: (value: string[]) => void;
+}) {
   const [search, setSearch] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -5257,7 +5271,7 @@ function CreateSessionVaultPicker({ value, onValueChange }: { value: string[]; o
     const frame = window.requestAnimationFrame(focusSearch);
     const timer = window.setTimeout(focusSearch, 40);
     const closeOnOutsidePointer = (event: PointerEvent) => {
-      if (!containerRef.current?.contains(event.target as Node)) setOpen(false);
+      if (!containerRef.current?.contains(event.target as Node)) onOpenChange(false);
     };
     document.addEventListener("pointerdown", closeOnOutsidePointer);
     return () => {
@@ -5265,7 +5279,7 @@ function CreateSessionVaultPicker({ value, onValueChange }: { value: string[]; o
       window.clearTimeout(timer);
       document.removeEventListener("pointerdown", closeOnOutsidePointer);
     };
-  }, [open]);
+  }, [onOpenChange, open]);
 
   function toggleVault(nextValue: string) {
     if (value.includes(nextValue)) {
@@ -5284,7 +5298,7 @@ function CreateSessionVaultPicker({ value, onValueChange }: { value: string[]; o
           aria-expanded={open}
           aria-label="Select credential vaults"
           className="flex h-8 min-w-0 flex-1 items-center justify-between rounded-none border-0 bg-transparent pl-2 pr-0 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.03]"
-          onClick={() => setOpen((current) => !current)}
+          onClick={() => onOpenChange(!open)}
         >
           <span className={`truncate ${selectedLabel ? "" : "text-muted [font-weight:430]"}`}>{selectedLabel ?? "Select one or more vaults"}</span>
           {selectedLabel ? null : <CdsIconGlyph glyph="" className="mr-0.5 h-4 w-4 shrink-0 text-[#898781] text-[16px] [font-weight:533.25]" />}

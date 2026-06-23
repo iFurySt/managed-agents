@@ -61,6 +61,9 @@
   - Follow-up: gave the Create session Resource trigger a bordered rounded
     button treatment and widened the resource menu so each resource type stays
     on one row.
+  - Follow-up: brought the credential-vault picker into the same controlled
+    open state as the Agent and Environment pickers so opening another picker
+    reliably dismisses the previous dropdown.
 
 ### Design Intent
 
@@ -122,6 +125,11 @@ console.
   121x31 with an 8px radius and inset border, and the opened resource menu is
   190px wide with three 32px, `nowrap` rows for `GitHub Repository`, `File`, and
   `Memory Store`.
+- Final Open Browser Use audit confirmed opening Credential vaults after
+  Environment closes the environment popover, leaves only vault options in the
+  list, keeps the vault search focused with neutral text color, and preserves
+  the prior Agent, Environment, Credential, and Resource behavior on the current
+  rebuilt console.
 
 ### Files Modified
 
