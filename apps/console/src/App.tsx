@@ -1826,7 +1826,7 @@ function DeploymentDetailPage() {
             showSelection={false}
             showActions={false}
             className="-ml-2 w-[1309px]"
-            tableClassName="ml-2 mt-2"
+            tableClassName="ml-2 mt-2 [&_tbody_tr]:!h-11 [&_tbody_td]:!py-1"
             columns={[
               {
                 key: "id",
@@ -1834,10 +1834,10 @@ function DeploymentDetailPage() {
                 width: "160px",
                 render: (run) => (
                   <span className="inline-flex items-center gap-1.5">
-                    <span className="font-mono font-semibold">{shortId(run.id)}</span>
+                    <span className="font-mono font-semibold">{shortRunTableId(run.id)}</span>
                     <span className="hidden font-mono">{run.id}</span>
                     <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0 text-muted" aria-label={`Copy ${run.id}`} onClick={() => copyText(run.id)}>
-                      <Copy className="h-3.5 w-3.5" />
+                      <CdsIconGlyph glyph="" className="h-4 w-4 text-[16px] [font-weight:533.25]" />
                     </Button>
                   </span>
                 )
@@ -1847,17 +1847,26 @@ function DeploymentDetailPage() {
                 header: "Started at (GMT+8)",
                 width: "309.5px",
                 render: (run) => (
-                  <span>
-                    {run.startedAt}
-                    {" "}
-                    <span className="ml-2 text-muted">{run.startedLabel}</span>
+                  <span className="grid gap-0 text-sm leading-4">
+                    <span>{run.startedAt}</span>
+                    <span className="text-muted">{run.startedLabel}</span>
                   </span>
                 )
               },
               { key: "trigger", header: "Trigger", width: "120px", render: (run) => <span>{run.trigger}</span> },
               { key: "status", header: "Status", width: "110px", render: (run) => <Badge tone="green">{run.result}</Badge> },
               { key: "version", header: "Agent version", width: "160px", render: (run) => <span>{run.agentVersion}</span> },
-              { key: "session", header: "Session", width: "309.5px", render: (run) => <Link className="font-mono hover:underline" to={`/sessions/${run.sessionId}`}>{shortId(run.sessionId)}</Link> },
+              {
+                key: "session",
+                header: "Session",
+                width: "309.5px",
+                render: (run) => (
+                  <Link className="font-mono hover:underline" to={`/sessions/${run.sessionId}`}>
+                    {shortRunTableId(run.sessionId)}
+                    <span className="hidden">{run.sessionId}</span>
+                  </Link>
+                )
+              },
               { key: "sessionStatus", header: "Session status", width: "140px", render: (run) => <Badge tone={sessionTone(run.sessionStatus)}>{run.sessionStatus}</Badge> }
             ]}
           />
@@ -8019,6 +8028,13 @@ function shortId(id: string) {
   const prefixEnd = id.indexOf("_") + 1;
   const prefix = prefixEnd > 0 ? id.slice(0, prefixEnd) : id.slice(0, 4);
   return `${prefix}…${id.slice(-6)}`;
+}
+
+function shortRunTableId(id: string) {
+  if (id.length <= 16) return id;
+  const prefixEnd = id.indexOf("_") + 1;
+  if (prefixEnd <= 0) return shortId(id);
+  return `${id.slice(0, prefixEnd + 2)}…${id.slice(-6)}`;
 }
 
 function shortMemoryStoreId(id: string) {

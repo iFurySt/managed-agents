@@ -134,6 +134,11 @@
     copy, and the reference initial-message sample.
   - Follow-up: changed deployment seeding to upsert known sample deployments so
     local persisted databases receive reference-data corrections on restart.
+  - Follow-up: aligned the deployment detail Runs table row content with the
+    reference, including run/session short-id format, run-id copy glyphs,
+    two-line started-at cells, 44px rows, and reference relative run labels.
+  - Follow-up: changed deployment-run seeding to upsert known sample runs so
+    local persisted databases receive reference-data corrections on restart.
 
 ### Design Intent
 
@@ -329,6 +334,13 @@ console.
   block uses the reference sample text and copy glyph.
 - Follow-up checks passed `npm run build:console`, `go test ./apps/apiserver`,
   and a local Docker rebuild of `apiserver`/`console`.
+- Follow-up Open Browser Use check confirmed the deployment Runs table now has
+  the reference four seed rows, `1309px` width, `208.5px` table height, 44px
+  body rows, `drun_01…` and `sesn_01…` short IDs with hidden full IDs, ``
+  run-id copy glyphs, and `7 days ago` / `last week` relative labels.
+- Follow-up checks passed `npm run build:console`, `go test ./apps/apiserver`,
+  a local Docker rebuild of `apiserver`/`console`, and cleanup of one local
+  generated `drun_local_%` test row before visual comparison.
 
 ### Files Modified
 

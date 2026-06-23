@@ -1974,13 +1974,21 @@ func seed(db *gorm.DB) error {
 	}).Create(&deployments).Error; err != nil {
 		return err
 	}
-	if err := db.Model(&DeploymentRun{}).Count(&count).Error; err != nil {
+	if err := db.Clauses(clause.OnConflict{
+		Columns: []clause.Column{{Name: "id"}},
+		DoUpdates: clause.AssignmentColumns([]string{
+			"deployment_id",
+			"started_at",
+			"started_label",
+			"trigger",
+			"result",
+			"agent_version",
+			"session_id",
+			"session_status",
+			"created_at",
+		}),
+	}).Create(&runs).Error; err != nil {
 		return err
-	}
-	if count == 0 {
-		if err := db.Create(&runs).Error; err != nil {
-			return err
-		}
 	}
 
 	if err := db.Model(&Session{}).Count(&count).Error; err != nil {
@@ -2215,10 +2223,10 @@ func seedDeployments(now time.Time) ([]Deployment, []DeploymentRun) {
 		},
 	}
 	runs := []DeploymentRun{
-		deploymentRun("drun_01Xpr1nsr4kS74mRSumPrXRa", "depl_01ERmHnRJWQSLyxk7pVCMZXs", "6/17/2026, 1:00 AM", "3 days ago", "Schedule", "Success", "v2", "sesn_01Dvrq7VjSGUeke6b4fSjBUC", "Idle", now.Add(-37*time.Hour)),
-		deploymentRun("drun_01HBFZWuZFuaDtq4JpEZPJo5", "depl_01ERmHnRJWQSLyxk7pVCMZXs", "6/16/2026, 3:34 PM", "3 days ago", "Manual", "Success", "v2", "sesn_01NVn9pEgoscvpdrNE95mMPd", "Idle", now.Add(-46*time.Hour)),
-		deploymentRun("drun_01RJ4FdZisp6wPnGEcgt2685", "depl_01ERmHnRJWQSLyxk7pVCMZXs", "6/16/2026, 3:28 PM", "3 days ago", "Manual", "Success", "v2", "sesn_01NxEc3HZBVGJhooULZnMyM5", "Idle", now.Add(-46*time.Hour).Add(-6*time.Minute)),
-		deploymentRun("drun_01D9WXgoGESNVRW4GMcGYubB", "depl_01ERmHnRJWQSLyxk7pVCMZXs", "6/16/2026, 3:13 PM", "3 days ago", "Manual", "Success", "v2", "sesn_01R5Mm2LwFTLZtimNNTShPCP", "Idle", now.Add(-46*time.Hour).Add(-21*time.Minute)),
+		deploymentRun("drun_01Xpr1nsr4kS74mRSumPrXRa", "depl_01ERmHnRJWQSLyxk7pVCMZXs", "6/17/2026, 1:00 AM", "7 days ago", "Schedule", "Success", "v2", "sesn_01Dvrq7VjSGUeke6b4fSjBUC", "Idle", now.Add(-7*24*time.Hour)),
+		deploymentRun("drun_01HBFZWuZFuaDtq4JpEZPJo5", "depl_01ERmHnRJWQSLyxk7pVCMZXs", "6/16/2026, 3:34 PM", "last week", "Manual", "Success", "v2", "sesn_01NVn9pEgoscvpdrNE95mMPd", "Idle", now.Add(-7*24*time.Hour).Add(-9*time.Hour)),
+		deploymentRun("drun_01RJ4FdZisp6wPnGEcgt2685", "depl_01ERmHnRJWQSLyxk7pVCMZXs", "6/16/2026, 3:28 PM", "last week", "Manual", "Success", "v2", "sesn_01NxEc3HZBVGJhooULZnMyM5", "Idle", now.Add(-7*24*time.Hour).Add(-9*time.Hour).Add(-6*time.Minute)),
+		deploymentRun("drun_01D9WXgoGESNVRW4GMcGYubB", "depl_01ERmHnRJWQSLyxk7pVCMZXs", "6/16/2026, 3:13 PM", "last week", "Manual", "Success", "v2", "sesn_01R5Mm2LwFTLZtimNNTShPCP", "Idle", now.Add(-7*24*time.Hour).Add(-9*time.Hour).Add(-21*time.Minute)),
 	}
 	return deployments, runs
 }
