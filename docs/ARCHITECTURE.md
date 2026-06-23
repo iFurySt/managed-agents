@@ -23,8 +23,9 @@ The system has three hard layers:
 - Control plane: `apiserver`, metadata DB, `environment_work` queue, session service,
   orchestrator, vault module, filestore module, memory module, skill registry,
   deployment records, and event ingestion.
-- Host plane: `sandboxd`, Firecracker, image/snapshot manager, network/egress
-  gateway, resource monitor, and local diagnostics.
+- Host plane: `sandboxd`, Firecracker, Docker-backed local development
+  sandboxes, image/snapshot manager, network/egress gateway, resource monitor,
+  and local diagnostics.
 - Guest plane: `process-api`, `env-runner`, Codex/OpenCode adapters,
   `fs-bridge`, git/provider proxy, MCP servers, tunnel client, and disposable
   workspace.
@@ -43,7 +44,9 @@ The system has three hard layers:
 ## Boundary Rules
 
 - Code agents never talk directly to durable product databases.
-- Firecracker and host lifecycle details stay in the host plane.
+- Firecracker, Docker backend, and host lifecycle details stay in the host plane.
+- Firecracker is the production isolation target; Docker-backed sandboxes are
+  a local single-machine development and smoke-test path.
 - `orchestrator` decides what should run and where; `sandboxd` performs the
   local sandbox lifecycle work on a worker host.
 - Product behavior belongs in the control plane and `env-runner`, not in
@@ -72,7 +75,7 @@ The first useful cut has three long-running services:
 - `orchestrator`: work queue claims, leases, state machine, host selection,
   retries, timeout, cancellation, and reconciliation.
 - `sandboxd`: worker-host daemon that starts, monitors, and cleans up
-  Firecracker sandboxes.
+  Firecracker sandboxes and local Docker-backed development sandboxes.
 
 For the MVP, `filestore`, `vault`, `events`, `skills`, `memory`, and
 `deployments` are logical modules inside `apiserver`, not separate deployed
@@ -88,4 +91,4 @@ This means the service boundary is intentionally small:
   stuck state.
 - `sandboxd` is the worker-host daemon. It is the host-side agent by role, but
   the service name is `sandboxd` because its job is local sandbox lifecycle,
-  monitoring, diagnostics, and cleanup.
+  monitoring, diagnostics, and cleanup across supported host-plane backends.

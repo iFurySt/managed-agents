@@ -594,3 +594,153 @@ func TestSandboxdStartOptions(t *testing.T) {
 		t.Fatalf("timeout = %s", got.timeout)
 	}
 }
+
+func TestNormalizeBackend(t *testing.T) {
+	for _, value := range []string{"", "firecracker", "FIRECRACKER"} {
+		got, err := normalizeBackend(value)
+		if err != nil {
+			t.Fatalf("normalizeBackend(%q) returned error: %v", value, err)
+		}
+		if got != backendFirecracker {
+			t.Fatalf("normalizeBackend(%q) = %q", value, got)
+		}
+	}
+	got, err := normalizeBackend("docker")
+	if err != nil {
+		t.Fatalf("normalizeBackend(docker) returned error: %v", err)
+	}
+	if got != backendDocker {
+		t.Fatalf("normalizeBackend(docker) = %q", got)
+	}
+	if _, err := normalizeBackend("unknown"); err == nil {
+		t.Fatal("normalizeBackend accepted an unknown backend")
+	}
+}
+
+func TestRunDockerSandboxCommandUsesTemporaryContainer(t *testing.T) {
+	fakeDocker, logPath := writeFakeDocker(t)
+	opt := options{
+		backend:   backendDocker,
+		dockerBin: fakeDocker,
+		workDir:   t.TempDir(),
+		image:     "managed-agents/docker-template:test",
+		timeout:   time.Second,
+	}
+	result, err := runSandboxCommand(context.Background(), opt, sandboxdRunRequest{
+		ID:      "sbx-docker-run",
+		Command: "printf docker-ok",
+		Network: false,
+	})
+	if err != nil {
+		t.Fatalf("runSandboxCommand returned error: %v", err)
+	}
+	if !result.OK || result.Stdout != "fake-run-out\n" || result.Sandbox.Backend != backendDocker {
+		t.Fatalf("unexpected docker run result: %#v", result)
+	}
+	logData, err := os.ReadFile(logPath)
+	if err != nil {
+		t.Fatalf("read fake docker log: %v", err)
+	}
+	log := string(logData)
+	for _, want := range []string{
+		"run --rm --name managed-agents-sbx-docker-run",
+		"--network none",
+		"managed-agents/docker-template:test /bin/sh -c printf docker-ok",
+		"rm -f managed-agents-sbx-docker-run",
+	} {
+		if !strings.Contains(log, want) {
+			t.Fatalf("fake docker log missing %q:\n%s", want, log)
+		}
+	}
+	if _, err := os.Stat(filepath.Join(opt.workDir, "sandboxes", "sbx-docker-run")); !os.IsNotExist(err) {
+		t.Fatalf("one-shot docker sandbox directory should be removed, err=%v", err)
+	}
+}
+
+func TestDockerSandboxLifecycleExecAndStop(t *testing.T) {
+	fakeDocker, logPath := writeFakeDocker(t)
+	opt := options{
+		backend:   backendDocker,
+		dockerBin: fakeDocker,
+		workDir:   t.TempDir(),
+		image:     "managed-agents/docker-template:test",
+	}
+	state, err := startSandbox(context.Background(), opt, "sbx-docker-life")
+	if err != nil {
+		t.Fatalf("startSandbox returned error: %v", err)
+	}
+	if state.Backend != backendDocker || state.ContainerID != "fake-container-id" || !state.Booted {
+		t.Fatalf("unexpected docker state: %#v", state)
+	}
+	execResp, err := execDockerSandbox(context.Background(), opt, state, processAPIExecRequest{
+		Argv: []string{"/bin/sh", "-c", "printf exec-ok"},
+		Env:  map[string]string{"A": "1"},
+	})
+	if err != nil {
+		t.Fatalf("execDockerSandbox returned error: %v", err)
+	}
+	if !execResp.OK || execResp.Stdout != "fake-exec-out\n" {
+		t.Fatalf("unexpected docker exec response: %#v", execResp)
+	}
+	stopped, err := stopSandbox(context.Background(), opt, state.ID)
+	if err != nil {
+		t.Fatalf("stopSandbox returned error: %v", err)
+	}
+	if stopped.Status != "stopped" {
+		t.Fatalf("stopped status = %q", stopped.Status)
+	}
+	if err := removeSandbox(context.Background(), opt, state.ID, true); err != nil {
+		t.Fatalf("removeSandbox returned error: %v", err)
+	}
+	logData, err := os.ReadFile(logPath)
+	if err != nil {
+		t.Fatalf("read fake docker log: %v", err)
+	}
+	log := string(logData)
+	for _, want := range []string{
+		"run -d --name managed-agents-sbx-docker-life",
+		"exec -w /workspace -e A=1 fake-container-id /bin/sh -c printf exec-ok",
+		"rm -f fake-container-id",
+	} {
+		if !strings.Contains(log, want) {
+			t.Fatalf("fake docker log missing %q:\n%s", want, log)
+		}
+	}
+}
+
+func writeFakeDocker(t *testing.T) (string, string) {
+	t.Helper()
+	dir := t.TempDir()
+	logPath := filepath.Join(dir, "docker.log")
+	path := filepath.Join(dir, "docker")
+	script := fmt.Sprintf(`#!/bin/sh
+set -eu
+printf '%%s\n' "$*" >>%s
+case "$1" in
+  rm)
+    exit 0
+    ;;
+  inspect)
+    printf 'true\n'
+    ;;
+  run)
+    if [ "$2" = "-d" ]; then
+      printf 'fake-container-id\n'
+    else
+      printf 'fake-run-out\n'
+    fi
+    ;;
+  exec)
+    printf 'fake-exec-out\n'
+    ;;
+  *)
+    printf 'unsupported fake docker command: %%s\n' "$1" >&2
+    exit 2
+    ;;
+esac
+`, shellQuote(logPath))
+	if err := os.WriteFile(path, []byte(script), 0o755); err != nil {
+		t.Fatalf("write fake docker: %v", err)
+	}
+	return path, logPath
+}

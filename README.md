@@ -6,8 +6,8 @@
 secure, observable sandboxes.
 
 It brings together a console, API server, orchestrator, and worker-host runtime
-for sessions, deployments, environments, credentials, memory, skills, files, and
-Firecracker-backed hosts.
+for sessions, deployments, environments, credentials, memory, skills, files,
+Firecracker-backed hosts, and a Docker-backed local development sandbox.
 
 ## Quick Start
 
@@ -34,6 +34,21 @@ Check the worker-host runtime:
 go run ./apps/sandboxd doctor
 ```
 
+Run the worker-host runtime with the local Docker sandbox backend:
+
+```sh
+go run ./apps/sandboxd --backend docker --work-dir /tmp/managed-agents-docker --image alpine:3.20 serve
+```
+
+Then point the orchestrator at it for fast local execution:
+
+```sh
+ORCHESTRATOR_RUNTIME=sandbox-command \
+SANDBOXD_URL=http://127.0.0.1:8787 \
+ORCHESTRATOR_SANDBOX_IMAGE=alpine:3.20 \
+go run ./apps/orchestrator run-once
+```
+
 For architecture and Firecracker setup details, see
 [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) and
 [`docs/references/gcp-firecracker-kvm.md`](docs/references/gcp-firecracker-kvm.md).
@@ -44,8 +59,8 @@ For architecture and Firecracker setup details, see
   memory, and deployments.
 - `apps/orchestrator`: queue claims, leases, retries, timeouts, cancellation,
   and runtime selection.
-- `apps/sandboxd`: worker-host daemon for Firecracker lifecycle and guest
-  process execution.
+- `apps/sandboxd`: worker-host daemon for Firecracker lifecycle, Docker-backed
+  local sandboxes, and guest process execution.
 - `apps/console`: React console for the managed agents surface.
 
 ## License

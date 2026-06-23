@@ -30,9 +30,16 @@ import (
 
 const ciArtifactBucket = "https://s3.amazonaws.com/spec.ccfc.min"
 
+const (
+	backendFirecracker = "firecracker"
+	backendDocker      = "docker"
+)
+
 type options struct {
+	backend             string
 	workDir             string
 	firecrackerVersion  string
+	dockerBin           string
 	image               string
 	vcpuCount           int
 	memMiB              int
@@ -82,6 +89,7 @@ type imageSpec struct {
 
 type sandboxState struct {
 	ID               string    `json:"id"`
+	Backend          string    `json:"backend"`
 	Image            string    `json:"image"`
 	Status           string    `json:"status"`
 	Booted           bool      `json:"booted"`
@@ -97,6 +105,9 @@ type sandboxState struct {
 	RootfsPath       string    `json:"rootfs_path"`
 	BaseRootfs       string    `json:"base_rootfs"`
 	Firecracker      string    `json:"firecracker"`
+	ContainerID      string    `json:"container_id,omitempty"`
+	ContainerName    string    `json:"container_name,omitempty"`
+	WorkspacePath    string    `json:"workspace_path,omitempty"`
 	ProcessAPI       bool      `json:"process_api"`
 	ProcessTransport string    `json:"process_transport,omitempty"`
 	ProcessPort      uint32    `json:"process_port,omitempty"`
@@ -218,11 +229,13 @@ func main() {
 	var opt options
 	root := &cobra.Command{
 		Use:   "sandboxd",
-		Short: "Run and inspect local Firecracker sandboxes",
+		Short: "Run and inspect local sandboxes",
 	}
-	root.PersistentFlags().StringVar(&opt.workDir, "work-dir", "/opt/managed-agents/firecracker", "workspace for Firecracker binaries and guest assets")
+	root.PersistentFlags().StringVar(&opt.backend, "backend", env("SANDBOXD_BACKEND", backendFirecracker), "sandbox backend: firecracker or docker")
+	root.PersistentFlags().StringVar(&opt.workDir, "work-dir", "/opt/managed-agents/firecracker", "workspace for sandbox assets and temporary workspaces")
 	root.PersistentFlags().StringVar(&opt.firecrackerVersion, "firecracker-version", "latest", "Firecracker release tag or latest")
-	root.PersistentFlags().StringVar(&opt.image, "image", "firecracker-ci-ubuntu-22.04", "microVM image to pull or boot")
+	root.PersistentFlags().StringVar(&opt.dockerBin, "docker-bin", env("DOCKER_BIN", "docker"), "Docker CLI binary used by the docker backend")
+	root.PersistentFlags().StringVar(&opt.image, "image", env("SANDBOXD_IMAGE", "firecracker-ci-ubuntu-22.04"), "sandbox image to pull or boot")
 	root.PersistentFlags().BoolVar(&opt.useSudo, "sudo", true, "run host operations that need KVM/root privileges through sudo")
 
 	root.AddCommand(&cobra.Command{
@@ -936,7 +949,12 @@ func sandboxdHTTPHandler(opt options) http.Handler {
 				writeAPIError(w, http.StatusBadRequest, "invalid json body")
 				return
 			}
-			result, err := execProcessAPI(r.Context(), state, request)
+			var result processAPIExecResponse
+			if state.Backend == backendDocker {
+				result, err = execDockerSandbox(r.Context(), opt, state, request)
+			} else {
+				result, err = execProcessAPI(r.Context(), state, request)
+			}
 			if err != nil {
 				writeAPIError(w, statusForError(err), err.Error())
 				return
@@ -1074,8 +1092,15 @@ func runSandboxCommand(ctx context.Context, opt options, request sandboxdRunRequ
 		return sandboxdRunResponse{}, errors.New("command is required")
 	}
 	runOpt := sandboxdRunOptions(opt, request)
+	backend, err := normalizeBackend(runOpt.backend)
+	if err != nil {
+		return sandboxdRunResponse{}, err
+	}
 	if runOpt.timeout == 0 {
 		runOpt.timeout = 180 * time.Second
+	}
+	if backend == backendDocker {
+		return runDockerSandboxCommand(ctx, runOpt, request)
 	}
 	started := time.Now()
 	state, err := startSandbox(ctx, runOpt, request.ID)
@@ -1154,6 +1179,17 @@ func resolveImage(name string) (imageSpec, error) {
 		return imageSpec{name: "firecracker-ci-ubuntu-22.04", rootfsVersion: "22.04"}, nil
 	default:
 		return imageSpec{}, fmt.Errorf("unsupported image %q; supported images: firecracker-ci-ubuntu-22.04", name)
+	}
+}
+
+func normalizeBackend(value string) (string, error) {
+	switch strings.ToLower(strings.TrimSpace(value)) {
+	case "", backendFirecracker:
+		return backendFirecracker, nil
+	case backendDocker:
+		return backendDocker, nil
+	default:
+		return "", fmt.Errorf("unsupported sandbox backend %q; supported backends: firecracker, docker", value)
 	}
 }
 
@@ -1239,6 +1275,17 @@ func listSandboxes(opt options) ([]sandboxState, error) {
 }
 
 func refreshSandboxStatus(state sandboxState) sandboxState {
+	if state.Backend == backendDocker && state.ContainerID != "" {
+		running, err := dockerContainerRunning(context.Background(), "docker", state.ContainerID)
+		if err == nil {
+			if running {
+				state.Status = "running"
+			} else if state.Status == "running" || state.Status == "starting" {
+				state.Status = "exited"
+			}
+			return state
+		}
+	}
 	switch state.Status {
 	case "running", "starting":
 		if !isProcessAlive(state.PID) {
@@ -1249,8 +1296,9 @@ func refreshSandboxStatus(state sandboxState) sandboxState {
 }
 
 func printSandboxState(state sandboxState) {
-	fmt.Printf("sandbox=%s\nstatus=%s\nbooted=%t\npid=%d\nimage=%s\nvcpu=%d\nmem_mib=%d\nsandbox_dir=%s\nconsole=%s\nrootfs=%s\nprocess_api=%t\n",
+	fmt.Printf("sandbox=%s\nbackend=%s\nstatus=%s\nbooted=%t\npid=%d\nimage=%s\nvcpu=%d\nmem_mib=%d\nsandbox_dir=%s\nworkspace=%s\ncontainer=%s\nconsole=%s\nrootfs=%s\nprocess_api=%t\n",
 		state.ID,
+		defaultString(state.Backend, backendFirecracker),
 		state.Status,
 		state.Booted,
 		state.PID,
@@ -1258,6 +1306,8 @@ func printSandboxState(state sandboxState) {
 		state.VCPUCount,
 		state.MemMiB,
 		state.SandboxDir,
+		state.WorkspacePath,
+		state.ContainerID,
 		state.ConsolePath,
 		state.RootfsPath,
 		state.ProcessAPI,
@@ -1628,10 +1678,279 @@ func shellQuote(value string) string {
 	return "'" + strings.ReplaceAll(value, "'", "'\\''") + "'"
 }
 
+func defaultString(value, fallback string) string {
+	if strings.TrimSpace(value) == "" {
+		return fallback
+	}
+	return value
+}
+
+func env(key, fallback string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return fallback
+}
+
+func dockerBin(opt options) string {
+	return defaultString(opt.dockerBin, "docker")
+}
+
+func dockerContainerName(id string) string {
+	return "managed-agents-" + id
+}
+
+func startDockerSandbox(ctx context.Context, opt options, id string) (sandboxState, error) {
+	if id == "" {
+		id = generateSandboxID()
+	}
+	if err := validateSandboxID(id); err != nil {
+		return sandboxState{}, err
+	}
+	if strings.TrimSpace(opt.image) == "" {
+		return sandboxState{}, errors.New("docker image is required")
+	}
+	if err := requireCommand(dockerBin(opt)); err != nil {
+		return sandboxState{}, err
+	}
+	if existing, err := readSandboxState(opt, id); err == nil && existing.Backend == backendDocker && existing.ContainerID != "" {
+		running, _ := dockerContainerRunning(ctx, dockerBin(opt), existing.ContainerID)
+		if running {
+			return sandboxState{}, fmt.Errorf("sandbox %s is already running as container %s", id, existing.ContainerID)
+		}
+	}
+	sandboxDir := filepath.Join(sandboxesDir(opt), id)
+	workspacePath := filepath.Join(sandboxDir, "workspace")
+	if err := os.MkdirAll(workspacePath, 0o755); err != nil {
+		return sandboxState{}, err
+	}
+	name := dockerContainerName(id)
+	_ = dockerRemoveContainer(ctx, dockerBin(opt), name)
+	args := []string{
+		"run",
+		"-d",
+		"--name", name,
+		"--label", "managed-agents.sandbox=" + id,
+		"-v", workspacePath + ":/workspace",
+		"-w", "/workspace",
+		opt.image,
+		"/bin/sh", "-c", "trap 'exit 0' TERM INT; while true; do sleep 3600; done",
+	}
+	output, err := exec.CommandContext(ctx, dockerBin(opt), args...).CombinedOutput()
+	if err != nil {
+		return sandboxState{}, fmt.Errorf("docker run failed: %v: %s", err, strings.TrimSpace(string(output)))
+	}
+	containerID := strings.TrimSpace(string(output))
+	state := sandboxState{
+		ID:            id,
+		Backend:       backendDocker,
+		Image:         opt.image,
+		Status:        "running",
+		Booted:        true,
+		PID:           -1,
+		VCPUCount:     opt.vcpuCount,
+		MemMiB:        opt.memMiB,
+		WorkDir:       opt.workDir,
+		SandboxDir:    sandboxDir,
+		ContainerID:   containerID,
+		ContainerName: name,
+		WorkspacePath: workspacePath,
+		ProcessAPI:    opt.withProcessAPI,
+		StartedAt:     time.Now().UTC(),
+	}
+	if err := writeSandboxState(state); err != nil {
+		_ = dockerRemoveContainer(context.Background(), dockerBin(opt), containerID)
+		return sandboxState{}, err
+	}
+	return state, nil
+}
+
+func runDockerSandboxCommand(ctx context.Context, opt options, request sandboxdRunRequest) (sandboxdRunResponse, error) {
+	started := time.Now()
+	if strings.TrimSpace(opt.image) == "" {
+		return sandboxdRunResponse{}, errors.New("docker image is required")
+	}
+	if err := requireCommand(dockerBin(opt)); err != nil {
+		return sandboxdRunResponse{}, err
+	}
+	id := request.ID
+	if id == "" {
+		id = generateSandboxID()
+	}
+	if err := validateSandboxID(id); err != nil {
+		return sandboxdRunResponse{}, err
+	}
+	sandboxDir := filepath.Join(sandboxesDir(opt), id)
+	workspacePath := filepath.Join(sandboxDir, "workspace")
+	if err := os.MkdirAll(workspacePath, 0o755); err != nil {
+		return sandboxdRunResponse{}, err
+	}
+	name := dockerContainerName(id)
+	_ = dockerRemoveContainer(ctx, dockerBin(opt), name)
+	defer func() {
+		_ = dockerRemoveContainer(context.Background(), dockerBin(opt), name)
+		_ = os.RemoveAll(sandboxDir)
+	}()
+	runCtx := ctx
+	cancel := func() {}
+	if opt.timeout > 0 {
+		runCtx, cancel = context.WithTimeout(ctx, opt.timeout)
+	}
+	defer cancel()
+	args := []string{
+		"run",
+		"--rm",
+		"--name", name,
+		"--label", "managed-agents.sandbox=" + id,
+		"-v", workspacePath + ":/workspace",
+		"-w", "/workspace",
+	}
+	if !request.Network {
+		args = append(args, "--network", "none")
+	}
+	args = append(args, opt.image, "/bin/sh", "-c", request.Command)
+	stdout, stderr, exitCode, timedOut, err := runDockerCommand(runCtx, dockerBin(opt), args...)
+	state := sandboxState{
+		ID:            id,
+		Backend:       backendDocker,
+		Image:         opt.image,
+		Status:        "stopped",
+		Booted:        true,
+		PID:           -1,
+		WorkDir:       opt.workDir,
+		SandboxDir:    sandboxDir,
+		ContainerName: name,
+		WorkspacePath: workspacePath,
+		StartedAt:     started.UTC(),
+		StoppedAt:     time.Now().UTC(),
+	}
+	result := sandboxdRunResponse{
+		ID:             id,
+		OK:             err == nil && exitCode == 0 && !timedOut,
+		ExitCode:       exitCode,
+		Stdout:         stdout,
+		Stderr:         stderr,
+		TimedOut:       timedOut,
+		DurationMillis: time.Since(started).Milliseconds(),
+		Sandbox:        state,
+	}
+	if err != nil {
+		result.Error = err.Error()
+	}
+	return result, nil
+}
+
+func execDockerSandbox(ctx context.Context, opt options, state sandboxState, request processAPIExecRequest) (processAPIExecResponse, error) {
+	if state.ContainerID == "" {
+		return processAPIExecResponse{}, errors.New("docker container id is missing")
+	}
+	if len(request.Argv) == 0 {
+		return processAPIExecResponse{}, errors.New("argv is required")
+	}
+	execCtx := ctx
+	cancel := func() {}
+	if request.TimeoutMillis > 0 {
+		execCtx, cancel = context.WithTimeout(ctx, time.Duration(request.TimeoutMillis)*time.Millisecond)
+	}
+	defer cancel()
+	cwd := defaultString(request.Cwd, "/workspace")
+	args := []string{"exec", "-w", cwd}
+	for key, value := range request.Env {
+		if key == "" {
+			continue
+		}
+		args = append(args, "-e", key+"="+value)
+	}
+	args = append(args, state.ContainerID)
+	args = append(args, request.Argv...)
+	started := time.Now()
+	stdout, stderr, exitCode, timedOut, err := runDockerCommand(execCtx, dockerBin(opt), args...)
+	result := processAPIExecResponse{
+		OK:             err == nil && exitCode == 0 && !timedOut,
+		Argv:           request.Argv,
+		Cwd:            cwd,
+		ExitCode:       exitCode,
+		Stdout:         stdout,
+		Stderr:         stderr,
+		TimedOut:       timedOut,
+		DurationMillis: time.Since(started).Milliseconds(),
+	}
+	if err != nil {
+		result.Error = err.Error()
+	}
+	return result, nil
+}
+
+func stopDockerSandbox(ctx context.Context, opt options, state sandboxState) (sandboxState, error) {
+	target := defaultString(state.ContainerID, state.ContainerName)
+	if target != "" {
+		output, err := exec.CommandContext(ctx, dockerBin(opt), "rm", "-f", target).CombinedOutput()
+		if err != nil && !strings.Contains(string(output), "No such container") {
+			return sandboxState{}, fmt.Errorf("docker rm failed: %v: %s", err, strings.TrimSpace(string(output)))
+		}
+	}
+	state.Status = "stopped"
+	state.StoppedAt = time.Now().UTC()
+	if err := writeSandboxState(state); err != nil {
+		return sandboxState{}, err
+	}
+	return state, nil
+}
+
+func dockerContainerRunning(ctx context.Context, docker string, id string) (bool, error) {
+	if id == "" {
+		return false, nil
+	}
+	output, err := exec.CommandContext(ctx, docker, "inspect", "-f", "{{.State.Running}}", id).CombinedOutput()
+	if err != nil {
+		if strings.Contains(string(output), "No such object") || strings.Contains(string(output), "No such container") {
+			return false, nil
+		}
+		return false, fmt.Errorf("docker inspect failed: %v: %s", err, strings.TrimSpace(string(output)))
+	}
+	return strings.TrimSpace(string(output)) == "true", nil
+}
+
+func dockerRemoveContainer(ctx context.Context, docker string, id string) error {
+	if id == "" {
+		return nil
+	}
+	output, err := exec.CommandContext(ctx, docker, "rm", "-f", id).CombinedOutput()
+	if err != nil && !strings.Contains(string(output), "No such container") {
+		return fmt.Errorf("docker rm failed: %v: %s", err, strings.TrimSpace(string(output)))
+	}
+	return nil
+}
+
+func runDockerCommand(ctx context.Context, docker string, args ...string) (string, string, int, bool, error) {
+	cmd := exec.CommandContext(ctx, docker, args...)
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	err := cmd.Run()
+	timedOut := ctx.Err() != nil
+	exitCode := 0
+	if err != nil {
+		exitCode = 1
+		var exitErr *exec.ExitError
+		if errors.As(err, &exitErr) {
+			exitCode = exitErr.ExitCode()
+		}
+		if timedOut {
+			err = ctx.Err()
+		}
+	}
+	return stdout.String(), stderr.String(), exitCode, timedOut, err
+}
+
 func stopSandbox(ctx context.Context, opt options, id string) (sandboxState, error) {
 	state, err := readSandboxState(opt, id)
 	if err != nil {
 		return sandboxState{}, err
+	}
+	if state.Backend == backendDocker {
+		return stopDockerSandbox(ctx, opt, state)
 	}
 	if isProcessAlive(state.PID) {
 		if err := terminatePID(state.PID); err != nil && isProcessAlive(state.PID) {
@@ -1655,6 +1974,21 @@ func removeSandbox(ctx context.Context, opt options, id string, force bool) erro
 	state, err := readSandboxState(opt, id)
 	if err != nil {
 		return err
+	}
+	if state.Backend == backendDocker && state.ContainerID != "" {
+		running, _ := dockerContainerRunning(ctx, dockerBin(opt), state.ContainerID)
+		if running {
+			if !force {
+				return fmt.Errorf("sandbox %s is still running; stop it first or pass --force", id)
+			}
+			if _, err := stopDockerSandbox(ctx, opt, state); err != nil {
+				return err
+			}
+			state, err = readSandboxState(opt, id)
+			if err != nil {
+				return err
+			}
+		}
 	}
 	if isProcessAlive(state.PID) {
 		if !force {
@@ -1788,6 +2122,13 @@ func readGuestCommandResult(ctx context.Context, state sandboxState) (sandboxdRu
 }
 
 func startSandbox(ctx context.Context, opt options, id string) (sandboxState, error) {
+	backend, err := normalizeBackend(opt.backend)
+	if err != nil {
+		return sandboxState{}, err
+	}
+	if backend == backendDocker {
+		return startDockerSandbox(ctx, opt, id)
+	}
 	if opt.vcpuCount <= 0 || opt.memMiB <= 0 {
 		return sandboxState{}, errors.New("vcpu and mem-mib must be positive")
 	}
@@ -1886,6 +2227,7 @@ func startSandbox(ctx context.Context, opt options, id string) (sandboxState, er
 
 	state := sandboxState{
 		ID:          id,
+		Backend:     backendFirecracker,
 		Image:       assets.image,
 		Status:      "starting",
 		PID:         cmd.Process.Pid,
