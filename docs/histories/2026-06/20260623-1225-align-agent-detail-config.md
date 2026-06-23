@@ -31,6 +31,8 @@
   - Restored inset borders on agent-session tab filters and added the empty
     sessions message.
   - Gave the agent-deployments empty-state create button a framed treatment.
+  - Follow-up: matched the agent detail actions menu width to the reference
+    menu and shortened the detail-page archive action copy.
 
 ### Design Intent
 
@@ -51,6 +53,9 @@ console.
   empty state reads `No sessions yet, run this agent to create a session`.
 - Verified the local Deployments tab empty state shows a framed
   `Create deployment` button.
+- Compared the official actions menu with Open Browser Use; matched the local
+  detail actions menu width and archive label in source after measuring the
+  reference popup.
 
 ### Files Modified
 

@@ -7432,7 +7432,7 @@ function AgentRowActions({ agent, onArchive, onGuidedEdit }: { agent: Agent; onA
       <CdsDropdownMenu.Portal>
         <CdsDropdownMenu.Content
           data-cds="Menu"
-          className={`${cdsMenuContentClass} w-[148px]`}
+          className={`${cdsMenuContentClass} ${onGuidedEdit ? "w-[184px]" : "w-[148px]"}`}
           align="end"
           sideOffset={8}
         >
@@ -7459,7 +7459,7 @@ function AgentRowActions({ agent, onArchive, onGuidedEdit }: { agent: Agent; onA
             disabled={archived}
           >
             <MenuArchiveIcon />
-            {archived ? "Archived" : "Archive agent"}
+            {archived ? "Archived" : onGuidedEdit ? "Archive" : "Archive agent"}
           </CdsDropdownMenu.Item>
         </CdsDropdownMenu.Content>
       </CdsDropdownMenu.Portal>
