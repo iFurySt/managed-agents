@@ -1952,8 +1952,8 @@ function EnvironmentsPage() {
       </div>
       <div className="overflow-x-auto">
         <DataTable
-          className="-mx-2 !w-[calc(100%+16px)] overflow-x-auto p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
-          tableClassName="w-[968px] border-separate border-spacing-0 whitespace-nowrap"
+          className="-mx-2 w-[1309px] overflow-x-auto p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
+          tableClassName="w-[1309px] border-separate border-spacing-0 whitespace-nowrap"
           rows={visibleEnvironments}
           getKey={(environment) => environment.id}
           loading={loading}
@@ -1982,7 +1982,7 @@ function EnvironmentsPage() {
             {
               key: "name",
               header: "Name",
-              width: "296px",
+              width: "637px",
               render: (environment) => (
                 <Link className="block truncate [font-weight:400]" to={`/environments/${environment.id}`}>
                   {environment.name}

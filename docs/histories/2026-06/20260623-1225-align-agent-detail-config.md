@@ -82,6 +82,8 @@
     vault list table width and column distribution to the reference layout.
   - Follow-up: matched the Memory stores table width, column distribution, and
     first-row created label to the reference layout and data.
+  - Follow-up: matched the Environments table width and column distribution to
+    the reference layout.
 
 ### Design Intent
 
@@ -186,6 +188,12 @@ console.
 - Follow-up Open Browser Use check confirmed the Create memory store dialog
   keeps the reference `510x337` shell, centered placement, field sizes, helper
   copy, and disabled Create button.
+- Follow-up Open Browser Use check confirmed Environments uses a `1309px`
+  table at `x=280` and matches the reference column widths: `40`, `216`,
+  `637`, `100`, `120`, `140`, and `56px`.
+- Follow-up Open Browser Use check confirmed the Create environment dialog
+  keeps the reference `510x429` shell, centered placement, field sizes,
+  hosting-type selector, and Cancel/Create actions.
 
 ### Files Modified
 
