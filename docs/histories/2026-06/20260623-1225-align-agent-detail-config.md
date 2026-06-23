@@ -43,6 +43,9 @@
     converted the MCPs/tools area to the reference bordered two-row layout.
   - Follow-up: made the Tool permissions row expandable and populated the core
     built-in toolset with the eight reference permission rows.
+  - Follow-up: matched the detail Version selector menu to the reference
+    two-line option treatment and added the requested rounded border treatment
+    to the Edit action.
 
 ### Design Intent
 
@@ -79,6 +82,9 @@ console.
 - Follow-up Open Browser Use check confirmed clicking Tool permissions expands
   the core toolset into eight 50px permission rows with per-row `Always allow`
   status.
+- Follow-up Open Browser Use check confirmed the Version shell measures
+  105x32, the open option measures 247x46 with a created-date subtitle, and the
+  Edit button has an 8px radius with a 0.5px border.
 
 ### Files Modified
 

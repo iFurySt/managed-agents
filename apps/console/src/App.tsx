@@ -150,6 +150,12 @@ function getDocumentTitle(pathname: string) {
   return title === "Claude Platform" ? title : `${title} | Claude Platform`;
 }
 
+function formatVersionCreatedLabel(createdAt: string) {
+  const created = new Date(createdAt);
+  if (Number.isNaN(created.getTime())) return "Created";
+  return `Created ${created.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`;
+}
+
 export default function App() {
   const location = useLocation();
   const bannerRoute = location.pathname === "/vaults" || location.pathname.startsWith("/vaults/");
@@ -3503,7 +3509,11 @@ function AgentDetailPage() {
           </div>
         </div>
         <div className="flex shrink-0 gap-2">
-          <Button variant="secondary" className="!w-[71px] !gap-1.5 !border-0 !bg-transparent [font-weight:550]" onClick={() => setEditOpen(true)}>
+          <Button
+            variant="secondary"
+            className="!w-[71px] !gap-1.5 !rounded-[8px] !border-[0.5px] !border-[rgba(11,11,11,0.1)] !bg-white/50 !shadow-[0_1px_2px_rgba(0,0,0,0.04)] [font-weight:550]"
+            onClick={() => setEditOpen(true)}
+          >
             <CdsIconGlyph glyph="" />
             Edit
           </Button>
@@ -3525,14 +3535,47 @@ function AgentDetailPage() {
         </CdsTabs.List>
         <CdsTabs.Content value="agent" className="grid max-w-[1252px]">
           <div>
-            <FieldSelect
-              label="Version:"
-              value={agent.version || "v1"}
-              options={[agent.version || "v1"]}
-              onValueChange={() => undefined}
-              triggerShellClassName={topFilterShellClassName}
-              triggerClassName="w-[105px]"
-            />
+            <Select.Root value={agent.version || "v1"} onValueChange={() => undefined}>
+              <div data-cds="FieldSelect" className={`${topFilterShellClassName} w-[105px]`}>
+                <Select.Trigger
+                  data-cds="Button"
+                  aria-label="Version"
+                  className="cds-focus inline-flex h-8 min-w-0 flex-1 items-center gap-1.5 self-stretch rounded-none border-0 bg-transparent p-0 pl-2 pr-0 text-sm text-ink shadow-none"
+                >
+                  <span className="flex min-w-0 flex-1 items-baseline gap-1.5 whitespace-nowrap">
+                    <span className="shrink-0 text-muted">Version:</span>
+                    <Select.Value className="min-w-0 truncate">{agent.version || "v1"}</Select.Value>
+                  </span>
+                  <Select.Icon className="shrink-0">
+                    <CdsIconGlyph glyph="" className="mr-0.5 h-4 w-4 text-[#898781] text-[16px] [font-weight:533.25]" />
+                  </Select.Icon>
+                </Select.Trigger>
+              </div>
+              <Select.Portal>
+                <Select.Content
+                  position="popper"
+                  sideOffset={8}
+                  className="z-50 w-[256px] rounded-[12px] border-[0.5px] border-[rgba(11,11,11,0.1)] bg-white p-1 shadow-[0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
+                >
+                  <Select.Viewport>
+                    <Select.Item
+                      value={agent.version || "v1"}
+                      className="grid h-[46px] cursor-pointer grid-cols-[minmax(0,1fr)_24px] items-center rounded-[8px] bg-fill px-3 text-sm outline-none data-[highlighted]:bg-fill"
+                    >
+                      <Select.ItemText>
+                        <span className="flex min-w-0 flex-col">
+                          <span className="truncate text-sm leading-5 text-ink">{agent.version || "v1"}</span>
+                          <span className="truncate text-sm leading-5 text-[#898781]">{formatVersionCreatedLabel(agent.createdAt)}</span>
+                        </span>
+                      </Select.ItemText>
+                      <Select.ItemIndicator className="justify-self-end">
+                        <CdsIconGlyph glyph="" className="h-5 w-5 shrink-0 text-[#0f5ca8] text-[20px] [font-weight:533.25]" />
+                      </Select.ItemIndicator>
+                    </Select.Item>
+                  </Select.Viewport>
+                </Select.Content>
+              </Select.Portal>
+            </Select.Root>
           </div>
           <AgentConfigSection title="Model" headingClassName={agentDetailHeadingClass}>
             <div className={`mt-3 font-mono ${agentDetailBodyClass}`}>{agent.model}</div>
