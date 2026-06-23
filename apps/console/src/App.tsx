@@ -4402,13 +4402,13 @@ function CreateSessionDialog({
   const [title, setTitle] = useState("");
   const [agentId, setAgentId] = useState("");
   const [environmentId, setEnvironmentId] = useState("");
-  const [vault, setVault] = useState("");
+  const [vaults, setVaults] = useState<string[]>([]);
   const [vaultAcknowledged, setVaultAcknowledged] = useState(false);
   const [resources, setResources] = useState<SessionResourceKind[]>([]);
   const [resourceMenuOpen, setResourceMenuOpen] = useState(false);
   const [openPicker, setOpenPicker] = useState<"agent" | "environment" | null>(null);
   const [createAgentOpen, setCreateAgentOpen] = useState(false);
-  const canCreate = Boolean(agentId && environmentId && (!vault || vaultAcknowledged));
+  const canCreate = Boolean(agentId && environmentId && (!vaults.length || vaultAcknowledged));
   const fieldLabelClass = "text-sm leading-none [font-weight:550]";
   const dialogHeightClass = resources.length ? "h-[706px]" : resourceMenuOpen ? "h-[650px]" : "h-[619px]";
 
@@ -4417,7 +4417,7 @@ function CreateSessionDialog({
     setTitle("");
     setAgentId(defaultSessionAgentId);
     setEnvironmentId(defaultSessionEnvironmentId);
-    setVault(defaultSessionVaultId);
+    setVaults(defaultSessionVaultId ? [defaultSessionVaultId] : []);
     setVaultAcknowledged(false);
     setResources([]);
     setOpenPicker(null);
@@ -4440,7 +4440,7 @@ function CreateSessionDialog({
       title,
       agentId,
       environmentId,
-      vaults: vault ? [vault] : [],
+      vaults,
       resources
     });
     onCreated(session);
@@ -4448,7 +4448,7 @@ function CreateSessionDialog({
     setTitle("");
     setAgentId("");
     setEnvironmentId("");
-    setVault("");
+    setVaults([]);
     setVaultAcknowledged(false);
     setResources([]);
   }
@@ -4510,14 +4510,14 @@ function CreateSessionDialog({
                 <DialogTextLink href="/vaults">Manage credential vaults</DialogTextLink>
               </div>
               <CreateSessionVaultPicker
-                value={vault}
-                onValueChange={(nextVault) => {
-                  setVault(nextVault);
+                value={vaults}
+                onValueChange={(nextVaults) => {
+                  setVaults(nextVaults);
                   setVaultAcknowledged(false);
                 }}
               />
             </div>
-            {vault ? (
+            {vaults.length ? (
               <label className="flex min-h-[70px] cursor-pointer items-start gap-3 rounded-[8px] border border-[#c47a00] bg-[#ffe4a8] px-3 py-3 text-sm leading-5 text-[#70440b]">
                 <span className="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-[4px] bg-white shadow-[inset_0_0_0_1px_rgba(11,11,11,0.18)]">
                   <input
@@ -5239,14 +5239,44 @@ const credentialVaultPickerOptions = [
   { value: "test_secret", name: "test_secret", updated: "5 days ago", summary: "", credentialIcons: 3 }
 ];
 
-function CreateSessionVaultPicker({ value, onValueChange }: { value: string; onValueChange: (value: string) => void }) {
+function CreateSessionVaultPicker({ value, onValueChange }: { value: string[]; onValueChange: (value: string[]) => void }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const containerRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const filteredOptions = credentialVaultPickerOptions.filter((option) => option.name.toLowerCase().includes(search.toLowerCase()));
-  const selected = credentialVaultPickerOptions.find((option) => option.value === value);
+  const selectedOptions = credentialVaultPickerOptions.filter((option) => value.includes(option.value));
+  const selectedLabel = selectedOptions.length > 1 ? `${selectedOptions.length} vaults selected` : selectedOptions[0]?.name;
+
+  useEffect(() => {
+    if (!open) {
+      setSearch("");
+      return;
+    }
+    const focusSearch = () => searchInputRef.current?.focus();
+    const frame = window.requestAnimationFrame(focusSearch);
+    const timer = window.setTimeout(focusSearch, 40);
+    const closeOnOutsidePointer = (event: PointerEvent) => {
+      if (!containerRef.current?.contains(event.target as Node)) setOpen(false);
+    };
+    document.addEventListener("pointerdown", closeOnOutsidePointer);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.clearTimeout(timer);
+      document.removeEventListener("pointerdown", closeOnOutsidePointer);
+    };
+  }, [open]);
+
+  function toggleVault(nextValue: string) {
+    if (value.includes(nextValue)) {
+      onValueChange(value.filter((item) => item !== nextValue));
+      return;
+    }
+    onValueChange([...value, nextValue]);
+  }
 
   return (
-    <div data-cds="Field" className="relative">
+    <div ref={containerRef} data-cds="Field" className="relative">
       <div className={createSessionSelectShellClass}>
         <button
           type="button"
@@ -5256,15 +5286,15 @@ function CreateSessionVaultPicker({ value, onValueChange }: { value: string; onV
           className="flex h-8 min-w-0 flex-1 items-center justify-between rounded-none border-0 bg-transparent pl-2 pr-0 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.03]"
           onClick={() => setOpen((current) => !current)}
         >
-          <span className={`truncate ${selected ? "" : "text-muted [font-weight:430]"}`}>{selected?.name ?? "Select one or more vaults"}</span>
-          {selected ? null : <CdsIconGlyph glyph="" className="mr-0.5 h-4 w-4 shrink-0 text-[#898781] text-[16px] [font-weight:533.25]" />}
+          <span className={`truncate ${selectedLabel ? "" : "text-muted [font-weight:430]"}`}>{selectedLabel ?? "Select one or more vaults"}</span>
+          {selectedLabel ? null : <CdsIconGlyph glyph="" className="mr-0.5 h-4 w-4 shrink-0 text-[#898781] text-[16px] [font-weight:533.25]" />}
         </button>
-        {selected ? (
+        {selectedLabel ? (
           <button
             type="button"
-            aria-label="Clear credential vault"
+            aria-label="Clear credential vaults"
             className="grid h-8 w-8 shrink-0 place-items-center rounded-[8px] text-ink outline-none hover:bg-fill"
-            onClick={() => onValueChange("")}
+            onClick={() => onValueChange([])}
           >
             <CdsIconGlyph glyph="" className="h-4 w-4 text-[16px] [font-weight:533.25]" />
           </button>
@@ -5278,10 +5308,15 @@ function CreateSessionVaultPicker({ value, onValueChange }: { value: string; onV
         >
           <div role="combobox" aria-expanded="true" className="-mx-1 -mt-1 mb-1 flex h-[37px] w-[calc(100%+8px)] items-center border-b border-line px-4 py-2">
             <input
-              className="h-full min-w-0 flex-1 bg-transparent text-sm leading-5 text-ink outline-none placeholder:text-transparent"
+              ref={searchInputRef}
+              className={createSessionSearchInputClass}
               aria-label="Search credential vaults"
+              autoFocus
+              placeholder="Search credential vaults"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
+              onPointerDown={(event) => event.stopPropagation()}
+              onKeyDownCapture={(event) => event.stopPropagation()}
               onKeyDown={(event) => event.stopPropagation()}
             />
           </div>
@@ -5291,13 +5326,13 @@ function CreateSessionVaultPicker({ value, onValueChange }: { value: string; onV
                 key={option.value}
                 type="button"
                 role="option"
-                aria-selected={value === option.value}
-                className="flex min-h-[46px] w-full items-center justify-between rounded-[8px] px-3 py-1 text-left outline-none hover:bg-fill"
-                onClick={() => {
-                  onValueChange(option.value);
-                  setOpen(false);
-                }}
+                aria-selected={value.includes(option.value)}
+                className="flex min-h-[46px] w-full items-center gap-3 rounded-[8px] px-3 py-1 text-left outline-none hover:bg-fill aria-selected:bg-black/[0.04]"
+                onClick={() => toggleVault(option.value)}
               >
+                <span className="grid h-4 w-4 shrink-0 place-items-center rounded-[4px] bg-white shadow-[inset_0_0_0_1px_rgba(11,11,11,0.18)]" aria-hidden>
+                  {value.includes(option.value) ? <CdsIconGlyph glyph="" className="h-4 w-4 text-[#184f95] text-[16px] [font-weight:700]" /> : null}
+                </span>
                 <CredentialVaultOptionContent option={option} />
               </button>
             ))}

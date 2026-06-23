@@ -55,6 +55,9 @@
     so they show neutral placeholders, auto-focus on open, accept direct
     keyboard input, reset search on close, and keep only one picker menu open at
     a time.
+  - Follow-up: converted the Create session credential-vault picker to
+    searchable checkbox-style multi-select with outside-click dismissal while
+    preserving the vault authorization warning behavior.
 
 ### Design Intent
 
@@ -107,6 +110,11 @@ console.
 - Follow-up Open Browser Use checks confirmed opening the Environment picker
   closes the Agent picker, shows only environment options, auto-focuses with
   `Search environments`, and filters `my` to `myenv`.
+- Follow-up Open Browser Use checks confirmed the credential-vault picker
+  auto-focuses with `Search credential vaults`, filters `temp` to
+  `Temporary vault`, toggles vaults with checkbox rows without closing the menu,
+  updates the trigger to `2 vaults selected`, keeps the authorization warning
+  visible, and closes when clicking elsewhere in the dialog.
 
 ### Files Modified
 
