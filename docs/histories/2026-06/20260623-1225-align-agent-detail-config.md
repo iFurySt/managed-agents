@@ -100,6 +100,9 @@
   - Follow-up: matched Environment detail header metadata to the reference by
     rendering the description without shifting the detail sections and using
     the reference short environment id format.
+  - Follow-up: aligned the Environment detail type badge and top-right action
+    group with the reference header spacing, neutral badge styling, and action
+    coordinates.
 
 ### Design Intent
 
@@ -248,6 +251,11 @@ console.
 - Follow-up Open Browser Use check confirmed entering Environment edit mode
   still shows the name field, description textarea, Networking section, and
   Save/Cancel actions after the header change.
+- Follow-up Open Browser Use check confirmed Environment detail now keeps the
+  `Cloud` badge at `x=563`, `w=50`, `h=22` with neutral reference colors,
+  places `Edit` at `x=1490` and the actions trigger at `x=1549`, keeps the
+  description at `y=134`, and preserves Networking/Packages/Metadata at
+  `y=178`/`325`/`462`.
 
 ### Files Modified
 

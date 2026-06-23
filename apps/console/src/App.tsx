@@ -2141,9 +2141,9 @@ function EnvironmentDetailPage() {
         </nav>
       </div>
 
-      <div className="relative ml-1 flex items-start justify-between gap-4">
+      <div className="relative mx-1 flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
-          <div className="mb-2 flex items-center gap-3">
+          <div className="mb-2 flex items-center gap-2">
             {editing ? (
               <TextInput
                 className="h-9 w-[256px] max-w-none rounded-[8px] !text-[22px] leading-[26px] [font-weight:580]"
@@ -2155,7 +2155,7 @@ function EnvironmentDetailPage() {
             ) : (
               <h1 className="truncate text-[22px] leading-[26px] [font-weight:580]">{environment.name}</h1>
             )}
-            {editing ? null : <Badge tone="blue">{environment.type}</Badge>}
+            {editing ? null : <Badge tone="neutral" className="h-[22px] rounded-[999px] !bg-[rgba(11,11,11,0.05)] !text-[#52514e]">{environment.type}</Badge>}
           </div>
           {editing ? null : (
             <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
@@ -2170,11 +2170,11 @@ function EnvironmentDetailPage() {
         </div>
         <div className="flex gap-2">
           {editing ? (
-            <EnvironmentActions environment={environment} onArchive={() => setArchiveOpen(true)} onDelete={() => setDeleteOpen(true)} />
+            <EnvironmentActions environment={environment} triggerClassName="" onArchive={() => setArchiveOpen(true)} onDelete={() => setDeleteOpen(true)} />
           ) : (
             <>
               <Button variant="ghost" className="h-8 bg-transparent px-3 [font-weight:550] hover:bg-fill" onClick={startEdit}>Edit</Button>
-              <EnvironmentActions environment={environment} onArchive={() => setArchiveOpen(true)} onDelete={() => setDeleteOpen(true)} />
+              <EnvironmentActions environment={environment} triggerClassName="" onArchive={() => setArchiveOpen(true)} onDelete={() => setDeleteOpen(true)} />
             </>
           )}
         </div>
@@ -7012,13 +7012,23 @@ function fileTone(status: string): "neutral" | "green" | "blue" | "red" {
   return "blue";
 }
 
-function EnvironmentActions({ environment, onArchive, onDelete }: { environment: Environment; onArchive: () => void; onDelete: () => void }) {
+function EnvironmentActions({
+  environment,
+  onArchive,
+  onDelete,
+  triggerClassName = "ml-1"
+}: {
+  environment: Environment;
+  onArchive: () => void;
+  onDelete: () => void;
+  triggerClassName?: string;
+}) {
   const archived = environment.status === "Archived";
 
   return (
     <CdsDropdownMenu.Root>
       <CdsDropdownMenu.Trigger asChild>
-        <Button variant="icon" className="ml-1" aria-label="More actions">
+        <Button variant="icon" className={triggerClassName} aria-label="More actions">
           <MoreActionsIcon />
         </Button>
       </CdsDropdownMenu.Trigger>
