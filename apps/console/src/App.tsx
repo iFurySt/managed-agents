@@ -5632,17 +5632,17 @@ const deploymentWeekdayOptions: { value: ScheduleWeekday; cron: number; runs: st
   {
     value: "Sunday",
     cron: 0,
-    runs: ["Sun, Jun 21, 2026, 9:00 AM", "Sun, Jun 28, 2026, 9:00 AM", "Sun, Jul 5, 2026, 9:00 AM", "Sun, Jul 12, 2026, 9:00 AM", "Sun, Jul 19, 2026, 9:00 AM"]
+    runs: ["Sun, Jun 28, 2026, 9:00 AM", "Sun, Jul 5, 2026, 9:00 AM", "Sun, Jul 12, 2026, 9:00 AM", "Sun, Jul 19, 2026, 9:00 AM", "Sun, Jul 26, 2026, 9:00 AM"]
   },
   {
     value: "Monday",
     cron: 1,
-    runs: ["Mon, Jun 22, 2026, 9:00 AM", "Mon, Jun 29, 2026, 9:00 AM", "Mon, Jul 6, 2026, 9:00 AM", "Mon, Jul 13, 2026, 9:00 AM", "Mon, Jul 20, 2026, 9:00 AM"]
+    runs: ["Mon, Jun 29, 2026, 9:00 AM", "Mon, Jul 6, 2026, 9:00 AM", "Mon, Jul 13, 2026, 9:00 AM", "Mon, Jul 20, 2026, 9:00 AM", "Mon, Jul 27, 2026, 9:00 AM"]
   },
   {
     value: "Tuesday",
     cron: 2,
-    runs: ["Tue, Jun 23, 2026, 9:00 AM", "Tue, Jun 30, 2026, 9:00 AM", "Tue, Jul 7, 2026, 9:00 AM", "Tue, Jul 14, 2026, 9:00 AM", "Tue, Jul 21, 2026, 9:00 AM"]
+    runs: ["Tue, Jun 30, 2026, 9:00 AM", "Tue, Jul 7, 2026, 9:00 AM", "Tue, Jul 14, 2026, 9:00 AM", "Tue, Jul 21, 2026, 9:00 AM", "Tue, Jul 28, 2026, 9:00 AM"]
   },
   {
     value: "Wednesday",
@@ -5662,7 +5662,7 @@ const deploymentWeekdayOptions: { value: ScheduleWeekday; cron: number; runs: st
   {
     value: "Saturday",
     cron: 6,
-    runs: ["Sat, Jun 20, 2026, 9:00 AM", "Sat, Jun 27, 2026, 9:00 AM", "Sat, Jul 4, 2026, 9:00 AM", "Sat, Jul 11, 2026, 9:00 AM", "Sat, Jul 18, 2026, 9:00 AM"]
+    runs: ["Sat, Jun 27, 2026, 9:00 AM", "Sat, Jul 4, 2026, 9:00 AM", "Sat, Jul 11, 2026, 9:00 AM", "Sat, Jul 18, 2026, 9:00 AM", "Sat, Jul 25, 2026, 9:00 AM"]
   }
 ];
 
@@ -5682,28 +5682,28 @@ const deploymentScheduleRunDates: Record<Exclude<DeploymentFrequency, "Custom cr
     "Sat, Jun 20, 2026, 4:00 AM"
   ],
   Daily: [
-    "Sat, Jun 20, 2026, 9:00 AM",
-    "Sun, Jun 21, 2026, 9:00 AM",
-    "Mon, Jun 22, 2026, 9:00 AM",
-    "Tue, Jun 23, 2026, 9:00 AM",
-    "Wed, Jun 24, 2026, 9:00 AM"
-  ],
-  Weekdays: [
-    "Mon, Jun 22, 2026, 9:00 AM",
-    "Tue, Jun 23, 2026, 9:00 AM",
     "Wed, Jun 24, 2026, 9:00 AM",
     "Thu, Jun 25, 2026, 9:00 AM",
-    "Fri, Jun 26, 2026, 9:00 AM"
+    "Fri, Jun 26, 2026, 9:00 AM",
+    "Sat, Jun 27, 2026, 9:00 AM",
+    "Sun, Jun 28, 2026, 9:00 AM"
+  ],
+  Weekdays: [
+    "Wed, Jun 24, 2026, 9:00 AM",
+    "Thu, Jun 25, 2026, 9:00 AM",
+    "Fri, Jun 26, 2026, 9:00 AM",
+    "Mon, Jun 29, 2026, 9:00 AM",
+    "Tue, Jun 30, 2026, 9:00 AM"
   ],
   Weekly: deploymentWeekdayOptions[1].runs
 };
 
 const deploymentDailyOneAmRuns = [
-  "Sat, Jun 20, 2026, 1:00 AM",
-  "Sun, Jun 21, 2026, 1:00 AM",
-  "Mon, Jun 22, 2026, 1:00 AM",
-  "Tue, Jun 23, 2026, 1:00 AM",
-  "Wed, Jun 24, 2026, 1:00 AM"
+  "Wed, Jun 24, 2026, 1:00 AM",
+  "Thu, Jun 25, 2026, 1:00 AM",
+  "Fri, Jun 26, 2026, 1:00 AM",
+  "Sat, Jun 27, 2026, 1:00 AM",
+  "Sun, Jun 28, 2026, 1:00 AM"
 ];
 
 function parseScheduleTime(value: string) {
