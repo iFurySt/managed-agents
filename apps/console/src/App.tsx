@@ -152,8 +152,11 @@ export default function App() {
   });
   const showBanner = bannerRoute && bannerVisible;
   const fullWidthRoute = location.pathname.startsWith("/memory-stores/");
+  const agentDetailRoute = /^\/agents\/[^/]+/.test(location.pathname);
   const contentShellClass = fullWidthRoute
     ? "w-full max-w-none px-1 pb-8 pt-3"
+    : agentDetailRoute
+      ? `w-full overflow-hidden px-8 pb-8 ${showBanner ? "pt-3" : "pt-6"}`
     : `mx-auto w-full max-w-7xl overflow-hidden px-8 pb-8 md:px-10 ${showBanner ? "pt-3" : "pt-6"}`;
   const routeShellClass = fullWidthRoute ? `px-7 ${showBanner ? "pt-6" : "pt-3"}` : showBanner ? "pt-6" : "";
 
@@ -3461,7 +3464,7 @@ function AgentDetailPage() {
   }
 
   return (
-    <section className="flex max-w-[952px] flex-col">
+    <section className="flex max-w-[1252px] flex-col">
       <div className="-ml-5 -mt-2 mb-4 flex h-7 items-center text-sm text-muted">
         <Link className="rounded-control px-3 py-1 hover:bg-fill" to="/agents">
           Agents
@@ -3507,7 +3510,7 @@ function AgentDetailPage() {
             </CdsTabs.Trigger>
           ))}
         </CdsTabs.List>
-        <CdsTabs.Content value="agent" className="grid max-w-[952px]">
+        <CdsTabs.Content value="agent" className="grid max-w-[1252px]">
           <div>
             <FieldSelect
               label="Version:"
@@ -3523,7 +3526,7 @@ function AgentDetailPage() {
           </AgentConfigSection>
           <AgentConfigSection title="System prompt" headingClassName={agentDetailHeadingClass} separated>
             <div className="relative mt-2 rounded-[8px] bg-[#f9f9f7] px-4 py-4">
-              <pre className="max-h-[120px] overflow-hidden whitespace-pre-wrap pr-10 font-mono text-sm leading-5 text-ink">{agent.systemPrompt}</pre>
+              <pre className="max-h-[120px] overflow-hidden whitespace-pre-wrap font-mono text-sm leading-5 text-ink">{agent.systemPrompt}</pre>
               <Button
                 variant="ghost"
                 size="sm"
@@ -3536,30 +3539,29 @@ function AgentDetailPage() {
             </div>
           </AgentConfigSection>
           <AgentConfigSection title="MCPs and tools" headingClassName={agentDetailHeadingClass} separated>
-            <div className="mt-2 flex min-h-[108px] items-start gap-3 rounded-[8px] bg-transparent py-2">
-              <button
-                type="button"
-                className="mt-0.5 flex h-6 w-6 items-center justify-center rounded-[6px] text-[#898781] hover:bg-fill"
-                aria-label="Toggle built-in tools"
-              >
-                <CdsIconGlyph glyph="" className="-rotate-90 text-[16px]" />
-              </button>
-              <CdsIconGlyph glyph="" className="mt-0.5 h-5 w-5 text-[#898781] text-[20px] [font-weight:433.25]" />
-              <div className="min-w-0 flex-1">
-                <div className="text-sm leading-5 text-ink [font-weight:550]">Built-in tools</div>
-                <div className="font-mono text-sm leading-5 text-[#52514e]">{agent.tools}</div>
-                <div className="mt-3 flex flex-wrap items-center gap-2">
-                  <Badge>
-                    <CdsIconGlyph glyph="" className="mr-1 h-3.5 w-3.5 text-[14px] [font-weight:628.5]" />
-                    Tool permissions
-                  </Badge>
-                  <Badge>8</Badge>
-                  <Badge tone="green">
-                    <CdsIconGlyph glyph="" className="mr-1 h-3.5 w-3.5 text-[14px] [font-weight:628.5]" />
-                    Always allow
-                  </Badge>
+            <div className="mt-2 flex w-full flex-col overflow-hidden rounded-[8px] border-[0.5px] border-[rgba(11,11,11,0.1)] text-sm">
+              <div className="flex items-center gap-3 py-3 pl-5 pr-3">
+                <CdsIconGlyph glyph="" className="h-5 w-5 text-[#898781] text-[20px] [font-weight:433.25]" />
+                <div className="flex min-w-0 flex-1 flex-col">
+                  <span className="truncate text-sm leading-5 text-ink [font-weight:550]">Built-in tools</span>
+                  <span className="truncate font-mono text-xs leading-4 text-[#898781]">{agent.tools}</span>
                 </div>
               </div>
+              <button
+                type="button"
+                className="flex h-[46px] w-full items-center gap-2 rounded-[8px] px-4 py-3 text-left text-[#52514e] hover:bg-[#f9f9f7]"
+                aria-label="Toggle tool permissions"
+              >
+                <CdsIconGlyph glyph="" className="h-4 w-4 text-[16px] [font-weight:533.25]" />
+                <span className="flex min-w-0 flex-1 items-center gap-2 text-sm leading-5 text-[#52514e]">
+                  <span>Tool permissions</span>
+                  <span className="inline-flex h-[22px] shrink-0 items-center rounded-[5.5px] bg-fill px-2 text-xs leading-[15px] text-[#52514e] [font-weight:550]">8</span>
+                </span>
+                <span className="flex shrink-0 items-center gap-1.5 text-xs leading-4 text-[#898781] [font-weight:550]">
+                  <CdsIconGlyph glyph="" className="h-3.5 w-3.5 text-[#006300] text-[14px] [font-weight:628.5]" />
+                  Always allow
+                </span>
+              </button>
             </div>
           </AgentConfigSection>
           <AgentConfigSection title="Skills" headingClassName={agentDetailHeadingClass} separated>

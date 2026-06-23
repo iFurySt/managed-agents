@@ -38,6 +38,9 @@
   - Follow-up: restored the Agent tab section heading hierarchy to the
     reference color and weight, and changed the detail actions menu Archive item
     to the reference danger styling.
+  - Follow-up: widened the agent detail route to the reference 1252px content
+    region, restored the System Prompt single-line code block at that width, and
+    converted the MCPs/tools area to the reference bordered two-row layout.
 
 ### Design Intent
 
@@ -67,6 +70,10 @@ console.
 - Follow-up browser checks confirmed Agent tab section headings compute to
   14px/20px, weight 550, and `#52514e`; the detail actions menu still measures
   184px wide with 32px rows, and Archive now uses the reference red danger color.
+- Follow-up Open Browser Use checks confirmed the local agent detail page now
+  measures x=288/w=1252, the top-right Edit and actions buttons sit at the
+  reference x positions, and the MCPs/tools card, tool id, and permissions row
+  match the reference geometry and typography.
 
 ### Files Modified
 
