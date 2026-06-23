@@ -5093,6 +5093,8 @@ function DeploymentVersionPicker({ value }: { value: string }) {
   );
 }
 
+const deploymentPickerShellClass = "h-8 w-[472px] rounded-[8px] bg-white/50 shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]";
+
 function DeploymentAgentPicker({
   value,
   onValueChange,
@@ -5109,7 +5111,7 @@ function DeploymentAgentPicker({
 
   return (
     <div data-cds="Field" className={`relative ${wide ? "w-[472px]" : "w-[300px]"}`}>
-      <div className="h-8 rounded-[8px] bg-white/50">
+      <div className={`${deploymentPickerShellClass} ${wide ? "" : "!w-[300px]"}`}>
         <button
           type="button"
           role="combobox"
@@ -5192,7 +5194,7 @@ function DeploymentEnvironmentPicker({
 
   return (
     <div data-cds="Field" className="relative">
-      <div className="h-8 rounded-[8px] bg-white/50">
+      <div className={deploymentPickerShellClass}>
         <button
           type="button"
           role="combobox"
@@ -5387,7 +5389,7 @@ function DeploymentVaultPicker({ value, onValueChange }: { value: string; onValu
 
   return (
     <div data-cds="Field" className="relative">
-      <div className="h-8 rounded-[8px] bg-white/50">
+      <div className={deploymentPickerShellClass}>
         <button
           type="button"
           role="combobox"
@@ -5477,7 +5479,7 @@ function DeploymentMemoryStorePicker({ value, onValueChange }: { value: string; 
   return (
     <div data-cds="Field" className="relative grid gap-2">
       {selected ? (
-        <div className="flex h-8 items-center justify-between rounded-[8px] bg-white/50 px-2 text-sm">
+        <div className={`${deploymentPickerShellClass} flex items-center justify-between px-2 text-sm`}>
           <span className="inline-flex min-w-0 items-center gap-2 truncate">
             <Database className="h-4 w-4 shrink-0 text-muted" />
             <span className="truncate">{selected.name}</span>
@@ -5493,13 +5495,13 @@ function DeploymentMemoryStorePicker({ value, onValueChange }: { value: string; 
           </button>
         </div>
       ) : null}
-      <div className="h-8 w-[464px] rounded-[8px] bg-white/50">
+      <div className={deploymentPickerShellClass}>
         <button
           type="button"
           role="combobox"
           aria-expanded={open}
           aria-label="Add memory store"
-          className="flex h-8 w-full min-w-0 items-center gap-1.5 rounded-[8px] bg-transparent p-0 pl-2 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-[#c6613f]/35"
+          className="flex h-8 w-[464px] min-w-0 items-center gap-1.5 rounded-[8px] bg-transparent p-0 pl-2 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-[#c6613f]/35"
           onClick={() => setOpen((current) => !current)}
         >
           <span className="min-w-0 flex-1 truncate">
@@ -5557,7 +5559,7 @@ function DeploymentTriggerPicker({ value, onValueChange }: { value: string; onVa
 
   return (
     <div data-cds="Field" className="relative">
-      <div className="h-8 rounded-[8px] bg-white/50">
+      <div className={deploymentPickerShellClass}>
         <button
           type="button"
           role="combobox"

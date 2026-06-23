@@ -103,6 +103,8 @@
   - Follow-up: aligned the Environment detail type badge and top-right action
     group with the reference header spacing, neutral badge styling, and action
     coordinates.
+  - Follow-up: gave Create deployment picker controls reference-style 472px
+    inset-ring shells while keeping the internal 464px combobox buttons.
 
 ### Design Intent
 
@@ -256,6 +258,10 @@ console.
   places `Edit` at `x=1490` and the actions trigger at `x=1549`, keeps the
   description at `y=134`, and preserves Networking/Packages/Metadata at
   `y=178`/`325`/`462`.
+- Follow-up Open Browser Use check confirmed Create deployment Agent,
+  Environment, Credential vaults, Memory stores, and Trigger picker shells now
+  measure `472x32`, keep 8px radii, and render the reference `rgba(11,11,11,0.1)`
+  inset ring around their 464px combobox buttons.
 
 ### Files Modified
 
