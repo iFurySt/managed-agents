@@ -128,6 +128,12 @@
     reference compact two-row list, including 46px option rows, the 92px list
     viewport, adjusted option typography, and the reference credential chip
     count.
+  - Follow-up: aligned the deployment detail configuration sections and
+    schedule block with the reference, including section spacing, schedule
+    copy/help glyphs, compact timezone typography, next-run labels, last-run
+    copy, and the reference initial-message sample.
+  - Follow-up: changed deployment seeding to upsert known sample deployments so
+    local persisted databases receive reference-data corrections on restart.
 
 ### Design Intent
 
@@ -316,8 +322,16 @@ console.
   ring.
 - Follow-up build check confirmed the compact Create session credential-vault
   dropdown changes compile cleanly with the console bundle.
+- Follow-up Open Browser Use check confirmed deployment detail section tops now
+  match the reference at `180`, `247`, `314`, and `381px`; schedule copy/help
+  glyphs render as `` and ``; next runs show the reference Wed/Thu/Fri/Sat
+  sequence; last scheduled run shows `7 days ago`; and the initial-message
+  block uses the reference sample text and copy glyph.
+- Follow-up checks passed `npm run build:console`, `go test ./apps/apiserver`,
+  and a local Docker rebuild of `apiserver`/`console`.
 
 ### Files Modified
 
+- `apps/apiserver/main.go`
 - `apps/console/src/App.tsx`
 - `docs/histories/2026-06/20260623-1225-align-agent-detail-config.md`

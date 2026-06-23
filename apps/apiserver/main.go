@@ -1949,14 +1949,35 @@ func seed(db *gorm.DB) error {
 		return err
 	}
 
-	if err := db.Model(&Deployment{}).Count(&count).Error; err != nil {
+	deployments, runs := seedDeployments(time.Now().UTC())
+	if err := db.Clauses(clause.OnConflict{
+		Columns: []clause.Column{{Name: "id"}},
+		DoUpdates: clause.AssignmentColumns([]string{
+			"name",
+			"status",
+			"agent_id",
+			"agent_name",
+			"agent_version",
+			"environment_id",
+			"environment_name",
+			"vaults",
+			"memory_stores",
+			"trigger",
+			"schedule",
+			"timezone",
+			"initial_message",
+			"next_runs",
+			"last_run_label",
+			"created_label",
+			"updated_at",
+		}),
+	}).Create(&deployments).Error; err != nil {
+		return err
+	}
+	if err := db.Model(&DeploymentRun{}).Count(&count).Error; err != nil {
 		return err
 	}
 	if count == 0 {
-		deployments, runs := seedDeployments(time.Now().UTC())
-		if err := db.Create(&deployments).Error; err != nil {
-			return err
-		}
 		if err := db.Create(&runs).Error; err != nil {
 			return err
 		}
@@ -2185,9 +2206,9 @@ func seedDeployments(now time.Time) ([]Deployment, []DeploymentRun) {
 			Trigger:         "Schedule",
 			Schedule:        "0 1 * * *",
 			Timezone:        "Asia/Shanghai",
-			InitialMessage:  "Prepare the daily World Cup digest. When complete, report only a concise delivery status through the configured callback.",
-			NextRuns:        "Sat 1:00 AM, Sun 1:00 AM, Mon 1:00 AM, Tue 1:00 AM, +1",
-			LastRunLabel:    "3 days ago",
+			InitialMessage:  "开始。结束后需要请求一下api.ifuryst.com，POST，payload里只汇报完成情况，邮件发送情况，不要直接发结论或邮件内容到这里。curl的时候需要增加这个http header \"Authorization: Bearer $TEST\"。原样使用。",
+			NextRuns:        "Wed 1:00 AM, Thu 1:00 AM, Fri 1:00 AM, Sat 1:00 AM, +1",
+			LastRunLabel:    "7 days ago",
 			CreatedLabel:    "Jun 16",
 			CreatedAt:       now.Add(-54 * time.Hour),
 			UpdatedAt:       now.Add(-48 * time.Hour),

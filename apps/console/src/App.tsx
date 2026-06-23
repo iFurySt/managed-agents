@@ -10,7 +10,6 @@ import {
   FolderPlus,
   Gauge,
   Home,
-  Info,
   MessageSquare,
   Pause,
   Plus,
@@ -1746,7 +1745,7 @@ function DeploymentDetailPage() {
             </CdsTabs.Trigger>
           ))}
         </CdsTabs.List>
-        <CdsTabs.Content value="configuration" className="-ml-1 grid max-w-[792px] gap-4 pb-6">
+        <CdsTabs.Content value="configuration" className="-ml-1 -mt-px flex max-w-[792px] flex-col gap-4 pb-6">
           <div className="grid grid-cols-2 gap-4">
             <DeploymentDetailSection title="Agent">
               <div className="flex items-center gap-1.5">
@@ -1765,34 +1764,41 @@ function DeploymentDetailPage() {
             <DeploymentDetailToken icon="">{deployment.memoryStores || "No memory store"}</DeploymentDetailToken>
           </DeploymentDetailSection>
           <DeploymentDetailSection title="Schedule">
-            <div className="group/value flex items-start gap-2 rounded-md border-[0.5px] border-[#dedbd2] bg-[#f9f9f7] px-3 py-2">
-              <pre className="min-w-0 flex-1 whitespace-pre-wrap break-all font-mono text-xs leading-4 text-[#4e4a45]">{deployment.schedule}</pre>
-              <button
-                type="button"
-                className="-my-0.5 inline-flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-[8px] p-1 text-muted opacity-0 transition-colors hover:bg-fill hover:text-ink focus-visible:opacity-100 group-hover/value:opacity-100"
-                aria-label="Copy"
-                onClick={() => copyText(deployment.schedule)}
-              >
-                <Copy className="h-3.5 w-3.5" />
-              </button>
-            </div>
-            <div className="mt-2 text-sm leading-[21px] text-muted">Timezone: {deployment.timezone}</div>
-            <div className="mt-3 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs leading-4 text-muted">
-              <span>Next (when resumed):</span>
-              <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0 text-muted" aria-label="About scheduling jitter">
-                <Info className="h-3.5 w-3.5" />
-              </Button>
-              {deployment.nextRuns.split(", ").map((run) => (
-                <span
-                  key={run}
-                  className={run.startsWith("+") ? "px-2 py-0.5 text-muted" : "rounded-[8px] border border-line bg-[#fcfcfb] px-2.5 py-0.5 text-[#4e4a45]"}
-                >
-                  {run}
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-1">
+                <div className="group/value flex items-start gap-2 rounded-md border-[0.5px] border-[#dedbd2] bg-[#f9f9f7] px-3 py-2">
+                  <pre className="min-w-0 flex-1 whitespace-pre-wrap break-all font-mono text-xs leading-4 text-[#4e4a45]">{deployment.schedule}</pre>
+                  <button
+                    type="button"
+                    className="-my-0.5 inline-flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-[8px] p-1 text-muted opacity-0 transition-colors hover:bg-fill hover:text-ink focus-visible:opacity-100 group-hover/value:opacity-100"
+                    aria-label="Copy"
+                    onClick={() => copyText(deployment.schedule)}
+                  >
+                    <CdsIconGlyph glyph="" className="h-4 w-4 text-[16px] [font-weight:533.25]" />
+                  </button>
+                </div>
+                <span className="text-xs leading-4 text-muted">Timezone: {deployment.timezone}</span>
+              </div>
+              <div className="flex flex-wrap items-center gap-x-1.5 gap-y-2 text-xs leading-4 text-muted">
+                <span className="mr-0.5 inline-flex items-center gap-1">
+                  <span>Next (when resumed):</span>
+                  <button type="button" className="inline-flex h-3 w-3 items-center justify-center text-muted" aria-label="About scheduling jitter">
+                    <CdsIconGlyph glyph="" className="h-3 w-3 text-[12px] [font-weight:433.3]" />
+                  </button>
                 </span>
-              ))}
-              <span className="ml-auto text-ink">
-                <span className="text-[#4e4a45]">Last scheduled run:</span> {deployment.lastRunLabel}
-              </span>
+                {deployment.nextRuns.split(", ").map((run) => (
+                  <span
+                    key={run}
+                    className={run.startsWith("+") ? "px-2 py-0.5 text-muted" : "rounded-[8px] border border-line bg-[#fcfcfb] px-2.5 py-0.5 text-[#4e4a45]"}
+                  >
+                    {run}
+                  </span>
+                ))}
+                <span className="ml-auto flex items-baseline gap-2 text-xs text-ink">
+                  <span className="text-[#4e4a45]">Last scheduled run:</span>
+                  <span>{deployment.lastRunLabel}</span>
+                </span>
+              </div>
             </div>
           </DeploymentDetailSection>
           <DeploymentDetailSection title="Initial message">
@@ -1804,7 +1810,7 @@ function DeploymentDetailPage() {
                 aria-label="Copy"
                 onClick={() => copyText(deployment.initialMessage)}
               >
-                <Copy className="h-3.5 w-3.5" />
+                <CdsIconGlyph glyph="" className="h-4 w-4 text-[16px] [font-weight:533.25]" />
               </button>
             </div>
           </DeploymentDetailSection>
@@ -7958,8 +7964,8 @@ function DeploymentDetailToken({ icon, children }: { icon: string; children: Rea
 
 function DeploymentDetailSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section>
-      <h3 className="mb-1.5 text-sm leading-5 [font-weight:550]">{title}</h3>
+    <section className="flex flex-col gap-1.5">
+      <h3 className="text-sm leading-5 [font-weight:550]">{title}</h3>
       {children}
     </section>
   );
