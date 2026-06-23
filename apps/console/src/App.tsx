@@ -4408,6 +4408,7 @@ function CreateSessionDialog({
   const [resourceMenuOpen, setResourceMenuOpen] = useState(false);
   const [openPicker, setOpenPicker] = useState<"agent" | "environment" | "vault" | null>(null);
   const [createAgentOpen, setCreateAgentOpen] = useState(false);
+  const dialogBodyRef = useRef<HTMLDivElement>(null);
   const canCreate = Boolean(agentId && environmentId && (!vaults.length || vaultAcknowledged));
   const fieldLabelClass = "text-sm leading-none [font-weight:550]";
   const dialogHeightClass = resources.length ? "h-[706px]" : resourceMenuOpen ? "h-[650px]" : "h-[619px]";
@@ -4426,8 +4427,7 @@ function CreateSessionDialog({
   useEffect(() => {
     if (!open) return;
     const resetDialogScroll = () => {
-      const dialog = Array.from(document.querySelectorAll<HTMLElement>('[data-cds="Dialog"]')).find((element) => element.textContent?.includes("Create session"));
-      if (dialog) dialog.scrollTop = 0;
+      dialogBodyRef.current?.scrollTo({ top: 0 });
     };
     requestAnimationFrame(resetDialogScroll);
     window.setTimeout(resetDialogScroll, 0);
@@ -4460,7 +4460,7 @@ function CreateSessionDialog({
         description="Set up an instance of your agent in its environment."
         open={open}
         onOpenChange={onOpenChange}
-        contentClassName={`${dialogHeightClass} !max-h-[calc(100dvh-32px)] w-[720px] max-w-[calc(100vw-32px)] !rounded-[12px] border-0 !shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]`}
+        contentClassName={`flex flex-col ${dialogHeightClass} !max-h-[calc(100dvh-32px)] w-[720px] max-w-[calc(100vw-32px)] !rounded-[12px] border-0 !shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]`}
         headerClassName="flex items-start justify-between pl-6 pr-4 pt-4"
         titleClassName="mt-1 text-[22px] leading-[26px] text-ink [font-weight:580]"
         descriptionClassName="mt-1 text-sm text-[#52514e]"
@@ -4468,7 +4468,7 @@ function CreateSessionDialog({
         closeLabel="Close"
         overlayClassName="fixed inset-0 z-40 bg-black/40"
       >
-        <div className="px-6 pb-0 pt-[10px]">
+        <div ref={dialogBodyRef} data-testid="create-session-scroll-body" className="min-h-0 flex-1 overflow-y-auto px-6 pb-0 pt-[10px]">
           <div className="grid gap-4">
             <label className={`grid gap-[7px] ${fieldLabelClass}`}>
               Title

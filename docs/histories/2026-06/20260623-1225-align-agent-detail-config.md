@@ -64,6 +64,9 @@
   - Follow-up: brought the credential-vault picker into the same controlled
     open state as the Agent and Environment pickers so opening another picker
     reliably dismisses the previous dropdown.
+  - Follow-up: changed the Create session dialog to use a fixed header with an
+    internal scrollable body so expanded resource forms can be scrolled through
+    without losing the sticky submit action.
 
 ### Design Intent
 
@@ -130,6 +133,11 @@ console.
   list, keeps the vault search focused with neutral text color, and preserves
   the prior Agent, Environment, Credential, and Resource behavior on the current
   rebuilt console.
+- Follow-up Open Browser Use check confirmed a GitHub Repository resource makes
+  the Create session body scrollable (`scrollHeight` greater than
+  `clientHeight`), and scrolling the internal body to the bottom reveals the
+  Authorization Token and Mount Path fields while the submit action remains
+  reachable.
 
 ### Files Modified
 
