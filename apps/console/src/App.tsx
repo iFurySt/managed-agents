@@ -1686,10 +1686,10 @@ function DeploymentDetailPage() {
           <span className="text-ink">{deployment.name}</span>
         </nav>
       </div>
-      <div className="flex items-start justify-between gap-4">
+      <div className="-mx-2 flex items-start justify-between gap-4 px-1">
         <div>
-          <div className="mb-1 flex items-center gap-3">
-            <h1 className="text-[22px] font-medium leading-7">{deployment.name}</h1>
+          <div className="mb-1 flex items-center gap-2">
+            <h1 className="text-[22px] leading-7 [font-weight:550]">{deployment.name}</h1>
             <Badge tone={deploymentTone(deployment.status)}>{deployment.status}</Badge>
           </div>
           <div className="flex items-center gap-2 text-sm text-muted">
@@ -1702,8 +1702,8 @@ function DeploymentDetailPage() {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button onClick={runNow}>
-            <Play className="h-4 w-4" />
+          <Button variant="ghost" className="h-8 w-[101px] !rounded-[8px] bg-transparent px-3 !gap-1.5 [font-weight:550] hover:bg-fill" onClick={runNow}>
+            <CdsIconGlyph glyph="" className="-ml-1 h-5 w-5 text-current text-[20px] [font-weight:433.3]" />
             Run now
           </Button>
           <DeploymentActions
@@ -1712,6 +1712,7 @@ function DeploymentDetailPage() {
             onResume={() => applyStatus("resume")}
             onEdit={() => setEditOpen(true)}
             onArchive={() => setArchiveOpen(true)}
+            triggerClassName=""
           />
         </div>
       </div>
@@ -7496,20 +7497,22 @@ function DeploymentActions({
   onPause,
   onResume,
   onEdit,
-  onArchive
+  onArchive,
+  triggerClassName = "ml-1"
 }: {
   deployment: Deployment;
   onPause: () => void;
   onResume: () => void;
   onEdit: () => void;
   onArchive: () => void;
+  triggerClassName?: string;
 }) {
   const paused = deployment.status === "Paused";
   const archived = deployment.status === "Archived";
   return (
     <CdsDropdownMenu.Root>
       <CdsDropdownMenu.Trigger asChild>
-        <Button variant="icon" className="ml-1" aria-label="More actions">
+        <Button variant="icon" className={triggerClassName} aria-label="More actions">
           <MoreActionsIcon />
         </Button>
       </CdsDropdownMenu.Trigger>
