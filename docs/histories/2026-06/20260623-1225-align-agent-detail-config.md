@@ -70,6 +70,9 @@
   - Follow-up: aligned the Create session credential-vault picker rows with
     the reference ordering, search placeholder, checkbox treatment, dates, and
     right-side credential metadata.
+  - Follow-up: aligned Create deployment picker metadata and optional field
+    labels with the reference while keeping deployment-specific vault ordering
+    separate from the Create session vault picker.
 
 ### Design Intent
 
@@ -145,6 +148,14 @@ console.
   `Search vaults by name or exact ID`, keeps selected `test_secret` first with
   a blue checkbox, `Jun 16`, and four credential chips, and shows
   `Temporary vault` second with an empty checkbox and `No credentials`.
+- Follow-up Open Browser Use checks confirmed Create deployment keeps the
+  520x718 reference dialog geometry, auto-focuses the name field, shows
+  separated `(optional)` labels, displays the Agent picker placeholder
+  `Search agents by name or exact ID` with `4 days ago`/`Jun 16` metadata,
+  displays the Environment picker placeholder `Search environments by name or
+  exact ID` with `Jun 16` and host metadata, and keeps the deployment Vault
+  picker ordered as `Temporary vault` then `test_secret` with three credential
+  chips.
 
 ### Files Modified
 

@@ -87,12 +87,12 @@ const sidebarCollapsedStorageKey = "managed-agents.sidebar.collapsed";
 const bannerDismissedStorageKey = "managed-agents.banner.dismissed";
 const defaultDeploymentEnvironmentId = "env_01UTaKkbFknSkQNEsZjUARMh";
 const deploymentAgentOptions = [
-  { value: "agent_011VCSqwTBQSr7SqT2Mwmus2", name: "Untitled agent", updated: "2 days ago" },
-  { value: "agent_013mi1SmR2hJ6Hk6wNTeJvF9", name: "Managed SSH Reverse Tunnel Bootstrapper", updated: "5 days ago" },
-  { value: "agent_01AVRPTGyYareCeoUasn66q5", name: "Incident commander", updated: "5 days ago" },
-  { value: "agent_019BdsR2v3NW1DiEG62wpu3e", name: "World Cup Daily Digest (self-hosted clone)", updated: "5 days ago" },
-  { value: "agent_017k8CPYuCFRD9AmupUeXd2Z", name: "World Cup Daily Digest", updated: "5 days ago" },
-  { value: "agent_01MNpVPKyrSECHGA6HqAmREZ", name: "Untitled agent", updated: "5 days ago" }
+  { value: "agent_011VCSqwTBQSr7SqT2Mwmus2", name: "Untitled agent", updated: "4 days ago" },
+  { value: "agent_013mi1SmR2hJ6Hk6wNTeJvF9", name: "Managed SSH Reverse Tunnel Bootstrapper", updated: "Jun 16" },
+  { value: "agent_01AVRPTGyYareCeoUasn66q5", name: "Incident commander", updated: "Jun 16" },
+  { value: "agent_019BdsR2v3NW1DiEG62wpu3e", name: "World Cup Daily Digest (self-hosted clone)", updated: "Jun 16" },
+  { value: "agent_017k8CPYuCFRD9AmupUeXd2Z", name: "World Cup Daily Digest", updated: "Jun 16" },
+  { value: "agent_01MNpVPKyrSECHGA6HqAmREZ", name: "Untitled agent", updated: "Jun 16" }
 ];
 const sessionAgentOptions = [
   { value: "agent_011VCSqwTBQSr7SqT2Mwmus2", name: "Untitled agent", updated: "2 days ago" },
@@ -4940,6 +4940,7 @@ function CreateDeploymentDialog({
               className="h-8 border-0 bg-white/50 !rounded-[8px] px-3 font-normal shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]"
               placeholder="Nightly inbox triage"
               value={name}
+              autoFocus
               onChange={(event) => setName(event.target.value)}
             />
           </label>
@@ -5004,14 +5005,18 @@ function CreateDeploymentDialog({
           </div>
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
-              <label className={fieldLabelClass}>Credential vaults(optional)</label>
+              <label className={fieldLabelClass}>
+                Credential vaults <span className="font-normal text-muted">(optional)</span>
+              </label>
               <DialogTextLink href="/vaults">Manage credential vaults</DialogTextLink>
             </div>
             <DeploymentVaultPicker value={vault} onValueChange={setVault} />
           </div>
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
-              <label className={fieldLabelClass}>Memory stores(optional)</label>
+              <label className={fieldLabelClass}>
+                Memory stores <span className="font-normal text-muted">(optional)</span>
+              </label>
               <DialogTextLink href="/memory-stores">Manage memory stores</DialogTextLink>
             </div>
             <DeploymentMemoryStorePicker value={memoryStore} onValueChange={setMemoryStore} />
@@ -5119,8 +5124,9 @@ function DeploymentAgentPicker({
         >
           <div role="combobox" aria-expanded="true" className="-mx-1 -mt-1 mb-1 flex h-[37px] w-[calc(100%+8px)] items-center border-b border-line px-4 py-2">
             <input
-              className="h-full min-w-0 flex-1 bg-transparent text-sm leading-5 text-ink outline-none placeholder:text-transparent"
+              className={createSessionSearchInputClass}
               aria-label="Search deployment agents"
+              placeholder="Search agents by name or exact ID"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               onKeyDown={(event) => event.stopPropagation()}
@@ -5167,10 +5173,10 @@ function DeploymentEnvironmentPicker({
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const options = [
-    { value: initialEnvironmentId || defaultDeploymentEnvironmentId, name: initialEnvironmentName || "managed-ssh-debug-env", updated: "5 days ago", host: "Cloud" },
-    { value: "env_01LiiuDCwZBtqZd5EYMk9D9x", name: "123", updated: "5 days ago", host: "Self-hosted" },
-    { value: "env_01AzQWp3SXQEATgdCFUNwteR", name: "myenv", updated: "5 days ago", host: "Self-hosted" },
-    { value: "env_01UNo9NMB1ZQLKCZk21qryb8", name: "world-cup-digest-env", updated: "5 days ago", host: "Cloud" }
+    { value: initialEnvironmentId || defaultDeploymentEnvironmentId, name: initialEnvironmentName || "managed-ssh-debug-env", updated: "Jun 16", host: "Cloud" },
+    { value: "env_01LiiuDCwZBtqZd5EYMk9D9x", name: "123", updated: "Jun 16", host: "Self-hosted" },
+    { value: "env_01AzQWp3SXQEATgdCFUNwteR", name: "myenv", updated: "Jun 16", host: "Self-hosted" },
+    { value: "env_01UNo9NMB1ZQLKCZk21qryb8", name: "world-cup-digest-env", updated: "Jun 16", host: "Cloud" }
   ];
   const dedupedOptions = options.filter((option, index, all) => all.findIndex((item) => item.value === option.value) === index);
   const filteredOptions = dedupedOptions.filter((option) => option.name.toLowerCase().includes(search.toLowerCase()));
@@ -5201,8 +5207,9 @@ function DeploymentEnvironmentPicker({
         >
           <div role="combobox" aria-expanded="true" className="-mx-1 -mt-1 mb-1 flex h-[37px] w-[calc(100%+8px)] items-center border-b border-line px-4 py-2">
             <input
-              className="h-full min-w-0 flex-1 bg-transparent text-sm leading-5 text-ink outline-none placeholder:text-transparent"
+              className={createSessionSearchInputClass}
               aria-label="Search deployment environments"
+              placeholder="Search environments by name or exact ID"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               onKeyDown={(event) => event.stopPropagation()}
@@ -5242,6 +5249,10 @@ function DeploymentEnvironmentPicker({
 const credentialVaultPickerOptions = [
   { value: "test_secret", name: "test_secret", updated: "Jun 16", summary: "", credentialIcons: 4 },
   { value: "Temporary vault", name: "Temporary vault", updated: "5 days ago", summary: "No credentials", credentialIcons: 0 }
+];
+const deploymentCredentialVaultPickerOptions = [
+  { value: "Temporary vault", name: "Temporary vault", updated: "5 days ago", summary: "No credentials", credentialIcons: 0 },
+  { value: "test_secret", name: "test_secret", updated: "Jun 16", summary: "", credentialIcons: 3 }
 ];
 
 function CreateSessionVaultPicker({
@@ -5362,8 +5373,8 @@ function CreateSessionVaultPicker({
 function DeploymentVaultPicker({ value, onValueChange }: { value: string; onValueChange: (value: string) => void }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const options = credentialVaultPickerOptions;
-  const filteredOptions = options.filter((option) => option.name.toLowerCase().includes(search.toLowerCase()));
+  const options = deploymentCredentialVaultPickerOptions;
+  const filteredOptions = options.filter((option) => `${option.name} ${option.value}`.toLowerCase().includes(search.toLowerCase()));
   const selected = options.find((option) => option.value === value);
 
   return (
@@ -5394,8 +5405,9 @@ function DeploymentVaultPicker({ value, onValueChange }: { value: string; onValu
         >
           <div role="combobox" aria-expanded="true" className="-mx-1 -mt-1 mb-1 flex h-[37px] w-[calc(100%+8px)] items-center border-b border-line px-4 py-2">
             <input
-              className="h-full min-w-0 flex-1 bg-transparent text-sm leading-5 text-ink outline-none placeholder:text-transparent"
+              className={createSessionSearchInputClass}
               aria-label="Search credential vaults"
+              placeholder="Search vaults by name or exact ID"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               onKeyDown={(event) => event.stopPropagation()}
