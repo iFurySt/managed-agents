@@ -121,6 +121,9 @@
     title row typography and spacing.
   - Follow-up: matched the Create deployment optional-field label treatment by
     using the reference 6px optional-label offset and 430 weight.
+  - Follow-up: aligned the Create deployment picker trigger layering so the
+    inner buttons are transparent and square while the outer shell owns the
+    rounded inset border.
 
 ### Design Intent
 
@@ -302,6 +305,11 @@ console.
   `Credential vaults(optional)` and `Memory stores(optional)` labels now match
   the reference widths (`186.49px` and `172.93px`) with optional spans using a
   `6px` left margin, `14px` font size, muted color, and `430` font weight.
+- Follow-up Open Browser Use check confirmed the Create deployment Agent,
+  Environment, Credential vaults, Memory stores, and Trigger picker inner
+  buttons now compute to `borderRadius: 0px` with transparent backgrounds, while
+  their outer shells remain `472x32` with `8px` radii and the reference inset
+  ring.
 
 ### Files Modified
 
