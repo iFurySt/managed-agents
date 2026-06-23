@@ -26,6 +26,8 @@
     selected text remains visible.
   - Follow-up: added JSON syntax highlighting for create/edit agent config
     previews and the shared highlighted config renderer.
+  - Follow-up: restored the create-agent overlay to the reference dimmed
+    backdrop with a light blur.
 
 ### Design Intent
 
@@ -47,6 +49,8 @@ and predictable.
   selected code-editor text renders with a visible dark foreground on the blue
   selection background.
 - `npm run build:console` after adding JSON highlighting.
+- Follow-up Open Browser Use check confirmed the local overlay uses
+  `rgba(0,0,0,0.4)` with `blur(2px)`, matching the reference backdrop.
 
 ### Files Modified
 

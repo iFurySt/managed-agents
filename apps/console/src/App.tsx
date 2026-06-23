@@ -3935,7 +3935,7 @@ function CreateAgentDialog({
       descriptionClassName="mt-1 text-sm leading-5 text-[#52514e]"
       closeButtonClassName="h-[31px] w-[31px] !gap-1.5 !rounded-[8px] !px-0 [font-weight:550]"
       closeLabel="Close"
-      overlayClassName="fixed inset-0 z-40 bg-transparent"
+      overlayClassName="fixed inset-0 z-40 bg-black/40 backdrop-blur-[2px]"
     >
       <div className="flex h-[calc(65vh+84px)] max-h-[calc(100dvh-99px)] flex-col overflow-y-auto px-6 pb-6 pt-3">
         <button
