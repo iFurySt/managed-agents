@@ -5014,7 +5014,7 @@ function CreateDeploymentDialog({
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
               <label className={fieldLabelClass}>
-                Credential vaults <span className="font-normal text-muted">(optional)</span>
+                Credential vaults<span className="ml-1.5 text-muted [font-weight:430]">(optional)</span>
               </label>
               <DialogTextLink href="/vaults">Manage credential vaults</DialogTextLink>
             </div>
@@ -5023,7 +5023,7 @@ function CreateDeploymentDialog({
           <div className="grid gap-2">
             <div className="flex items-center justify-between">
               <label className={fieldLabelClass}>
-                Memory stores <span className="font-normal text-muted">(optional)</span>
+                Memory stores<span className="ml-1.5 text-muted [font-weight:430]">(optional)</span>
               </label>
               <DialogTextLink href="/memory-stores">Manage memory stores</DialogTextLink>
             </div>

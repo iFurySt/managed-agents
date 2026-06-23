@@ -119,6 +119,8 @@
   - Follow-up: replaced the Create deployment schedule preview help and run
     icons with the reference Anthropic glyphs, and matched the `Next 5 runs`
     title row typography and spacing.
+  - Follow-up: matched the Create deployment optional-field label treatment by
+    using the reference 6px optional-label offset and 430 weight.
 
 ### Design Intent
 
@@ -296,6 +298,10 @@ console.
   uses the reference `` help glyph and `` run glyphs, with the title row
   measuring `89.39px` wide at `13px`/`16px`, a `6px` gap, and run glyphs
   aligned at the same x coordinate and size as the official dialog.
+- Follow-up Open Browser Use check confirmed the Create deployment
+  `Credential vaults(optional)` and `Memory stores(optional)` labels now match
+  the reference widths (`186.49px` and `172.93px`) with optional spans using a
+  `6px` left margin, `14px` font size, muted color, and `430` font weight.
 
 ### Files Modified
 
