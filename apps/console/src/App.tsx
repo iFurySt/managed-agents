@@ -4860,6 +4860,7 @@ function CreateDeploymentDialog({
   const pickerEnvironmentId = mode === "edit" && deployment ? deployment.environmentId : initialEnvironmentId;
   const pickerEnvironmentName = mode === "edit" && deployment ? deployment.environmentName : initialEnvironmentName;
   const scopedAgent = Boolean(lockedAgentId);
+  const dialogHeightClass = mode === "edit" ? "h-[calc(100dvh-32px)]" : trigger === "Schedule" ? "h-auto" : "h-[718px]";
 
   function selectAgent(nextAgentId: string) {
     setAgentId(nextAgentId);
@@ -4933,7 +4934,7 @@ function CreateDeploymentDialog({
       description={mode === "edit" ? "Update this deployment's trigger, environment, and credentials. Changes apply to future runs." : "Deploy an agent with a trigger, environment, and credentials."}
       open={open}
       onOpenChange={onOpenChange}
-      contentClassName={`${mode === "edit" ? "h-[calc(100dvh-32px)]" : "h-[718px]"} w-[520px] max-w-[calc(100vw-32px)] max-h-[calc(100dvh-32px)] !rounded-[12px] border-0 !shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]`}
+      contentClassName={`${dialogHeightClass} w-[520px] max-w-[calc(100vw-32px)] max-h-[calc(100dvh-32px)] !rounded-[12px] border-0 !shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]`}
       headerClassName="flex items-start justify-between pl-6 pr-4 pt-4"
       titleClassName="mt-1 text-[22px] leading-[26px] text-ink [font-weight:580]"
       descriptionClassName="mt-1 text-sm text-[#52514e]"
