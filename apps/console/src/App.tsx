@@ -108,6 +108,11 @@ const sessionEnvironmentOptions = [
   { value: "env_01AzQWp3SXQEATgdCFUNwteR", name: "myenv", updated: "5 days ago", type: "Self-hosted" },
   { value: "env_01UNo9NMB1ZQLKCZk21qryb8", name: "world-cup-digest-env", updated: "5 days ago", type: "Cloud" }
 ];
+const defaultSessionAgentId = sessionAgentOptions.find((option) => option.name === "World Cup Daily Digest")?.value ?? sessionAgentOptions[0]?.value ?? "";
+const defaultSessionEnvironmentId = sessionEnvironmentOptions.find((option) => option.name === "world-cup-digest-env")?.value ?? sessionEnvironmentOptions[0]?.value ?? "";
+const defaultSessionVaultId = "test_secret";
+const createSessionSelectShellClass = "flex h-8 w-full min-w-0 items-center rounded-[8px] bg-white/50 shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]";
+const createSessionSelectTriggerClass = "cds-focus inline-flex h-8 min-w-0 flex-1 items-center gap-1.5 rounded-none border-0 bg-transparent pl-2 pr-0 text-left text-sm leading-5 text-ink outline-none";
 const sessionResourceKinds = ["GitHub Repository", "File", "Memory Store"] as const;
 type SessionResourceKind = (typeof sessionResourceKinds)[number];
 const builtInToolPermissions = [
@@ -4397,12 +4402,23 @@ function CreateSessionDialog({
   const [agentId, setAgentId] = useState("");
   const [environmentId, setEnvironmentId] = useState("");
   const [vault, setVault] = useState("");
+  const [vaultAcknowledged, setVaultAcknowledged] = useState(false);
   const [resources, setResources] = useState<SessionResourceKind[]>([]);
   const [resourceMenuOpen, setResourceMenuOpen] = useState(false);
   const [createAgentOpen, setCreateAgentOpen] = useState(false);
-  const canCreate = true;
+  const canCreate = Boolean(agentId && environmentId && (!vault || vaultAcknowledged));
   const fieldLabelClass = "text-sm leading-none [font-weight:550]";
-  const dialogHeightClass = resources.length ? "h-[706px]" : resourceMenuOpen ? "h-[541px]" : "h-[526px]";
+  const dialogHeightClass = resources.length ? "h-[706px]" : resourceMenuOpen ? "h-[650px]" : "h-[619px]";
+
+  useEffect(() => {
+    if (!open) return;
+    setTitle("");
+    setAgentId(defaultSessionAgentId);
+    setEnvironmentId(defaultSessionEnvironmentId);
+    setVault(defaultSessionVaultId);
+    setVaultAcknowledged(false);
+    setResources([]);
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -4416,6 +4432,7 @@ function CreateSessionDialog({
   }, [open, resourceMenuOpen, resources.length]);
 
   async function submit() {
+    if (!canCreate) return;
     const session = await createSession({
       title,
       agentId,
@@ -4429,6 +4446,7 @@ function CreateSessionDialog({
     setAgentId("");
     setEnvironmentId("");
     setVault("");
+    setVaultAcknowledged(false);
     setResources([]);
   }
 
@@ -4439,20 +4457,20 @@ function CreateSessionDialog({
         description="Set up an instance of your agent in its environment."
         open={open}
         onOpenChange={onOpenChange}
-        contentClassName={`${dialogHeightClass} !max-h-[calc(100dvh-32px)] w-[706px] max-w-[calc(100vw-32px)] !rounded-[12px] border-0 !shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]`}
+        contentClassName={`${dialogHeightClass} !max-h-[calc(100dvh-32px)] w-[720px] max-w-[calc(100vw-32px)] !rounded-[12px] border-0 !shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]`}
         headerClassName="flex items-start justify-between pl-6 pr-4 pt-4"
         titleClassName="mt-1 text-[22px] leading-[26px] text-ink [font-weight:580]"
         descriptionClassName="mt-1 text-sm text-[#52514e]"
         closeButtonClassName="h-[31px] w-[31px] !gap-1.5 !rounded-[8px] !px-0 [font-weight:550]"
         closeLabel="Close"
-        overlayClassName="fixed inset-0 z-40 bg-transparent"
+        overlayClassName="fixed inset-0 z-40 bg-black/40"
       >
         <div className="px-6 pb-0 pt-[10px]">
           <div className="grid gap-4">
             <label className={`grid gap-[7px] ${fieldLabelClass}`}>
               Title
               <TextInput
-                className="h-[31px] border-0 bg-white/50 !rounded-[8px] px-3 font-normal shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]"
+                className="h-8 border-0 bg-white/50 !rounded-[8px] px-3 font-normal shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]"
                 placeholder="Optional – name this run"
                 value={title}
                 onChange={(event) => setTitle(event.target.value)}
@@ -4477,8 +4495,28 @@ function CreateSessionDialog({
                 <label className={fieldLabelClass}>Credential vaults</label>
                 <DialogTextLink href="/vaults">Manage credential vaults</DialogTextLink>
               </div>
-              <CreateSessionVaultPicker value={vault} onValueChange={setVault} />
+              <CreateSessionVaultPicker
+                value={vault}
+                onValueChange={(nextVault) => {
+                  setVault(nextVault);
+                  setVaultAcknowledged(false);
+                }}
+              />
             </div>
+            {vault ? (
+              <label className="flex min-h-[70px] cursor-pointer items-start gap-3 rounded-[8px] border border-[#c47a00] bg-[#ffe4a8] px-3 py-3 text-sm leading-5 text-[#70440b]">
+                <span className="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-[4px] bg-white shadow-[inset_0_0_0_1px_rgba(11,11,11,0.18)]">
+                  <input
+                    className="sr-only"
+                    type="checkbox"
+                    checked={vaultAcknowledged}
+                    onChange={(event) => setVaultAcknowledged(event.target.checked)}
+                  />
+                  {vaultAcknowledged ? <CdsIconGlyph glyph="" className="h-4 w-4 text-[#184f95] text-[16px] [font-weight:700]" /> : null}
+                </span>
+                <span>I own or am authorized to use this vault. I understand this means this agent can assume the identity granted by this vault.</span>
+              </label>
+            ) : null}
             <div className="grid gap-[7px]">
               <label className={fieldLabelClass}>Resources</label>
               <p className="text-[13px] leading-[18px] text-[#898781]">Mount files, GitHub repositories, or memory stores into the session.</p>
@@ -4544,21 +4582,23 @@ function CreateSessionAgentPicker({ value, onValueChange, onCreateNewAgent }: { 
 
   return (
     <Select.Root value={value || undefined} open={open} onOpenChange={setOpen} onValueChange={onValueChange}>
-      <Select.Trigger
-        data-cds="Button"
-        className="cds-focus inline-flex h-[31px] w-[651px] items-center gap-1.5 rounded-none border-0 bg-transparent pl-2 pr-0 text-left text-sm leading-5 text-ink outline-none"
-      >
-        <span className="min-w-0 flex-1 truncate">{selected?.name ?? "Select an agent"}</span>
-        <Select.Icon className="shrink-0">
-          <CdsIconGlyph glyph="" className="mr-0.5 h-4 w-4 text-[#898781] text-[16px] [font-weight:533.25]" />
-        </Select.Icon>
-      </Select.Trigger>
+      <div className={createSessionSelectShellClass}>
+        <Select.Trigger
+          data-cds="Button"
+          className={createSessionSelectTriggerClass}
+        >
+          <span className={`min-w-0 flex-1 truncate ${selected ? "" : "text-muted [font-weight:430]"}`}>{selected?.name ?? "Select an agent"}</span>
+          <Select.Icon className="shrink-0">
+            <CdsIconGlyph glyph="" className="mr-0.5 h-4 w-4 text-[#898781] text-[16px] [font-weight:533.25]" />
+          </Select.Icon>
+        </Select.Trigger>
+      </div>
       <Select.Portal>
         <Select.Content
           position="popper"
           sideOffset={7}
           data-cds="ComboboxPopover"
-          className="z-50 flex max-h-[320px] w-[658px] flex-col overflow-hidden rounded-[12px] bg-white p-1 shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]"
+          className="z-50 flex max-h-[320px] w-[672px] flex-col overflow-hidden rounded-[12px] bg-white p-1 shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]"
         >
           <div role="combobox" aria-expanded="true" className="-mx-1 -mt-1 mb-1 flex h-[37px] w-[calc(100%+8px)] shrink-0 items-center border-b border-line px-4 py-2">
             <input
@@ -4615,21 +4655,23 @@ function CreateSessionEnvironmentPicker({ value, onValueChange }: { value: strin
 
   return (
     <Select.Root value={value || undefined} onValueChange={onValueChange}>
-      <Select.Trigger
-        data-cds="Button"
-        className="cds-focus inline-flex h-[31px] w-[651px] items-center gap-1.5 rounded-none border-0 bg-transparent pl-2 pr-0 text-left text-sm leading-5 text-ink outline-none"
-      >
-        <span className="min-w-0 flex-1 truncate">{selected?.name ?? "Select an environment"}</span>
-        <Select.Icon className="shrink-0">
-          <CdsIconGlyph glyph="" className="mr-0.5 h-4 w-4 text-[#898781] text-[16px] [font-weight:533.25]" />
-        </Select.Icon>
-      </Select.Trigger>
+      <div className={createSessionSelectShellClass}>
+        <Select.Trigger
+          data-cds="Button"
+          className={createSessionSelectTriggerClass}
+        >
+          <span className={`min-w-0 flex-1 truncate ${selected ? "" : "text-muted [font-weight:430]"}`}>{selected?.name ?? "Select an environment"}</span>
+          <Select.Icon className="shrink-0">
+            <CdsIconGlyph glyph="" className="mr-0.5 h-4 w-4 text-[#898781] text-[16px] [font-weight:533.25]" />
+          </Select.Icon>
+        </Select.Trigger>
+      </div>
       <Select.Portal>
         <Select.Content
           position="popper"
           sideOffset={6}
           data-cds="ComboboxPopover"
-          className="z-50 max-h-[238px] w-[658px] overflow-hidden rounded-[12px] bg-white p-1 shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]"
+          className="z-50 max-h-[238px] w-[672px] overflow-hidden rounded-[12px] bg-white p-1 shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]"
         >
           <div role="combobox" aria-expanded="true" className="-mx-1 -mt-1 mb-1 flex h-[37px] w-[calc(100%+8px)] items-center border-b border-line px-4 py-2">
             <input
@@ -5112,22 +5154,34 @@ function CreateSessionVaultPicker({ value, onValueChange }: { value: string; onV
 
   return (
     <div data-cds="Field" className="relative">
-      <button
-        type="button"
-        role="combobox"
-        aria-expanded={open}
-        aria-label="Select credential vaults"
-        className="flex h-[31px] w-[651px] items-center justify-between rounded-none border-0 bg-transparent pl-2 pr-0 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.03]"
-        onClick={() => setOpen((current) => !current)}
-      >
-        <span className={`truncate ${selected ? "" : "text-muted [font-weight:430]"}`}>{selected?.name ?? "Select one or more vaults"}</span>
-        <CdsIconGlyph glyph="" className="mr-0.5 h-4 w-4 shrink-0 text-[#898781] text-[16px] [font-weight:533.25]" />
-      </button>
+      <div className={createSessionSelectShellClass}>
+        <button
+          type="button"
+          role="combobox"
+          aria-expanded={open}
+          aria-label="Select credential vaults"
+          className="flex h-8 min-w-0 flex-1 items-center justify-between rounded-none border-0 bg-transparent pl-2 pr-0 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.03]"
+          onClick={() => setOpen((current) => !current)}
+        >
+          <span className={`truncate ${selected ? "" : "text-muted [font-weight:430]"}`}>{selected?.name ?? "Select one or more vaults"}</span>
+          {selected ? null : <CdsIconGlyph glyph="" className="mr-0.5 h-4 w-4 shrink-0 text-[#898781] text-[16px] [font-weight:533.25]" />}
+        </button>
+        {selected ? (
+          <button
+            type="button"
+            aria-label="Clear credential vault"
+            className="grid h-8 w-8 shrink-0 place-items-center rounded-[8px] text-ink outline-none hover:bg-fill"
+            onClick={() => onValueChange("")}
+          >
+            <CdsIconGlyph glyph="" className="h-4 w-4 text-[16px] [font-weight:533.25]" />
+          </button>
+        ) : null}
+      </div>
       {open ? (
         <div
           data-cds="Combobox"
           role="dialog"
-          className="absolute left-0 top-[37px] z-50 max-h-[137px] w-[659px] overflow-hidden rounded-[12px] bg-white p-1 shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
+          className="absolute left-0 top-[38px] z-50 max-h-[137px] w-[672px] overflow-hidden rounded-[12px] bg-white p-1 shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
         >
           <div role="combobox" aria-expanded="true" className="-mx-1 -mt-1 mb-1 flex h-[37px] w-[calc(100%+8px)] items-center border-b border-line px-4 py-2">
             <input

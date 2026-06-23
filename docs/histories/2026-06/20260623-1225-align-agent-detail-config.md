@@ -48,6 +48,9 @@
     to the Edit action.
   - Follow-up: removed the centered max-width shell from standard console list
     routes so body content aligns closer to the sidebar like the reference.
+  - Follow-up: aligned the Create session dialog shell, overlay, session
+    pickers, default selections, credential-vault acknowledgement warning, and
+    create-button validation with the reference.
 
 ### Design Intent
 
@@ -90,6 +93,10 @@ console.
 - Follow-up Open Browser Use checks confirmed Agents and Sessions now start at
   x=280 with a 24px gap after the 256px sidebar, and their tables leave a 24px
   right gutter.
+- Follow-up Open Browser Use check confirmed Create session now opens with a
+  720x619 dialog, 672x32 field shells, a black 40% overlay, selected agent,
+  environment, and vault defaults, a vault authorization warning, and disabled
+  submit until the acknowledgement is checked.
 
 ### Files Modified
 
