@@ -108,6 +108,8 @@
   - Follow-up: aligned the deployment detail header with the reference by
     matching the title/status positioning and converting `Run now` from a
     primary button to the reference transparent glyph button.
+  - Follow-up: aligned the Create deployment Trigger picker popover with the
+    reference direction, glyph icons, row spacing, and panel ring.
 
 ### Design Intent
 
@@ -269,6 +271,10 @@ console.
   now match the reference: title `x=284`, status `x=573`, header `x=280`
   / `w=1309`, and the right action group `x=1448` / `w=137`, with `Run now`
   as a transparent `101x32` button using the reference glyph and 8px radius.
+- Follow-up Open Browser Use check confirmed the Create deployment Trigger
+  picker now opens below the trigger with a `39px` offset, uses a `472x96`
+  panel, renders two `464x44` options, and matches the reference Manual and
+  Schedule glyph positions and spacing.
 
 ### Files Modified
 

@@ -14,7 +14,6 @@ import {
   Info,
   MessageSquare,
   Pause,
-  Play,
   Plus,
   Search,
   Send,
@@ -5553,8 +5552,8 @@ function DeploymentMemoryStorePicker({ value, onValueChange }: { value: string; 
 function DeploymentTriggerPicker({ value, onValueChange }: { value: string; onValueChange: (value: string) => void }) {
   const [open, setOpen] = useState(false);
   const options = [
-    { value: "Manual", description: "Run on demand from the dashboard or API", icon: Play },
-    { value: "Schedule", description: "Run automatically on a cron schedule", icon: Clock }
+    { value: "Manual", description: "Run on demand from the dashboard or API", glyph: "" },
+    { value: "Schedule", description: "Run automatically on a cron schedule", glyph: "" }
   ];
   const selected = options.find((option) => option.value === value);
 
@@ -5569,8 +5568,8 @@ function DeploymentTriggerPicker({ value, onValueChange }: { value: string; onVa
           className="flex h-8 w-[464px] min-w-0 items-center gap-1.5 rounded-[8px] bg-transparent p-0 pl-2 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-[#c6613f]/35"
           onClick={() => setOpen((current) => !current)}
         >
-          <span className="min-w-0 flex-1 truncate">
-            {selected ? <selected.icon className="h-4 w-4 text-muted" /> : null}
+          <span className="inline-flex min-w-0 flex-1 items-center gap-2 truncate">
+            {selected ? <CdsIconGlyph glyph={selected.glyph} className="h-4 w-4 shrink-0 text-muted text-[16px] [font-weight:533.25]" /> : null}
             <span className={selected ? "" : "font-normal text-muted [font-weight:430]"}>{selected?.value ?? "Select a trigger"}</span>
           </span>
           <CdsIconGlyph glyph="" className="mr-0.5 h-4 w-4 shrink-0 text-[#898781] text-[16px] [font-weight:533.25]" />
@@ -5580,27 +5579,30 @@ function DeploymentTriggerPicker({ value, onValueChange }: { value: string; onVa
         <div
           data-cds="Combobox"
           role="dialog"
-          className="absolute bottom-[38px] left-0 z-50 w-[472px] rounded-[12px] bg-white p-1 shadow-[0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
+          className="absolute left-0 top-[39px] z-50 w-[472px] rounded-[12px] bg-white p-1 shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
         >
           <div role="listbox" className="grid gap-0">
             {options.map((option) => {
-              const Icon = option.icon;
               return (
                 <button
                   key={option.value}
                   role="option"
                   aria-selected={value === option.value}
-                  className="flex h-11 w-full cursor-pointer items-center gap-3 rounded-[8px] px-3 text-left outline-none hover:bg-fill aria-selected:bg-black/[0.05]"
+                  className="flex h-11 w-full cursor-pointer items-center gap-2 rounded-[8px] px-3 py-1 text-left outline-none hover:bg-fill aria-selected:bg-black/[0.05]"
                   type="button"
                   onClick={() => {
                     onValueChange(option.value);
                     setOpen(false);
                   }}
                 >
-                  <Icon className="h-4 w-4 shrink-0 text-muted" />
-                  <span className="grid min-w-0 gap-0.5">
-                    <span className="text-sm leading-4 text-ink">{option.value}</span>
-                    <span className="truncate text-[13px] leading-4 text-muted">{option.description}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className="flex items-start gap-3">
+                      <CdsIconGlyph glyph={option.glyph} className="mt-0.5 h-4 w-4 shrink-0 text-[#52514e] text-[16px] [font-weight:533.25]" />
+                      <span className="flex min-w-0 flex-1 flex-col">
+                        <span className="text-sm leading-5 text-ink">{option.value}</span>
+                        <span className="truncate text-[13px] leading-[18px] text-muted">{option.description}</span>
+                      </span>
+                    </span>
                   </span>
                 </button>
               );
