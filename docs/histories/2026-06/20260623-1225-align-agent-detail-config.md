@@ -33,6 +33,8 @@
   - Gave the agent-deployments empty-state create button a framed treatment.
   - Follow-up: matched the agent detail actions menu width to the reference
     menu and shortened the detail-page archive action copy.
+  - Follow-up: added the deployments empty-state pictogram while keeping the
+    framed create button requested for the local console.
 
 ### Design Intent
 
@@ -56,6 +58,9 @@ console.
 - Compared the official actions menu with Open Browser Use; matched the local
   detail actions menu width and archive label in source after measuring the
   reference popup.
+- Follow-up Open Browser Use check confirmed the local Deployments empty state
+  includes an icon and keeps the title, description, and button vertical
+  positions aligned with the reference.
 
 ### Files Modified
 

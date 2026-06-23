@@ -3772,7 +3772,10 @@ function AgentDeploymentsPanel({ agent }: { agent: Agent }) {
           )}
         />
       ) : (
-        <div className="flex h-[268px] flex-col items-center pt-[120px] text-center">
+        <div className="flex h-[268px] flex-col items-center justify-center py-12 text-center">
+          <div aria-hidden="true" className="mb-2 flex h-16 w-16 items-center justify-center text-ink">
+            <Boxes className="h-14 w-14 stroke-[1.6]" />
+          </div>
           <p className="text-lg leading-7 text-ink [font-weight:550]">No deployments</p>
           <p className="mt-1 text-sm leading-5 text-[#898781]">Deploy this agent to run it on a schedule, via webhook, or manually.</p>
           <Button variant="secondary" className="mt-4 h-8 w-[174px] gap-1.5 rounded-[8px] bg-white/50 px-0 shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)] [font-weight:550]" onClick={() => setDialogOpen(true)}>
