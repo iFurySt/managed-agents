@@ -76,6 +76,8 @@
   - Follow-up: widened the deployment detail page to the reference content
     width and replaced configuration resource buttons with reference-style
     detail tokens.
+  - Follow-up: matched the deployment runs table width and column distribution
+    to the reference layout.
 
 ### Design Intent
 
@@ -164,6 +166,9 @@ console.
   `Run now` and the actions menu to the reference right edge, and shows
   configuration values as 25px reference-style tokens with the agent version
   displayed separately.
+- Follow-up Open Browser Use check confirmed the deployment Runs tab table is
+  `1309px` wide and uses the reference column widths: `160`, `309.5`, `120`,
+  `110`, `160`, `309.5`, and `140px`.
 
 ### Files Modified
 

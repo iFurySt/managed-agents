@@ -1817,7 +1817,7 @@ function DeploymentDetailPage() {
             getKey={(run) => run.id}
             showSelection={false}
             showActions={false}
-            className="-ml-2 w-[984px]"
+            className="-ml-2 w-[1309px]"
             tableClassName="ml-2 mt-2"
             columns={[
               {
@@ -1837,7 +1837,7 @@ function DeploymentDetailPage() {
               {
                 key: "started",
                 header: "Started at (GMT+8)",
-                width: "260px",
+                width: "309.5px",
                 render: (run) => (
                   <span>
                     {run.startedAt}
@@ -1849,7 +1849,7 @@ function DeploymentDetailPage() {
               { key: "trigger", header: "Trigger", width: "120px", render: (run) => <span>{run.trigger}</span> },
               { key: "status", header: "Status", width: "110px", render: (run) => <Badge tone="green">{run.result}</Badge> },
               { key: "version", header: "Agent version", width: "160px", render: (run) => <span>{run.agentVersion}</span> },
-              { key: "session", header: "Session", width: "260px", render: (run) => <Link className="font-mono hover:underline" to={`/sessions/${run.sessionId}`}>{shortId(run.sessionId)}</Link> },
+              { key: "session", header: "Session", width: "309.5px", render: (run) => <Link className="font-mono hover:underline" to={`/sessions/${run.sessionId}`}>{shortId(run.sessionId)}</Link> },
               { key: "sessionStatus", header: "Session status", width: "140px", render: (run) => <Badge tone={sessionTone(run.sessionStatus)}>{run.sessionStatus}</Badge> }
             ]}
           />
