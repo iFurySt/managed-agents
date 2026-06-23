@@ -2080,7 +2080,7 @@ func vaultCredential(id, vaultID, name, authType, target, status, lastUsed, upda
 
 func seedMemoryStores(ts time.Time) ([]MemoryStore, []MemoryRecord) {
 	stores := []MemoryStore{
-		memoryStore("memstore_01TFhvAtMizQJLWU29TaW5AZ", "123", "Active", "Browse and manage persistent memory for your agents.", "3 days ago", ts.Add(42*time.Hour)),
+		memoryStore("memstore_01TFhvAtMizQJLWU29TaW5AZ", "123", "Active", "Browse and manage persistent memory for your agents.", "5 days ago", ts.Add(42*time.Hour)),
 		memoryStore("memstore_01GYUDt8DBmRPDfhs5i9in8M", "zzz", "Active", "Scratch memory store for console testing.", "5 days ago", ts),
 		memoryStore("memstore_01GToktzJyefFL2DVxmgyT5e", "world cup", "Active", "Daily World Cup memory for agents that prepare match and news digests.", "5 days ago", ts),
 		memoryStore("memstore_014LoF1P4MoTKK9HYDmacJuB", "leo_test", "Active", "Personal test memory store.", "5 days ago", ts),

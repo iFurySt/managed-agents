@@ -80,6 +80,8 @@
     to the reference layout.
   - Follow-up: removed the Credential vaults page update banner and matched the
     vault list table width and column distribution to the reference layout.
+  - Follow-up: matched the Memory stores table width, column distribution, and
+    first-row created label to the reference layout and data.
 
 ### Design Intent
 
@@ -177,6 +179,13 @@ console.
 - Follow-up Open Browser Use check confirmed the Create vault dialog keeps the
   reference `510x306` shell, centered placement, field sizes, disabled
   Continue button, and page overlay behavior.
+- Follow-up Open Browser Use check confirmed Memory stores uses a `1309px`
+  table at `x=280`, matches the reference column widths: `40`, `200`, `693`,
+  `120`, `200`, and `56px`, and shows the first row Created value as
+  `5 days ago`.
+- Follow-up Open Browser Use check confirmed the Create memory store dialog
+  keeps the reference `510x337` shell, centered placement, field sizes, helper
+  copy, and disabled Create button.
 
 ### Files Modified
 
