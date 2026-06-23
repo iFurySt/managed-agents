@@ -1005,8 +1005,8 @@ function SessionsPage() {
       </div>
       <div className="-mt-2">
         <DataTable
-          className="-mx-2 -my-2 !w-[calc(100%+16px)] overflow-x-auto p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
-          tableClassName="border-separate border-spacing-0 whitespace-nowrap"
+          className="-mx-2 -my-2 w-[1309px] overflow-x-auto p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
+          tableClassName="w-[1309px] border-separate border-spacing-0 whitespace-nowrap"
           rows={visibleSessions}
           getKey={(session) => session.id}
           loading={loading}
@@ -1033,6 +1033,7 @@ function SessionsPage() {
             {
               key: "name",
               header: "Name",
+              width: "292px",
               render: (session) => (
                 <Link className="block truncate [font-weight:400]" to={`/sessions/${session.id}`}>
                   {session.name}
@@ -1043,6 +1044,7 @@ function SessionsPage() {
             {
               key: "agent",
               header: "Agent",
+              width: "291px",
               render: (session) => (
                 <button
                   data-cds="Button"
@@ -1054,6 +1056,7 @@ function SessionsPage() {
                 </button>
               )
             },
+            { key: "tokens", header: "Tokens in / out", width: "140px", render: (session) => <span className="text-ink">{session.tokens}</span> },
             { key: "created", header: "Created", width: "200px", render: (session) => <span className="text-muted">{session.createdLabel}</span> }
           ]}
           actionsWidth="56px"

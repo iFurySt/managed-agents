@@ -88,6 +88,8 @@
     width, and column distribution to the reference layout.
   - Follow-up: matched the Agents list fixed width and column distribution to
     the reference layout.
+  - Follow-up: restored the Sessions list `Tokens in / out` column and matched
+    the table width and column distribution to the reference layout.
 
 ### Design Intent
 
@@ -207,6 +209,14 @@ console.
 - Follow-up Open Browser Use check confirmed Agents uses a `1309px` table at
   `x=280`, starts at `y=148`, and matches the reference column widths: `40`,
   `180`, `443`, `170`, `120`, `150`, `150`, and `56px`.
+- Follow-up Open Browser Use check confirmed Sessions uses a `1309px` table at
+  `x=280`, starts at `y=148`, includes the `Tokens in / out` column, and
+  matches the reference column widths: `40`, `160`, `292`, `130`, `291`,
+  `140`, `200`, and `56px`.
+- Follow-up Open Browser Use check confirmed Create session still keeps the
+  reference `720x619` shell, `672px` field controls, selected defaults, vault
+  acknowledgement warning, and `121x31` Resource trigger after the list-table
+  changes.
 
 ### Files Modified
 
