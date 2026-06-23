@@ -4063,7 +4063,7 @@ function CreateAgentDialog({
               </div>
             ) : (
               <pre className="h-[calc(100%-43px)] min-h-0 overflow-auto whitespace-pre-wrap px-[11px] py-3 font-mono text-[13px] leading-[19px]">
-                {jsonConfig}
+                <CodeJson source={jsonConfig} />
               </pre>
             )}
           </div>
@@ -4157,7 +4157,7 @@ function EditAgentDialog({
               />
             ) : (
               <pre className="min-h-[475px] whitespace-pre-wrap p-0 font-mono text-[13px] leading-[19px]">
-                {jsonConfig}
+                <CodeJson source={jsonConfig} />
               </pre>
             )}
           </div>
@@ -6564,6 +6564,42 @@ function CodeYaml({ source }: { source: string }) {
   );
 }
 
+function CodeJson({ source }: { source: string }) {
+  const tokenPattern = /"(?:\\.|[^"\\])*"(?=\s*:)|"(?:\\.|[^"\\])*"|-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?|\b(?:true|false|null)\b/g;
+  const nodes: ReactNode[] = [];
+  let cursor = 0;
+  let tokenIndex = 0;
+
+  for (const match of source.matchAll(tokenPattern)) {
+    const token = match[0];
+    const start = match.index ?? 0;
+    if (start > cursor) {
+      nodes.push(source.slice(cursor, start));
+    }
+
+    let className = "text-[#008000]";
+    if (token.startsWith("\"") && source.slice(start + token.length).trimStart().startsWith(":")) {
+      className = "text-[#b80a18]";
+    } else if (!token.startsWith("\"")) {
+      className = token === "null" ? "text-[#898781]" : "text-[#6f42c1]";
+    }
+
+    nodes.push(
+      <span key={`${start}-${tokenIndex}`} className={className}>
+        {token}
+      </span>
+    );
+    cursor = start + token.length;
+    tokenIndex += 1;
+  }
+
+  if (cursor < source.length) {
+    nodes.push(source.slice(cursor));
+  }
+
+  return <>{nodes}</>;
+}
+
 function HighlightedConfigTextarea({
   value,
   onChange,
@@ -6586,7 +6622,7 @@ function HighlightedConfigTextarea({
           className="m-0 min-h-full whitespace-pre-wrap break-words p-0 font-inherit text-inherit"
           style={{ transform: `translate(${-scroll.left}px, ${-scroll.top}px)` }}
         >
-          {language === "YAML" ? <CodeYaml source={value} /> : value}
+          {language === "YAML" ? <CodeYaml source={value} /> : <CodeJson source={value} />}
         </pre>
       </div>
       <textarea

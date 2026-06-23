@@ -24,6 +24,8 @@
   - Follow-up: changed the starting-point segmented control to use the
     reference track/thumb structure and fixed the code editor selection text so
     selected text remains visible.
+  - Follow-up: added JSON syntax highlighting for create/edit agent config
+    previews and the shared highlighted config renderer.
 
 ### Design Intent
 
@@ -44,6 +46,7 @@ and predictable.
   uses `rgba(11,11,11,0.05)`, the active thumb is a white absolute layer, and
   selected code-editor text renders with a visible dark foreground on the blue
   selection background.
+- `npm run build:console` after adding JSON highlighting.
 
 ### Files Modified
 
