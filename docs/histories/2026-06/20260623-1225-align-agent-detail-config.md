@@ -78,6 +78,8 @@
     detail tokens.
   - Follow-up: matched the deployment runs table width and column distribution
     to the reference layout.
+  - Follow-up: removed the Credential vaults page update banner and matched the
+    vault list table width and column distribution to the reference layout.
 
 ### Design Intent
 
@@ -169,6 +171,12 @@ console.
 - Follow-up Open Browser Use check confirmed the deployment Runs tab table is
   `1309px` wide and uses the reference column widths: `160`, `309.5`, `120`,
   `110`, `160`, `309.5`, and `140px`.
+- Follow-up Open Browser Use check confirmed Credential vaults starts without
+  the local-only update banner, uses a `1309px` table at `x=280`, and matches
+  the reference column widths: `216`, `645`, `200`, `200`, and `48px`.
+- Follow-up Open Browser Use check confirmed the Create vault dialog keeps the
+  reference `510x306` shell, centered placement, field sizes, disabled
+  Continue button, and page overlay behavior.
 
 ### Files Modified
 
