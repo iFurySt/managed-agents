@@ -73,6 +73,9 @@
   - Follow-up: aligned Create deployment picker metadata and optional field
     labels with the reference while keeping deployment-specific vault ordering
     separate from the Create session vault picker.
+  - Follow-up: widened the deployment detail page to the reference content
+    width and replaced configuration resource buttons with reference-style
+    detail tokens.
 
 ### Design Intent
 
@@ -156,6 +159,11 @@ console.
   exact ID` with `Jun 16` and host metadata, and keeps the deployment Vault
   picker ordered as `Temporary vault` then `test_secret` with three credential
   chips.
+- Follow-up Open Browser Use check confirmed deployment detail now renders at
+  the full available content width (`1293px` in the test viewport), moves
+  `Run now` and the actions menu to the reference right edge, and shows
+  configuration values as 25px reference-style tokens with the agent version
+  displayed separately.
 
 ### Files Modified
 

@@ -1,6 +1,5 @@
 import {
   Boxes,
-  Braces,
   Check,
   ChevronDown,
   Clock,
@@ -13,7 +12,6 @@ import {
   Gauge,
   Home,
   Info,
-  KeyRound,
   MessageSquare,
   Pause,
   Play,
@@ -1675,7 +1673,7 @@ function DeploymentDetailPage() {
   });
 
   return (
-    <section className="flex max-w-[952px] flex-col">
+    <section className="flex w-full max-w-none flex-col">
       <div className="-ml-8 -mt-3 mb-3 flex h-9 w-[984px] items-center justify-between">
         <nav className="flex items-center gap-2 text-sm text-muted">
           <Link className="rounded-control px-3 py-1.5 hover:bg-fill" to="/deployments">
@@ -1749,30 +1747,20 @@ function DeploymentDetailPage() {
         <CdsTabs.Content value="configuration" className="-ml-1 grid max-w-[792px] gap-4 pb-6">
           <div className="grid grid-cols-2 gap-4">
             <DeploymentDetailSection title="Agent">
-              <Button variant="ghost" className="h-[25px] px-2">
-                <Braces className="h-4 w-4" />
-                {deployment.agentName}
-                <span className="text-muted">{deployment.agentVersion}</span>
-              </Button>
+              <div className="flex items-center gap-1.5">
+                <DeploymentDetailToken icon="">{deployment.agentName}</DeploymentDetailToken>
+                <span className="text-sm leading-5 text-muted [font-weight:550]">{deployment.agentVersion}</span>
+              </div>
             </DeploymentDetailSection>
             <DeploymentDetailSection title="Environment">
-              <Button variant="ghost" className="h-[25px] px-2">
-                <Database className="h-4 w-4" />
-                {deployment.environmentName}
-              </Button>
+              <DeploymentDetailToken icon="">{deployment.environmentName}</DeploymentDetailToken>
             </DeploymentDetailSection>
           </div>
           <DeploymentDetailSection title="Credential vaults">
-            <Button variant="ghost" className="h-[25px] px-2">
-              <KeyRound className="h-4 w-4" />
-              {deployment.vaults || "No credential vault"}
-            </Button>
+            <DeploymentDetailToken icon="">{deployment.vaults || "No credential vault"}</DeploymentDetailToken>
           </DeploymentDetailSection>
           <DeploymentDetailSection title="Memory stores">
-            <Button variant="ghost" className="h-[25px] px-2">
-              <Database className="h-4 w-4" />
-              {deployment.memoryStores || "No memory store"}
-            </Button>
+            <DeploymentDetailToken icon="">{deployment.memoryStores || "No memory store"}</DeploymentDetailToken>
           </DeploymentDetailSection>
           <DeploymentDetailSection title="Schedule">
             <div className="group/value flex items-start gap-2 rounded-md border-[0.5px] border-[#dedbd2] bg-[#f9f9f7] px-3 py-2">
@@ -7919,6 +7907,15 @@ function AgentConfigSection({
       <h2 className={`text-sm leading-5 ${headingClassName}`}>{title}</h2>
       {children}
     </section>
+  );
+}
+
+function DeploymentDetailToken({ icon, children }: { icon: string; children: React.ReactNode }) {
+  return (
+    <span className="inline-flex h-[25px] min-w-0 max-w-full items-center gap-1.5 rounded-md border-[0.5px] border-line px-1.5 py-0.5 text-sm leading-5 text-[#52514e] transition-colors hover:bg-fill hover:text-ink">
+      <CdsIconGlyph glyph={icon} className="h-4 w-4 shrink-0 text-[#52514e] text-[16px] [font-weight:533.25]" />
+      <span className="min-w-0 truncate">{children}</span>
+    </span>
   );
 }
 
