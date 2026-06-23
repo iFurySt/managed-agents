@@ -11,6 +11,16 @@ Firecracker-backed hosts, and a Docker-backed local development sandbox.
 
 ## Quick Start
 
+Run the full local Docker stack:
+
+```sh
+docker compose -f infra/docker-compose.local.yml up --build
+```
+
+Then open `http://localhost:5173`. The local stack starts Postgres, apiserver,
+console, orchestrator, and Docker-backed `sandboxd`. Postgres is exposed on
+`localhost:55432` to avoid colliding with a host Postgres on `5432`.
+
 Run the managed agents console locally:
 
 ```sh
@@ -21,6 +31,13 @@ npm run dev:console
 ```
 
 Then open `http://localhost:5173`.
+
+Build the runtime template images explicitly:
+
+```sh
+docker build -f apps/process-api/Dockerfile -t managed-agents/process-api:local .
+docker compose -f infra/docker-compose.local.yml --profile templates build microvm-template
+```
 
 Run one queued session or deployment work item:
 

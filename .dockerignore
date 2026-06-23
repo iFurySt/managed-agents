@@ -1,0 +1,16 @@
+.git
+.github
+.DS_Store
+node_modules
+apps/console/dist
+*.tsbuildinfo
+tmp
+temp
+.tmp
+coverage
+bin
+obj
+target
+.env
+.env.local
+.env.*.local

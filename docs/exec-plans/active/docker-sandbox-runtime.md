@@ -80,7 +80,11 @@ and still keep Firecracker as the production isolation target.
 - [x] Confirmed repository rules and current Firecracker-only host limitation.
 - [x] Implement Docker backend one-shot execution and basic lifecycle.
 - [x] Verify Docker backend locally with real Docker.
-- [ ] Commit and push the first verified slice.
+- [x] Commit and push the first verified slice.
+- [x] Add service Dockerfiles, Docker runtime template, microVM template, and
+  local compose stack.
+- [x] Verify compose stack from browser-visible console through orchestrator to
+  Docker-backed sandboxd.
 
 ## Decision Log
 

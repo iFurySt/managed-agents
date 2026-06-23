@@ -1,0 +1,116 @@
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: managed_agents
+      POSTGRES_PASSWORD: managed_agents
+      POSTGRES_DB: managed_agents
+    ports:
+      - "55432:5432"
+    volumes:
+      - managed_agents_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U managed_agents -d managed_agents"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  docker-template:
+    build:
+      context: ..
+      dockerfile: infra/images/docker-template/Dockerfile
+    image: managed-agents/docker-template:local
+    command: ["/bin/sh", "-c", "true"]
+
+  microvm-template:
+    build:
+      context: ..
+      dockerfile: infra/images/microvm-template/Dockerfile
+    image: managed-agents/microvm-template:local
+    command: ["/bin/bash", "-lc", "true"]
+    profiles:
+      - templates
+
+  apiserver:
+    build:
+      context: ..
+      dockerfile: apps/apiserver/Dockerfile
+    environment:
+      APISERVER_ADDR: ":8080"
+      DATABASE_URL: "postgres://managed_agents:managed_agents@postgres:5432/managed_agents?sslmode=disable"
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/healthz >/dev/null"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  sandboxd:
+    build:
+      context: ..
+      dockerfile: apps/sandboxd/Dockerfile
+    command:
+      - "--backend"
+      - "docker"
+      - "--work-dir"
+      - "/var/lib/managed-agents/sandboxd"
+      - "--image"
+      - "managed-agents/docker-template:local"
+      - "serve"
+      - "--listen"
+      - "0.0.0.0:8787"
+    ports:
+      - "8787:8787"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - managed_agents_sandboxd:/var/lib/managed-agents/sandboxd
+    depends_on:
+      docker-template:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8787/healthz >/dev/null"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  orchestrator:
+    build:
+      context: ..
+      dockerfile: apps/orchestrator/Dockerfile
+    command:
+      - "--database-url"
+      - "postgres://managed_agents:managed_agents@postgres:5432/managed_agents?sslmode=disable"
+      - "--runtime"
+      - "sandbox-command"
+      - "--sandboxd-url"
+      - "http://sandboxd:8787"
+      - "--sandbox-image"
+      - "managed-agents/docker-template:local"
+      - "--runtime-timeout"
+      - "2m"
+      - "serve"
+    depends_on:
+      apiserver:
+        condition: service_healthy
+      sandboxd:
+        condition: service_healthy
+
+  console:
+    build:
+      context: ..
+      dockerfile: apps/console/Dockerfile
+    environment:
+      VITE_API_BASE: "http://localhost:8080"
+    ports:
+      - "5173:5173"
+    depends_on:
+      apiserver:
+        condition: service_healthy
+
+volumes:
+  managed_agents_postgres:
+  managed_agents_sandboxd:
