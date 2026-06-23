@@ -21,6 +21,9 @@
     vertical positions with the official dialog at the tested desktop viewport.
   - Adjusted starting-point panel height, prompt input height, and the spacing
     before the agent config section.
+  - Follow-up: changed the starting-point segmented control to use the
+    reference track/thumb structure and fixed the code editor selection text so
+    selected text remains visible.
 
 ### Design Intent
 
@@ -37,6 +40,10 @@ and predictable.
   The local dialog matched the official `720x935` modal size, with title,
   description, starting point, and agent config positions aligned at the tested
   desktop viewport.
+- Follow-up Open Browser Use check confirmed the local segmented control track
+  uses `rgba(11,11,11,0.05)`, the active thumb is a white absolute layer, and
+  selected code-editor text renders with a visible dark foreground on the blue
+  selection background.
 
 ### Files Modified
 

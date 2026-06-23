@@ -3960,11 +3960,17 @@ function CreateAgentDialog({
           data-open={startingPointOpen ? "" : undefined}
           style={{ height: startingPointPanelHeight, transitionDuration: "0s" }}
         >
-          <div className={`rounded-cds bg-fill ${startingPointMode === "template" ? "h-[160px] overflow-hidden" : ""}`}>
-            <div className="grid h-[31px] grid-cols-2 rounded-cds bg-fill p-px text-sm" role="radiogroup" aria-label="Starting point">
+          <div className={startingPointMode === "template" ? "h-[160px] overflow-hidden" : ""}>
+            <div className="relative grid h-8 grid-cols-2 rounded-[8px] bg-[rgba(11,11,11,0.05)] p-px text-sm" role="radiogroup" aria-label="Starting point">
+              <div
+                className={`absolute bottom-px top-px w-[calc(50%-1px)] rounded-[7px] bg-white shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1),0_1px_2px_rgba(0,0,0,0.05)] transition-[left] duration-150 ${
+                  startingPointMode === "template" ? "left-1/2" : "left-px"
+                }`}
+                aria-hidden="true"
+              />
               <button
                 aria-checked={startingPointMode === "describe"}
-                className={`h-[29px] rounded-control ${startingPointMode === "describe" ? "bg-white font-medium shadow-sm" : "text-muted"}`}
+                className={`relative z-[1] h-[30px] rounded-[6px] px-3 ${startingPointMode === "describe" ? "text-ink" : "text-muted"}`}
                 role="radio"
                 type="button"
                 onClick={() => setStartingPointMode("describe")}
@@ -3973,7 +3979,7 @@ function CreateAgentDialog({
               </button>
               <button
                 aria-checked={startingPointMode === "template"}
-                className={`h-[29px] rounded-control ${startingPointMode === "template" ? "bg-white font-medium shadow-sm" : "text-muted"}`}
+                className={`relative z-[1] h-[30px] rounded-[6px] px-3 ${startingPointMode === "template" ? "text-ink" : "text-muted"}`}
                 role="radio"
                 type="button"
                 onClick={() => setStartingPointMode("template")}
@@ -6585,7 +6591,7 @@ function HighlightedConfigTextarea({
       </div>
       <textarea
         {...props}
-        className={`${textClassName} z-10 resize-none overflow-auto border-0 bg-transparent font-mono text-transparent caret-[#0b0b0b] outline-none selection:bg-[#cde2fb] selection:text-transparent`}
+        className={`${textClassName} z-10 resize-none overflow-auto border-0 bg-transparent font-mono text-transparent caret-[#0b0b0b] outline-none selection:bg-[#cde2fb] selection:text-[#0b0b0b]`}
         spellCheck={false}
         value={value}
         onChange={onChange}
