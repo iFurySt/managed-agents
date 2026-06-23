@@ -28,7 +28,7 @@ import {
 } from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as Select from "@radix-ui/react-select";
-import { useEffect, useMemo, useState, type ButtonHTMLAttributes, type ChangeEventHandler, type ComponentProps, type DragEvent, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ButtonHTMLAttributes, type ChangeEventHandler, type ComponentProps, type DragEvent, type ReactNode } from "react";
 import { Link, Navigate, Route, Routes, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   archiveSession,
@@ -113,6 +113,7 @@ const defaultSessionEnvironmentId = sessionEnvironmentOptions.find((option) => o
 const defaultSessionVaultId = "test_secret";
 const createSessionSelectShellClass = "flex h-8 w-full min-w-0 items-center rounded-[8px] bg-white/50 shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]";
 const createSessionSelectTriggerClass = "cds-focus inline-flex h-8 min-w-0 flex-1 items-center gap-1.5 rounded-none border-0 bg-transparent pl-2 pr-0 text-left text-sm leading-5 text-ink outline-none";
+const createSessionSearchInputClass = "h-full min-w-0 flex-1 border-0 bg-transparent p-0 text-sm leading-5 text-ink caret-ink outline-none placeholder:text-[#898781] focus:outline-none";
 const sessionResourceKinds = ["GitHub Repository", "File", "Memory Store"] as const;
 type SessionResourceKind = (typeof sessionResourceKinds)[number];
 const builtInToolPermissions = [
@@ -4405,6 +4406,7 @@ function CreateSessionDialog({
   const [vaultAcknowledged, setVaultAcknowledged] = useState(false);
   const [resources, setResources] = useState<SessionResourceKind[]>([]);
   const [resourceMenuOpen, setResourceMenuOpen] = useState(false);
+  const [openPicker, setOpenPicker] = useState<"agent" | "environment" | null>(null);
   const [createAgentOpen, setCreateAgentOpen] = useState(false);
   const canCreate = Boolean(agentId && environmentId && (!vault || vaultAcknowledged));
   const fieldLabelClass = "text-sm leading-none [font-weight:550]";
@@ -4418,6 +4420,7 @@ function CreateSessionDialog({
     setVault(defaultSessionVaultId);
     setVaultAcknowledged(false);
     setResources([]);
+    setOpenPicker(null);
   }, [open]);
 
   useEffect(() => {
@@ -4481,14 +4484,25 @@ function CreateSessionDialog({
                 <label className={fieldLabelClass}>Agent</label>
                 <DialogTextLink href="/agents">Manage agents</DialogTextLink>
               </div>
-              <CreateSessionAgentPicker value={agentId} onValueChange={setAgentId} onCreateNewAgent={() => setCreateAgentOpen(true)} />
+              <CreateSessionAgentPicker
+                value={agentId}
+                open={openPicker === "agent"}
+                onOpenChange={(nextOpen) => setOpenPicker(nextOpen ? "agent" : null)}
+                onValueChange={setAgentId}
+                onCreateNewAgent={() => setCreateAgentOpen(true)}
+              />
             </div>
             <div className="grid gap-2">
               <div className="flex items-center justify-between">
                 <label className={fieldLabelClass}>Environment</label>
                 <DialogTextLink href="/environments">Manage environments</DialogTextLink>
               </div>
-              <CreateSessionEnvironmentPicker value={environmentId} onValueChange={setEnvironmentId} />
+              <CreateSessionEnvironmentPicker
+                value={environmentId}
+                open={openPicker === "environment"}
+                onOpenChange={(nextOpen) => setOpenPicker(nextOpen ? "environment" : null)}
+                onValueChange={setEnvironmentId}
+              />
             </div>
             <div className="grid gap-2">
               <div className="flex items-center justify-between">
@@ -4574,14 +4588,48 @@ function DialogTextLink({ href, children }: { href: string; children: ReactNode 
   );
 }
 
-function CreateSessionAgentPicker({ value, onValueChange, onCreateNewAgent }: { value: string; onValueChange: (value: string) => void; onCreateNewAgent: () => void }) {
+function CreateSessionAgentPicker({
+  value,
+  open,
+  onOpenChange,
+  onValueChange,
+  onCreateNewAgent
+}: {
+  value: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onValueChange: (value: string) => void;
+  onCreateNewAgent: () => void;
+}) {
   const selected = sessionAgentOptions.find((option) => option.value === value);
   const [search, setSearch] = useState("");
-  const [open, setOpen] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const filteredOptions = sessionAgentOptions.filter((option) => option.name.toLowerCase().includes(search.toLowerCase()));
 
+  useEffect(() => {
+    if (!open) {
+      setSearch("");
+      return;
+    }
+    const focusSearch = () => searchInputRef.current?.focus();
+    const frame = window.requestAnimationFrame(focusSearch);
+    const timer = window.setTimeout(focusSearch, 40);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.clearTimeout(timer);
+    };
+  }, [open]);
+
   return (
-    <Select.Root value={value || undefined} open={open} onOpenChange={setOpen} onValueChange={onValueChange}>
+    <Select.Root
+      value={value || undefined}
+      open={open}
+      onOpenChange={onOpenChange}
+      onValueChange={(nextValue) => {
+        onValueChange(nextValue);
+        onOpenChange(false);
+      }}
+    >
       <div className={createSessionSelectShellClass}>
         <Select.Trigger
           data-cds="Button"
@@ -4599,13 +4647,19 @@ function CreateSessionAgentPicker({ value, onValueChange, onCreateNewAgent }: { 
           sideOffset={7}
           data-cds="ComboboxPopover"
           className="z-50 flex max-h-[320px] w-[672px] flex-col overflow-hidden rounded-[12px] bg-white p-1 shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]"
+          onCloseAutoFocus={(event) => event.preventDefault()}
         >
           <div role="combobox" aria-expanded="true" className="-mx-1 -mt-1 mb-1 flex h-[37px] w-[calc(100%+8px)] shrink-0 items-center border-b border-line px-4 py-2">
             <input
-              className="h-full min-w-0 flex-1 bg-transparent text-sm leading-5 text-ink outline-none placeholder:text-transparent"
+              ref={searchInputRef}
+              className={createSessionSearchInputClass}
               aria-label="Search agents"
+              autoFocus
+              placeholder="Search agents"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
+              onPointerDown={(event) => event.stopPropagation()}
+              onKeyDownCapture={(event) => event.stopPropagation()}
               onKeyDown={(event) => event.stopPropagation()}
             />
           </div>
@@ -4634,7 +4688,7 @@ function CreateSessionAgentPicker({ value, onValueChange, onCreateNewAgent }: { 
               className="flex min-h-[32px] w-full items-center gap-2 rounded-[8px] px-3 text-left text-sm leading-5 text-ink outline-none hover:bg-fill focus-visible:bg-fill"
               onMouseDown={(event) => event.preventDefault()}
               onClick={() => {
-                setOpen(false);
+                onOpenChange(false);
                 onCreateNewAgent();
               }}
             >
@@ -4648,13 +4702,46 @@ function CreateSessionAgentPicker({ value, onValueChange, onCreateNewAgent }: { 
   );
 }
 
-function CreateSessionEnvironmentPicker({ value, onValueChange }: { value: string; onValueChange: (value: string) => void }) {
+function CreateSessionEnvironmentPicker({
+  value,
+  open,
+  onOpenChange,
+  onValueChange
+}: {
+  value: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onValueChange: (value: string) => void;
+}) {
   const selected = sessionEnvironmentOptions.find((option) => option.value === value);
   const [search, setSearch] = useState("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const filteredOptions = sessionEnvironmentOptions.filter((option) => option.name.toLowerCase().includes(search.toLowerCase()));
 
+  useEffect(() => {
+    if (!open) {
+      setSearch("");
+      return;
+    }
+    const focusSearch = () => searchInputRef.current?.focus();
+    const frame = window.requestAnimationFrame(focusSearch);
+    const timer = window.setTimeout(focusSearch, 40);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.clearTimeout(timer);
+    };
+  }, [open]);
+
   return (
-    <Select.Root value={value || undefined} onValueChange={onValueChange}>
+    <Select.Root
+      value={value || undefined}
+      open={open}
+      onOpenChange={onOpenChange}
+      onValueChange={(nextValue) => {
+        onValueChange(nextValue);
+        onOpenChange(false);
+      }}
+    >
       <div className={createSessionSelectShellClass}>
         <Select.Trigger
           data-cds="Button"
@@ -4672,13 +4759,19 @@ function CreateSessionEnvironmentPicker({ value, onValueChange }: { value: strin
           sideOffset={6}
           data-cds="ComboboxPopover"
           className="z-50 max-h-[238px] w-[672px] overflow-hidden rounded-[12px] bg-white p-1 shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]"
+          onCloseAutoFocus={(event) => event.preventDefault()}
         >
           <div role="combobox" aria-expanded="true" className="-mx-1 -mt-1 mb-1 flex h-[37px] w-[calc(100%+8px)] items-center border-b border-line px-4 py-2">
             <input
-              className="h-full min-w-0 flex-1 bg-transparent text-sm leading-5 text-ink outline-none placeholder:text-transparent"
+              ref={searchInputRef}
+              className={createSessionSearchInputClass}
               aria-label="Search environments"
+              autoFocus
+              placeholder="Search environments"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
+              onPointerDown={(event) => event.stopPropagation()}
+              onKeyDownCapture={(event) => event.stopPropagation()}
               onKeyDown={(event) => event.stopPropagation()}
             />
           </div>

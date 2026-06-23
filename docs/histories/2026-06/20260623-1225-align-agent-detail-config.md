@@ -51,6 +51,10 @@
   - Follow-up: aligned the Create session dialog shell, overlay, session
     pickers, default selections, credential-vault acknowledgement warning, and
     create-button validation with the reference.
+  - Follow-up: fixed Create session Agent and Environment picker search inputs
+    so they show neutral placeholders, auto-focus on open, accept direct
+    keyboard input, reset search on close, and keep only one picker menu open at
+    a time.
 
 ### Design Intent
 
@@ -97,6 +101,12 @@ console.
   720x619 dialog, 672x32 field shells, a black 40% overlay, selected agent,
   environment, and vault defaults, a vault authorization warning, and disabled
   submit until the acknowledgement is checked.
+- Follow-up Open Browser Use checks confirmed the Agent picker search
+  auto-focuses with `Search agents`, uses neutral text/caret color, accepts
+  direct keyboard input, and filters `ssh` to the SSH bootstrapper agent.
+- Follow-up Open Browser Use checks confirmed opening the Environment picker
+  closes the Agent picker, shows only environment options, auto-focuses with
+  `Search environments`, and filters `my` to `myenv`.
 
 ### Files Modified
 
