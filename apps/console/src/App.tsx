@@ -173,7 +173,7 @@ export default function App() {
     ? "w-full max-w-none px-1 pb-8 pt-3"
     : agentDetailRoute
       ? `w-full overflow-hidden px-8 pb-8 ${showBanner ? "pt-3" : "pt-6"}`
-    : `mx-auto w-full max-w-7xl overflow-hidden px-8 pb-8 md:px-10 ${showBanner ? "pt-3" : "pt-6"}`;
+    : `w-full max-w-none overflow-hidden px-8 pb-8 ${showBanner ? "pt-3" : "pt-6"}`;
   const routeShellClass = fullWidthRoute ? `px-7 ${showBanner ? "pt-6" : "pt-3"}` : showBanner ? "pt-6" : "";
 
   useEffect(() => {

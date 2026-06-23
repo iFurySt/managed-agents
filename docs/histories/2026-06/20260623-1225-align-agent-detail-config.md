@@ -46,6 +46,8 @@
   - Follow-up: matched the detail Version selector menu to the reference
     two-line option treatment and added the requested rounded border treatment
     to the Edit action.
+  - Follow-up: removed the centered max-width shell from standard console list
+    routes so body content aligns closer to the sidebar like the reference.
 
 ### Design Intent
 
@@ -85,6 +87,9 @@ console.
 - Follow-up Open Browser Use check confirmed the Version shell measures
   105x32, the open option measures 247x46 with a created-date subtitle, and the
   Edit button has an 8px radius with a 0.5px border.
+- Follow-up Open Browser Use checks confirmed Agents and Sessions now start at
+  x=280 with a 24px gap after the 256px sidebar, and their tables leave a 24px
+  right gutter.
 
 ### Files Modified
 
