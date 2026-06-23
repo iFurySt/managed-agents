@@ -3440,7 +3440,7 @@ function AgentDetailPage() {
     setArchiveOpen(false);
   }
 
-  const agentDetailHeadingClass = "text-ink [font-weight:400]";
+  const agentDetailHeadingClass = "text-[#52514e] [font-weight:550]";
   const agentDetailBodyClass = "text-sm leading-5 text-[#52514e]";
   const agentDetailTabWidths: Record<string, string> = {
     Agent: "w-[65px]",
@@ -7457,7 +7457,7 @@ function AgentRowActions({ agent, onArchive, onGuidedEdit }: { agent: Agent; onA
             </>
           ) : null}
           <CdsDropdownMenu.Item
-            className={cdsMenuItemClass}
+            className={onGuidedEdit && !archived ? cdsMenuDangerItemClass : cdsMenuItemClass}
             onSelect={onArchive}
             disabled={archived}
           >
@@ -7617,7 +7617,7 @@ function DetailSection({ title, children, headingClassName = "font-semibold" }: 
 function AgentConfigSection({
   title,
   children,
-  headingClassName = "text-ink [font-weight:400]",
+  headingClassName = "text-[#52514e] [font-weight:550]",
   separated = false
 }: {
   title: string;

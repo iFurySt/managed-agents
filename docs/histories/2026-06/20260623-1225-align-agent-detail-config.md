@@ -35,6 +35,9 @@
     menu and shortened the detail-page archive action copy.
   - Follow-up: added the deployments empty-state pictogram while keeping the
     framed create button requested for the local console.
+  - Follow-up: restored the Agent tab section heading hierarchy to the
+    reference color and weight, and changed the detail actions menu Archive item
+    to the reference danger styling.
 
 ### Design Intent
 
@@ -61,6 +64,9 @@ console.
 - Follow-up Open Browser Use check confirmed the local Deployments empty state
   includes an icon and keeps the title, description, and button vertical
   positions aligned with the reference.
+- Follow-up browser checks confirmed Agent tab section headings compute to
+  14px/20px, weight 550, and `#52514e`; the detail actions menu still measures
+  184px wide with 32px rows, and Archive now uses the reference red danger color.
 
 ### Files Modified
 
