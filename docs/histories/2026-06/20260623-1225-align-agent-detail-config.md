@@ -124,6 +124,10 @@
   - Follow-up: aligned the Create deployment picker trigger layering so the
     inner buttons are transparent and square while the outer shell owns the
     rounded inset border.
+  - Follow-up: tightened the Create session credential-vault dropdown to the
+    reference compact two-row list, including 46px option rows, the 92px list
+    viewport, adjusted option typography, and the reference credential chip
+    count.
 
 ### Design Intent
 
@@ -310,7 +314,10 @@ console.
   buttons now compute to `borderRadius: 0px` with transparent backgrounds, while
   their outer shells remain `472x32` with `8px` radii and the reference inset
   ring.
+- Follow-up build check confirmed the compact Create session credential-vault
+  dropdown changes compile cleanly with the console bundle.
 
 ### Files Modified
 
 - `apps/console/src/App.tsx`
+- `docs/histories/2026-06/20260623-1225-align-agent-detail-config.md`

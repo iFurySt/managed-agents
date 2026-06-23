@@ -5257,7 +5257,7 @@ function DeploymentEnvironmentPicker({
 }
 
 const credentialVaultPickerOptions = [
-  { value: "test_secret", name: "test_secret", updated: "Jun 16", summary: "", credentialIcons: 4 },
+  { value: "test_secret", name: "test_secret", updated: "Jun 16", summary: "", credentialIcons: 3 },
   { value: "Temporary vault", name: "Temporary vault", updated: "5 days ago", summary: "No credentials", credentialIcons: 0 }
 ];
 const deploymentCredentialVaultPickerOptions = [
@@ -5357,14 +5357,14 @@ function CreateSessionVaultPicker({
               onKeyDown={(event) => event.stopPropagation()}
             />
           </div>
-          <div role="listbox" className="grid max-h-[156px] gap-0 overflow-y-auto overflow-x-hidden p-1">
+          <div role="listbox" className="grid max-h-[92px] gap-0 overflow-y-auto overflow-x-hidden">
             {filteredOptions.map((option) => (
               <button
                 key={option.value}
                 type="button"
                 role="option"
                 aria-selected={value.includes(option.value)}
-                className="flex min-h-[70px] w-full items-center gap-3 rounded-[8px] px-2 text-left outline-none hover:bg-fill data-[highlighted]:bg-fill"
+                className="flex min-h-[46px] w-full items-center gap-2 rounded-[8px] px-2 py-1 text-left outline-none hover:bg-fill data-[highlighted]:bg-fill"
                 onClick={() => toggleVault(option.value)}
               >
                 <span className={`grid h-4 w-4 shrink-0 place-items-center rounded-[4px] ${value.includes(option.value) ? "bg-[#2b73d2] text-white shadow-none" : "bg-white text-transparent shadow-[inset_0_0_0_1px_rgba(11,11,11,0.18)]"}`} aria-hidden>
@@ -5449,9 +5449,9 @@ function DeploymentVaultPicker({ value, onValueChange }: { value: string; onValu
 function CredentialVaultOptionContent({ option }: { option: (typeof credentialVaultPickerOptions)[number] }) {
   return (
     <span className="flex min-w-0 flex-1 items-center justify-between gap-4">
-      <span className="grid min-w-0 gap-1">
-        <span className="truncate text-sm leading-5 text-ink">{option.name}</span>
-        <span className="truncate text-[13px] leading-4 text-muted">{option.updated}</span>
+      <span className="grid min-w-0 gap-0.5">
+        <span className="truncate text-sm leading-4 text-ink">{option.name}</span>
+        <span className="truncate text-[13px] leading-[18px] text-muted">{option.updated}</span>
       </span>
       <span className="inline-flex shrink-0 items-center justify-end text-sm leading-5 text-muted">
         {option.credentialIcons > 0
