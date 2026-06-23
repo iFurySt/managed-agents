@@ -154,7 +154,7 @@ export default function App() {
   const fullWidthRoute = location.pathname.startsWith("/memory-stores/");
   const contentShellClass = fullWidthRoute
     ? "w-full max-w-none px-1 pb-8 pt-3"
-    : `mx-auto w-full max-w-7xl overflow-hidden px-6 pb-8 md:px-8 ${showBanner ? "pt-3" : "pt-6"}`;
+    : `mx-auto w-full max-w-7xl overflow-hidden px-8 pb-8 md:px-10 ${showBanner ? "pt-3" : "pt-6"}`;
   const routeShellClass = fullWidthRoute ? `px-7 ${showBanner ? "pt-6" : "pt-3"}` : showBanner ? "pt-6" : "";
 
   useEffect(() => {
