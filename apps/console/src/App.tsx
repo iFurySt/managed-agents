@@ -2976,11 +2976,15 @@ function MemoryStoreDetailPage() {
 
       <div className="mt-6 flex min-h-0 flex-1 overflow-hidden rounded-xl border-[0.5px] border-line">
         <aside className="relative flex w-72 shrink-0 flex-col border-r-[0.5px] border-line bg-[#f9f9f7]">
-          <Button variant="ghost" size="sm" className="absolute right-2 top-4 !h-6 !w-6 rounded-[6px] !px-0 [font-weight:550]" aria-label="Expand all">
-            <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
-          </Button>
+          {folders.length > 0 ? (
+            <Button variant="ghost" size="sm" className="absolute right-2 top-4 !h-6 !w-6 rounded-[6px] !px-0 [font-weight:550]" aria-label="Expand all">
+              <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
+            </Button>
+          ) : null}
           <div className="flex flex-1 flex-col gap-0.5 overflow-y-auto p-2">
-            {folders.map((folder) => (
+            {folders.length === 0 ? (
+              <div className="flex h-6 items-center rounded-md px-2 text-sm leading-5 text-[#898781]">Empty</div>
+            ) : folders.map((folder) => (
               <div key={folder}>
                 <div className="flex h-7 items-center gap-1.5 rounded-lg px-3 py-1 text-sm text-[#52514e] hover:bg-[#f6f6f0]">
                   <CdsIconGlyph glyph="" className="h-3.5 w-3.5 text-current text-[14px] [font-weight:628.5]" />

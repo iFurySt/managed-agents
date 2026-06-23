@@ -94,6 +94,9 @@
     column distribution, and empty-state row to the reference layout.
   - Follow-up: added an optional DataTable empty-state slot used by the vault
     credentials table.
+  - Follow-up: matched the Memory store detail empty tree state to the
+    reference by hiding the expand control when no folders exist and rendering
+    the `Empty` row in the left pane.
 
 ### Design Intent
 
@@ -228,6 +231,13 @@ console.
 - Follow-up Open Browser Use check confirmed Add credential still keeps the
   reference `510x349` shell, `463px` name field, `455px` select controls, and
   Connect action after the table empty-state changes.
+- Follow-up Open Browser Use check confirmed Memory store detail now renders
+  the empty left tree row at `x=297`, `y=157`, `w=272`, `h=24`, hides the
+  expand-all button when there are no folders, and keeps the Select a memory
+  empty preview in the right pane.
+- Follow-up Open Browser Use check confirmed Add memory still keeps the
+  reference `510x496` shell, `462px` path/content fields, and disabled Create
+  action after the empty-tree change.
 
 ### Files Modified
 
