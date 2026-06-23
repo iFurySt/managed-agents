@@ -4281,7 +4281,7 @@ function CreateSessionResourceMenu({ onAdd, onOpenChange }: { onAdd: (kind: Sess
         <button
           type="button"
           data-cds="Button"
-          className="cds-focus inline-flex h-[27px] w-[121px] items-center justify-center gap-1.5 justify-self-start rounded-control bg-transparent px-[10px] text-sm text-ink outline-none [font-weight:550] hover:bg-fill"
+          className="cds-focus inline-flex h-[31px] w-[121px] items-center justify-center gap-1.5 justify-self-start rounded-[8px] bg-white px-[10px] text-sm text-ink shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)] outline-none [font-weight:550] hover:bg-fill"
         >
           <CdsIconGlyph glyph="" className="-ml-1 h-5 w-5 text-ink text-[20px] [font-weight:433.25]" />
           <span>Resource</span>
@@ -4294,12 +4294,12 @@ function CreateSessionResourceMenu({ onAdd, onOpenChange }: { onAdd: (kind: Sess
           side="bottom"
           align="start"
           sideOffset={6}
-          className="z-50 w-[151px] rounded-[12px] bg-white p-1 text-sm text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
+          className="z-50 w-[190px] rounded-[12px] bg-white p-1 text-sm text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
         >
           {sessionResourceKinds.map((kind) => (
             <CdsDropdownMenu.Item
               key={kind}
-              className="flex h-8 w-full cursor-pointer items-center rounded-[8px] px-2.5 text-sm leading-5 text-ink outline-none data-[highlighted]:bg-fill"
+              className="flex h-8 w-full cursor-pointer items-center whitespace-nowrap rounded-[8px] px-2.5 text-sm leading-5 text-ink outline-none data-[highlighted]:bg-fill"
               onSelect={() => onAdd(kind)}
             >
               {kind}

@@ -58,6 +58,9 @@
   - Follow-up: converted the Create session credential-vault picker to
     searchable checkbox-style multi-select with outside-click dismissal while
     preserving the vault authorization warning behavior.
+  - Follow-up: gave the Create session Resource trigger a bordered rounded
+    button treatment and widened the resource menu so each resource type stays
+    on one row.
 
 ### Design Intent
 
@@ -115,6 +118,10 @@ console.
   `Temporary vault`, toggles vaults with checkbox rows without closing the menu,
   updates the trigger to `2 vaults selected`, keeps the authorization warning
   visible, and closes when clicking elsewhere in the dialog.
+- Follow-up Open Browser Use checks confirmed the Resource trigger measures
+  121x31 with an 8px radius and inset border, and the opened resource menu is
+  190px wide with three 32px, `nowrap` rows for `GitHub Repository`, `File`, and
+  `Memory Store`.
 
 ### Files Modified
 
