@@ -2141,7 +2141,7 @@ function EnvironmentDetailPage() {
         </nav>
       </div>
 
-      <div className="ml-1 flex items-start justify-between gap-4">
+      <div className="relative ml-1 flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
           <div className="mb-2 flex items-center gap-3">
             {editing ? (
@@ -2159,7 +2159,7 @@ function EnvironmentDetailPage() {
           </div>
           {editing ? null : (
             <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
-              <span className="font-mono">{shortId(environment.id)}</span>
+              <span className="font-mono">{shortEnvironmentId(environment.id)}</span>
               <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${environment.id}`} onClick={() => copyText(environment.id)}>
                 <Copy className="h-3.5 w-3.5" />
               </Button>
@@ -2178,6 +2178,9 @@ function EnvironmentDetailPage() {
             </>
           )}
         </div>
+        {!editing && environment.description ? (
+          <p className="absolute left-0 top-14 w-full text-sm leading-5 text-[#52514e]">{environment.description}</p>
+        ) : null}
       </div>
 
       {editing ? (
@@ -8012,7 +8015,7 @@ function shortUserId(id: string) {
 
 function shortEnvironmentId(id: string) {
   if (id.length <= 12) return id;
-  return `${id.slice(0, 4)}…${id.slice(-7)}`;
+  return `${id.slice(0, 10)}…${id.slice(-7)}`;
 }
 
 function agentSessionCreatedLabel(session: Session) {

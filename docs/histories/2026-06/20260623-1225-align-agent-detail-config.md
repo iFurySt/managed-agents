@@ -97,6 +97,9 @@
   - Follow-up: matched the Memory store detail empty tree state to the
     reference by hiding the expand control when no folders exist and rendering
     the `Empty` row in the left pane.
+  - Follow-up: matched Environment detail header metadata to the reference by
+    rendering the description without shifting the detail sections and using
+    the reference short environment id format.
 
 ### Design Intent
 
@@ -238,6 +241,13 @@ console.
 - Follow-up Open Browser Use check confirmed Add memory still keeps the
   reference `510x496` shell, `462px` path/content fields, and disabled Create
   action after the empty-tree change.
+- Follow-up Open Browser Use check confirmed Environment detail renders the
+  description at `y=134`, keeps Networking/Packages/Metadata at
+  `y=178`/`325`/`462`, and displays the short id as
+  `env_01UTaK...ZjUARMh`.
+- Follow-up Open Browser Use check confirmed entering Environment edit mode
+  still shows the name field, description textarea, Networking section, and
+  Save/Cancel actions after the header change.
 
 ### Files Modified
 
