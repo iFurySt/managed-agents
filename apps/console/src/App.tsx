@@ -110,6 +110,16 @@ const sessionEnvironmentOptions = [
 ];
 const sessionResourceKinds = ["GitHub Repository", "File", "Memory Store"] as const;
 type SessionResourceKind = (typeof sessionResourceKinds)[number];
+const builtInToolPermissions = [
+  { name: "bash", description: "Execute bash commands" },
+  { name: "read", description: "Read files" },
+  { name: "write", description: "Write files" },
+  { name: "edit", description: "String replacement in files" },
+  { name: "glob", description: "File pattern matching" },
+  { name: "grep", description: "Text search with regex" },
+  { name: "web_fetch", description: "Fetch URL content" },
+  { name: "web_search", description: "Search the web" }
+];
 const cdsMenuContentClass =
   "z-50 max-w-[320px] rounded-[12px] bg-white p-1 text-sm text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]";
 const cdsMenuItemClass =
@@ -3428,6 +3438,7 @@ function AgentDetailPage() {
   const [agent, setAgent] = useState<Agent | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [archiveOpen, setArchiveOpen] = useState(false);
+  const [toolPermissionsOpen, setToolPermissionsOpen] = useState(false);
 
   useEffect(() => {
     if (id) getAgent(id).then(setAgent).catch(() => setAgent(null));
@@ -3450,6 +3461,8 @@ function AgentDetailPage() {
     Sessions: "w-[83px]",
     Deployments: "w-[114px]"
   };
+  const toolPermissions = agent.tools === "agent_toolset_20260401" ? builtInToolPermissions : [];
+  const toolPermissionsId = `${agent.id}-tool-permissions`;
   const tabParam = searchParams.get("tab");
   const activeTab = tabParam === "sessions" || tabParam === "deployments" ? tabParam : "agent";
 
@@ -3549,19 +3562,39 @@ function AgentDetailPage() {
               </div>
               <button
                 type="button"
-                className="flex h-[46px] w-full items-center gap-2 rounded-[8px] px-4 py-3 text-left text-[#52514e] hover:bg-[#f9f9f7]"
+                className="flex h-[46px] w-full items-center gap-2 rounded-[8px] border-t-[0.5px] border-[rgba(11,11,11,0.1)] px-4 py-3 text-left text-[#52514e] hover:bg-[#f9f9f7]"
                 aria-label="Toggle tool permissions"
+                aria-controls={toolPermissionsId}
+                aria-expanded={toolPermissionsOpen}
+                onClick={() => setToolPermissionsOpen((value) => !value)}
               >
-                <CdsIconGlyph glyph="" className="h-4 w-4 text-[16px] [font-weight:533.25]" />
+                <CdsIconGlyph glyph="" className={`h-4 w-4 text-[16px] [font-weight:533.25] transition-transform ${toolPermissionsOpen ? "" : "-rotate-90"}`} />
                 <span className="flex min-w-0 flex-1 items-center gap-2 text-sm leading-5 text-[#52514e]">
                   <span>Tool permissions</span>
-                  <span className="inline-flex h-[22px] shrink-0 items-center rounded-[5.5px] bg-fill px-2 text-xs leading-[15px] text-[#52514e] [font-weight:550]">8</span>
+                  <span className="inline-flex h-[22px] shrink-0 items-center rounded-[5.5px] bg-fill px-2 text-xs leading-[15px] text-[#52514e] [font-weight:550]">{toolPermissions.length}</span>
                 </span>
                 <span className="flex shrink-0 items-center gap-1.5 text-xs leading-4 text-[#898781] [font-weight:550]">
                   <CdsIconGlyph glyph="" className="h-3.5 w-3.5 text-[#006300] text-[14px] [font-weight:628.5]" />
                   Always allow
                 </span>
               </button>
+              {toolPermissionsOpen ? (
+                <div id={toolPermissionsId} className="flex flex-col">
+                  {toolPermissions.map((tool) => (
+                    <div
+                      key={tool.name}
+                      className="grid min-h-[50px] grid-cols-[120px_minmax(0,1fr)_160px] items-center gap-6 border-t-[0.5px] border-[rgba(11,11,11,0.1)] px-10 py-2 text-sm leading-5"
+                    >
+                      <span className="font-mono text-sm leading-5 text-ink">{tool.name}</span>
+                      <span className="min-w-0 truncate text-sm leading-5 text-[#898781]">{tool.description}</span>
+                      <span className="flex shrink-0 items-center justify-end gap-1.5 text-xs leading-4 text-[#898781] [font-weight:550]">
+                        <CdsIconGlyph glyph="" className="h-3.5 w-3.5 text-[#006300] text-[14px] [font-weight:628.5]" />
+                        Always allow
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
             </div>
           </AgentConfigSection>
           <AgentConfigSection title="Skills" headingClassName={agentDetailHeadingClass} separated>

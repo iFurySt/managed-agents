@@ -41,6 +41,8 @@
   - Follow-up: widened the agent detail route to the reference 1252px content
     region, restored the System Prompt single-line code block at that width, and
     converted the MCPs/tools area to the reference bordered two-row layout.
+  - Follow-up: made the Tool permissions row expandable and populated the core
+    built-in toolset with the eight reference permission rows.
 
 ### Design Intent
 
@@ -74,6 +76,9 @@ console.
   measures x=288/w=1252, the top-right Edit and actions buttons sit at the
   reference x positions, and the MCPs/tools card, tool id, and permissions row
   match the reference geometry and typography.
+- Follow-up Open Browser Use check confirmed clicking Tool permissions expands
+  the core toolset into eight 50px permission rows with per-row `Always allow`
+  status.
 
 ### Files Modified
 
