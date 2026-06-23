@@ -86,6 +86,8 @@
     the reference layout.
   - Follow-up: matched the Deployments list table vertical position, fixed
     width, and column distribution to the reference layout.
+  - Follow-up: matched the Agents list fixed width and column distribution to
+    the reference layout.
 
 ### Design Intent
 
@@ -202,6 +204,9 @@ console.
 - Follow-up Open Browser Use check confirmed Create deployment still keeps the
   reference `520x718` shell, `464px` picker controls, `472px` text fields, and
   the expected create action after the list-table changes.
+- Follow-up Open Browser Use check confirmed Agents uses a `1309px` table at
+  `x=280`, starts at `y=148`, and matches the reference column widths: `40`,
+  `180`, `443`, `170`, `120`, `150`, `150`, and `56px`.
 
 ### Files Modified
 

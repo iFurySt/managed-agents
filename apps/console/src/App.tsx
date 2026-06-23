@@ -773,7 +773,7 @@ function AgentsPage() {
   const [status, setStatus] = useState("Active");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [archivingAgent, setArchivingAgent] = useState<Agent | null>(null);
-  const agentTableWidths = { id: "180px", name: "240px", model: "170px", status: "120px", created: "150px", updated: "150px", actions: "56px" };
+  const agentTableWidths = { id: "180px", name: "443px", model: "170px", status: "120px", created: "150px", updated: "150px", actions: "56px" };
 
   useEffect(() => {
     listAgents({ q: search, status, created }).then(setAgents).catch(() => setAgents([]));
@@ -833,8 +833,8 @@ function AgentsPage() {
         />
       </div>
       <DataTable
-        className="-mx-2 -my-2 !w-[calc(100%+16px)] overflow-x-auto p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
-        tableClassName="min-w-[1106px] border-separate border-spacing-0 whitespace-nowrap"
+        className="-mx-2 -my-2 w-[1309px] overflow-x-auto p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
+        tableClassName="w-[1309px] border-separate border-spacing-0 whitespace-nowrap"
         rows={agents}
         getKey={(agent) => agent.id}
         columns={[
