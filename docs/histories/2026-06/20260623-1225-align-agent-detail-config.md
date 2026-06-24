@@ -374,6 +374,12 @@ console.
   edit-mode changes.
 - Follow-up check passed `npm run build:console` and a local Docker rebuild of
   `console`.
+- Follow-up Open Browser Use check confirmed Credential vault detail now matches
+  the reference table layout with a `1293x268` table, 32px header row, 48px
+  first data row, 47px subsequent rows, pagination at `y=462`, inline Auth
+  cells, and credential short IDs using the reference seven-character suffix.
+- Follow-up check passed `npm run build:console` and a local Docker rebuild of
+  `apiserver`/`console`.
 
 ### Files Modified
 

@@ -2605,7 +2605,7 @@ function VaultDetailPage() {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button className="h-8 w-[143px] !gap-1.5 rounded-[8px] px-0 [font-weight:550]" onClick={() => setDialogOpen(true)}>
+          <Button variant="ghost" className="h-8 w-[143px] !gap-1.5 rounded-[8px] px-0 [font-weight:550]" onClick={() => setDialogOpen(true)}>
             <CdsIconGlyph glyph="" className="h-5 w-5 text-current text-[20px] [font-weight:566.5]" />
             Add credential
           </Button>
@@ -2624,7 +2624,7 @@ function VaultDetailPage() {
       </div>
       <DataTable
         className="-mx-2 w-[1293px] overflow-x-auto p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
-        tableClassName="w-[1293px] border-separate border-spacing-0 whitespace-nowrap"
+        tableClassName="w-[1293px] border-separate border-spacing-0 whitespace-nowrap [&_tbody_tr]:!h-[47px] [&_tbody_tr:first-child]:!h-12 [&_tbody_td]:!py-1.5"
         rows={visibleCredentials}
         getKey={(credential) => credential.id}
         showSelection={false}
@@ -2636,7 +2636,8 @@ function VaultDetailPage() {
             width: "200px",
             render: (credential) => (
               <div className="group/cid flex items-center gap-2">
-                <span className="font-mono font-semibold">{shortId(credential.id)}</span>
+                <span className="font-mono font-semibold">{shortCredentialId(credential.id)}</span>
+                <span className="hidden">{credential.id}</span>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -2655,9 +2656,9 @@ function VaultDetailPage() {
             header: "Auth",
             width: "405px",
             render: (credential) => (
-              <div>
-                <div>{credential.authType}</div>
-                <div className="truncate font-mono text-xs text-muted">{credential.target}</div>
+              <div className="flex min-w-0 items-center gap-1">
+                <span>{credential.authType}</span>
+                <span className="truncate font-mono text-sm leading-5 text-muted">{credential.target}</span>
               </div>
             )
           },
@@ -2670,7 +2671,7 @@ function VaultDetailPage() {
           <div className="flex flex-col items-center justify-center text-center">
             <h2 className="text-base leading-6 text-ink [font-weight:550]">No credentials yet</h2>
             <p className="mt-1 text-sm leading-5 text-[#898781]">Add a credential to give agents access through this vault.</p>
-            <Button className="mt-4 h-8 w-[143px] !gap-1.5 rounded-[8px] px-0 [font-weight:550]" onClick={() => setDialogOpen(true)}>
+            <Button variant="ghost" className="mt-4 h-8 w-[143px] !gap-1.5 rounded-[8px] px-0 [font-weight:550]" onClick={() => setDialogOpen(true)}>
               <CdsIconGlyph glyph="" className="h-5 w-5 text-current text-[20px] [font-weight:566.5]" />
               Add credential
             </Button>
@@ -8038,6 +8039,13 @@ function shortId(id: string) {
   const prefixEnd = id.indexOf("_") + 1;
   const prefix = prefixEnd > 0 ? id.slice(0, prefixEnd) : id.slice(0, 4);
   return `${prefix}…${id.slice(-6)}`;
+}
+
+function shortCredentialId(id: string) {
+  if (id.length <= 15) return id;
+  const prefixEnd = id.indexOf("_") + 1;
+  const prefix = prefixEnd > 0 ? id.slice(0, prefixEnd) : id.slice(0, 4);
+  return `${prefix}…${id.slice(-7)}`;
 }
 
 function shortRunTableId(id: string) {
