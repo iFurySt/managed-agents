@@ -399,6 +399,12 @@ console.
   `13px/16px` description without the extra access label.
 - Follow-up check passed `npm run build:console` and a local Docker rebuild of
   `console`.
+- Follow-up Open Browser Use check confirmed the Create deployment Trigger
+  dropdown now aligns at `x=571/y=890/w=472/h=96`, keeps both `44px` options at
+  the reference positions, and renders trigger descriptions as `13px/16px`
+  text.
+- Follow-up check passed `npm run build:console` and a local Docker rebuild of
+  `console`.
 
 ### Files Modified
 
