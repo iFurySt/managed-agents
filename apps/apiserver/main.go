@@ -2215,15 +2215,15 @@ func seedDeployments(now time.Time) ([]Deployment, []DeploymentRun) {
 			Schedule:        "0 1 * * *",
 			Timezone:        "Asia/Shanghai",
 			InitialMessage:  "开始。结束后需要请求一下api.ifuryst.com，POST，payload里只汇报完成情况，邮件发送情况，不要直接发结论或邮件内容到这里。curl的时候需要增加这个http header \"Authorization: Bearer $TEST\"。原样使用。",
-			NextRuns:        "Wed 1:00 AM, Thu 1:00 AM, Fri 1:00 AM, Sat 1:00 AM, +1",
-			LastRunLabel:    "7 days ago",
+			NextRuns:        "Thu 1:00 AM, Fri 1:00 AM, Sat 1:00 AM, Sun 1:00 AM, +1",
+			LastRunLabel:    "Jun 17",
 			CreatedLabel:    "Jun 16",
 			CreatedAt:       now.Add(-54 * time.Hour),
 			UpdatedAt:       now.Add(-48 * time.Hour),
 		},
 	}
 	runs := []DeploymentRun{
-		deploymentRun("drun_01Xpr1nsr4kS74mRSumPrXRa", "depl_01ERmHnRJWQSLyxk7pVCMZXs", "6/17/2026, 1:00 AM", "7 days ago", "Schedule", "Success", "v2", "sesn_01Dvrq7VjSGUeke6b4fSjBUC", "Idle", now.Add(-7*24*time.Hour)),
+		deploymentRun("drun_01Xpr1nsr4kS74mRSumPrXRa", "depl_01ERmHnRJWQSLyxk7pVCMZXs", "6/17/2026, 1:00 AM", "Jun 17", "Schedule", "Success", "v2", "sesn_01Dvrq7VjSGUeke6b4fSjBUC", "Idle", now.Add(-7*24*time.Hour)),
 		deploymentRun("drun_01HBFZWuZFuaDtq4JpEZPJo5", "depl_01ERmHnRJWQSLyxk7pVCMZXs", "6/16/2026, 3:34 PM", "last week", "Manual", "Success", "v2", "sesn_01NVn9pEgoscvpdrNE95mMPd", "Idle", now.Add(-7*24*time.Hour).Add(-9*time.Hour)),
 		deploymentRun("drun_01RJ4FdZisp6wPnGEcgt2685", "depl_01ERmHnRJWQSLyxk7pVCMZXs", "6/16/2026, 3:28 PM", "last week", "Manual", "Success", "v2", "sesn_01NxEc3HZBVGJhooULZnMyM5", "Idle", now.Add(-7*24*time.Hour).Add(-9*time.Hour).Add(-6*time.Minute)),
 		deploymentRun("drun_01D9WXgoGESNVRW4GMcGYubB", "depl_01ERmHnRJWQSLyxk7pVCMZXs", "6/16/2026, 3:13 PM", "last week", "Manual", "Success", "v2", "sesn_01R5Mm2LwFTLZtimNNTShPCP", "Idle", now.Add(-7*24*time.Hour).Add(-9*time.Hour).Add(-21*time.Minute)),

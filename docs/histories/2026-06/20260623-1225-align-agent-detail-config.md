@@ -405,6 +405,12 @@ console.
   text.
 - Follow-up check passed `npm run build:console` and a local Docker rebuild of
   `console`.
+- Follow-up Open Browser Use check confirmed the deployment detail Schedule
+  section now matches the current reference text with next runs
+  `Thu 1:00 AM`, `Fri 1:00 AM`, `Sat 1:00 AM`, `Sun 1:00 AM`, `+1`, and
+  `Last scheduled run: Jun 17`.
+- Follow-up check passed `npm run build:console` and a local Docker rebuild of
+  `apiserver`/`console`.
 
 ### Files Modified
 
