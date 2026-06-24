@@ -458,6 +458,13 @@ console.
   row.
 - Follow-up check passed `npm run build:console` and a local Docker rebuild of
   `console`.
+- Follow-up Open Browser Use check confirmed the Create session Credential
+  vaults area now uses the reference transparent vault authorization row instead
+  of the yellow bordered warning block, and the Resource trigger now matches the
+  reference transparent `121x27` button while the vault dropdown keeps two
+  `46px` rows in the same order.
+- Follow-up check passed `npm run build:console` and a local Docker rebuild of
+  `console`.
 
 ### Files Modified
 

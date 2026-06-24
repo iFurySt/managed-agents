@@ -4333,7 +4333,7 @@ function CreateSessionResourceMenu({ onAdd, onOpenChange }: { onAdd: (kind: Sess
         <button
           type="button"
           data-cds="Button"
-          className="cds-focus inline-flex h-[31px] w-[121px] items-center justify-center gap-1.5 justify-self-start rounded-[8px] bg-white px-[10px] text-sm text-ink shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)] outline-none [font-weight:550] hover:bg-fill"
+          className="cds-focus inline-flex h-[27px] w-[121px] items-center justify-center gap-1.5 justify-self-start rounded-[8px] bg-transparent px-3 text-sm text-ink outline-none [font-weight:550] hover:bg-fill"
         >
           <CdsIconGlyph glyph="" className="-ml-1 h-5 w-5 text-ink text-[20px] [font-weight:433.25]" />
           <span>Resource</span>
@@ -4572,7 +4572,7 @@ function CreateSessionDialog({
               />
             </div>
             {vaults.length ? (
-              <label className="flex min-h-[70px] cursor-pointer items-start gap-3 rounded-[8px] border border-[#c47a00] bg-[#ffe4a8] px-3 py-3 text-sm leading-5 text-[#70440b]">
+              <label className="ml-3 mr-3 flex min-h-[39px] cursor-pointer items-start gap-3 text-left text-sm leading-5 text-ink">
                 <span className="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-[4px] bg-white shadow-[inset_0_0_0_1px_rgba(11,11,11,0.18)]">
                   <input
                     className="sr-only"
