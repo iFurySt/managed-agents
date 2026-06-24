@@ -4432,7 +4432,7 @@ function CreateSessionDialog({
   const dialogBodyRef = useRef<HTMLDivElement>(null);
   const canCreate = Boolean(agentId && environmentId && (!vaults.length || vaultAcknowledged));
   const fieldLabelClass = "text-sm leading-none [font-weight:550]";
-  const dialogHeightClass = resources.length ? "h-[706px]" : resourceMenuOpen ? "h-[650px]" : "h-[619px]";
+  const dialogHeightClass = resources.length ? "h-[706px]" : resourceMenuOpen ? "h-[650px]" : "h-[606px]";
 
   useEffect(() => {
     if (!open) return;
@@ -4481,7 +4481,7 @@ function CreateSessionDialog({
         description="Set up an instance of your agent in its environment."
         open={open}
         onOpenChange={onOpenChange}
-        contentClassName={`flex flex-col ${dialogHeightClass} !max-h-[calc(100dvh-32px)] w-[720px] max-w-[calc(100vw-32px)] !rounded-[12px] border-0 !shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]`}
+        contentClassName={`flex flex-col ${dialogHeightClass} !max-h-[calc(100dvh-32px)] w-[706px] max-w-[calc(100vw-32px)] !rounded-[12px] border-0 !shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]`}
         headerClassName="flex items-start justify-between pl-6 pr-4 pt-4"
         titleClassName="mt-1 text-[22px] leading-[26px] text-ink [font-weight:580]"
         descriptionClassName="mt-1 text-sm text-[#52514e]"
@@ -5271,7 +5271,7 @@ function DeploymentEnvironmentPicker({
 }
 
 const credentialVaultPickerOptions = [
-  { value: "test_secret", name: "test_secret", updated: "Jun 16", summary: "", credentialIcons: 3 },
+  { value: "test_secret", name: "test_secret", updated: "Jun 16", summary: "", credentialIcons: 5 },
   { value: "Temporary vault", name: "Temporary vault", updated: "5 days ago", summary: "No credentials", credentialIcons: 0 }
 ];
 const deploymentCredentialVaultPickerOptions = [
@@ -5341,21 +5341,23 @@ function CreateSessionVaultPicker({
           {selectedLabel ? null : <CdsIconGlyph glyph="" className="mr-0.5 h-4 w-4 shrink-0 text-[#898781] text-[16px] [font-weight:533.25]" />}
         </button>
         {selectedLabel ? (
-          <button
-            type="button"
-            aria-label="Clear credential vaults"
-            className="grid h-8 w-8 shrink-0 place-items-center rounded-[8px] text-ink outline-none hover:bg-fill"
-            onClick={() => onValueChange([])}
-          >
-            <CdsIconGlyph glyph="" className="h-4 w-4 text-[16px] [font-weight:533.25]" />
-          </button>
+          <span className="ml-1.5 flex h-8 w-[31px] shrink-0 items-center justify-center">
+            <button
+              type="button"
+              aria-label="Clear credential vaults"
+              className="grid h-[22px] w-[22px] shrink-0 place-items-center rounded-[3px] text-ink outline-none hover:bg-fill"
+              onClick={() => onValueChange([])}
+            >
+              <CdsIconGlyph glyph="" className="h-5 w-5 text-[20px] [font-weight:433.25]" />
+            </button>
+          </span>
         ) : null}
       </div>
       {open ? (
         <div
           data-cds="Combobox"
           role="dialog"
-          className="absolute left-0 top-[38px] z-50 max-h-[238px] w-[672px] overflow-hidden rounded-[12px] bg-white p-1 shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
+          className="absolute left-0 top-[38px] z-50 max-h-[238px] w-full overflow-hidden rounded-[12px] bg-white p-1 shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
         >
           <div role="combobox" aria-expanded="true" className="-mx-1 -mt-1 mb-1 flex h-[37px] w-[calc(100%+8px)] items-center border-b border-line px-4 py-2">
             <input
@@ -5382,7 +5384,7 @@ function CreateSessionVaultPicker({
                 onClick={() => toggleVault(option.value)}
               >
                 <span className={`grid h-4 w-4 shrink-0 place-items-center rounded-[4px] ${value.includes(option.value) ? "bg-[#2b73d2] text-white shadow-none" : "bg-white text-transparent shadow-[inset_0_0_0_1px_rgba(11,11,11,0.18)]"}`} aria-hidden>
-                  <Check className="h-3.5 w-3.5" strokeWidth={2.8} />
+                  <CdsIconGlyph glyph="" className="h-4 w-4 text-[16px] [font-weight:700]" />
                 </span>
                 <CredentialVaultOptionContent option={option} />
               </button>
@@ -5464,14 +5466,18 @@ function CredentialVaultOptionContent({ option }: { option: (typeof credentialVa
   return (
     <span className="flex min-w-0 flex-1 items-center justify-between gap-4">
       <span className="grid min-w-0 gap-0.5">
-        <span className="truncate text-sm leading-4 text-ink">{option.name}</span>
-        <span className="truncate text-[13px] leading-[18px] text-muted">{option.updated}</span>
+        <span className="truncate text-sm leading-5 text-ink">{option.name}</span>
+        <span className="truncate text-[13px] leading-4 text-muted">{option.updated}</span>
       </span>
       <span className="inline-flex shrink-0 items-center justify-end text-sm leading-5 text-muted">
         {option.credentialIcons > 0
           ? Array.from({ length: option.credentialIcons }, (_, index) => (
-              <span key={index} className="-ml-1 grid h-6 w-6 place-items-center rounded-full border border-line bg-white first:ml-0">
-                <CdsIconGlyph glyph="" className="h-4 w-4 text-[#52514e] text-[16px] [font-weight:533.25]" />
+              <span key={index} className="-ml-2 grid h-6 w-6 place-items-center overflow-hidden rounded-full border-[0.5px] border-line bg-white first:ml-0">
+                {index === 2 || index === 3 ? (
+                  <span className={`h-3.5 w-3.5 rounded-full ${index === 2 ? "bg-[#dce9ff]" : "bg-[#ffe0ce]"}`} />
+                ) : (
+                  <CdsIconGlyph glyph="" className="h-3.5 w-3.5 text-[#52514e] text-[14px] [font-weight:628.5]" />
+                )}
               </span>
             ))
           : option.summary}

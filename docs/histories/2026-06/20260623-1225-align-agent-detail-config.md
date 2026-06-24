@@ -380,6 +380,13 @@ console.
   cells, and credential short IDs using the reference seven-character suffix.
 - Follow-up check passed `npm run build:console` and a local Docker rebuild of
   `apiserver`/`console`.
+- Follow-up Open Browser Use check confirmed the Create session dialog now uses
+  the reference `706x606` shell, the Credential vaults clear control is `22x22`,
+  and the vault dropdown renders a field-width `658x137` panel with the
+  reference checkbox glyph and five overlapping credential badges for
+  `test_secret`.
+- Follow-up check passed `npm run build:console` and a local Docker rebuild of
+  `console`.
 
 ### Files Modified
 
