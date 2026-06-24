@@ -411,6 +411,11 @@ console.
   `Last scheduled run: Jun 17`.
 - Follow-up check passed `npm run build:console` and a local Docker rebuild of
   `apiserver`/`console`.
+- Follow-up Open Browser Use check confirmed the deployment detail breadcrumb
+  now matches the reference `Deployments` link at `x=268/y=16/w=112/h=28`,
+  with transparent background, `0px` radius, and `4px 12px` padding.
+- Follow-up check passed `npm run build:console` and a local Docker rebuild of
+  `console`.
 
 ### Files Modified
 

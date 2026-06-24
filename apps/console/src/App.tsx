@@ -1674,9 +1674,9 @@ function DeploymentDetailPage() {
 
   return (
     <section className="flex w-full max-w-none flex-col">
-      <div className="-ml-8 -mt-3 mb-3 flex h-9 w-[984px] items-center justify-between">
+      <div className="-ml-5 -mt-3 mb-3 flex h-9 w-[984px] items-center justify-between">
         <nav className="flex items-center gap-2 text-sm text-muted">
-          <Link className="rounded-control px-3 py-1.5 hover:bg-fill" to="/deployments">
+          <Link className="px-3 py-1 transition-colors hover:text-ink" to="/deployments">
             Deployments
           </Link>
           <span>/</span>
