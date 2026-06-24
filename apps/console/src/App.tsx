@@ -2313,29 +2313,26 @@ function EnvironmentDetailPage() {
           </div>
         </div>
       ) : (
-        <div className="ml-1 mt-6 grid max-w-[800px] gap-4">
-          <EnvironmentDetailSection title="Networking">
-            <p className="mb-3 text-sm text-muted">Configure network access policies for this environment.</p>
+        <div className="mt-6 flex w-full flex-col gap-4 px-1">
+          <EnvironmentDetailSection title="Networking" description="Configure network access policies for this environment.">
             <div className="text-sm leading-[21px]">
               <span className="[font-weight:550]">Type</span>
               <div className="mt-1">{environment.networkingType || "Unrestricted"}</div>
             </div>
           </EnvironmentDetailSection>
-          <EnvironmentDetailSection title="Packages" separated>
-            <p className="mb-3 text-sm text-muted">Specify packages and their versions available in this environment. Separate multiple values with spaces.</p>
-            <div className="flex min-h-[35px] items-center justify-between gap-4 rounded-md border border-line bg-fill px-3 py-[6px]">
-              <pre className="whitespace-pre-wrap font-mono text-sm leading-[21px]">{environment.packageManager || "apt"}: {environment.packages || "No packages"}</pre>
-              <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0 text-muted" aria-label="Copy" onClick={() => copyText(`${environment.packageManager || "apt"}: ${environment.packages || ""}`.trim())}>
+          <EnvironmentDetailSection title="Packages" description="Specify packages and their versions available in this environment. Separate multiple values with spaces." separated>
+            <div className="group/value flex min-h-[35px] items-start gap-2 rounded-md border-[0.5px] border-line bg-[#f9f9f7] px-3 py-2">
+              <pre className="min-w-0 flex-1 whitespace-pre-wrap break-all font-mono text-xs leading-4 text-[#52514e]">{environment.packageManager || "apt"}: {environment.packages || "No packages"}</pre>
+              <Button variant="ghost" size="sm" className="-my-0.5 h-[22px] w-[22px] px-0 text-muted opacity-0 group-hover/value:opacity-100 focus-visible:opacity-100" aria-label="Copy" onClick={() => copyText(`${environment.packageManager || "apt"}: ${environment.packages || ""}`.trim())}>
                 <Copy className="h-3.5 w-3.5" />
               </Button>
             </div>
           </EnvironmentDetailSection>
-          <EnvironmentDetailSection title="Metadata" separated>
-            <p className="mb-3 text-sm text-muted">Add custom key-value pairs to tag and organize this environment. Keys must be lowercase.</p>
+          <EnvironmentDetailSection title="Metadata" description="Add custom key-value pairs to tag and organize this environment. Keys must be lowercase." separated>
             {environment.metadata ? (
-              <pre className="min-h-[37px] rounded-md border border-line bg-fill px-3 py-2 font-mono text-sm leading-5">{environment.metadata}</pre>
+              <pre className="min-h-[37px] rounded-md border-[0.5px] border-line bg-fill px-3 py-2 font-mono text-sm leading-5">{environment.metadata}</pre>
             ) : (
-              <div className="min-h-[37px] rounded-md border border-line bg-canvas px-3 py-2 text-sm text-muted">No metadata</div>
+              <div className="min-h-[37px] rounded-md border-[0.5px] border-line bg-canvas px-3 py-2 text-sm text-muted">No metadata</div>
             )}
           </EnvironmentDetailSection>
         </div>
@@ -7981,11 +7978,16 @@ function DeploymentDetailSection({ title, children }: { title: string; children:
   );
 }
 
-function EnvironmentDetailSection({ title, children, separated = false }: { title: string; children: React.ReactNode; separated?: boolean }) {
+function EnvironmentDetailSection({ title, description, children, separated = false }: { title: string; description: string; children: React.ReactNode; separated?: boolean }) {
   return (
-    <section className={separated ? "mt-1 border-t border-line pb-2 pt-3" : "pb-2"}>
-      <h2 className="mb-1 text-base leading-6 [font-weight:550]">{title}</h2>
-      {children}
+    <section className={`flex flex-col gap-3 ${separated ? "pt-6" : ""}`}>
+      <div className="flex max-w-[800px] flex-col gap-3">
+        <div className="flex flex-col gap-1">
+          <h2 className="text-base leading-6 [font-weight:550]">{title}</h2>
+          <p className="text-sm text-muted">{description}</p>
+        </div>
+        {children}
+      </div>
     </section>
   );
 }

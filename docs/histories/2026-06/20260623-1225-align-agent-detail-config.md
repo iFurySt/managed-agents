@@ -142,6 +142,10 @@
   - Follow-up: aligned the Environments list ID cell with the reference short
     format while preserving the longer environment short ID used on detail
     headers.
+  - Follow-up: aligned the Environment detail read-only section layout by
+    making section shells full-width, keeping section content at the reference
+    800px measure, restoring the reference top spacing for later sections, and
+    tightening the Packages value block typography, border, and background.
 
 ### Design Intent
 
@@ -348,6 +352,13 @@ console.
   cell now renders `env_…ZjUARMh`, keeps the hidden full ID, preserves the
   `` copy glyph, and retains the reference `1309px` table width and column
   distribution.
+- Follow-up check passed `npm run build:console` and a local Docker rebuild of
+  `console`.
+- Follow-up Open Browser Use check confirmed Environment detail read-only
+  sections now render full-width shells with `1285px` width and `800px` inner
+  content, with Packages at `x=292/y=300/w=1285/h=119` versus the reference
+  `x=292/y=301/w=1285/h=120`; the package value block now measures `800x35`
+  with `12px/16px` mono text, `#f9f9f7` background, and `0.5px` border.
 - Follow-up check passed `npm run build:console` and a local Docker rebuild of
   `console`.
 
