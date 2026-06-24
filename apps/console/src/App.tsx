@@ -2598,8 +2598,8 @@ function VaultDetailPage() {
   return (
     <section className="-mt-4 flex flex-col">
       <div className="-ml-5 flex h-[52px] items-center justify-between">
-        <nav className="flex items-center gap-2 text-sm text-muted">
-          <Link className="rounded-control px-3 py-1.5 hover:bg-fill" to="/vaults">
+        <nav className="-translate-y-1 flex items-center gap-2 text-sm text-muted">
+          <Link className="px-3 py-1 transition-colors hover:text-ink" to="/vaults">
             Credential vaults
           </Link>
           <span>/</span>

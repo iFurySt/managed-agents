@@ -445,6 +445,12 @@ console.
   no separate copy button, and `Last updated Jun 16` on the same row.
 - Follow-up check passed `npm run build:console` and a local Docker rebuild of
   `console`.
+- Follow-up Open Browser Use check confirmed the Credential vault detail
+  breadcrumb now matches the reference `Credential vaults` link at
+  `x=268/y=16/w=137/h=28`, with transparent background, `0px` radius, and
+  `4px 12px` padding.
+- Follow-up check passed `npm run build:console` and a local Docker rebuild of
+  `console`.
 
 ### Files Modified
 
