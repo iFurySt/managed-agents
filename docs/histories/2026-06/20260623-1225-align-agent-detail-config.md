@@ -434,6 +434,11 @@ console.
   restores the first scheduled run row subtitle to the reference `last week`.
 - Follow-up checks passed `npm run build:console`, `go test ./apps/apiserver`,
   and a local Docker rebuild of `apiserver`/`console`.
+- Follow-up Open Browser Use check confirmed the Environment detail breadcrumb
+  now matches the reference `Environments` link at `x=268/y=16/w=116/h=28`,
+  with transparent background, `0px` radius, and `4px 12px` padding.
+- Follow-up check passed `npm run build:console` and a local Docker rebuild of
+  `console`.
 
 ### Files Modified
 
