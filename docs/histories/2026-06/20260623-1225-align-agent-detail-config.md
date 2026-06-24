@@ -146,6 +146,9 @@
     making section shells full-width, keeping section content at the reference
     800px measure, restoring the reference top spacing for later sections, and
     tightening the Packages value block typography, border, and background.
+  - Follow-up: aligned the Environment detail edit layout with the reference
+    full-width section shells, fixed the environment-name editor width, and
+    normalized edit section title/description/control spacing.
 
 ### Design Intent
 
@@ -359,6 +362,16 @@ console.
   content, with Packages at `x=292/y=300/w=1285/h=119` versus the reference
   `x=292/y=301/w=1285/h=120`; the package value block now measures `800x35`
   with `12px/16px` mono text, `#f9f9f7` background, and `0.5px` border.
+- Follow-up check passed `npm run build:console` and a local Docker rebuild of
+  `console`.
+- Follow-up Open Browser Use check confirmed Environment edit mode now renders
+  the name input at `256x36`, Networking at `x=292/y=238/w=1285/h=114`,
+  Packages at `x=292/y=368/w=1285/h=129`, Metadata at
+  `x=292/y=513/w=1285/h=129`, and the package edit row at `800x36`, matching
+  the reference metrics.
+- Follow-up read-mode regression check confirmed the Environment read-only
+  section shells and `800x35` package value block remained aligned after the
+  edit-mode changes.
 - Follow-up check passed `npm run build:console` and a local Docker rebuild of
   `console`.
 

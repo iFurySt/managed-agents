@@ -2161,7 +2161,7 @@ function EnvironmentDetailPage() {
           <div className="mb-2 flex items-center gap-2">
             {editing ? (
               <TextInput
-                className="h-9 w-[256px] max-w-none rounded-[8px] !text-[22px] leading-[26px] [font-weight:580]"
+                className="h-9 !w-[256px] max-w-none flex-none rounded-[8px] !text-[22px] leading-[26px] [font-weight:580]"
                 placeholder="Environment name"
                 value={name}
                 maxLength={50}
@@ -2199,8 +2199,8 @@ function EnvironmentDetailPage() {
       </div>
 
       {editing ? (
-        <div className="ml-1 -mt-[18px] grid max-w-[800px] gap-4">
-          <div>
+        <div className="-mt-[18px] flex w-full flex-col gap-4 px-1">
+          <div className="max-w-[800px]">
             <label className="mb-1 block text-sm leading-5 [font-weight:550]">Description</label>
             <textarea
               className="cds-focus h-[66px] min-h-[66px] w-full resize-none rounded-[9px] border border-line bg-white px-3 py-2 text-sm leading-5"
@@ -2209,20 +2209,22 @@ function EnvironmentDetailPage() {
               onChange={(event) => setDescription(event.target.value)}
             />
           </div>
-          <EnvironmentEditSection title="Networking">
-            <p className="mb-4 text-sm leading-5 text-muted">Configure network access policies for this environment.</p>
-            <label className="mb-2 block text-sm leading-[14px] [font-weight:550]">Type</label>
-            <FieldSelect
-              label="Type"
-              showLabel={false}
-              value={networkingType}
-              options={["Unrestricted", "No internet", "Allowlist"]}
-              onValueChange={setNetworkingType}
-              triggerClassName="w-[792px] rounded-none !border-transparent !bg-transparent px-0 hover:!bg-transparent"
-            />
+          <EnvironmentEditSection title="Networking" description="Configure network access policies for this environment." className="mt-0.5">
+            <div className="flex flex-col gap-2">
+              <label className="block text-sm leading-[14px] [font-weight:550]">Type</label>
+              <FieldSelect
+                label="Type"
+                showLabel={false}
+                value={networkingType}
+                options={["Unrestricted", "No internet", "Allowlist"]}
+                onValueChange={setNetworkingType}
+                triggerClassName="w-[792px] rounded-none !border-transparent !bg-transparent px-0 hover:!bg-transparent"
+              />
+            </div>
           </EnvironmentEditSection>
           <EnvironmentEditSection
             title="Packages"
+            description="Specify packages and their versions available in this environment. Separate multiple values with spaces."
             separated
             action={
               <Button variant="icon" className="h-8 w-8 rounded-[8px]" aria-label="Add package" onClick={addPackage}>
@@ -2230,8 +2232,7 @@ function EnvironmentDetailPage() {
               </Button>
             }
           >
-            <p className="mb-4 text-sm leading-5 text-muted">Specify packages and their versions available in this environment. Separate multiple values with spaces.</p>
-            <div className="flex min-h-8 items-center gap-2">
+            <div className="flex min-h-9 items-center gap-2">
               <FieldSelect
                 label="Manager"
                 showLabel={false}
@@ -2274,15 +2275,14 @@ function EnvironmentDetailPage() {
           </EnvironmentEditSection>
           <EnvironmentEditSection
             title="Metadata"
+            description="Add custom key-value pairs to tag and organize this environment. Keys must be lowercase."
             separated
-            className="!mt-[13px]"
             action={
               <Button variant="icon" className="h-8 w-8 rounded-[8px] text-sm leading-5 [font-weight:550]" aria-label="Add metadata entry" onClick={addMetadataRow}>
                 <Plus className="h-4 w-4" />
               </Button>
             }
           >
-            <p className="mb-4 text-sm leading-5 text-muted">Add custom key-value pairs to tag and organize this environment. Keys must be lowercase.</p>
             <div className="grid gap-2">
               {metadataRows.map((row, index) => (
                 <div key={row.id} className="grid grid-cols-[376px_376px_32px] items-center gap-2">
@@ -2307,7 +2307,7 @@ function EnvironmentDetailPage() {
               ))}
             </div>
           </EnvironmentEditSection>
-          <div className="-mt-2 flex gap-2">
+          <div className="flex gap-2">
             <Button variant="ghost" className="h-8 rounded-[8px] px-3 [font-weight:550]" onClick={saveChanges}>Save changes</Button>
             <Button variant="ghost" className="h-8 rounded-[8px] px-3 [font-weight:550]" onClick={() => setEditing(false)}>Cancel</Button>
           </div>
@@ -7994,24 +7994,31 @@ function EnvironmentDetailSection({ title, description, children, separated = fa
 
 function EnvironmentEditSection({
   title,
+  description,
   children,
   action,
   separated = false,
   className = ""
 }: {
   title: string;
+  description: string;
   children: React.ReactNode;
   action?: React.ReactNode;
   separated?: boolean;
   className?: string;
 }) {
   return (
-    <section className={`${separated ? "mt-1 border-t border-line pb-2 pt-3" : "pb-2"} ${className}`}>
-      <div className="mb-1 flex h-6 items-center justify-between">
-        <h2 className="text-base leading-6 [font-weight:550]">{title}</h2>
-        {action}
+    <section className={`flex w-full flex-col gap-3 ${separated ? "pt-[25px]" : ""} ${className}`}>
+      <div className="flex max-w-[800px] flex-col gap-3">
+        <div className="flex flex-col gap-1">
+          <div className={action ? "flex h-8 items-center justify-between" : ""}>
+            <h2 className="text-base leading-6 [font-weight:550]">{title}</h2>
+            {action}
+          </div>
+          <p className="text-sm text-muted">{description}</p>
+        </div>
+        {children}
       </div>
-      {children}
     </section>
   );
 }
