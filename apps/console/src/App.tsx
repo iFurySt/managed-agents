@@ -1763,12 +1763,12 @@ function DeploymentDetailPage() {
           <div className="grid grid-cols-2 gap-4">
             <DeploymentDetailSection title="Agent">
               <div className="flex items-center gap-1.5">
-                <DeploymentDetailToken icon="">{deployment.agentName}</DeploymentDetailToken>
+                <DeploymentDetailToken icon="" to={`/agents/${deployment.agentId}`}>{deployment.agentName}</DeploymentDetailToken>
                 <span className="text-sm leading-5 text-muted [font-weight:550]">{deployment.agentVersion}</span>
               </div>
             </DeploymentDetailSection>
             <DeploymentDetailSection title="Environment">
-              <DeploymentDetailToken icon="">{deployment.environmentName}</DeploymentDetailToken>
+              <DeploymentDetailToken icon="" to={`/environments/${deployment.environmentId}`}>{deployment.environmentName}</DeploymentDetailToken>
             </DeploymentDetailSection>
           </div>
           <DeploymentDetailSection title="Credential vaults">
@@ -8006,12 +8006,27 @@ function AgentConfigSection({
   );
 }
 
-function DeploymentDetailToken({ icon, children }: { icon: string; children: React.ReactNode }) {
-  return (
-    <span className="inline-flex h-[25px] min-w-0 max-w-full items-center gap-1.5 rounded-md border-[0.5px] border-line px-1.5 py-0.5 text-sm leading-5 text-[#52514e] transition-colors hover:bg-fill hover:text-ink">
+function DeploymentDetailToken({ icon, children, to }: { icon: string; children: React.ReactNode; to?: string }) {
+  const className = "relative z-10 inline-flex h-[25px] w-fit min-w-0 max-w-full self-start items-center gap-1.5 rounded-md border-[0.5px] border-line bg-transparent px-1.5 py-0.5 text-sm leading-5 text-[#52514e] no-underline outline-none transition-colors duration-100 hover:bg-fill hover:text-ink";
+  const content = (
+    <>
       <CdsIconGlyph glyph={icon} className="h-4 w-4 shrink-0 text-[#52514e] text-[16px] [font-weight:533.25]" />
       <span className="min-w-0 truncate">{children}</span>
-    </span>
+    </>
+  );
+
+  if (to) {
+    return (
+      <Link className={className} to={to}>
+        {content}
+      </Link>
+    );
+  }
+
+  return (
+    <button type="button" className={className}>
+      {content}
+    </button>
   );
 }
 

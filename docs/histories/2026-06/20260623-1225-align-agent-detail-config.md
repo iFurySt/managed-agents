@@ -471,6 +471,13 @@ console.
   dialog positions.
 - Follow-up check passed `npm run build:console` and a local Docker rebuild of
   `console`.
+- Follow-up Open Browser Use check confirmed deployment detail configuration
+  tokens now use content-width interactive controls instead of full-row pills:
+  Environment is `177x25` versus the `175x25` reference, Credential vaults is
+  `111x25` versus `109x25`, Memory stores is `100x25` versus `98x25`, and
+  Agent/Environment tokens now navigate to their detail routes.
+- Follow-up check passed `npm run build:console` and a local Docker rebuild of
+  `console`.
 
 ### Files Modified
 
