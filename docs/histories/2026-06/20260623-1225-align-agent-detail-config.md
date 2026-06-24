@@ -416,6 +416,12 @@ console.
   with transparent background, `0px` radius, and `4px 12px` padding.
 - Follow-up check passed `npm run build:console` and a local Docker rebuild of
   `console`.
+- Follow-up Open Browser Use check confirmed deployment detail tabs now match
+  the reference geometry and weight model: `Configuration` at `x=280/w=117`,
+  `Runs` at `x=399/w=58`, active visible text at weight `500`, inactive visible
+  text at weight `400`, and hidden width-preserving text at weight `550`.
+- Follow-up check passed `npm run build:console` and a local Docker rebuild of
+  `console`.
 
 ### Files Modified
 

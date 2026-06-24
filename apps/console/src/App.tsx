@@ -1734,14 +1734,17 @@ function DeploymentDetailPage() {
         onValueChange={(value) => setSearchParams(value === "runs" ? { tab: "runs" } : {})}
         className="mt-[18px] flex flex-col gap-4"
       >
-        <CdsTabs.List data-cds="NavigationTabs" className="-ml-2 flex border-b border-line">
+        <CdsTabs.List data-cds="NavigationTabs" className="-ml-2 flex gap-0.5 border-b border-line">
           {["Configuration", "Runs"].map((tab) => (
             <CdsTabs.Trigger
               key={tab}
               value={tab.toLowerCase()}
-              className="h-8 rounded-t-cds border-b-2 border-transparent px-3 text-sm font-medium text-muted data-[state=active]:border-ink data-[state=active]:text-ink"
+              className="relative h-8 rounded-t-cds border-b-2 border-transparent px-3 text-sm text-muted data-[state=active]:border-ink data-[state=active]:text-ink [&[data-state=active]_.deployment-tab-label]:font-medium"
             >
-              {tab}
+              <span className="deployment-tab-label absolute inset-x-3 top-1/2 flex -translate-y-1/2 justify-center whitespace-nowrap font-normal">{tab}</span>
+              <span aria-hidden="true" className="invisible [font-weight:550]">
+                {tab}
+              </span>
             </CdsTabs.Trigger>
           ))}
         </CdsTabs.List>
