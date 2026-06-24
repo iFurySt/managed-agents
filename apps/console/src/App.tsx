@@ -1743,7 +1743,7 @@ function DeploymentDetailPage() {
       <CdsTabs.Root
         value={activeTab}
         onValueChange={(value) => setSearchParams(value === "runs" ? { tab: "runs" } : {})}
-        className="mt-[18px] flex flex-col gap-4"
+        className="mt-6 flex flex-col gap-4"
       >
         <CdsTabs.List data-cds="NavigationTabs" className="-ml-2 flex gap-0.5 border-b border-line">
           {["Configuration", "Runs"].map((tab) => (
@@ -1829,7 +1829,7 @@ function DeploymentDetailPage() {
             </div>
           </DeploymentDetailSection>
         </CdsTabs.Content>
-        <CdsTabs.Content value="runs" className="-ml-2 -mt-[41px] flex flex-col gap-2">
+        <CdsTabs.Content value="runs" className="-ml-2 -mt-10 flex flex-col gap-2">
           <div className="flex gap-4">
             <FieldSelect label="Trigger" value={trigger} options={["All", "Manual", "Schedule"]} onValueChange={setTrigger} triggerClassName="w-[101px] rounded-none !border-transparent !bg-transparent px-0 hover:!bg-transparent" />
             <FieldSelect label="Result" value={result} options={["All", "Success", "Failed"]} onValueChange={setResult} triggerClassName="w-[98px] rounded-none !border-transparent !bg-transparent px-0 hover:!bg-transparent" />
@@ -1841,6 +1841,7 @@ function DeploymentDetailPage() {
             showActions={false}
             className="-ml-2 w-[1309px]"
             tableClassName="ml-2 mt-2 [&_tbody_tr]:!h-11 [&_tbody_td]:!py-1"
+            headerTextClassName="text-[13px]"
             columns={[
               {
                 key: "id",

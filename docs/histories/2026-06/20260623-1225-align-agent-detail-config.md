@@ -428,6 +428,12 @@ console.
   separate copy icon, and `Created Jun 16, 2026` aligned on the same row.
 - Follow-up check passed `npm run build:console` and a local Docker rebuild of
   `console`.
+- Follow-up Open Browser Use check confirmed the deployment Runs tab now keeps
+  tabs at `y=132`, places the Trigger and Result filters at `y=180`, places the
+  table at `x=280/y=228/w=1309`, renders table headers at `13px/16px`, and
+  restores the first scheduled run row subtitle to the reference `last week`.
+- Follow-up checks passed `npm run build:console`, `go test ./apps/apiserver`,
+  and a local Docker rebuild of `apiserver`/`console`.
 
 ### Files Modified
 
