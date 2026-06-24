@@ -5488,12 +5488,14 @@ function CredentialVaultOptionContent({ option }: { option: (typeof credentialVa
 
 function DeploymentMemoryStorePicker({ value, onValueChange }: { value: string; onValueChange: (value: string) => void }) {
   const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
   const options = [
     { value: "123", name: "123", description: "No description", access: "Read & write" },
     { value: "zzz", name: "zzz", description: "No description", access: "Read & write" },
     { value: "world cup", name: "world cup", description: "No description", access: "Read & write" },
     { value: "leo_test", name: "leo_test", description: "123", access: "Read & write" }
   ];
+  const filteredOptions = options.filter((option) => `${option.name} ${option.value}`.toLowerCase().includes(search.toLowerCase()));
   const selected = options.find((option) => option.value === value);
 
   return (
@@ -5537,10 +5539,20 @@ function DeploymentMemoryStorePicker({ value, onValueChange }: { value: string; 
         <div
           data-cds="Combobox"
           role="dialog"
-          className="absolute bottom-[39px] left-0 z-50 w-full rounded-[12px] bg-white p-1 shadow-[0_10px_28px_rgba(0,0,0,0.12)]"
+          className="absolute left-0 top-[38px] z-50 max-h-[229px] w-[472px] overflow-hidden rounded-[12px] bg-white p-1 shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
         >
-          <div role="listbox" className="grid gap-0">
-            {options.map((option) => (
+          <div role="combobox" aria-expanded="true" className="-mx-1 -mt-1 mb-1 flex h-[37px] w-[calc(100%+8px)] items-center border-b border-line px-4 py-2">
+            <input
+              className={createSessionSearchInputClass}
+              aria-label="Search memory stores"
+              placeholder="Search memory stores by name or exact ID"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              onKeyDown={(event) => event.stopPropagation()}
+            />
+          </div>
+          <div role="listbox" className="grid max-h-[184px] gap-0 overflow-y-auto overflow-x-hidden">
+            {filteredOptions.map((option) => (
               <button
                 key={option.value}
                 type="button"
@@ -5552,13 +5564,9 @@ function DeploymentMemoryStorePicker({ value, onValueChange }: { value: string; 
                   setOpen(false);
                 }}
               >
-                <span className="grid min-w-0 gap-0.5">
-                  <span className="truncate text-sm leading-4 text-ink">{option.name}</span>
-                  <span className="truncate text-xs leading-4 text-muted">{option.description}</span>
-                </span>
-                <span className="inline-flex shrink-0 items-center gap-1.5 text-xs leading-4 text-muted">
-                  <Database className="h-3.5 w-3.5" />
-                  {option.access}
+                <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                  <span className="truncate text-sm leading-5 text-ink">{option.name}</span>
+                  <span className="truncate text-[13px] leading-4 text-muted">{option.description}</span>
                 </span>
               </button>
             ))}

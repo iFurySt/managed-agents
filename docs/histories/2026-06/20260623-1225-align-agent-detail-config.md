@@ -393,6 +393,12 @@ console.
   `12px/16px` text at the reference position.
 - Follow-up check passed `npm run build:console` and a local Docker rebuild of
   `console`.
+- Follow-up Open Browser Use check confirmed the Create deployment Add memory
+  store dropdown now opens downward as a `472x229` panel with a 37px search row,
+  four `46px` options, and option text limited to the store name plus the
+  `13px/16px` description without the extra access label.
+- Follow-up check passed `npm run build:console` and a local Docker rebuild of
+  `console`.
 
 ### Files Modified
 
