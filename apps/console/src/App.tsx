@@ -1689,11 +1689,22 @@ function DeploymentDetailPage() {
             <h1 className="text-[22px] leading-7 [font-weight:550]">{deployment.name}</h1>
             <Badge tone={deploymentTone(deployment.status)}>{deployment.status}</Badge>
           </div>
-          <div className="flex items-center gap-2 text-sm text-muted">
-            <span className="font-mono">{shortId(deployment.id)}</span>
-            <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${deployment.id}`} onClick={() => copyText(deployment.id)}>
-              <Copy className="h-3.5 w-3.5" />
-            </Button>
+          <div className="flex flex-wrap items-center gap-2 text-xs leading-4 text-muted">
+            <span
+              role="button"
+              tabIndex={0}
+              aria-label={`Copy ${shortDeploymentDetailId(deployment.id)}`}
+              className="relative -mx-1 -my-0.5 w-fit max-w-full cursor-pointer rounded-md px-1 py-0.5 text-xs text-muted transition-colors hover:bg-fill [font-weight:430]"
+              onClick={() => copyText(deployment.id)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") copyText(deployment.id);
+              }}
+            >
+              <span className="relative inline-block max-w-full truncate align-bottom font-mono text-xs text-muted [font-weight:430]">
+                {shortDeploymentDetailId(deployment.id)}
+                <span className="pointer-events-none absolute left-0 top-0 select-none whitespace-nowrap text-transparent">{deployment.id}</span>
+              </span>
+            </span>
             <span>·</span>
             <span>Created {deployment.createdLabel === "Jun 16" ? "Jun 16, 2026" : deployment.createdLabel}</span>
           </div>
@@ -8056,6 +8067,11 @@ function shortId(id: string) {
   const prefixEnd = id.indexOf("_") + 1;
   const prefix = prefixEnd > 0 ? id.slice(0, prefixEnd) : id.slice(0, 4);
   return `${prefix}…${id.slice(-6)}`;
+}
+
+function shortDeploymentDetailId(id: string) {
+  if (id.length <= 16) return id;
+  return `${id.slice(0, 10)}…${id.slice(-6)}`;
 }
 
 function shortCredentialId(id: string) {

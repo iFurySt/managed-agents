@@ -422,6 +422,12 @@ console.
   text at weight `400`, and hidden width-preserving text at weight `550`.
 - Follow-up check passed `npm run build:console` and a local Docker rebuild of
   `console`.
+- Follow-up Open Browser Use check confirmed the deployment detail subtitle now
+  matches the reference structure with `text-xs/16px`, a clickable short
+  deployment ID, a transparent full ID overlay for copy/selection fidelity, no
+  separate copy icon, and `Created Jun 16, 2026` aligned on the same row.
+- Follow-up check passed `npm run build:console` and a local Docker rebuild of
+  `console`.
 
 ### Files Modified
 
