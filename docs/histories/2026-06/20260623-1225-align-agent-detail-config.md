@@ -439,6 +439,12 @@ console.
   with transparent background, `0px` radius, and `4px 12px` padding.
 - Follow-up check passed `npm run build:console` and a local Docker rebuild of
   `console`.
+- Follow-up Open Browser Use check confirmed the Environment detail header now
+  matches the reference subtitle structure with the title at `y=76`, a
+  `text-xs/16px` clickable short environment ID, a transparent full ID overlay,
+  no separate copy button, and `Last updated Jun 16` on the same row.
+- Follow-up check passed `npm run build:console` and a local Docker rebuild of
+  `console`.
 
 ### Files Modified
 

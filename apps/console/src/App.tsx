@@ -2172,8 +2172,8 @@ function EnvironmentDetailPage() {
       </div>
 
       <div className="relative mx-1 flex items-start justify-between gap-4">
-        <div className="min-w-0 flex-1">
-          <div className="mb-2 flex items-center gap-2">
+        <div className="min-w-0 flex-1 -translate-y-0.5">
+          <div className="mb-1 flex items-center gap-2">
             {editing ? (
               <TextInput
                 className="h-9 !w-[256px] max-w-none flex-none rounded-[8px] !text-[22px] leading-[26px] [font-weight:580]"
@@ -2188,11 +2188,22 @@ function EnvironmentDetailPage() {
             {editing ? null : <Badge tone="neutral" className="h-[22px] rounded-[999px] !bg-[rgba(11,11,11,0.05)] !text-[#52514e]">{environment.type}</Badge>}
           </div>
           {editing ? null : (
-            <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
-              <span className="font-mono">{shortEnvironmentId(environment.id)}</span>
-              <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${environment.id}`} onClick={() => copyText(environment.id)}>
-                <Copy className="h-3.5 w-3.5" />
-              </Button>
+            <div className="flex flex-wrap items-center gap-2 text-xs leading-4 text-muted">
+              <span
+                role="button"
+                tabIndex={0}
+                aria-label={`Copy ${shortEnvironmentDetailId(environment.id)}`}
+                className="relative -mx-1 -my-0.5 w-fit max-w-full cursor-pointer rounded-md px-1 py-0.5 text-xs text-muted transition-colors hover:bg-fill [font-weight:430]"
+                onClick={() => copyText(environment.id)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") copyText(environment.id);
+                }}
+              >
+                <span className="relative inline-block max-w-full truncate align-bottom font-mono text-xs text-muted [font-weight:430]">
+                  {shortEnvironmentDetailId(environment.id)}
+                  <span className="pointer-events-none absolute left-0 top-0 select-none whitespace-nowrap text-transparent">{environment.id}</span>
+                </span>
+              </span>
               <span>·</span>
               <span>Last updated {environment.updatedLabel}</span>
             </div>
@@ -8107,6 +8118,11 @@ function shortUserId(id: string) {
 function shortEnvironmentId(id: string) {
   if (id.length <= 12) return id;
   return `${id.slice(0, 10)}…${id.slice(-7)}`;
+}
+
+function shortEnvironmentDetailId(id: string) {
+  if (id.length <= 16) return id;
+  return `${id.slice(0, 10)}…${id.slice(-6)}`;
 }
 
 function shortEnvironmentListId(id: string) {
