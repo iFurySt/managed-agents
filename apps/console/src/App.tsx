@@ -4572,7 +4572,7 @@ function CreateSessionDialog({
               />
             </div>
             {vaults.length ? (
-              <label className="ml-3 mr-3 flex min-h-[39px] cursor-pointer items-start gap-3 text-left text-sm leading-5 text-ink">
+              <label className="ml-3 mr-3 mt-2 mb-[13px] flex min-h-[39px] cursor-pointer items-start gap-3 text-left text-sm leading-5 text-ink">
                 <span className="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-[4px] bg-white shadow-[inset_0_0_0_1px_rgba(11,11,11,0.18)]">
                   <input
                     className="sr-only"

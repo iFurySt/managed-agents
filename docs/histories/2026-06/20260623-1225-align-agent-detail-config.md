@@ -465,6 +465,12 @@ console.
   `46px` rows in the same order.
 - Follow-up check passed `npm run build:console` and a local Docker rebuild of
   `console`.
+- Follow-up Open Browser Use check tightened the Create session vault
+  authorization row spacing so the transparent warning row, Resources label,
+  and Resource trigger sit within roughly `8-10px` of the reference relative
+  dialog positions.
+- Follow-up check passed `npm run build:console` and a local Docker rebuild of
+  `console`.
 
 ### Files Modified
 
