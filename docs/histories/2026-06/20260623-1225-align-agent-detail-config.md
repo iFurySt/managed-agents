@@ -478,6 +478,11 @@ console.
   Agent/Environment tokens now navigate to their detail routes.
 - Follow-up check passed `npm run build:console` and a local Docker rebuild of
   `console`.
+- Follow-up Open Browser Use check confirmed the Memory store detail breadcrumb
+  now matches the reference `Memory stores` link at `x=268/y=16/w=124/h=28`,
+  with transparent background, `0px` radius, and `4px 12px` padding.
+- Follow-up check passed `npm run build:console` and a local Docker rebuild of
+  `console`.
 
 ### Files Modified
 
