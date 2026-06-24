@@ -5276,7 +5276,7 @@ const credentialVaultPickerOptions = [
 ];
 const deploymentCredentialVaultPickerOptions = [
   { value: "Temporary vault", name: "Temporary vault", updated: "5 days ago", summary: "No credentials", credentialIcons: 0 },
-  { value: "test_secret", name: "test_secret", updated: "Jun 16", summary: "", credentialIcons: 3 }
+  { value: "test_secret", name: "test_secret", updated: "Jun 16", summary: "", credentialIcons: 5 }
 ];
 
 function CreateSessionVaultPicker({
@@ -5480,7 +5480,7 @@ function CredentialVaultOptionContent({ option }: { option: (typeof credentialVa
                 )}
               </span>
             ))
-          : option.summary}
+          : <span className="text-xs leading-4">{option.summary}</span>}
       </span>
     </span>
   );

@@ -387,6 +387,12 @@ console.
   `test_secret`.
 - Follow-up check passed `npm run build:console` and a local Docker rebuild of
   `console`.
+- Follow-up Open Browser Use check confirmed the Create deployment Add vault
+  dropdown now matches the reference `472x137` panel, two `46px` options, five
+  overlapping credential badges for `test_secret`, and `No credentials` as
+  `12px/16px` text at the reference position.
+- Follow-up check passed `npm run build:console` and a local Docker rebuild of
+  `console`.
 
 ### Files Modified
 
