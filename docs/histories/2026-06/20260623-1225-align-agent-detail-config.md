@@ -451,6 +451,13 @@ console.
   `4px 12px` padding.
 - Follow-up check passed `npm run build:console` and a local Docker rebuild of
   `console`.
+- Follow-up Open Browser Use check confirmed the Credential vault detail header
+  now matches the reference title and subtitle geometry: title at `x=292/y=60`,
+  a clickable full vault ID at `x=288/y=90/w=210/h=20`, no separate copy button,
+  and `Created`/`Updated` metadata rendered as `14px/20px` text on the same
+  row.
+- Follow-up check passed `npm run build:console` and a local Docker rebuild of
+  `console`.
 
 ### Files Modified
 

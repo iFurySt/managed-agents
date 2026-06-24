@@ -2609,21 +2609,26 @@ function VaultDetailPage() {
 
       <div className="ml-1 flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
-          <div className="mb-2 flex items-center gap-3">
+          <div className="mb-1 flex items-center gap-3">
             <h1 className="truncate text-[22px] leading-[26px] [font-weight:580]">{vault.name}</h1>
             <Badge className="!h-5 !rounded-[5px] px-2 text-xs !leading-[15px] [font-weight:550]" tone={vaultTone(vault.status)}>{vault.status}</Badge>
           </div>
-          <div className="group/cid flex flex-wrap items-center gap-2 text-sm text-muted">
-            <span className="rounded-md px-1 font-mono text-xs leading-5">{vault.id}</span>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="-my-1 h-[22px] w-[22px] !rounded-[8px] !px-0 !text-[#898781] !opacity-0 hover:!bg-fill hover:!text-[#52514e] group-hover/cid:!opacity-100"
+          <div className="flex flex-wrap items-center gap-2 text-sm leading-5 text-muted">
+            <span
+              role="button"
+              tabIndex={0}
               aria-label={`Copy ${vault.id}`}
+              className="relative -mx-1 -my-0.5 w-fit max-w-full cursor-pointer rounded-md px-1 py-0.5 text-xs text-muted transition-colors hover:bg-fill [font-weight:430]"
               onClick={() => copyText(vault.id)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") copyText(vault.id);
+              }}
             >
-              <CdsIconGlyph glyph="" className="h-3.5 w-3.5 text-current text-[14px] [font-weight:628.5]" />
-            </Button>
+              <span className="relative inline-block max-w-full truncate align-bottom font-mono text-xs text-muted [font-weight:430]">
+                {vault.id}
+                <span className="pointer-events-none absolute left-0 top-0 select-none whitespace-nowrap text-transparent">{vault.id}</span>
+              </span>
+            </span>
             <span>·</span>
             <span>Created {vault.createdLabel}</span>
             <span>·</span>
