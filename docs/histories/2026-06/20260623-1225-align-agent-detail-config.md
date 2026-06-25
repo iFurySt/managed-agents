@@ -540,6 +540,13 @@ console.
   `Started at (GMT+8)` and `Session` columns each `260px` wide.
 - Follow-up check passed `npm run build:console` and a local Docker rebuild of
   `console`.
+- Follow-up Open Browser Use check confirmed deployment detail Runs row cells
+  now use the live reference structure more closely: run IDs and session IDs
+  include transparent full-id overlays, the run copy button is hidden until
+  hover/focus, and the started timestamp plus relative label render on one
+  baseline row.
+- Follow-up check passed `npm run build:console` and a local Docker rebuild of
+  `console`.
 
 ### Files Modified
 

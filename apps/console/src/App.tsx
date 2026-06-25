@@ -1848,11 +1848,19 @@ function DeploymentDetailPage() {
                 header: "ID",
                 width: "160px",
                 render: (run) => (
-                  <span className="inline-flex items-center gap-1.5">
-                    <span className="font-mono font-semibold">{shortRunTableId(run.id)}</span>
-                    <span className="hidden font-mono">{run.id}</span>
-                    <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0 text-muted" aria-label={`Copy ${run.id}`} onClick={() => copyText(run.id)}>
-                      <CdsIconGlyph glyph="" className="h-4 w-4 text-[16px] [font-weight:533.25]" />
+                  <span className="group/cid relative z-10 inline-flex min-w-0 max-w-full items-center gap-1 align-middle">
+                    <span className="relative inline-block max-w-full truncate align-bottom font-mono text-xs text-ink [font-weight:550]">
+                      {shortRunTableId(run.id)}
+                      <span className="pointer-events-none absolute left-0 top-0 select-none whitespace-nowrap text-transparent">{run.id}</span>
+                    </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="-my-1 h-[22px] w-[22px] !rounded-[4px] !px-0 !text-[#898781] !opacity-0 hover:!bg-fill hover:!text-[#52514e] group-hover/cid:!opacity-100 focus-visible:!opacity-100"
+                      aria-label={`Copy ${run.id}`}
+                      onClick={() => copyText(run.id)}
+                    >
+                      <CdsIconGlyph glyph="" className="h-3.5 w-3.5 text-current text-[14px] [font-weight:628.5]" />
                     </Button>
                   </span>
                 )
@@ -1862,7 +1870,7 @@ function DeploymentDetailPage() {
                 header: "Started at (GMT+8)",
                 width: "260px",
                 render: (run) => (
-                  <span className="grid gap-0 text-sm leading-4">
+                  <span className="inline-flex items-baseline gap-2 text-sm leading-5 text-ink">
                     <span>{run.startedAt}</span>
                     <span className="text-muted">{run.startedLabel}</span>
                   </span>
@@ -1876,9 +1884,11 @@ function DeploymentDetailPage() {
                 header: "Session",
                 width: "260px",
                 render: (run) => (
-                  <Link className="font-mono hover:underline" to={`/sessions/${run.sessionId}`}>
-                    {shortRunTableId(run.sessionId)}
-                    <span className="hidden">{run.sessionId}</span>
+                  <Link className="relative -mx-1 -my-0.5 inline-block w-fit max-w-full rounded-md px-1 py-0.5 text-xs transition-colors hover:bg-fill" to={`/sessions/${run.sessionId}`}>
+                    <span className="relative inline-block max-w-full truncate align-bottom font-mono text-xs text-muted">
+                      {shortRunTableId(run.sessionId)}
+                      <span className="pointer-events-none absolute left-0 top-0 select-none whitespace-nowrap text-transparent">{run.sessionId}</span>
+                    </span>
                   </Link>
                 )
               },
