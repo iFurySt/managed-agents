@@ -592,6 +592,12 @@ console.
   ago`, with the API returning matching created and updated labels.
 - Follow-up checks passed `npm run build:console`, `go test ./apps/apiserver`,
   and a local Docker rebuild of `apiserver`/`console`.
+- Follow-up Open Browser Use check confirmed the Agent detail Sessions empty
+  table now matches the live reference geometry at `x=288/y=254/w=1066/h=349`,
+  including the `Tokens in / out` column, `No sessions yet` empty state, and
+  pagination buttons at `y=623`.
+- Follow-up check passed `npm run build:console` and a local Docker rebuild of
+  `console`.
 
 ### Files Modified
 

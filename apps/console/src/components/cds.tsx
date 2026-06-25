@@ -208,6 +208,7 @@ export function DataTable<T>({
   className = "",
   tableClassName = "",
   headerTextClassName,
+  emptyRowClassName = "h-[365px]",
   emptyState
 }: {
   columns: { key: string; header: string; render: (row: T) => ReactNode; width?: string; align?: "left" | "right" }[];
@@ -224,6 +225,7 @@ export function DataTable<T>({
   className?: string;
   tableClassName?: string;
   headerTextClassName?: string;
+  emptyRowClassName?: string;
   emptyState?: ReactNode;
 }) {
   const [selectedKeys, setSelectedKeys] = useState<Set<string>>(() => new Set());
@@ -316,7 +318,7 @@ export function DataTable<T>({
               ) : null}
             </tr>
           )) : rows.length === 0 && emptyState ? (
-            <tr className="h-[365px]">
+            <tr className={emptyRowClassName}>
               <td
                 className="border-b border-[rgba(11,11,11,0.05)] px-3 py-2 align-middle [tr:first-child_&]:border-t"
                 colSpan={(showSelection ? 1 : 0) + columns.length + (showActions ? 1 : 0)}

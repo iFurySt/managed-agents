@@ -1060,7 +1060,7 @@ function SessionsPage() {
           renderActions={(session) => <SessionRowActions session={session} onArchive={() => setArchivingSession(session)} />}
         />
       </div>
-      <div className="mt-[5px] flex gap-2">
+      <div className="mt-3 flex gap-2">
         <PaginationButton
           direction="previous"
           aria-label="Previous page"
@@ -3792,7 +3792,7 @@ function AgentSessionsPanel({ agent }: { agent: Agent }) {
   const visibleSessions = version === "All" || version === agentVersion ? sessions : [];
 
   return (
-    <div className="grid gap-4">
+    <div className="grid gap-2">
       <div className="flex h-8 flex-wrap items-center gap-2">
         <FieldSelect
           label="Created"
@@ -3827,46 +3827,54 @@ function AgentSessionsPanel({ agent }: { agent: Agent }) {
           triggerClassName="w-[106px]"
         />
       </div>
-      {visibleSessions.length ? (
-        <DataTable
-          rows={visibleSessions}
-          getKey={(session) => session.id}
-          columns={[
-            {
-              key: "id",
-              header: "ID",
-              width: "160px",
-              render: (session) => (
-                <div className="flex items-center gap-2">
-                  <span className="font-mono font-semibold">{shortId(session.id)}</span>
-                  <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${session.id}`} onClick={() => copyText(session.id)}>
-                    <Copy className="h-3.5 w-3.5" />
-                  </Button>
-                </div>
-              )
-            },
-            {
-              key: "name",
-              header: "Name",
-              width: "300px",
-              render: (session) => (
-                <Link className="block truncate font-medium hover:underline" to={`/sessions/${session.id}`}>
-                  {session.name}
-                </Link>
-              )
-            },
-            { key: "status", header: "Status", width: "126px", render: (session) => <Badge tone={sessionTone(session.status)}>{session.status}</Badge> },
-            { key: "version", header: "Version", width: "126px", render: () => <span className="font-mono">{agentVersion}</span> },
-            { key: "created", header: "Created", width: "160px", render: (session) => <span className="text-muted">{agentSessionCreatedLabel(session)}</span> }
-          ]}
-          actionsWidth="56px"
-          renderActions={(session) => <SessionRowActions session={session} onArchive={() => setArchivingSession(session)} />}
-        />
-      ) : (
-        <div className="flex h-[220px] items-center justify-center text-center text-sm leading-5 text-[#898781]">
-          No sessions yet, run this agent to create a session
-        </div>
-      )}
+      <DataTable
+        className="-m-2 w-[1066px] overflow-x-auto p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
+        tableClassName="w-[1066px] border-separate border-spacing-0 whitespace-nowrap"
+        rows={visibleSessions}
+        getKey={(session) => session.id}
+        columns={[
+          {
+            key: "id",
+            header: "ID",
+            width: "160px",
+            render: (session) => (
+              <div className="flex items-center gap-2">
+                <span className="font-mono font-semibold">{shortId(session.id)}</span>
+                <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${session.id}`} onClick={() => copyText(session.id)}>
+                  <Copy className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            )
+          },
+          {
+            key: "name",
+            header: "Name",
+            width: "180px",
+            render: (session) => (
+              <Link className="block truncate font-medium hover:underline" to={`/sessions/${session.id}`}>
+                {session.name}
+              </Link>
+            )
+          },
+          { key: "status", header: "Status", width: "130px", render: (session) => <Badge tone={sessionTone(session.status)}>{session.status}</Badge> },
+          { key: "version", header: "Version", width: "160px", render: () => <span className="font-mono">{agentVersion}</span> },
+          { key: "tokens", header: "Tokens in / out", width: "140px", render: (session) => <span className="text-ink">{session.tokens}</span> },
+          { key: "created", header: "Created", width: "200px", render: (session) => <span className="text-muted">{agentSessionCreatedLabel(session)}</span> }
+        ]}
+        actionsWidth="56px"
+        renderActions={(session) => <SessionRowActions session={session} onArchive={() => setArchivingSession(session)} />}
+        emptyRowClassName="h-[317px]"
+        emptyState={
+          <div className="flex translate-y-10 flex-col items-center justify-center text-center">
+            <div className="text-sm leading-5 text-ink [font-weight:550]">No sessions yet</div>
+            <div className="mt-1 text-sm leading-5 text-[#898781]">Run this agent to create a session.</div>
+          </div>
+        }
+      />
+      <div className="mt-3 flex gap-2">
+        <PaginationButton direction="previous" aria-label="Previous page" disabled />
+        <PaginationButton direction="next" aria-label="Next page" disabled />
+      </div>
       <SessionArchiveDialog
         open={Boolean(archivingSession)}
         onOpenChange={(open) => {
