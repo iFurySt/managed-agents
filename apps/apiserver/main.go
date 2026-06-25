@@ -115,6 +115,7 @@ type MemoryRecord struct {
 	ID            string    `json:"id" gorm:"primaryKey"`
 	MemoryStoreID string    `json:"memoryStoreId" gorm:"index"`
 	Path          string    `json:"path"`
+	DisplayName   string    `json:"displayName,omitempty"`
 	Status        string    `json:"status" gorm:"index"`
 	Size          string    `json:"size"`
 	Content       string    `json:"content" gorm:"type:text"`
@@ -1901,11 +1902,18 @@ func seed(db *gorm.DB) error {
 	}).Create(&stores).Error; err != nil {
 		return err
 	}
+	staleMemoryRecordIDs := []string{
+		"mem_01VZ3WZtoGtAg3kogjFYzCmu",
+	}
+	if err := db.Where("id IN ?", staleMemoryRecordIDs).Delete(&MemoryRecord{}).Error; err != nil {
+		return err
+	}
 	if err := db.Clauses(clause.OnConflict{
 		Columns: []clause.Column{{Name: "id"}},
 		DoUpdates: clause.AssignmentColumns([]string{
 			"memory_store_id",
 			"path",
+			"display_name",
 			"status",
 			"size",
 			"content",
@@ -2115,8 +2123,8 @@ func seedMemoryStores(ts time.Time) ([]MemoryStore, []MemoryRecord) {
 		memoryStore("memstore_014LoF1P4MoTKK9HYDmacJuB", "leo_test", "Active", "Personal test memory store.", "5 days ago", ts),
 	}
 	memories := []MemoryRecord{
-		memoryRecord("mem_01VZ3WZtoGtAg3kogjFYzCmu", "memstore_01GToktzJyefFL2DVxmgyT5e", "/test123", "3 B", "123", "user_01LsgCVVMMzNu5zsAxf9EgUv", "Jun 16", ts),
-		memoryRecord("mem_01DailyReport", "memstore_01GToktzJyefFL2DVxmgyT5e", "/daily-reports/jun-16.md", "446 B", "Track match schedule changes, notable injuries, and coach quotes before producing the daily digest.", "user_01LsgCVVMMzNu5zsAxf9EgUv", "Jun 16", ts),
+		memoryRecord("mem_01MdSP6wkCGH2gY6Ruykrymp", "memstore_01GToktzJyefFL2DVxmgyT5e", "/test/456", "test123", "3 B", "123456", "user_01LsgCVVMMzNu5zsAxf9EgUv", "Jun 18", ts),
+		memoryRecord("mem_01DailyReport", "memstore_01GToktzJyefFL2DVxmgyT5e", "/daily-reports/jun-16.md", "", "446 B", "Track match schedule changes, notable injuries, and coach quotes before producing the daily digest.", "user_01LsgCVVMMzNu5zsAxf9EgUv", "Jun 16", ts),
 	}
 	return stores, memories
 }
@@ -2134,11 +2142,12 @@ func memoryStore(id, name, status, description, label string, ts time.Time) Memo
 	}
 }
 
-func memoryRecord(id, storeID, path, size, content, authorID, label string, ts time.Time) MemoryRecord {
+func memoryRecord(id, storeID, path, displayName, size, content, authorID, label string, ts time.Time) MemoryRecord {
 	return MemoryRecord{
 		ID:            id,
 		MemoryStoreID: storeID,
 		Path:          path,
+		DisplayName:   displayName,
 		Status:        "Active",
 		Size:          size,
 		Content:       content,

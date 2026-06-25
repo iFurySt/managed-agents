@@ -105,6 +105,7 @@ export type MemoryRecord = {
   id: string;
   memoryStoreId: string;
   path: string;
+  displayName?: string;
   status: string;
   size: string;
   content: string;

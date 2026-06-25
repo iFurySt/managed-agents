@@ -57,3 +57,27 @@ func TestSeedMemoryStoresMatchesSourceCreatedLabels(t *testing.T) {
 		}
 	}
 }
+
+func TestSeedMemoryRecordsMatchReferenceDetail(t *testing.T) {
+	_, memories := seedMemoryStores(time.Date(2026, 6, 21, 0, 0, 0, 0, time.UTC))
+
+	for _, memory := range memories {
+		if memory.ID != "mem_01MdSP6wkCGH2gY6Ruykrymp" {
+			continue
+		}
+		if memory.Path != "/test/456" {
+			t.Fatalf("memory path = %q, want %q", memory.Path, "/test/456")
+		}
+		if memory.DisplayName != "test123" {
+			t.Fatalf("memory display name = %q, want %q", memory.DisplayName, "test123")
+		}
+		if memory.Content != "123456" {
+			t.Fatalf("memory content = %q, want %q", memory.Content, "123456")
+		}
+		if memory.UpdatedLabel != "Jun 18" {
+			t.Fatalf("memory updated label = %q, want %q", memory.UpdatedLabel, "Jun 18")
+		}
+		return
+	}
+	t.Fatalf("reference memory record was not seeded")
+}

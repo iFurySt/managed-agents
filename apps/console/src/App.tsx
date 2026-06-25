@@ -3050,11 +3050,11 @@ function MemoryStoreDetailPage() {
                 </div>
                 {selectedMemory && selectedFolder === folder ? (
                   <button
-                    className="flex h-7 w-full items-center gap-1.5 rounded-lg bg-[#f6f6f0] py-1 pl-8 pr-3 text-left text-sm text-ink [font-weight:550]"
+                    className="flex h-7 w-full items-center gap-1.5 rounded-lg py-1 pl-8 pr-3 text-left text-sm text-[#52514e] hover:bg-[#f6f6f0]"
                     onClick={() => selectMemory(selectedMemory.id)}
                   >
-                    <CdsIconGlyph glyph="" className="h-3.5 w-3.5 shrink-0 text-ink text-[14px] [font-weight:628.5]" />
-                    <span className="min-w-0 flex-1 truncate">{memoryName(selectedMemory.path)}</span>
+                    <CdsIconGlyph glyph="" className="h-3.5 w-3.5 shrink-0 text-current text-[14px] [font-weight:628.5]" />
+                    <span className="min-w-0 flex-1 truncate">{selectedMemory.displayName || memoryName(selectedMemory.path)}</span>
                     <span className="text-xs text-muted">{selectedMemory.size}</span>
                   </button>
                 ) : null}
@@ -3071,18 +3071,39 @@ function MemoryStoreDetailPage() {
                     <h3 className="truncate font-mono text-sm text-ink">{selectedMemory.path}</h3>
                   </div>
                   <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted">
-                    <button className="-mx-1 -my-0.5 rounded-md px-1 py-0.5 font-mono hover:bg-fill" onClick={() => copyText(selectedMemory.id)}>
-                      <span>{shortMemoryRecordId(selectedMemory.id)}</span>
-                      <span className="hidden">{selectedMemory.id}</span>
-                    </button>
-                    <span className="hidden font-mono">{selectedMemory.id}</span>
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Copy ${shortMemoryRecordId(selectedMemory.id)}`}
+                      className="relative -mx-1 -my-0.5 w-fit max-w-full cursor-pointer rounded-md px-1 py-0.5 text-xs text-muted transition-colors hover:bg-fill"
+                      onClick={() => copyText(selectedMemory.id)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") copyText(selectedMemory.id);
+                      }}
+                    >
+                      <span className="relative inline-block max-w-full truncate align-bottom font-mono text-xs text-muted">
+                        {shortMemoryRecordId(selectedMemory.id)}
+                        <span className="pointer-events-none absolute left-0 top-0 select-none whitespace-nowrap text-transparent">{selectedMemory.id}</span>
+                      </span>
+                    </span>
                     <span>·</span>
                     <span>Updated {selectedMemory.updatedLabel}</span>
                     <span>·</span>
-                    <button className="-mx-1 -my-0.5 rounded-md px-1 py-0.5 font-mono hover:bg-fill" onClick={() => copyText(selectedMemory.authorId)}>
-                      <span>{shortUserId(selectedMemory.authorId)}</span>
-                      <span className="hidden">{selectedMemory.authorId}</span>
-                    </button>
+                    <span
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Copy ${shortUserId(selectedMemory.authorId)}`}
+                      className="relative -mx-1 -my-0.5 w-fit max-w-full cursor-pointer rounded-md px-1 py-0.5 text-xs text-muted transition-colors hover:bg-fill"
+                      onClick={() => copyText(selectedMemory.authorId)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") copyText(selectedMemory.authorId);
+                      }}
+                    >
+                      <span className="relative inline-block max-w-full truncate align-bottom font-mono text-xs text-muted">
+                        {shortUserId(selectedMemory.authorId)}
+                        <span className="pointer-events-none absolute left-0 top-0 select-none whitespace-nowrap text-transparent">{selectedMemory.authorId}</span>
+                      </span>
+                    </span>
                   </div>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">

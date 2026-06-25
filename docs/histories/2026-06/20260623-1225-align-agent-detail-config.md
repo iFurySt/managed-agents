@@ -489,10 +489,18 @@ console.
   the same origin, and `Created Jun 16` in the same subtitle row.
 - Follow-up checks passed `npm run build:console`, `go test ./apps/apiserver`,
   and a local Docker rebuild of `apiserver`/`console`.
+- Follow-up Open Browser Use check confirmed the Memory store detail selected
+  memory now matches the reference seeded record: left tree shows
+  `test123 3 B`, right header shows `/test/456`, the memory and user IDs use
+  transparent full-id overlays, the subtitle shows `Updated Jun 18`, the body
+  shows `123456`, and the stale local `/test123` record no longer appears.
+- Follow-up checks passed `npm run build:console`, `go test ./apps/apiserver`,
+  and a local Docker rebuild of `apiserver`/`console`.
 
 ### Files Modified
 
 - `apps/apiserver/main.go`
 - `apps/apiserver/main_test.go`
 - `apps/console/src/App.tsx`
+- `apps/console/src/types.ts`
 - `docs/histories/2026-06/20260623-1225-align-agent-detail-config.md`
