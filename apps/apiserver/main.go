@@ -2117,10 +2117,10 @@ func vaultCredential(id, vaultID, name, authType, target, status, lastUsed, upda
 
 func seedMemoryStores(ts time.Time) ([]MemoryStore, []MemoryRecord) {
 	stores := []MemoryStore{
-		memoryStore("memstore_01TFhvAtMizQJLWU29TaW5AZ", "123", "Active", "Browse and manage persistent memory for your agents.", "5 days ago", ts.Add(42*time.Hour)),
-		memoryStore("memstore_01GYUDt8DBmRPDfhs5i9in8M", "zzz", "Active", "Scratch memory store for console testing.", "5 days ago", ts),
+		memoryStore("memstore_01TFhvAtMizQJLWU29TaW5AZ", "123", "Active", "Browse and manage persistent memory for your agents.", "7 days ago", ts.Add(42*time.Hour)),
+		memoryStore("memstore_01GYUDt8DBmRPDfhs5i9in8M", "zzz", "Active", "Scratch memory store for console testing.", "Jun 16", ts),
 		memoryStore("memstore_01GToktzJyefFL2DVxmgyT5e", "world cup", "Active", "Daily World Cup memory for agents that prepare match and news digests.", "Jun 16", ts),
-		memoryStore("memstore_014LoF1P4MoTKK9HYDmacJuB", "leo_test", "Active", "Personal test memory store.", "5 days ago", ts),
+		memoryStore("memstore_014LoF1P4MoTKK9HYDmacJuB", "leo_test", "Active", "Personal test memory store.", "Jun 16", ts),
 	}
 	memories := []MemoryRecord{
 		memoryRecord("mem_01MdSP6wkCGH2gY6Ruykrymp", "memstore_01GToktzJyefFL2DVxmgyT5e", "/test/456", "test123", "3 B", "123456", "user_01LsgCVVMMzNu5zsAxf9EgUv", "Jun 18", ts),
