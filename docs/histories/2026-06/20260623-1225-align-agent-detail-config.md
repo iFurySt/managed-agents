@@ -407,7 +407,7 @@ console.
   `console`.
 - Follow-up Open Browser Use check confirmed the deployment detail Schedule
   section now matches the current reference text with next runs
-  `Thu 1:00 AM`, `Fri 1:00 AM`, `Sat 1:00 AM`, `Sun 1:00 AM`, `+1`, and
+  `Fri 1:00 AM`, `Sat 1:00 AM`, `Sun 1:00 AM`, `Mon 1:00 AM`, `+1`, and
   `Last scheduled run: Jun 17`.
 - Follow-up check passed `npm run build:console` and a local Docker rebuild of
   `apiserver`/`console`.
@@ -507,6 +507,12 @@ console.
   `x=373/w=472` instead of a sticky full-width footer.
 - Follow-up check passed `npm run build:console` and a local Docker rebuild of
   `console`.
+- Follow-up Open Browser Use check confirmed deployment detail Schedule text
+  now matches the live reference with next runs `Fri 1:00 AM`,
+  `Sat 1:00 AM`, `Sun 1:00 AM`, `Mon 1:00 AM`, `+1`, and
+  `Last scheduled run: Jun 17`.
+- Follow-up check passed `go test ./apps/apiserver` and a local Docker rebuild
+  of `apiserver`.
 
 ### Files Modified
 

@@ -2224,7 +2224,7 @@ func seedDeployments(now time.Time) ([]Deployment, []DeploymentRun) {
 			Schedule:        "0 1 * * *",
 			Timezone:        "Asia/Shanghai",
 			InitialMessage:  "开始。结束后需要请求一下api.ifuryst.com，POST，payload里只汇报完成情况，邮件发送情况，不要直接发结论或邮件内容到这里。curl的时候需要增加这个http header \"Authorization: Bearer $TEST\"。原样使用。",
-			NextRuns:        "Thu 1:00 AM, Fri 1:00 AM, Sat 1:00 AM, Sun 1:00 AM, +1",
+			NextRuns:        "Fri 1:00 AM, Sat 1:00 AM, Sun 1:00 AM, Mon 1:00 AM, +1",
 			LastRunLabel:    "Jun 17",
 			CreatedLabel:    "Jun 16",
 			CreatedAt:       now.Add(-54 * time.Hour),
