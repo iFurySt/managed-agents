@@ -567,6 +567,12 @@ console.
   column at `297px` and the current created labels for all four seed rows.
 - Follow-up checks passed `npm run build:console`, `go test ./apps/apiserver`,
   and a local Docker rebuild of `apiserver`/`console`.
+- Follow-up Open Browser Use check confirmed the Credential vault detail
+  credentials table now matches the live reference geometry at
+  `x=288/y=174/w=1108`, including the `Auth` column at `220px` and the Status
+  filter at `x=288/y=134`.
+- Follow-up check passed `npm run build:console` and a local Docker rebuild of
+  `console`.
 
 ### Files Modified
 

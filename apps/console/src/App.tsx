@@ -2654,7 +2654,7 @@ function VaultDetailPage() {
         </div>
       </div>
 
-      <div className="mt-5 flex h-8 items-start gap-2">
+      <div className="mt-6 flex h-8 items-start gap-2">
         <FieldSelect
           label="Status"
           value={status}
@@ -2664,8 +2664,8 @@ function VaultDetailPage() {
         />
       </div>
       <DataTable
-        className="-mx-2 w-[1293px] overflow-x-auto p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
-        tableClassName="w-[1293px] border-separate border-spacing-0 whitespace-nowrap [&_tbody_tr]:!h-[47px] [&_tbody_tr:first-child]:!h-12 [&_tbody_td]:!py-1.5"
+        className="-mx-2 w-[1108px] overflow-x-auto p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
+        tableClassName="w-[1108px] border-separate border-spacing-0 whitespace-nowrap [&_tbody_tr]:!h-[47px] [&_tbody_tr:first-child]:!h-12 [&_tbody_td]:!py-1.5"
         rows={visibleCredentials}
         getKey={(credential) => credential.id}
         showSelection={false}
@@ -2695,7 +2695,7 @@ function VaultDetailPage() {
           {
             key: "auth",
             header: "Auth",
-            width: "405px",
+            width: "220px",
             render: (credential) => (
               <div className="flex min-w-0 items-center gap-1">
                 <span>{credential.authType}</span>
