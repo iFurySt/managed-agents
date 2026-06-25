@@ -3004,11 +3004,21 @@ function MemoryStoreDetailPage() {
             <Badge className="!h-5 !rounded-[5px] !leading-[15px] [font-weight:550]" tone={memoryTone(store.status)}>{store.status}</Badge>
           </div>
           <div className="mt-3 flex h-4 flex-wrap items-center gap-2 text-xs text-muted">
-            <button className="-mx-1 -my-0.5 rounded-md px-1 py-0.5 font-mono hover:bg-fill" onClick={() => copyText(store.id)}>
-              <span>{shortMemoryStoreId(store.id)}</span>
-              <span className="hidden">{store.id}</span>
-            </button>
-            <span className="hidden font-mono">{store.id}</span>
+            <span
+              role="button"
+              tabIndex={0}
+              aria-label={`Copy ${shortMemoryStoreDetailId(store.id)}`}
+              className="relative -mx-1 -my-0.5 w-fit max-w-full cursor-pointer rounded-md px-1 py-0.5 text-xs text-muted transition-colors hover:bg-fill"
+              onClick={() => copyText(store.id)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") copyText(store.id);
+              }}
+            >
+              <span className="relative inline-block max-w-full truncate align-bottom font-mono text-xs text-muted">
+                {shortMemoryStoreDetailId(store.id)}
+                <span className="pointer-events-none absolute left-0 top-0 select-none whitespace-nowrap text-transparent">{store.id}</span>
+              </span>
+            </span>
             <span>·</span>
             <span>Created {store.createdLabel}</span>
           </div>
@@ -8123,6 +8133,11 @@ function shortRunTableId(id: string) {
 function shortMemoryStoreId(id: string) {
   if (id.length <= 15) return id;
   return `${id.slice(0, 9)}…${id.slice(-7)}`;
+}
+
+function shortMemoryStoreDetailId(id: string) {
+  if (id.length <= 15) return id;
+  return `${id.slice(0, 8)}…${id.slice(-6)}`;
 }
 
 function shortMemoryRecordId(id: string) {

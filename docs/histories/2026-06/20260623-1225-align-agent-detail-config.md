@@ -483,9 +483,16 @@ console.
   with transparent background, `0px` radius, and `4px 12px` padding.
 - Follow-up check passed `npm run build:console` and a local Docker rebuild of
   `console`.
+- Follow-up Open Browser Use check confirmed the Memory store detail header
+  metadata now matches the reference short-id treatment: visible
+  `memstore…mgyT5e` at `x=288/y=108/w=108/h=16`, transparent full-id overlay at
+  the same origin, and `Created Jun 16` in the same subtitle row.
+- Follow-up checks passed `npm run build:console`, `go test ./apps/apiserver`,
+  and a local Docker rebuild of `apiserver`/`console`.
 
 ### Files Modified
 
 - `apps/apiserver/main.go`
+- `apps/apiserver/main_test.go`
 - `apps/console/src/App.tsx`
 - `docs/histories/2026-06/20260623-1225-align-agent-detail-config.md`
