@@ -5377,9 +5377,7 @@ function CreateSessionVaultPicker({
   const [search, setSearch] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const filteredOptions = credentialVaultPickerOptions
-    .filter((option) => `${option.name} ${option.value}`.toLowerCase().includes(search.toLowerCase()))
-    .sort((left, right) => Number(value.includes(right.value)) - Number(value.includes(left.value)));
+  const filteredOptions = credentialVaultPickerOptions.filter((option) => `${option.name} ${option.value}`.toLowerCase().includes(search.toLowerCase()));
   const selectedOptions = credentialVaultPickerOptions.filter((option) => value.includes(option.value));
   const selectedLabel = selectedOptions.length > 1 ? `${selectedOptions.length} vaults selected` : selectedOptions[0]?.name;
 
@@ -5428,7 +5426,7 @@ function CreateSessionVaultPicker({
           <span className="ml-1.5 flex h-8 w-[31px] shrink-0 items-center justify-center">
             <button
               type="button"
-              aria-label="Clear credential vaults"
+              aria-label="Clear selection"
               className="grid h-[22px] w-[22px] shrink-0 place-items-center rounded-[3px] text-ink outline-none hover:bg-fill"
               onClick={() => onValueChange([])}
             >
@@ -5443,20 +5441,18 @@ function CreateSessionVaultPicker({
           role="dialog"
           className="absolute left-0 top-[38px] z-50 max-h-[238px] w-full overflow-hidden rounded-[12px] bg-white p-1 shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
         >
-          <div role="combobox" aria-expanded="true" className="-mx-1 -mt-1 mb-1 flex h-[37px] w-[calc(100%+8px)] items-center border-b border-line px-4 py-2">
-            <input
-              ref={searchInputRef}
-              className={createSessionSearchInputClass}
-              aria-label="Search credential vaults"
-              autoFocus
-              placeholder="Search vaults by name or exact ID"
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              onPointerDown={(event) => event.stopPropagation()}
-              onKeyDownCapture={(event) => event.stopPropagation()}
-              onKeyDown={(event) => event.stopPropagation()}
-            />
-          </div>
+          <input
+            ref={searchInputRef}
+            className="-mx-1 -mt-1 mb-1 block h-[37px] w-[calc(100%+8px)] shrink-0 border-0 border-b border-line bg-transparent px-4 py-2 text-sm leading-5 text-ink outline-none placeholder:text-[#898781]"
+            aria-label="Search credential vaults"
+            autoFocus
+            placeholder="Search vaults by name or exact ID"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            onPointerDown={(event) => event.stopPropagation()}
+            onKeyDownCapture={(event) => event.stopPropagation()}
+            onKeyDown={(event) => event.stopPropagation()}
+          />
           <div role="listbox" className="grid max-h-[92px] gap-0 overflow-y-auto overflow-x-hidden">
             {filteredOptions.map((option) => (
               <button

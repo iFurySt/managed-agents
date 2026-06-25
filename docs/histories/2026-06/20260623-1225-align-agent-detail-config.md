@@ -598,6 +598,12 @@ console.
   pagination buttons at `y=623`.
 - Follow-up check passed `npm run build:console` and a local Docker rebuild of
   `console`.
+- Follow-up Open Browser Use check confirmed the Create session Credential
+  vaults dropdown now keeps the live reference option order, uses a full-width
+  `37px` search row, and aligns the checkbox, label, date, and right-side
+  credential summary positions with the live selector.
+- Follow-up check passed `npm run build:console` and a local Docker rebuild of
+  `console`.
 
 ### Files Modified
 
