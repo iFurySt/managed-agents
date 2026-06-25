@@ -5334,10 +5334,10 @@ function DeploymentEnvironmentPicker({
 
 const credentialVaultPickerOptions = [
   { value: "test_secret", name: "test_secret", updated: "Jun 16", summary: "", credentialIcons: 5 },
-  { value: "Temporary vault", name: "Temporary vault", updated: "5 days ago", summary: "No credentials", credentialIcons: 0 }
+  { value: "Temporary vault", name: "Temporary vault", updated: "7 days ago", summary: "No credentials", credentialIcons: 0 }
 ];
 const deploymentCredentialVaultPickerOptions = [
-  { value: "Temporary vault", name: "Temporary vault", updated: "5 days ago", summary: "No credentials", credentialIcons: 0 },
+  { value: "Temporary vault", name: "Temporary vault", updated: "7 days ago", summary: "No credentials", credentialIcons: 0 },
   { value: "test_secret", name: "test_secret", updated: "Jun 16", summary: "", credentialIcons: 5 }
 ];
 

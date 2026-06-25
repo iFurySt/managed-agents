@@ -513,6 +513,12 @@ console.
   `Last scheduled run: Jun 17`.
 - Follow-up check passed `go test ./apps/apiserver` and a local Docker rebuild
   of `apiserver`.
+- Follow-up Open Browser Use check confirmed the Create session Credential
+  vaults dropdown now matches the live reference option text, including
+  `Temporary vault`, `7 days ago`, and `No credentials`, while preserving the
+  `test_secret` first-row ordering and `137px` dropdown height.
+- Follow-up check passed `npm run build:console` and a local Docker rebuild of
+  `console`.
 
 ### Files Modified
 
