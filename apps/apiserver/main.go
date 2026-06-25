@@ -1903,7 +1903,7 @@ func seed(db *gorm.DB) error {
 		return err
 	}
 	staleMemoryRecordIDs := []string{
-		"mem_01VZ3WZtoGtAg3kogjFYzCmu",
+		"mem_01MdSP6wkCGH2gY6Ruykrymp",
 	}
 	if err := db.Where("id IN ?", staleMemoryRecordIDs).Delete(&MemoryRecord{}).Error; err != nil {
 		return err
@@ -2123,7 +2123,7 @@ func seedMemoryStores(ts time.Time) ([]MemoryStore, []MemoryRecord) {
 		memoryStore("memstore_014LoF1P4MoTKK9HYDmacJuB", "leo_test", "Active", "Personal test memory store.", "Jun 16", ts),
 	}
 	memories := []MemoryRecord{
-		memoryRecord("mem_01MdSP6wkCGH2gY6Ruykrymp", "memstore_01GToktzJyefFL2DVxmgyT5e", "/test/456", "test123", "3 B", "123456", "user_01LsgCVVMMzNu5zsAxf9EgUv", "Jun 18", ts),
+		memoryRecord("mem_01VZ3WZtoGtAg3kogjFYzCmu", "memstore_01GToktzJyefFL2DVxmgyT5e", "/test123", "", "3 B", "123", "user_01LsgCVVMMzNu5zsAxf9EgUv", "Jun 16", ts),
 		memoryRecord("mem_01DailyReport", "memstore_01GToktzJyefFL2DVxmgyT5e", "/daily-reports/jun-16.md", "", "446 B", "Track match schedule changes, notable injuries, and coach quotes before producing the daily digest.", "user_01LsgCVVMMzNu5zsAxf9EgUv", "Jun 16", ts),
 	}
 	return stores, memories

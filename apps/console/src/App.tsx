@@ -2958,9 +2958,13 @@ function MemoryStoreDetailPage() {
       return;
     }
     if (records.length && (!selectedMemoryId || !records.some((record) => record.id === selectedMemoryId))) {
-      setSelectedMemoryId(records[0].id);
+      const defaultMemory = records[records.length - 1];
+      setSelectedMemoryId(defaultMemory.id);
+      if (memoryParam !== defaultMemory.id) {
+        setSearchParams({ memory: defaultMemory.id }, { replace: true });
+      }
     }
-  }, [memoryParam, selectedMemoryId, store]);
+  }, [memoryParam, selectedMemoryId, setSearchParams, store]);
 
   async function archiveCurrentStore() {
     if (!store) return;
