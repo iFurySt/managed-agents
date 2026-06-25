@@ -501,6 +501,12 @@ console.
   with left and right panes both `h=583`.
 - Follow-up check passed `npm run build:console` and a local Docker rebuild of
   `console`.
+- Follow-up Open Browser Use check confirmed the Create deployment dialog
+  action row now matches the reference geometry: the `Create` button is
+  `x=774/y=681/w=71/h=32`, and the action row uses content width
+  `x=373/w=472` instead of a sticky full-width footer.
+- Follow-up check passed `npm run build:console` and a local Docker rebuild of
+  `console`.
 
 ### Files Modified
 

@@ -5118,7 +5118,7 @@ function CreateDeploymentDialog({
             />
           ) : null}
         </div>
-        <div className="sticky bottom-0 -mx-6 mt-[19px] flex justify-end bg-white px-6 pb-[25px] pt-0">
+        <div className="mt-5 flex justify-end">
           <Button className={`h-8 !rounded-[8px] px-0 [font-weight:550] ${mode === "edit" ? "w-[51px]" : "w-[71px]"}`} onClick={submit} disabled={!canCreate}>{mode === "edit" ? "Save" : "Create"}</Button>
         </div>
       </div>
