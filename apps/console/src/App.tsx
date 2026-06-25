@@ -90,7 +90,7 @@ const deploymentAgentOptions = [
   { value: "agent_01MNpVPKyrSECHGA6HqAmREZ", name: "Untitled agent", updated: "Jun 16" }
 ];
 const sessionAgentOptions = [
-  { value: "agent_011VCSqwTBQSr7SqT2Mwmus2", name: "Untitled agent", updated: "2 days ago" },
+  { value: "agent_011VCSqwTBQSr7SqT2Mwmus2", name: "Untitled agent", updated: "5 days ago" },
   { value: "agent_013mi1SmR2hJ6Hk6wNTeJvF9", name: "Managed SSH Reverse Tunnel Bootstrapper", updated: "5 days ago" },
   { value: "agent_01AVRPTGyYareCeoUasn66q5", name: "Incident commander", updated: "5 days ago" },
   { value: "agent_019BdsR2v3NW1DiEG62wpu3e", name: "World Cup Daily Digest (self-hosted clone)", updated: "5 days ago" },

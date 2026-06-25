@@ -587,6 +587,11 @@ console.
   `Name` and `Agent` columns at `170px`.
 - Follow-up check passed `npm run build:console` and a local Docker rebuild of
   `console`.
+- Follow-up Open Browser Use check confirmed the `agent_011VCSqwTBQSr7SqT2Mwmus2`
+  detail header now matches the live reference by showing `Last updated 5 days
+  ago`, with the API returning matching created and updated labels.
+- Follow-up checks passed `npm run build:console`, `go test ./apps/apiserver`,
+  and a local Docker rebuild of `apiserver`/`console`.
 
 ### Files Modified
 
