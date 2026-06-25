@@ -579,6 +579,14 @@ console.
   the stale `/test/456` local record.
 - Follow-up checks passed `npm run build:console`, `go test ./apps/apiserver`,
   and a local Docker rebuild of `apiserver`/`console`.
+- Follow-up Open Browser Use check confirmed the Agents list table now matches
+  the live reference geometry at `x=280/y=148/w=1106`, including the `Name`
+  column at `240px` and downstream columns at reference positions.
+- Follow-up Open Browser Use check confirmed the Sessions list table now
+  matches the live reference geometry at `x=280/y=148/w=1066`, including the
+  `Name` and `Agent` columns at `170px`.
+- Follow-up check passed `npm run build:console` and a local Docker rebuild of
+  `console`.
 
 ### Files Modified
 
