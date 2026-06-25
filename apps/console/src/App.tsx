@@ -2465,7 +2465,7 @@ function VaultsPage() {
       </div>
       <div className="overflow-x-auto">
         <DataTable
-          className="-mx-2 w-[1309px] overflow-x-auto p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
+          className="-mx-2 w-[913px] overflow-x-auto p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
           tableClassName="border-separate border-spacing-0 whitespace-nowrap"
           rows={visibleVaults}
           getKey={(vault) => vault.id}
@@ -2494,7 +2494,7 @@ function VaultsPage() {
             {
               key: "name",
               header: "Name",
-              width: "645px",
+              width: "249px",
               render: (vault) => (
                 <Link className="block truncate [font-weight:400]" to={`/vaults/${vault.id}`}>
                   {vault.name}

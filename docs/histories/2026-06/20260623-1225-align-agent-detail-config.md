@@ -557,6 +557,11 @@ console.
   column at `240px` and the downstream columns at reference positions.
 - Follow-up check passed `npm run build:console` and a local Docker rebuild of
   `console`.
+- Follow-up Open Browser Use check confirmed the Credential vaults list table
+  now matches the live reference geometry at `x=280/w=913`, including the
+  `Name` column at `249px` and the downstream columns at reference positions.
+- Follow-up check passed `npm run build:console` and a local Docker rebuild of
+  `console`.
 
 ### Files Modified
 
