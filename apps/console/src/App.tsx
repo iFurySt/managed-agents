@@ -2986,7 +2986,7 @@ function MemoryStoreDetailPage() {
   const selectedFolder = selectedMemory ? memoryFolder(selectedMemory.path) : null;
 
   return (
-    <section className="-mt-2 flex h-[calc(100vh-144px)] flex-col overflow-hidden">
+    <section className="-mt-2 flex h-[calc(100vh-96px)] flex-col overflow-hidden">
       <div className="-ml-5 flex h-9 items-center justify-between">
         <nav className="-translate-y-1 flex items-center gap-2 text-sm text-muted">
           <Link className="px-3 py-1 transition-colors hover:text-ink" to="/memory-stores">

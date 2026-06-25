@@ -496,6 +496,11 @@ console.
   shows `123456`, and the stale local `/test123` record no longer appears.
 - Follow-up checks passed `npm run build:console`, `go test ./apps/apiserver`,
   and a local Docker rebuild of `apiserver`/`console`.
+- Follow-up Open Browser Use check confirmed the Memory store detail content
+  card now matches the reference vertical geometry: card `x=288/y=148/w=897/h=584`,
+  with left and right panes both `h=583`.
+- Follow-up check passed `npm run build:console` and a local Docker rebuild of
+  `console`.
 
 ### Files Modified
 
