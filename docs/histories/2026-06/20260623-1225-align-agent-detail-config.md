@@ -535,6 +535,11 @@ console.
   panel, `44px` rows, and `relY=509` versus the reference `relY=507.9`.
 - Follow-up check passed `npm run build:console` and a local Docker rebuild of
   `console`.
+- Follow-up Open Browser Use check confirmed the deployment detail Runs table
+  now matches the live reference table geometry at `x=280/w=1210`, with
+  `Started at (GMT+8)` and `Session` columns each `260px` wide.
+- Follow-up check passed `npm run build:console` and a local Docker rebuild of
+  `console`.
 
 ### Files Modified
 

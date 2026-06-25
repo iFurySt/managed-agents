@@ -1839,7 +1839,7 @@ function DeploymentDetailPage() {
             getKey={(run) => run.id}
             showSelection={false}
             showActions={false}
-            className="-ml-2 w-[1309px]"
+            className="-ml-2 w-[1210px]"
             tableClassName="ml-2 mt-2 [&_tbody_tr]:!h-11 [&_tbody_td]:!py-1"
             headerTextClassName="text-[13px]"
             columns={[
@@ -1860,7 +1860,7 @@ function DeploymentDetailPage() {
               {
                 key: "started",
                 header: "Started at (GMT+8)",
-                width: "309.5px",
+                width: "260px",
                 render: (run) => (
                   <span className="grid gap-0 text-sm leading-4">
                     <span>{run.startedAt}</span>
@@ -1874,7 +1874,7 @@ function DeploymentDetailPage() {
               {
                 key: "session",
                 header: "Session",
-                width: "309.5px",
+                width: "260px",
                 render: (run) => (
                   <Link className="font-mono hover:underline" to={`/sessions/${run.sessionId}`}>
                     {shortRunTableId(run.sessionId)}
