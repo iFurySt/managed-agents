@@ -524,6 +524,12 @@ console.
   `Untitled agent` row showing `5 days ago` before the Jun 16 agent rows.
 - Follow-up check passed `npm run build:console` and a local Docker rebuild of
   `console`.
+- Follow-up Open Browser Use check confirmed the Create deployment Memory
+  stores dropdown now opens upward like the live reference, matching the
+  reference `472x229` panel and option text at roughly `relY=302` versus
+  `relY=300.9`.
+- Follow-up check passed `npm run build:console` and a local Docker rebuild of
+  `console`.
 
 ### Files Modified
 

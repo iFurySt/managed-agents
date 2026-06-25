@@ -5601,7 +5601,7 @@ function DeploymentMemoryStorePicker({ value, onValueChange }: { value: string; 
         <div
           data-cds="Combobox"
           role="dialog"
-          className="absolute left-0 top-[38px] z-50 max-h-[229px] w-[472px] overflow-hidden rounded-[12px] bg-white p-1 shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
+          className="absolute bottom-[37px] left-0 z-50 max-h-[229px] w-[472px] overflow-hidden rounded-[12px] bg-white p-1 shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
         >
           <div role="combobox" aria-expanded="true" className="-mx-1 -mt-1 mb-1 flex h-[37px] w-[calc(100%+8px)] items-center border-b border-line px-4 py-2">
             <input
