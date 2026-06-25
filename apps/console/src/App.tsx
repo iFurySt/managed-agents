@@ -82,7 +82,7 @@ const sidebarCollapsedStorageKey = "managed-agents.sidebar.collapsed";
 const bannerDismissedStorageKey = "managed-agents.banner.dismissed";
 const defaultDeploymentEnvironmentId = "env_01UTaKkbFknSkQNEsZjUARMh";
 const deploymentAgentOptions = [
-  { value: "agent_011VCSqwTBQSr7SqT2Mwmus2", name: "Untitled agent", updated: "4 days ago" },
+  { value: "agent_011VCSqwTBQSr7SqT2Mwmus2", name: "Untitled agent", updated: "5 days ago" },
   { value: "agent_013mi1SmR2hJ6Hk6wNTeJvF9", name: "Managed SSH Reverse Tunnel Bootstrapper", updated: "Jun 16" },
   { value: "agent_01AVRPTGyYareCeoUasn66q5", name: "Incident commander", updated: "Jun 16" },
   { value: "agent_019BdsR2v3NW1DiEG62wpu3e", name: "World Cup Daily Digest (self-hosted clone)", updated: "Jun 16" },

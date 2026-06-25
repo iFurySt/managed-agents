@@ -519,6 +519,11 @@ console.
   `test_secret` first-row ordering and `137px` dropdown height.
 - Follow-up check passed `npm run build:console` and a local Docker rebuild of
   `console`.
+- Follow-up Open Browser Use check confirmed the Create deployment Agent
+  dropdown now matches the live reference option text, including the first
+  `Untitled agent` row showing `5 days ago` before the Jun 16 agent rows.
+- Follow-up check passed `npm run build:console` and a local Docker rebuild of
+  `console`.
 
 ### Files Modified
 
