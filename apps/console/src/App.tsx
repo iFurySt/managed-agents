@@ -5669,7 +5669,7 @@ function DeploymentTriggerPicker({ value, onValueChange }: { value: string; onVa
         <div
           data-cds="Combobox"
           role="dialog"
-          className="absolute left-0 top-[38px] z-50 w-[472px] rounded-[12px] bg-white p-1 shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
+          className="absolute bottom-[37px] left-0 z-50 w-[472px] rounded-[12px] bg-white p-1 shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
         >
           <div role="listbox" className="grid gap-0">
             {options.map((option) => {

@@ -530,6 +530,11 @@ console.
   `relY=300.9`.
 - Follow-up check passed `npm run build:console` and a local Docker rebuild of
   `console`.
+- Follow-up Open Browser Use check confirmed the Create deployment Trigger
+  dropdown now opens upward like the live reference, matching the `472x96`
+  panel, `44px` rows, and `relY=509` versus the reference `relY=507.9`.
+- Follow-up check passed `npm run build:console` and a local Docker rebuild of
+  `console`.
 
 ### Files Modified
 
