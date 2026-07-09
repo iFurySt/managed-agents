@@ -309,7 +309,7 @@ function Sidebar() {
                 className="whitespace-nowrap font-voice font-medium leading-none text-primary [font-size:16px] [font-weight:550]"
                 style={{ marginLeft: "-0.1em", fontOpticalSizing: "auto", fontFeatureSettings: '"ss01", "dlig"' }}
               >
-                Claude Console
+                Managed Agents Console
               </span>
             </div>
           </Link>
