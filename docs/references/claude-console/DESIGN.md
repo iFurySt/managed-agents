@@ -496,7 +496,9 @@ single `--fw-emphasis: 500` token when the variable font is missing.
   a tinted fill (success/warning above). Height ~`18-20px`.
 - **Neutral tag pill**: radius `5px`, padding `0 8px`, fill `rgba(11,11,11,0.05)`,
   text `#52514E`, 12px/550. Used for type ("Cloud", "Self-hosted") and model
-  capability tags ("Most capable", "Coding").
+  capability tags ("Most capable", "Coding"). Do not override these with a
+  near-match solid gray like `#F6F6F4`; the slight fill and text contrast
+  difference is visible next to the live Console.
 - **Inline label** ("New", "Beta"): colored text `#184F95`, no fill, 12px/550,
   placed immediately after a title.
 - **Version chip** ("v2"): small neutral mono-ish chip next to agent name in

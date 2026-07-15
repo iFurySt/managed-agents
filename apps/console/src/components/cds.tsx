@@ -236,7 +236,7 @@ export function CopyableIdText({
 
 export function Badge({ children, tone = "neutral", className = "" }: { children: ReactNode; tone?: "neutral" | "green" | "blue" | "red" | "warning"; className?: string }) {
   const tones = {
-    neutral: "bg-fill text-muted",
+    neutral: "bg-[rgba(11,11,11,0.05)] text-[#52514e]",
     green: "bg-[#caeac7] text-[#006300]",
     blue: "bg-[#d7e8ff] text-[#1b5eb8]",
     red: "bg-[#ffe0dc] text-[#a33a29]",
