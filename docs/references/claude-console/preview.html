@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Sessions | Claude Console — DESIGN.md preview</title>
+<style>
+  /* ============================================================
+     Claude Console design system — tokens (see DESIGN.md)
+     ============================================================ */
+  :root {
+    --canvas: #FCFCFB;
+    --sidebar: #F9F9F7;
+    --ink: #0B0B0B;
+    --text-secondary: #52514E;
+    --text-muted: #898781;
+    --nav-idle: #524F4E;
+    --ring: rgba(11, 11, 11, 0.10);
+    --ring-strong: rgba(11, 11, 11, 0.25);
+    --fill-faint: rgba(11, 11, 11, 0.05);
+    --control-fill: rgba(255, 255, 255, 0.5);
+
+    --success-text: #006300;
+    --success-fill: #CAEAC7;
+    --warning-text: #734500;
+    --warning-fill: #F9DCA4;
+    --info-text: #184F95;
+    --info-fill: #DBEAFE;
+    --danger: #8E2626;
+    --accent: #5B57D6;
+
+    --font-sans: "anthropicSans", system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-serif: "anthropicSerif", ui-serif, Georgia, "Times New Roman", serif;
+    --font-mono: "anthropicMono", ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+
+    --sidebar-w: 245px;
+    --radius-pill: 5px;
+    --radius-sm: 7px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+
+    /* Weight mapping: Console uses the anthropicSans VARIABLE font, so 550/580
+       render as a true mid-weight. Without that font we fall back to system-ui,
+       where 550/580 round UP to 700 (too heavy). Map the "emphasis" weight to
+       500 so the fallback stays medium instead of bold. */
+    --fw-emphasis: 500;
+  }
+
+  * { box-sizing: border-box; }
+  svg { flex: 0 0 auto; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--canvas);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 21px;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  a { color: inherit; text-decoration: none; }
+
+  .app { display: flex; min-height: 100vh; }
+
+  /* ---------- Sidebar ---------- */
+  .sidebar {
+    width: var(--sidebar-w);
+    flex: 0 0 var(--sidebar-w);
+    background: var(--sidebar);
+    border-right: 0.5px solid var(--ring);
+    display: flex;
+    flex-direction: column;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+  .sidebar svg { width: 16px; height: 16px; }
+  .sb-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 12px 8px;
+  }
+  .wordmark { font-family: var(--font-serif); font-size: 16px; font-weight: 500; line-height: 1; letter-spacing: normal; color: var(--ink); }
+  .sb-top-icons { display: flex; gap: 2px; }
+  .icon-btn {
+    width: 28px; height: 28px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border: 0; background: transparent; color: var(--text-muted);
+    border-radius: var(--radius-sm); cursor: pointer;
+  }
+  .icon-btn:hover { background: var(--fill-faint); color: var(--ink); }
+  .icon-btn svg { width: 16px; height: 16px; }
+
+  .ws-switch {
+    margin: 4px 12px 10px;
+    display: flex; align-items: center; gap: 8px;
+    height: 40px; padding: 0 10px;
+    border-radius: 10px;
+    box-shadow: 0 0 0 1px inset var(--ring);
+    background: var(--control-fill);
+    cursor: pointer;
+  }
+  .ws-cube { width: 16px; height: 16px; color: var(--accent); flex: 0 0 auto; }
+  .ws-name { flex: 1; font-size: 14px; }
+  .ws-chevron { color: var(--text-muted); width: 14px; height: 14px; }
+
+  .nav { padding: 4px 12px 8px; flex: 1; display: flex; flex-direction: column; gap: 4px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 12px;
+    height: 36px; padding: 0 8px;
+    border-radius: var(--radius-md);
+    color: var(--nav-idle); font-weight: var(--fw-emphasis);
+    cursor: pointer;
+  }
+  .nav-item svg { width: 16px; height: 16px; flex: 0 0 auto; }
+  .nav-item:hover { background: var(--fill-faint); }
+  /* child items are the lighter weight; active only changes color, not weight */
+  .nav-child { padding-left: 40px; font-weight: 400; }
+  .nav-item.active { background: var(--fill-faint); color: var(--ink); }
+  .nav-group {
+    display: flex; align-items: center; gap: 12px;
+    height: 36px; padding: 0 8px;
+    color: var(--nav-idle); font-weight: var(--fw-emphasis);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .nav-group > svg { width: 16px; height: 16px; flex: 0 0 auto; }
+  .nav-group .grp-chevron { margin-left: auto; color: var(--text-muted); width: 14px; height: 14px; flex: 0 0 auto; }
+  .nav-badge {
+    font-size: 12px; font-weight: 550; color: var(--info-text);
+    background: var(--info-fill); border-radius: var(--radius-pill);
+    padding: 0 6px; margin-left: auto; line-height: 18px;
+  }
+
+  .sb-footer { padding: 6px 12px 10px; border-top: 0.5px solid var(--ring); margin-top: auto; }
+  .sb-foot-row {
+    display: flex; align-items: center; gap: 12px;
+    height: 36px; padding: 0 8px; color: var(--nav-idle);
+    border-radius: var(--radius-md); cursor: pointer;
+  }
+  .sb-foot-row:hover { background: var(--fill-faint); }
+  .sb-foot-row svg { width: 16px; height: 16px; }
+  .sb-foot-row .credits { margin-left: auto; color: var(--text-muted); }
+  .user-chip {
+    display: flex; align-items: center; gap: 12px;
+    padding: 6px 8px; border-radius: var(--radius-md); cursor: pointer; margin-top: 2px;
+  }
+  .user-chip:hover { background: var(--fill-faint); }
+  .avatar {
+    width: 32px; height: 32px; border-radius: 6px; flex: 0 0 auto;
+    background: var(--fill-faint);
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--text-secondary);
+  }
+  .avatar svg { width: 16px; height: 16px; }
+  .user-meta { display: flex; flex-direction: column; line-height: 1.2; }
+  .user-name { font-size: 14px; font-weight: 550; line-height: 20px; color: var(--ink); }
+  .user-role { font-size: 12px; line-height: 16px; color: var(--text-secondary); }
+  .user-chip .ws-chevron { margin-left: auto; }
+
+  /* ---------- Main ---------- */
+  .main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+  .banner {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--ring);
+  }
+  .banner .info-icon { color: var(--text-secondary); width: 16px; height: 16px; flex: 0 0 auto; }
+  .banner .msg { flex: 1; color: var(--ink); font-size: 14px; }
+  .banner-cta {
+    background: var(--ink); color: #fff; border: 0;
+    height: 28px; padding: 0 10px; border-radius: var(--radius-sm);
+    font: 500 14px/1 var(--font-sans); cursor: pointer;
+  }
+  .banner-close { color: var(--text-muted); }
+
+  .content { max-width: 1600px; width: 100%; margin: 0; padding: 24px 24px 32px; }
+
+  .page-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
+  h1 { font-size: 22px; font-weight: 550; line-height: 26px; margin: 0 0 4px; color: var(--ink); }
+  .subtitle { font-size: 14px; line-height: 20px; color: var(--text-secondary); margin: 0; }
+  .head-actions { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    height: 32px; padding: 0 12px; border-radius: var(--radius-md);
+    font: 500 14px/1 var(--font-sans); cursor: pointer; border: 0;
+    background: transparent; color: var(--ink);
+  }
+  .btn svg { width: 16px; height: 16px; }
+  .btn-primary { background: var(--ink); color: #fff; }
+  .btn-primary:hover { background: #1A1A1A; }
+  .btn-secondary { background: var(--control-fill); box-shadow: 0 0 0 1px inset var(--ring); }
+  .btn-secondary:hover { background: rgba(255,255,255,0.8); }
+  .btn-icon-only { width: 32px; padding: 0; justify-content: center; background: var(--control-fill); box-shadow: 0 0 0 1px inset var(--ring); color: var(--text-secondary); }
+
+  /* filter bar */
+  .filters { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+  .search {
+    display: flex; align-items: center; gap: 8px;
+    height: 32px; padding: 0 12px; border-radius: var(--radius-md);
+    box-shadow: 0 0 0 1px inset var(--ring); background: var(--control-fill);
+    flex: 1 1 260px; max-width: 340px; min-width: 200px;
+  }
+  /* Sessions uniquely uses an "ID" text prefix; other list pages
+     (Agents/Deployments/Environments) use a 16px magnifier icon instead. */
+  .search svg { width: 16px; height: 16px; color: var(--text-muted); flex: 0 0 auto; }
+  .search .label { color: var(--text-muted); font-size: 14px; }
+  .search input {
+    border: 0; background: transparent; outline: none; flex: 1;
+    font: 400 14px/1 var(--font-sans); color: var(--ink); min-width: 0;
+  }
+  .search input::placeholder { color: var(--text-muted); }
+  .search:focus-within { box-shadow: 0 0 0 1px inset var(--ring-strong); }
+  .filter {
+    display: inline-flex; align-items: center; gap: 6px;
+    height: 32px; padding: 0 10px; border-radius: var(--radius-md);
+    box-shadow: 0 0 0 1px inset var(--ring); background: var(--control-fill);
+    font-size: 14px; cursor: pointer;
+  }
+  .filter .fl-key { color: var(--text-muted); }
+  .filter .fl-val { color: var(--ink); }
+  .filter svg { width: 14px; height: 14px; color: var(--text-muted); }
+
+  /* table */
+  .table-wrap { width: 100%; overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    text-align: left; font-size: 13px; font-weight: 550; color: var(--text-secondary);
+    padding: 6px 12px; white-space: nowrap;
+  }
+  thead th.check, tbody td.check { width: 36px; padding-left: 4px; padding-right: 4px; }
+  tbody td { padding: 12px; font-size: 14px; color: var(--ink); border-top: 1px solid var(--ring); vertical-align: middle; }
+  tbody tr:hover td { background: var(--fill-faint); }
+  /* ID: mono 12px at emphasis weight (real Console: 550 in the variable font),
+     with a copy button that fades in on row hover */
+  .cell-id { font-family: var(--font-mono); font-size: 12px; font-weight: var(--fw-emphasis); color: var(--ink); white-space: nowrap; }
+  .copy-btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 20px; height: 20px; margin-left: 4px; vertical-align: middle;
+    border: 0; background: transparent; color: var(--text-muted);
+    border-radius: 4px; cursor: pointer; opacity: 0; transition: opacity .1s;
+  }
+  .copy-btn svg { width: 13px; height: 13px; }
+  tbody tr:hover .copy-btn { opacity: 1; }
+  .cell-name { color: var(--ink); }
+  .cell-muted { color: var(--text-muted); }
+  .cell-time { color: var(--text-secondary); }
+  .num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  .cbox {
+    width: 16px; height: 16px; border-radius: 4px;
+    box-shadow: 0 0 0 1px inset var(--ring); background: #fff; display: inline-block;
+  }
+
+  /* pills */
+  .pill {
+    display: inline-flex; align-items: center; height: 20px; padding: 0 8px;
+    border-radius: var(--radius-pill); font-size: 12px; font-weight: 550; white-space: nowrap;
+  }
+  .pill-neutral { background: var(--fill-faint); color: var(--text-secondary); }
+  .pill-success { background: var(--success-fill); color: var(--success-text); }
+  .pill-warning { background: var(--warning-fill); color: var(--warning-text); }
+
+  /* Agent cell is a hoverable CHIP: hairline border, 5.5px radius,
+     secondary text; hover fills faint and darkens to ink */
+  .agent-cell {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 2px 6px; border-radius: 5.5px;
+    border: 0.5px solid var(--ring);
+    color: var(--text-secondary); background: transparent;
+    cursor: pointer; max-width: 100%;
+  }
+  .agent-cell:hover { background: var(--fill-faint); color: var(--ink); }
+  .agent-cell svg { width: 14px; height: 14px; color: currentColor; flex: 0 0 auto; }
+
+  /* row menu — near-black dots in a hoverable icon button */
+  .row-menu {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 28px; height: 28px; border: 0; background: transparent;
+    color: var(--ink); font-size: 14px; border-radius: var(--radius-sm); cursor: pointer;
+  }
+  .row-menu:hover { background: var(--fill-faint); }
+  td.actions { width: 44px; text-align: right; }
+
+  /* pagination — 32×32 rounded-rect boxes: hairline inset ring + soft shadow,
+     faint white fill; disabled dims to 0.5 */
+  .pager { display: flex; gap: 8px; margin-top: 16px; }
+  .pg-btn {
+    width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center;
+    border-radius: var(--radius-md); border: 0;
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 0 1px inset var(--ring), 0 1px 2px rgba(0, 0, 0, 0.05);
+    color: var(--ink); cursor: pointer;
+  }
+  .pg-btn:hover { background: var(--fill-faint); }
+  .pg-btn[disabled] { opacity: 0.5; cursor: default; }
+  .pg-btn[disabled]:hover { background: rgba(255, 255, 255, 0.1); }
+  .pg-btn svg { width: 16px; height: 16px; }
+
+  /* mobile */
+  .hamburger { display: none; }
+  @media (max-width: 860px) {
+    .sidebar { display: none; }
+    .hamburger { display: inline-flex; }
+    .content { padding: 16px; }
+    .page-head { flex-direction: column; }
+    .head-actions { width: 100%; }
+    .btn-primary { flex: 1; justify-content: center; }
+    .col-tokens, .col-created { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- ================= Sidebar ================= -->
+  <aside class="sidebar">
+    <div class="sb-top">
+      <span class="wordmark">Claude Console</span>
+      <span class="sb-top-icons">
+        <button class="icon-btn" title="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
+        <button class="icon-btn" title="Collapse"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg></button>
+      </span>
+    </div>
+
+    <div class="ws-switch">
+      <svg class="ws-cube" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 3 7v10l9 5 9-5V7z"/><path d="M3 7l9 5 9-5M12 22V12"/></svg>
+      <span class="ws-name">Default</span>
+      <svg class="ws-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+    </div>
+
+    <nav class="nav">
+      <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10l9-7 9 7v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Dashboard</div>
+      <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="7" cy="15" r="4"/><path d="m10 12 8-8 3 3-8 8"/></svg>API keys</div>
+
+      <div class="nav-group"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 6l4 4-8 8-4 1 1-4z"/></svg>Build<svg class="grp-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></div>
+      <div class="nav-item nav-child">Workbench<span class="nav-badge">Updated</span></div>
+      <div class="nav-item nav-child">Files</div>
+      <div class="nav-item nav-child">Skills</div>
+      <div class="nav-item nav-child">Batches</div>
+
+      <div class="nav-group"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h10M4 12h16M4 17h7"/></svg>Managed Agents<svg class="grp-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></div>
+      <div class="nav-item nav-child">Quickstart</div>
+      <div class="nav-item nav-child">Agents</div>
+      <div class="nav-item nav-child active">Sessions</div>
+      <div class="nav-item nav-child">Deployments</div>
+      <div class="nav-item nav-child">Environments</div>
+      <div class="nav-item nav-child">Credential vaults</div>
+      <div class="nav-item nav-child">Memory stores</div>
+
+      <div class="nav-group"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m7 14 4-4 3 3 5-6"/></svg>Analytics<svg class="grp-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg></div>
+      <div class="nav-group"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m8 9 3 3-3 3M13 15h4"/><rect x="3" y="4" width="18" height="16" rx="2"/></svg>Claude Code<svg class="grp-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg></div>
+      <div class="nav-group"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="7" r="2"/><path d="M10 7h10"/><circle cx="14" cy="17" r="2"/><path d="M4 17h6"/></svg>Manage<svg class="grp-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></div>
+      <div class="nav-item nav-child">Limits</div>
+      <div class="nav-item nav-child">Service accounts</div>
+      <div class="nav-item nav-child">Privacy controls</div>
+    </nav>
+
+    <div class="sb-footer">
+      <div class="sb-foot-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5a2 2 0 0 1 2-2h13v18H6a2 2 0 0 1-2-2z"/><path d="M9 3v18"/></svg>Documentation</div>
+      <div class="sb-foot-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Credits<span class="credits">$3.10</span></div>
+      <div class="user-chip">
+        <span class="avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h12v16H4z"/><path d="M8 8h4M8 12h4"/></svg></span>
+        <span class="user-meta"><span class="user-name">Leo</span><span class="user-role">Admin · Leo's Indi…</span></span>
+        <svg class="ws-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ================= Main ================= -->
+  <main class="main">
+    <div class="banner">
+      <svg class="info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
+      <span class="msg">Access to Claude Fable 5 and Claude Mythos 5 has been restored. See our statement for more information.</span>
+      <button class="banner-cta">Learn more</button>
+      <button class="icon-btn banner-close" title="Dismiss"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 6 12 12M18 6 6 18"/></svg></button>
+    </div>
+
+    <div class="content">
+      <div class="page-head">
+        <div>
+          <h1>Sessions</h1>
+          <p class="subtitle">Trace and debug Claude Managed Agents sessions.</p>
+        </div>
+        <div class="head-actions">
+          <button class="btn btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Create session</button>
+          <button class="btn btn-icon-only" title="Docs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5a2 2 0 0 1 2-2h13v18H6a2 2 0 0 1-2-2z"/><path d="M9 3v18"/></svg></button>
+        </div>
+      </div>
+
+      <div class="filters">
+        <label class="search">
+          <span class="label">ID</span>
+          <input type="text" placeholder="Search by session ID" />
+        </label>
+        <span class="filter"><span class="fl-key">Created</span><span class="fl-val">All time</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></span>
+        <span class="filter"><span class="fl-key">Agent</span><span class="fl-val">All</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></span>
+        <span class="filter"><span class="fl-key">Deployment</span><span class="fl-val">All</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></span>
+        <span class="filter"><span class="fl-key">Status</span><span class="fl-val">Active</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></span>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th class="check"><span class="cbox"></span></th>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Status</th>
+              <th>Agent</th>
+              <th class="col-tokens">Tokens in / out</th>
+              <th class="col-created">Created</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="check"><span class="cbox"></span></td>
+              <td class="cell-id">sesn_01…Vk66M7<button class="copy-btn" title="Copy ID"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button></td>
+              <td class="cell-name">Runtime inventory via SSH 2026-06-18</td>
+              <td><span class="pill pill-neutral">Idle</span></td>
+              <td><span class="agent-cell"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h10M4 12h16M4 17h7"/></svg>Managed SSH Reverse Tunnel Bootstrapper</span></td>
+              <td class="num col-tokens">168k / 5.6k</td>
+              <td class="num cell-time col-created">Jun 18</td>
+              <td class="actions"><button class="row-menu">⋮</button></td>
+            </tr>
+            <tr>
+              <td class="check"><span class="cbox"></span></td>
+              <td class="cell-id">sesn_01…EXitXN<button class="copy-btn" title="Copy ID"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button></td>
+              <td class="cell-name">1111</td>
+              <td><span class="pill pill-neutral">Idle</span></td>
+              <td><span class="agent-cell"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h10M4 12h16M4 17h7"/></svg>World Cup Daily Digest</span></td>
+              <td class="num cell-muted col-tokens">–</td>
+              <td class="num cell-time col-created">Jun 18</td>
+              <td class="actions"><button class="row-menu">⋮</button></td>
+            </tr>
+            <tr>
+              <td class="check"><span class="cbox"></span></td>
+              <td class="cell-id">sesn_01…fSjBUC<button class="copy-btn" title="Copy ID"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button></td>
+              <td class="cell-name">CronWorldCupDailyDigest</td>
+              <td><span class="pill pill-neutral">Idle</span></td>
+              <td><span class="agent-cell"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h10M4 12h16M4 17h7"/></svg>World Cup Daily Digest</span></td>
+              <td class="num col-tokens">1.4M / 27.8k</td>
+              <td class="num cell-time col-created">Jun 17</td>
+              <td class="actions"><button class="row-menu">⋮</button></td>
+            </tr>
+            <tr>
+              <td class="check"><span class="cbox"></span></td>
+              <td class="cell-id">sesn_01…fKDP5r<button class="copy-btn" title="Copy ID"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button></td>
+              <td class="cell-name">Reverse SSH bootstrap via amoylab</td>
+              <td><span class="pill pill-success">Active</span></td>
+              <td><span class="agent-cell"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h10M4 12h16M4 17h7"/></svg>Managed SSH Reverse Tunnel Bootstrapper</span></td>
+              <td class="num col-tokens">1.6M / 22.9k</td>
+              <td class="num cell-time col-created">Jun 16</td>
+              <td class="actions"><button class="row-menu">⋮</button></td>
+            </tr>
+            <tr>
+              <td class="check"><span class="cbox"></span></td>
+              <td class="cell-id">sesn_01…95mMPd<button class="copy-btn" title="Copy ID"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button></td>
+              <td class="cell-name">CronWorldCupDailyDigest</td>
+              <td><span class="pill pill-warning">Paused</span></td>
+              <td><span class="agent-cell"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h10M4 12h16M4 17h7"/></svg>World Cup Daily Digest</span></td>
+              <td class="num col-tokens">1.0M / 15.8k</td>
+              <td class="num cell-time col-created">Jun 16</td>
+              <td class="actions"><button class="row-menu">⋮</button></td>
+            </tr>
+            <tr>
+              <td class="check"><span class="cbox"></span></td>
+              <td class="cell-id">sesn_01…ZnMyM5<button class="copy-btn" title="Copy ID"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button></td>
+              <td class="cell-name">CronWorldCupDailyDigest</td>
+              <td><span class="pill pill-neutral">Idle</span></td>
+              <td><span class="agent-cell"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h10M4 12h16M4 17h7"/></svg>World Cup Daily Digest</span></td>
+              <td class="num col-tokens">435k / 8.5k</td>
+              <td class="num cell-time col-created">Jun 16</td>
+              <td class="actions"><button class="row-menu">⋮</button></td>
+            </tr>
+            <tr>
+              <td class="check"><span class="cbox"></span></td>
+              <td class="cell-id">sesn_01…jK19vn<button class="copy-btn" title="Copy ID"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg></button></td>
+              <td class="cell-name cell-muted">–</td>
+              <td><span class="pill pill-neutral">Idle</span></td>
+              <td><span class="agent-cell"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 7h10M4 12h16M4 17h7"/></svg>World Cup Daily Digest</span></td>
+              <td class="num col-tokens">230k / 13.4k</td>
+              <td class="num cell-time col-created">Jun 16</td>
+              <td class="actions"><button class="row-menu">⋮</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pager">
+        <button class="pg-btn" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 6-6 6 6 6"/></svg></button>
+        <button class="pg-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 6 6 6-6 6"/></svg></button>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>
