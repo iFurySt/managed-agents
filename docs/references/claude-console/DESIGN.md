@@ -497,6 +497,11 @@ single `--fw-emphasis: 500` token when the variable font is missing.
   capability tags ("Most capable", "Coding"). Do not override these with a
   near-match solid gray like `#F6F6F4`; the slight fill and text contrast
   difference is visible next to the live Console.
+- **Detail field value chip**: static field values inside detail sections
+  (for example Environment → Networking → Type) use the same neutral fill but
+  a taller body-sized chip: `25px` tall, radius `5.5px`, horizontal padding
+  `8px`, text `#52514E`, 14px/550. Keep this distinct from the smaller
+  12px table/header tags.
 - **Inline label** ("New", "Beta"): colored text `#184F95`, no fill, 12px/550,
   placed immediately after a title.
 - **Version chip** ("v2"): small neutral mono-ish chip next to agent name in

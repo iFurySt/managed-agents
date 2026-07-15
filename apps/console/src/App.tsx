@@ -2290,9 +2290,9 @@ function EnvironmentDetailPage() {
             <div className="text-sm leading-[21px]">
               <span className="[font-weight:550]">Type</span>
               <div className="mt-1">
-                <Badge tone="neutral" className="h-[25px] rounded-[5.5px] px-2 !text-sm !leading-5 !text-[#52514e]">
+                <span className="inline-flex h-[25px] items-center rounded-[5.5px] bg-[rgba(11,11,11,0.05)] px-2 text-sm leading-5 text-[#52514e] [font-weight:550]">
                   {environment.networkingType || "Unrestricted"}
-                </Badge>
+                </span>
               </div>
             </div>
           </EnvironmentDetailSection>
