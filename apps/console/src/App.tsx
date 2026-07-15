@@ -782,7 +782,7 @@ function AgentsPage() {
   }
 
   return (
-    <section className="-mx-2 flex flex-col gap-4">
+    <section className="-mx-2 flex min-w-0 flex-col gap-4">
       <PageHeader
         title="Agents"
         description="Create and manage autonomous agents."
@@ -828,8 +828,8 @@ function AgentsPage() {
         />
       </div>
       <DataTable
-        className="-mx-2 -my-2 w-[1106px] overflow-x-auto p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
-        tableClassName="w-[1106px] border-separate border-spacing-0 whitespace-nowrap"
+        className="-mx-2 -my-2 w-[calc(100%+1rem)] p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
+        tableClassName="w-full min-w-[1106px] border-separate border-spacing-0 whitespace-nowrap"
         rows={agents}
         getKey={(agent) => agent.id}
         getRowHref={(agent) => `/agents/${agent.id}`}
@@ -928,7 +928,7 @@ function SessionsPage() {
   }
 
   return (
-    <section className="-mx-2 flex flex-col gap-4">
+    <section className="-mx-2 flex min-w-0 flex-col gap-4">
       <PageHeader
         title="Sessions"
         description="Trace and debug Claude Managed Agents sessions."
@@ -990,10 +990,10 @@ function SessionsPage() {
           triggerShellClassName={topFilterShellClassName}
         />
       </div>
-      <div className="-mt-2">
+      <div className="-mt-2 min-w-0">
         <DataTable
-          className="-mx-2 -my-2 w-[1066px] overflow-x-auto p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
-          tableClassName="w-[1066px] border-separate border-spacing-0 whitespace-nowrap"
+          className="-mx-2 -my-2 w-[calc(100%+1rem)] p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
+          tableClassName="w-full min-w-[1066px] border-separate border-spacing-0 whitespace-nowrap"
           rows={visibleSessions}
           getKey={(session) => session.id}
           getRowHref={(session) => `/sessions/${session.id}`}
@@ -1449,7 +1449,7 @@ function DeploymentsPage() {
   }
 
   return (
-    <section className="-mx-2 flex flex-col">
+    <section className="-mx-2 flex min-w-0 flex-col">
       <PageHeader
         title="Deployments"
         description="A deployment binds an agent to credentials, an environment, and a schedule so it can run on its own."
@@ -1502,10 +1502,10 @@ function DeploymentsPage() {
           menuWidth="w-[192px]"
         />
       </div>
-      <div className="overflow-x-auto">
+      <div className="min-w-0">
         <DataTable
-          className="-mx-2 w-[1146px] overflow-x-auto p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
-          tableClassName="w-[1146px] border-separate border-spacing-0 whitespace-nowrap"
+          className="-mx-2 w-[calc(100%+1rem)] p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
+          tableClassName="w-full min-w-[1146px] border-separate border-spacing-0 whitespace-nowrap"
           headerTextClassName="text-[13px]"
           rows={visibleDeployments}
           getKey={(deployment) => deployment.id}
@@ -2396,10 +2396,10 @@ function VaultsPage() {
           triggerShellClassName={topFilterShellClassName}
         />
       </div>
-      <div className="overflow-x-auto">
+      <div className="min-w-0">
         <DataTable
-          className="-mx-2 w-[913px] overflow-x-auto p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
-          tableClassName="border-separate border-spacing-0 whitespace-nowrap"
+          className="-mx-2 w-[calc(100%+1rem)] p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
+          tableClassName="w-full min-w-[913px] border-separate border-spacing-0 whitespace-nowrap"
           rows={visibleVaults}
           getKey={(vault) => vault.id}
           showSelection={false}
@@ -2576,8 +2576,8 @@ function VaultDetailPage() {
         />
       </div>
       <DataTable
-        className="-mx-2 w-[1108px] overflow-x-auto p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
-        tableClassName="w-[1108px] border-separate border-spacing-0 whitespace-nowrap [&_tbody_tr]:!h-[47px] [&_tbody_tr:first-child]:!h-12 [&_tbody_td]:!py-1.5"
+        className="-mx-2 w-[calc(100%+1rem)] p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
+        tableClassName="w-full min-w-[1108px] border-separate border-spacing-0 whitespace-nowrap [&_tbody_tr]:!h-[47px] [&_tbody_tr:first-child]:!h-12 [&_tbody_td]:!py-1.5"
         rows={visibleCredentials}
         getKey={(credential) => credential.id}
         showSelection={false}
@@ -2744,10 +2744,10 @@ function MemoryStoresPage() {
           triggerShellClassName={topFilterShellClassName}
         />
       </div>
-      <div className="overflow-x-auto">
+      <div className="min-w-0">
         <DataTable
-          className="-mx-2 w-[913px] overflow-x-auto p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
-          tableClassName="w-[913px] border-separate border-spacing-0 whitespace-nowrap"
+          className="-mx-2 w-[calc(100%+1rem)] p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
+          tableClassName="w-full min-w-[913px] border-separate border-spacing-0 whitespace-nowrap"
           rows={visibleStores}
           getKey={(store) => store.id}
           actionsWidth="56px"
@@ -3697,8 +3697,8 @@ function AgentSessionsPanel({ agent }: { agent: Agent }) {
         />
       </div>
       <DataTable
-        className="-m-2 w-[1066px] overflow-x-auto p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
-        tableClassName="w-[1066px] border-separate border-spacing-0 whitespace-nowrap"
+        className="-m-2 w-[calc(100%+1rem)] p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
+        tableClassName="w-full min-w-[1066px] border-separate border-spacing-0 whitespace-nowrap"
         rows={visibleSessions}
         getKey={(session) => session.id}
         columns={[
