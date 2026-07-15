@@ -2289,7 +2289,11 @@ function EnvironmentDetailPage() {
           <EnvironmentDetailSection title="Networking" description="Configure network access policies for this environment.">
             <div className="text-sm leading-[21px]">
               <span className="[font-weight:550]">Type</span>
-              <div className="mt-1">{environment.networkingType || "Unrestricted"}</div>
+              <div className="mt-1">
+                <Badge tone="neutral" className="h-[25px] rounded-[5.5px] px-2 !text-sm !leading-5 !text-[#52514e]">
+                  {environment.networkingType || "Unrestricted"}
+                </Badge>
+              </div>
             </div>
           </EnvironmentDetailSection>
           <EnvironmentDetailSection title="Packages" description="Specify packages and their versions available in this environment. Separate multiple values with spaces." separated>
@@ -8006,7 +8010,7 @@ function DeploymentDetailSection({ title, children }: { title: string; children:
 
 function EnvironmentDetailSection({ title, description, children, separated = false }: { title: string; description: string; children: React.ReactNode; separated?: boolean }) {
   return (
-    <section className={`flex flex-col gap-3 ${separated ? "pt-6" : ""}`}>
+    <section className={`flex flex-col gap-3 ${separated ? "border-t-[0.5px] border-line pt-6" : ""}`}>
       <div className="flex max-w-[800px] flex-col gap-3">
         <div className="flex flex-col gap-1">
           <h2 className="text-base leading-6 [font-weight:550]">{title}</h2>
