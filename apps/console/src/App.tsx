@@ -2290,7 +2290,7 @@ function EnvironmentDetailPage() {
             <div className="text-sm leading-[21px]">
               <span className="[font-weight:550]">Type</span>
               <div className="mt-1">
-                <span className="inline-flex h-[25px] items-center rounded-[5.5px] bg-[rgba(11,11,11,0.05)] px-2 text-sm leading-5 text-[#52514e] [font-weight:550]">
+                <span className="inline-flex h-[22px] items-center rounded-[5.5px] bg-[rgba(11,11,11,0.05)] px-2 text-xs leading-[15px] text-[#52514e] [font-weight:550]">
                   {environment.networkingType || "Unrestricted"}
                 </span>
               </div>
