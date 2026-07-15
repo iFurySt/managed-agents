@@ -309,18 +309,18 @@ export function FieldSelect({
         <Select.Content
           position={contentPosition}
           sideOffset={contentSideOffset}
-          className={`z-50 min-w-[150px] rounded-cds border border-line bg-white p-1 shadow-lg ${contentClassName}`}
+          className={`z-50 min-w-[192px] rounded-[12px] bg-white p-1.5 shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_16px_rgba(0,0,0,0.08)] ${contentClassName}`}
         >
           <Select.Viewport>
             {options.map((option) => (
               <Select.Item
                 key={option}
                 value={option}
-                className={`flex h-8 cursor-pointer items-center justify-between rounded-md px-2 text-sm outline-none data-[highlighted]:bg-fill data-[state=checked]:bg-fill ${itemClassName}`}
+                className={`flex h-8 cursor-pointer items-center justify-between gap-3 rounded-[8px] px-3 text-sm outline-none data-[highlighted]:bg-fill ${itemClassName}`}
               >
                 <Select.ItemText>{option}</Select.ItemText>
                 <Select.ItemIndicator>
-                  <CdsIconGlyph glyph="" className="h-4 w-4 shrink-0 text-[#898781] text-[16px] [font-weight:533.25]" />
+                  <CdsIconGlyph glyph="" className="h-4 w-4 shrink-0 text-[#184F95] text-[16px] [font-weight:533.25]" />
                 </Select.ItemIndicator>
               </Select.Item>
             ))}
@@ -460,7 +460,7 @@ export function DataTable<T>({
           )) : rows.length === 0 && emptyState ? (
             <tr className={emptyRowClassName}>
               <td
-                className="border-b border-[rgba(11,11,11,0.05)] px-3 py-2 align-middle [tr:first-child_&]:border-t"
+                className="border-b border-[rgba(11,11,11,0.05)] px-3 py-2 align-middle"
                 colSpan={(showSelection ? 1 : 0) + columns.length + (showActions ? 1 : 0)}
               >
                 {emptyState}
@@ -474,7 +474,7 @@ export function DataTable<T>({
             return (
               <tr key={key} data-selected={selected ? "true" : undefined} className="group/cdsrow h-[43px] first:h-11 relative [transform:translate(0,0)] [cursor:var(--cds-cursor-interactive,pointer)] hover:bg-[rgba(11,11,11,0.05)]">
                 {showSelection ? (
-                  <td className="relative border-b border-[rgba(11,11,11,0.05)] p-0 [tr:first-child_&]:border-t group-data-[selected=true]/cdsrow:border-transparent group-data-[selected=true]/cdsrow:bg-[rgba(11,11,11,0.05)] group-data-[selected=true]/cdsrow:first:rounded-l-[8px]">
+                  <td className="relative border-b border-[rgba(11,11,11,0.05)] p-0 group-data-[selected=true]/cdsrow:border-transparent group-data-[selected=true]/cdsrow:bg-[rgba(11,11,11,0.05)] group-data-[selected=true]/cdsrow:first:rounded-l-[8px]">
                     <div className="absolute inset-0 z-10 flex items-center justify-center">
                       <TableSelectionBox checked={selected} onToggle={() => toggleRow(key)} />
                     </div>
@@ -483,7 +483,7 @@ export function DataTable<T>({
                 {columns.map((column, columnIndex) => {
                   const alignClassName = column.align === "right" ? "text-right [&>.flex]:justify-end" : "";
                   return (
-                    <td key={column.key} className={`max-w-[260px] truncate border-b border-[rgba(11,11,11,0.05)] px-3 py-2 align-middle [tr:first-child_&]:border-t group-data-[selected=true]/cdsrow:border-transparent group-data-[selected=true]/cdsrow:bg-[rgba(11,11,11,0.05)] ${alignClassName}`} style={{ width: column.width }}>
+                    <td key={column.key} className={`max-w-[260px] truncate border-b border-[rgba(11,11,11,0.05)] px-3 py-2 align-middle group-data-[selected=true]/cdsrow:border-transparent group-data-[selected=true]/cdsrow:bg-[rgba(11,11,11,0.05)] ${alignClassName}`} style={{ width: column.width }}>
                       {columnIndex === 0 && rowHref ? (
                         <Link
                           to={rowHref}
@@ -497,7 +497,7 @@ export function DataTable<T>({
                   );
                 })}
                 {showActions ? (
-                  <td className="border-b border-[rgba(11,11,11,0.05)] px-3 py-2 [tr:first-child_&]:border-t group-data-[selected=true]/cdsrow:border-transparent group-data-[selected=true]/cdsrow:bg-[rgba(11,11,11,0.05)] group-data-[selected=true]/cdsrow:last:rounded-r-[8px]" style={{ width: actionsWidth }}>
+                  <td className="border-b border-[rgba(11,11,11,0.05)] px-3 py-2 group-data-[selected=true]/cdsrow:border-transparent group-data-[selected=true]/cdsrow:bg-[rgba(11,11,11,0.05)] group-data-[selected=true]/cdsrow:last:rounded-r-[8px]" style={{ width: actionsWidth }}>
                     <span className="relative z-10 inline-flex max-w-full align-middle">
                       {renderActions ? (
                         renderActions(row)

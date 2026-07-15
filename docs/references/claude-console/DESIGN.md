@@ -170,6 +170,19 @@ single `--fw-emphasis: 500` token when the variable font is missing.
   **same** override weight, or the idle fill permanently wins and the button
   never visibly reacts to hover or press. If you need a one-off idle fill,
   add matching one-off hover/active fills alongside it.
+- **Guardrail — one-off fills always need `!important`, even without an
+  explicit `variant`**: the shared `Button` component defaults to
+  `variant="primary"` (`bg-ink hover:bg-black`) whenever no `variant` prop is
+  passed. A call site that adds a custom `bg-[#hex]`/`hover:bg-[#hex]` on top
+  of that default — e.g. a danger-confirm button — is not guaranteed to win
+  the cascade against the default's plain `bg-ink`/`hover:bg-black`; Tailwind
+  orders same-specificity utilities by generation order, not by position in
+  the class string, so which one renders is arbitrary and has regressed to
+  plain black more than once. Any one-off `bg-[...]`/`hover:bg-[...]` on a
+  `Button` (danger confirms, the session-message send button, etc.) must use
+  `!bg-[...]`/`hover:!bg-[...]`, the same rule as the idle/hover pairing
+  above — don't assume an unstyled default variant is "safe" to override
+  without `!`.
 - **Pagination arrows**: **32×32 rounded-rect boxes**, radius `8px`, fill
   `rgba(255,255,255,0.1)`, with a hairline inset ring **plus a soft shadow**:
   `box-shadow: inset 0 0 0 1px rgba(11,11,11,0.1), 0 1px 2px rgba(0,0,0,0.05)`.
@@ -252,6 +265,15 @@ single `--fw-emphasis: 500` token when the variable font is missing.
   28px icon button; hover fill `rgba(11,11,11,0.05)`.
 - Row hover: `rgba(11,11,11,0.05)` across the row. Selected/active rows use
   the stronger `rgba(11,11,11,0.10)`.
+- **Header/body divider is a single hairline, not two.** The header row's own
+  `border-bottom` (`rgba(11,11,11,0.10)`) is the only rule between the header
+  and the first body row — the first body row must not also carry a
+  `border-top`. With `border-collapse: separate` (used so row corners can be
+  rounded on hover/select), two adjacent 1px borders stack instead of merging,
+  which visibly doubles the line thickness right under the header. Every
+  other row boundary already gets a single line from that row's own
+  `border-bottom`; keep it that way instead of adding a matching `border-top`
+  on the row below.
 
 ### Tooltip
 
@@ -274,8 +296,37 @@ single `--fw-emphasis: 500` token when the variable font is missing.
   drop shadow (`0 0 0 1px rgba(11,11,11,0.1), 0 4px 16px rgba(0,0,0,0.08)`),
   min-width ~`192px`, opens `4px` below the trigger.
 - Items: height `32px`, padding `4px 12px`, radius `8px`, 14px ink text.
-  Hover: fill `rgba(11,11,11,0.05)`. **Selected item**: same faint fill plus a
-  right-aligned **blue check `#184F95`** (16px).
+- **Selection reads via checkmark only — same rule as the version/value-picker
+  below.** Item background changes **only on hover/highlight**
+  (`rgba(11,11,11,0.05)`); do **not** give the currently-selected item a
+  permanent background fill. A persistent fill on the selected row (as opposed
+  to only-on-hover) collapses "which one is hovered" vs "which one is
+  selected" into one color and does not match the live product. The
+  right-aligned **blue check `#184F95`** (16px) is the only marker for "this
+  is the current value."
+
+### Searchable filter dropdown (Agent / Deployment / Environment / Vault filters)
+
+- Same trigger and popover chrome as the plain filter dropdown above, but used
+  when the option list is a growable reference collection (agents,
+  deployments, environments, vaults) rather than a small fixed enum
+  (Created/Status). A search input replaces the popover's top padding: full
+  width, `~37px` tall, bottom hairline border `rgba(11,11,11,0.1)` as the only
+  separator from the list (no other borders), placeholder like "Search agents
+  by name or exact ID", `14px` text, no icon.
+- List items below the search input show the object's **name** (14px, ink)
+  stacked above a muted **13px** "Jun 16"-style updated/created caption — not
+  a single-line label. Hover: fill `rgba(11,11,11,0.05)` only — same
+  checkmark-only selection rule as the other two dropdown variants above (no
+  permanent background on the selected row). The reference screenshot only
+  shows this filter with its default/fallback value active (no named item
+  selected), so the checkmark's exact presence here isn't directly confirmed
+  by a screenshot — apply the same rule as the rest of the app for
+  consistency rather than a separate unverified pattern.
+- This is the same popover pattern already used for the agent/environment/
+  vault pickers inside the Create Session and Create Deployment dialogs
+  (search input + name/date item) — reuse one shared component/markup for
+  both instead of re-deriving it per page.
 
 ### Version / value-picker dropdown (single current value, e.g. "Version: v2")
 
@@ -295,6 +346,15 @@ single `--fw-emphasis: 500` token when the variable font is missing.
 - The list must render every entry the object actually has (map over the full
   version history), not a single hard-coded current-value item — the whole
   point of the control is to browse past values once more than one exists.
+- **Selecting a past entry re-renders the page's content with that entry's
+  snapshot** (model, system prompt, etc.) — this is a real value-switch, not a
+  label-only affordance. The live product shows a brief loading state while it
+  refetches; the local console instead swaps instantly from data already
+  fetched with the object (every version's editable-field snapshot comes back
+  in the same response as the object itself), which is an acceptable
+  implementation difference as long as the displayed fields visibly change.
+  Editing/saving a new version always edits from the **current** value, not
+  whichever historical entry happens to be selected in the dropdown.
 
 ### Code editor / config panel (Create agent, Edit agent)
 

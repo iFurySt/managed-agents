@@ -19,20 +19,36 @@ import (
 )
 
 type Agent struct {
+	ID           string         `json:"id" gorm:"primaryKey"`
+	Name         string         `json:"name"`
+	Model        string         `json:"model"`
+	Status       string         `json:"status"`
+	Description  string         `json:"description"`
+	SystemPrompt string         `json:"systemPrompt" gorm:"type:text"`
+	Tools        string         `json:"tools"`
+	Skills       string         `json:"skills"`
+	Version      string         `json:"version"`
+	ConfigYAML   string         `json:"configYaml" gorm:"type:text"`
+	CreatedLabel string         `json:"createdLabel"`
+	UpdatedLabel string         `json:"updatedLabel"`
+	CreatedAt    time.Time      `json:"createdAt"`
+	UpdatedAt    time.Time      `json:"updatedAt"`
+	Versions     []AgentVersion `json:"versions" gorm:"foreignKey:AgentID;references:ID"`
+}
+
+// AgentVersion snapshots the editable fields of an Agent each time a new
+// version is saved, so the version dropdown can render real history instead
+// of only the current row.
+type AgentVersion struct {
 	ID           string    `json:"id" gorm:"primaryKey"`
-	Name         string    `json:"name"`
-	Model        string    `json:"model"`
-	Status       string    `json:"status"`
-	Description  string    `json:"description"`
-	SystemPrompt string    `json:"systemPrompt" gorm:"type:text"`
-	Tools        string    `json:"tools"`
-	Skills       string    `json:"skills"`
+	AgentID      string    `json:"agentId" gorm:"index"`
 	Version      string    `json:"version"`
+	Name         string    `json:"name"`
+	Description  string    `json:"description" gorm:"type:text"`
+	Model        string    `json:"model"`
+	SystemPrompt string    `json:"systemPrompt" gorm:"type:text"`
 	ConfigYAML   string    `json:"configYaml" gorm:"type:text"`
-	CreatedLabel string    `json:"createdLabel"`
-	UpdatedLabel string    `json:"updatedLabel"`
 	CreatedAt    time.Time `json:"createdAt"`
-	UpdatedAt    time.Time `json:"updatedAt"`
 }
 
 const sourceAgentOrderSQL = `
@@ -377,7 +393,7 @@ func run() error {
 	if err != nil {
 		return err
 	}
-	if err := db.AutoMigrate(&Agent{}, &Resource{}, &Environment{}, &Vault{}, &VaultCredential{}, &MemoryStore{}, &MemoryRecord{}, &WorkspaceFile{}, &SkillPackage{}, &SkillVersion{}, &Session{}, &SessionEvent{}, &EnvironmentWork{}, &Deployment{}, &DeploymentRun{}); err != nil {
+	if err := db.AutoMigrate(&Agent{}, &AgentVersion{}, &Resource{}, &Environment{}, &Vault{}, &VaultCredential{}, &MemoryStore{}, &MemoryRecord{}, &WorkspaceFile{}, &SkillPackage{}, &SkillVersion{}, &Session{}, &SessionEvent{}, &EnvironmentWork{}, &Deployment{}, &DeploymentRun{}); err != nil {
 		return err
 	}
 	if err := seed(db); err != nil {
@@ -508,7 +524,9 @@ func listAgents(db *gorm.DB) gin.HandlerFunc {
 func getAgent(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var agent Agent
-		if err := db.First(&agent, "id = ?", c.Param("id")).Error; err != nil {
+		if err := db.Preload("Versions", func(tx *gorm.DB) *gorm.DB {
+			return tx.Order("created_at desc")
+		}).First(&agent, "id = ?", c.Param("id")).Error; err != nil {
 			status := http.StatusInternalServerError
 			if errors.Is(err, gorm.ErrRecordNotFound) {
 				status = http.StatusNotFound
@@ -535,8 +553,10 @@ func createAgent(db *gorm.DB) gin.HandlerFunc {
 		description := defaultString(req.Description, "A blank starting point with the core toolset.")
 		model := defaultString(req.Model, "claude-sonnet-4-6")
 		systemPrompt := defaultString(req.SystemPrompt, defaultSystemPrompt)
+		id := "agent_local_" + now.Format("20060102150405")
+		configYAML := defaultString(req.ConfigYAML, agentConfigYAML(name, model, description, systemPrompt))
 		agent := Agent{
-			ID:           "agent_local_" + now.Format("20060102150405"),
+			ID:           id,
 			Name:         name,
 			Model:        model,
 			Status:       "Active",
@@ -545,11 +565,14 @@ func createAgent(db *gorm.DB) gin.HandlerFunc {
 			Tools:        "agent_toolset_20260401",
 			Skills:       "[]",
 			Version:      "v1",
-			ConfigYAML:   defaultString(req.ConfigYAML, agentConfigYAML(name, model, description, systemPrompt)),
+			ConfigYAML:   configYAML,
 			CreatedLabel: "just now",
 			UpdatedLabel: "just now",
 			CreatedAt:    now,
 			UpdatedAt:    now,
+			Versions: []AgentVersion{
+				agentVersionSnapshot(id, "v1", name, description, model, systemPrompt, configYAML, now),
+			},
 		}
 		if err := db.Create(&agent).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -598,8 +621,22 @@ func updateAgent(db *gorm.DB) gin.HandlerFunc {
 		}
 		agent.Version = nextAgentVersion(agent.Version)
 		agent.UpdatedLabel = "just now"
-		agent.UpdatedAt = time.Now().UTC()
-		if err := db.Save(&agent).Error; err != nil {
+		now := time.Now().UTC()
+		agent.UpdatedAt = now
+		version := agentVersionSnapshot(agent.ID, agent.Version, agent.Name, agent.Description, agent.Model, agent.SystemPrompt, agent.ConfigYAML, now)
+		err := db.Transaction(func(tx *gorm.DB) error {
+			if err := tx.Save(&agent).Error; err != nil {
+				return err
+			}
+			return tx.Create(&version).Error
+		})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		if err := db.Preload("Versions", func(tx *gorm.DB) *gorm.DB {
+			return tx.Order("created_at desc")
+		}).First(&agent, "id = ?", agent.ID).Error; err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 			return
 		}
@@ -2529,6 +2566,20 @@ tools:
     type: agent_toolset_20260401
 skills: []
 metadata: {}`, name, model, description, systemPrompt)
+}
+
+func agentVersionSnapshot(agentID, version, name, description, model, systemPrompt, configYAML string, ts time.Time) AgentVersion {
+	return AgentVersion{
+		ID:           fmt.Sprintf("agv_local_%s%09d", ts.Format("20060102150405"), ts.Nanosecond()),
+		AgentID:      agentID,
+		Version:      version,
+		Name:         name,
+		Description:  description,
+		Model:        model,
+		SystemPrompt: systemPrompt,
+		ConfigYAML:   configYAML,
+		CreatedAt:    ts,
+	}
 }
 
 func nextAgentVersion(current string) string {

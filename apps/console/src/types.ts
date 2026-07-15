@@ -8,13 +8,23 @@ export type Agent = {
   tools: string;
   skills: string;
   version: string;
-  /** Full version history, newest first. Falls back to a single entry built from `version`/`createdAt` when absent. */
-  versions?: { version: string; createdAt: string }[];
+  /** Full version history, newest first, each carrying the editable-field snapshot saved at that version. Falls back to a single entry built from the agent's current fields when absent. */
+  versions?: AgentVersionEntry[];
   configYaml: string;
   createdLabel: string;
   updatedLabel: string;
   createdAt: string;
   updatedAt: string;
+};
+
+export type AgentVersionEntry = {
+  version: string;
+  name: string;
+  description: string;
+  model: string;
+  systemPrompt: string;
+  configYaml: string;
+  createdAt: string;
 };
 
 export type UpdateAgentInput = {

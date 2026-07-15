@@ -75,7 +75,7 @@ import {
   updateEnvironment
 } from "./api";
 import { Badge, Button, CdsDropdownMenu, CdsTabs, ConsoleDialog, CopyableIdText, CopyIconButton, CopyIdButton, DataTable, FieldSelect, showToast, SidebarItem, TextInput, ToastViewport } from "./components/cds";
-import type { Agent, CollectionName, Deployment, Environment, MemoryRecord, MemoryStore, Resource, Session, SessionEvent, SkillPackage, SkillVersion, UpdateDeploymentInput, Vault, VaultCredential, WorkspaceFile } from "./types";
+import type { Agent, AgentVersionEntry, CollectionName, Deployment, Environment, MemoryRecord, MemoryStore, Resource, Session, SessionEvent, SkillPackage, SkillVersion, UpdateDeploymentInput, Vault, VaultCredential, WorkspaceFile } from "./types";
 
 const managedRoutes: { path: CollectionName; title: string; description: string; action: string }[] = [];
 const sidebarCollapsedStorageKey = "managed-agents.sidebar.collapsed";
@@ -1003,8 +1003,8 @@ function SessionsPage() {
               header: "ID",
               width: "160px",
               render: (session) => (
-                <div className="group/cid flex items-center gap-1">
-                  <span className="font-mono font-semibold">{shortId(session.id)}</span>
+                <div className="group/cid flex items-center gap-1 font-mono text-xs [font-weight:550]">
+                  <span>{shortId(session.id)}</span>
                   <CopyIdButton value={session.id} />
                 </div>
               )
@@ -1217,7 +1217,16 @@ function SessionDetailPage() {
               <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
             </Button>
             {eventSearchOpen ? (
-              <TextInput className="w-[220px]" aria-label="Filter events" placeholder="Filter events" value={eventSearch} onChange={(event) => setEventSearch(event.target.value)} />
+              <div className="relative w-[220px]">
+                <TextInput
+                  className={eventSearch ? "pr-8" : ""}
+                  aria-label="Filter events"
+                  placeholder="Filter events"
+                  value={eventSearch}
+                  onChange={(event) => setEventSearch(event.target.value)}
+                />
+                {eventSearch ? <SearchClearButtonAbsolute onClear={() => setEventSearch("")} /> : null}
+              </div>
             ) : null}
           </div>
           <div className="flex gap-2">
@@ -1378,7 +1387,7 @@ function DeploymentFilterSelect({
                 type="button"
                 role="option"
                 aria-selected={value === option.value}
-                className={`flex w-full items-center justify-between rounded-[8px] px-3 text-left text-sm leading-5 text-ink outline-none hover:bg-fill aria-selected:bg-black/[0.05] ${itemHeight}`}
+                className={`flex w-full items-center justify-between rounded-[8px] px-3 text-left text-sm leading-5 text-ink outline-none hover:bg-fill ${itemHeight}`}
                 onClick={() => {
                   onValueChange(option.value);
                   setOpen(false);
@@ -1389,7 +1398,7 @@ function DeploymentFilterSelect({
                   <span className="truncate">{option.label}</span>
                   {option.helper ? <span className="truncate text-xs leading-4 text-muted">{option.helper}</span> : null}
                 </span>
-                {value === option.value ? <Check className="h-4 w-4 shrink-0 text-muted" /> : null}
+                {value === option.value ? <Check className="h-4 w-4 shrink-0 text-[#184F95]" /> : null}
               </button>
             ))}
           </div>
@@ -1464,6 +1473,7 @@ function DeploymentsPage() {
               value={search}
               onChange={(event) => setSearch(event.target.value)}
             />
+            {search ? <SearchClearButton onClear={() => setSearch("")} /> : null}
           </div>
           <span aria-hidden="true" className="h-1 px-1 text-xs text-transparent" />
         </div>
@@ -1503,8 +1513,8 @@ function DeploymentsPage() {
               header: "ID",
               width: "160px",
               render: (deployment) => (
-                <div className="group/cid flex min-w-0 items-center gap-2">
-                  <span className="truncate font-mono font-semibold">{shortId(deployment.id)}</span>
+                <div className="group/cid flex min-w-0 items-center gap-2 font-mono text-xs [font-weight:550]">
+                  <span className="truncate">{shortId(deployment.id)}</span>
                   <CopyIdButton value={deployment.id} />
                 </div>
               )
@@ -1914,6 +1924,7 @@ function EnvironmentsPage() {
               value={search}
               onChange={(event) => setSearch(event.target.value)}
             />
+            {search ? <SearchClearButton onClear={() => setSearch("")} /> : null}
           </div>
           <span aria-hidden="true" className="h-1 px-1 text-xs text-transparent" />
         </div>
@@ -2360,6 +2371,7 @@ function VaultsPage() {
               value={search}
               onChange={(event) => setSearch(event.target.value)}
             />
+            {search ? <SearchClearButton onClear={() => setSearch("")} /> : null}
           </div>
           <span aria-hidden="true" className="h-1 px-1 text-xs text-transparent" />
         </div>
@@ -2385,8 +2397,8 @@ function VaultsPage() {
               header: "ID",
               width: "216px",
               render: (vault) => (
-                <div className="group/cid flex items-center gap-2">
-                  <span className="font-mono font-semibold">{shortId(vault.id)}</span>
+                <div className="group/cid flex items-center gap-2 font-mono text-xs [font-weight:550]">
+                  <span>{shortId(vault.id)}</span>
                   <CopyIdButton value={vault.id} />
                 </div>
               )
@@ -2562,14 +2574,14 @@ function VaultDetailPage() {
             header: "ID",
             width: "200px",
             render: (credential) => (
-              <div className="group/cid flex items-center gap-2">
-                <span className="font-mono font-semibold">{shortCredentialId(credential.id)}</span>
+              <div className="group/cid flex items-center gap-2 font-mono text-xs [font-weight:550]">
+                <span>{shortCredentialId(credential.id)}</span>
                 <span className="hidden">{credential.id}</span>
                 <CopyIdButton value={credential.id} />
               </div>
             )
           },
-          { key: "name", header: "Name", width: "180px", render: (credential) => <span className="font-medium">{credential.name}</span> },
+          { key: "name", header: "Name", width: "180px", render: (credential) => <span className="block truncate [font-weight:400]">{credential.name}</span> },
           {
             key: "auth",
             header: "Auth",
@@ -2698,6 +2710,7 @@ function MemoryStoresPage() {
               value={query}
               onChange={(event) => setQuery(event.target.value)}
             />
+            {query ? <SearchClearButton onClear={() => setQuery("")} /> : null}
           </div>
           <span aria-hidden="true" className="h-1 px-1 text-xs text-transparent" />
         </div>
@@ -3045,12 +3058,13 @@ function FilesPage() {
             <div className="relative w-[486px]">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
               <TextInput
-                className="pl-9"
+                className="pl-9 pr-8"
                 aria-label="Search by name or exact ID"
                 placeholder="Search by name or exact ID"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
               />
+              {query ? <SearchClearButtonAbsolute onClear={() => setQuery("")} /> : null}
             </div>
             <FieldSelect label="Kind" value={kind} options={["All", "Document", "Image", "Text", "Archive", "File"]} onValueChange={setKind} />
             <FieldSelect label="Status" value={status} options={["All", "Available", "Quarantined", "Deleted"]} onValueChange={setStatus} />
@@ -3064,8 +3078,8 @@ function FilesPage() {
                 header: "ID",
                 width: "210px",
                 render: (file) => (
-                  <div className="group/cid flex items-center gap-2">
-                    <span className="font-mono font-semibold">{shortId(file.id)}</span>
+                  <div className="group/cid flex items-center gap-2 font-mono text-xs [font-weight:550]">
+                    <span>{shortId(file.id)}</span>
                     <CopyIdButton value={file.id} />
                   </div>
                 )
@@ -3075,7 +3089,7 @@ function FilesPage() {
                 header: "Name",
                 width: "360px",
                 render: (file) => (
-                  <Link className="font-medium hover:underline" to={`/files/${file.id}`}>
+                  <Link className="block truncate [font-weight:400]" to={`/files/${file.id}`}>
                     {file.name}
                   </Link>
                 )
@@ -3186,11 +3200,11 @@ function FilesLanguageMenu({ language, onLanguageChange }: { language: string; o
               <CdsDropdownMenu.RadioItem
                 key={option}
                 value={option}
-                className="flex h-8 w-[120px] cursor-pointer items-center gap-2 rounded-[8px] px-2.5 text-sm leading-5 outline-none data-[highlighted]:bg-fill data-[state=checked]:bg-fill"
+                className="flex h-8 w-[120px] cursor-pointer items-center gap-2 rounded-[8px] px-2.5 text-sm leading-5 outline-none data-[highlighted]:bg-fill"
               >
                 <span className="min-w-0 flex-1 truncate">{option}</span>
                 <CdsDropdownMenu.ItemIndicator>
-                  <CdsIconGlyph glyph="" className="h-4 w-4 shrink-0 text-[#898781] text-[16px] [font-weight:533.25]" />
+                  <CdsIconGlyph glyph="" className="h-4 w-4 shrink-0 text-[#184F95] text-[16px] [font-weight:533.25]" />
                 </CdsDropdownMenu.ItemIndicator>
               </CdsDropdownMenu.RadioItem>
             ))}
@@ -3372,14 +3386,33 @@ function AgentDetailPage() {
   const [editOpen, setEditOpen] = useState(false);
   const [archiveOpen, setArchiveOpen] = useState(false);
   const [toolPermissionsOpen, setToolPermissionsOpen] = useState(false);
+  const [viewedVersion, setViewedVersion] = useState<string | null>(null);
 
   useEffect(() => {
-    if (id) getAgent(id).then(setAgent).catch(() => setAgent(null));
+    if (id) {
+      getAgent(id)
+        .then((data) => {
+          setAgent(data);
+          setViewedVersion(null);
+        })
+        .catch(() => setAgent(null));
+    }
   }, [id]);
 
   if (!agent) return <EmptyState title="Agent not found" description="The selected agent could not be loaded." />;
 
   const currentAgent = agent;
+  const fallbackVersionEntry: AgentVersionEntry = {
+    version: agent.version || "v1",
+    name: agent.name,
+    description: agent.description,
+    model: agent.model,
+    systemPrompt: agent.systemPrompt,
+    configYaml: agent.configYaml,
+    createdAt: agent.createdAt
+  };
+  const versionEntries = agent.versions?.length ? agent.versions : [fallbackVersionEntry];
+  const selectedVersion = versionEntries.find((entry) => entry.version === (viewedVersion ?? agent.version)) ?? versionEntries[0];
 
   async function archiveCurrent() {
     const updated = await archiveAgent(currentAgent.id);
@@ -3460,7 +3493,7 @@ function AgentDetailPage() {
         </CdsTabs.List>
         <CdsTabs.Content value="agent" className="grid w-full max-w-3xl">
           <div>
-            <Select.Root value={agent.version || "v1"} onValueChange={() => undefined}>
+            <Select.Root value={selectedVersion.version} onValueChange={setViewedVersion}>
               <div data-cds="FieldSelect" className={`${topFilterShellClassName} w-[112px]`}>
                 <Select.Trigger
                   data-cds="Button"
@@ -3469,7 +3502,7 @@ function AgentDetailPage() {
                 >
                   <span className="flex min-w-0 flex-1 items-baseline gap-1 whitespace-nowrap">
                     <span className="shrink-0 text-muted">Version:</span>
-                    <Select.Value className="min-w-0 truncate font-mono text-[13px]">{agent.version || "v1"}</Select.Value>
+                    <Select.Value className="min-w-0 truncate font-mono text-[13px]">{selectedVersion.version}</Select.Value>
                   </span>
                   <Select.Icon className="shrink-0">
                     <CdsIconGlyph glyph="" className="mr-0.5 h-4 w-4 text-[#898781] text-[16px] [font-weight:533.25]" />
@@ -3483,7 +3516,7 @@ function AgentDetailPage() {
                   className="z-50 w-[256px] rounded-[12px] border-[0.5px] border-[rgba(11,11,11,0.1)] bg-white p-1 shadow-[0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
                 >
                   <Select.Viewport>
-                    {(agent.versions?.length ? agent.versions : [{ version: agent.version || "v1", createdAt: agent.createdAt }]).map((entry) => (
+                    {versionEntries.map((entry) => (
                       <Select.Item
                         key={entry.version}
                         value={entry.version}
@@ -3506,13 +3539,13 @@ function AgentDetailPage() {
             </Select.Root>
           </div>
           <AgentConfigSection title="Model" headingClassName={agentDetailHeadingClass}>
-            <div className={`mt-3 font-mono ${agentDetailBodyClass}`}>{agent.model}</div>
+            <div className={`mt-3 font-mono ${agentDetailBodyClass}`}>{selectedVersion.model}</div>
           </AgentConfigSection>
           <AgentConfigSection title="System prompt" headingClassName={agentDetailHeadingClass} separated>
             <div className="group/codeblock relative mt-2 rounded-[8px] bg-[#f9f9f7] px-4 py-4">
-              <pre className="max-h-[120px] overflow-hidden whitespace-pre-wrap font-mono text-sm leading-5 text-ink">{agent.systemPrompt}</pre>
+              <pre className="max-h-[120px] overflow-hidden whitespace-pre-wrap font-mono text-sm leading-5 text-ink">{selectedVersion.systemPrompt}</pre>
               <CopyIconButton
-                value={agent.systemPrompt}
+                value={selectedVersion.systemPrompt}
                 ariaLabel="Copy to clipboard"
                 className="absolute right-2 top-2 h-7 w-7 px-0 text-muted !opacity-0 transition-opacity hover:bg-white hover:text-[#52514e] focus-visible:!opacity-100 group-hover/codeblock:!opacity-100"
               />
@@ -3581,6 +3614,7 @@ function AgentDetailPage() {
         onOpenChange={setEditOpen}
         onSaved={(updated) => {
           setAgent(updated);
+          setViewedVersion(null);
           setEditOpen(false);
         }}
       />
@@ -3655,8 +3689,8 @@ function AgentSessionsPanel({ agent }: { agent: Agent }) {
             header: "ID",
             width: "160px",
             render: (session) => (
-              <div className="group/cid flex items-center gap-2">
-                <span className="font-mono font-semibold">{shortId(session.id)}</span>
+              <div className="group/cid flex items-center gap-2 font-mono text-xs [font-weight:550]">
+                <span>{shortId(session.id)}</span>
                 <CopyIdButton value={session.id} />
               </div>
             )
@@ -3666,7 +3700,7 @@ function AgentSessionsPanel({ agent }: { agent: Agent }) {
             header: "Name",
             width: "180px",
             render: (session) => (
-              <Link className="block truncate font-medium hover:underline" to={`/sessions/${session.id}`}>
+              <Link className="block truncate [font-weight:400]" to={`/sessions/${session.id}`}>
                 {session.name}
               </Link>
             )
@@ -3742,8 +3776,8 @@ function AgentDeploymentsPanel({ agent }: { agent: Agent }) {
               header: "ID",
               width: "160px",
               render: (deployment) => (
-                <div className="group/cid flex min-w-0 items-center gap-2">
-                  <span className="truncate font-mono font-semibold">{shortId(deployment.id)}</span>
+                <div className="group/cid flex min-w-0 items-center gap-2 font-mono text-xs [font-weight:550]">
+                  <span className="truncate">{shortId(deployment.id)}</span>
                   <CopyIdButton value={deployment.id} />
                 </div>
               )
@@ -3753,7 +3787,7 @@ function AgentDeploymentsPanel({ agent }: { agent: Agent }) {
               header: "Name",
               width: "260px",
               render: (deployment) => (
-                <Link className="block truncate font-medium hover:underline" to={`/deployments/${deployment.id}`}>
+                <Link className="block truncate [font-weight:400]" to={`/deployments/${deployment.id}`}>
                   {deployment.name}
                 </Link>
               )
@@ -4583,6 +4617,7 @@ function CreateSessionAgentPicker({
               onKeyDownCapture={(event) => event.stopPropagation()}
               onKeyDown={(event) => event.stopPropagation()}
             />
+            {search ? <SearchClearButton onClear={() => setSearch("")} /> : null}
           </div>
           <Select.Viewport className="max-h-[230px] overflow-y-auto overflow-x-hidden">
             {filteredOptions.map((option) => (
@@ -4598,7 +4633,7 @@ function CreateSessionAgentPicker({
                   <span className="truncate text-xs leading-4 text-[#898781]">{option.updated}</span>
                 </div>
                 <Select.ItemIndicator>
-                  <Check className="h-4 w-4 shrink-0 text-[#898781]" />
+                  <Check className="h-4 w-4 shrink-0 text-[#184F95]" />
                 </Select.ItemIndicator>
               </Select.Item>
             ))}
@@ -4695,6 +4730,7 @@ function CreateSessionEnvironmentPicker({
               onKeyDownCapture={(event) => event.stopPropagation()}
               onKeyDown={(event) => event.stopPropagation()}
             />
+            {search ? <SearchClearButton onClear={() => setSearch("")} /> : null}
           </div>
           <Select.Viewport className="max-h-[192px] overflow-y-auto overflow-x-hidden">
             {filteredOptions.map((option) => (
@@ -4714,7 +4750,7 @@ function CreateSessionEnvironmentPicker({
                   </span>
                 </div>
                 <Select.ItemIndicator>
-                  <Check className="h-4 w-4 shrink-0 text-[#898781]" />
+                  <Check className="h-4 w-4 shrink-0 text-[#184F95]" />
                 </Select.ItemIndicator>
               </Select.Item>
             ))}
@@ -5050,6 +5086,7 @@ function DeploymentAgentPicker({
               onChange={(event) => setSearch(event.target.value)}
               onKeyDown={(event) => event.stopPropagation()}
             />
+            {search ? <SearchClearButton onClear={() => setSearch("")} /> : null}
           </div>
           <div role="listbox" className="grid max-h-[275px] gap-0 overflow-y-auto overflow-x-hidden">
             {filteredOptions.map((option) => (
@@ -5133,6 +5170,7 @@ function DeploymentEnvironmentPicker({
               onChange={(event) => setSearch(event.target.value)}
               onKeyDown={(event) => event.stopPropagation()}
             />
+            {search ? <SearchClearButton onClear={() => setSearch("")} /> : null}
           </div>
           <div role="listbox" className="grid max-h-[192px] gap-0 overflow-y-auto overflow-x-hidden">
             {filteredOptions.map((option) => (
@@ -5252,18 +5290,21 @@ function CreateSessionVaultPicker({
           role="dialog"
           className="absolute left-0 top-[38px] z-50 max-h-[238px] w-full overflow-hidden rounded-[12px] bg-white p-1 shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
         >
-          <input
-            ref={searchInputRef}
-            className="-mx-1 -mt-1 mb-1 block h-[37px] w-[calc(100%+8px)] shrink-0 border-0 border-b border-line bg-transparent px-4 py-2 text-sm leading-5 text-ink outline-none placeholder:text-[#898781]"
-            aria-label="Search credential vaults"
-            autoFocus
-            placeholder="Search vaults by name or exact ID"
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            onPointerDown={(event) => event.stopPropagation()}
-            onKeyDownCapture={(event) => event.stopPropagation()}
-            onKeyDown={(event) => event.stopPropagation()}
-          />
+          <div role="combobox" aria-expanded="true" className="-mx-1 -mt-1 mb-1 flex h-[37px] w-[calc(100%+8px)] shrink-0 items-center border-b border-line px-4 py-2">
+            <input
+              ref={searchInputRef}
+              className={createSessionSearchInputClass}
+              aria-label="Search credential vaults"
+              autoFocus
+              placeholder="Search vaults by name or exact ID"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              onPointerDown={(event) => event.stopPropagation()}
+              onKeyDownCapture={(event) => event.stopPropagation()}
+              onKeyDown={(event) => event.stopPropagation()}
+            />
+            {search ? <SearchClearButton onClear={() => setSearch("")} /> : null}
+          </div>
           <div role="listbox" className="grid max-h-[92px] gap-0 overflow-y-auto overflow-x-hidden">
             {filteredOptions.map((option) => (
               <button
@@ -5329,6 +5370,7 @@ function DeploymentVaultPicker({ value, onValueChange }: { value: string; onValu
               onChange={(event) => setSearch(event.target.value)}
               onKeyDown={(event) => event.stopPropagation()}
             />
+            {search ? <SearchClearButton onClear={() => setSearch("")} /> : null}
           </div>
           <div role="listbox" className="grid max-h-[92px] gap-0 overflow-y-auto overflow-x-hidden">
             {filteredOptions.map((option) => (
@@ -5441,6 +5483,7 @@ function DeploymentMemoryStorePicker({ value, onValueChange }: { value: string; 
               onChange={(event) => setSearch(event.target.value)}
               onKeyDown={(event) => event.stopPropagation()}
             />
+            {search ? <SearchClearButton onClear={() => setSearch("")} /> : null}
           </div>
           <div role="listbox" className="grid max-h-[184px] gap-0 overflow-y-auto overflow-x-hidden">
             {filteredOptions.map((option) => (
@@ -6450,7 +6493,7 @@ function CredentialAuthTypeSelect({ value, onValueChange }: { value: string; onV
               <Select.Item
                 key={option.value}
                 value={option.value}
-                className="flex min-h-12 w-full select-none items-center gap-2 rounded-[8px] px-3 py-1 text-sm leading-5 text-ink outline-none data-[highlighted]:bg-fill data-[state=checked]:bg-[rgba(11,11,11,0.05)]"
+                className="flex min-h-12 w-full select-none items-center gap-2 rounded-[8px] px-3 py-1 text-sm leading-5 text-ink outline-none data-[highlighted]:bg-fill"
               >
                 <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                   <Select.ItemText>
@@ -6459,7 +6502,7 @@ function CredentialAuthTypeSelect({ value, onValueChange }: { value: string; onV
                   <span className="whitespace-normal break-words text-[13px] leading-[17.875px] text-[#898781]">{option.description}</span>
                 </div>
                 <Select.ItemIndicator>
-                  <CdsIconGlyph glyph="" className="h-4 w-4 shrink-0 text-[#898781] text-[16px] [font-weight:533.25]" />
+                  <CdsIconGlyph glyph="" className="h-4 w-4 shrink-0 text-[#184F95] text-[16px] [font-weight:533.25]" />
                 </Select.ItemIndicator>
               </Select.Item>
             ))}
@@ -7046,7 +7089,7 @@ function EnvironmentConfirmationDialog({
               </Button>
             </Dialog.Close>
             <Button
-              className={`h-8 rounded-[8px] bg-[#b33f31] px-0 text-sm text-white [font-weight:550] hover:bg-[#a5362a] ${isDelete ? "w-[67px]" : "w-[75px]"}`}
+              className={`h-8 rounded-[8px] !bg-[#d03b3b] px-0 text-sm text-white [font-weight:550] hover:!bg-[#b83232] ${isDelete ? "w-[67px]" : "w-[75px]"}`}
               onClick={onConfirm}
             >
               {confirmLabel}
@@ -7132,7 +7175,7 @@ function VaultConfirmationDialog({
               </Button>
             </Dialog.Close>
             <Button
-              className={`h-8 rounded-[8px] bg-[#b33f31] px-0 text-sm text-white [font-weight:550] hover:bg-[#a5362a] ${isDelete ? "w-[67px]" : "w-[75px]"}`}
+              className={`h-8 rounded-[8px] !bg-[#d03b3b] px-0 text-sm text-white [font-weight:550] hover:!bg-[#b83232] ${isDelete ? "w-[67px]" : "w-[75px]"}`}
               onClick={onConfirm}
             >
               {confirmLabel}
@@ -7260,7 +7303,7 @@ function MemoryStoreConfirmationDialog({
               </Button>
             </Dialog.Close>
             <Button
-              className={`h-8 rounded-[8px] bg-[#b33f31] px-0 text-sm text-white [font-weight:550] hover:bg-[#a5362a] ${isDelete ? "w-[67px]" : "w-[75px]"}`}
+              className={`h-8 rounded-[8px] !bg-[#d03b3b] px-0 text-sm text-white [font-weight:550] hover:!bg-[#b83232] ${isDelete ? "w-[67px]" : "w-[75px]"}`}
               onClick={onConfirm}
             >
               {confirmLabel}
@@ -7360,7 +7403,7 @@ function SessionArchiveDialog({
                 Cancel
               </Button>
             </Dialog.Close>
-            <Button className="h-8 w-[75px] rounded-[8px] bg-[#b33f31] px-0 text-sm text-white [font-weight:550] hover:bg-[#a5362a]" onClick={onConfirm}>
+            <Button className="h-8 w-[75px] rounded-[8px] !bg-[#d03b3b] px-0 text-sm text-white [font-weight:550] hover:!bg-[#b83232]" onClick={onConfirm}>
               Archive
             </Button>
           </div>
@@ -7428,7 +7471,7 @@ function DeploymentArchiveDialog({
                 Cancel
               </Button>
             </Dialog.Close>
-            <Button className="h-8 w-[75px] rounded-[8px] bg-[#b33f31] px-0 text-sm text-white [font-weight:550] hover:bg-[#a5362a]" onClick={onConfirm}>
+            <Button className="h-8 w-[75px] rounded-[8px] !bg-[#d03b3b] px-0 text-sm text-white [font-weight:550] hover:!bg-[#b83232]" onClick={onConfirm}>
               Archive
             </Button>
           </div>
@@ -7633,7 +7676,7 @@ function AskClaudeDialog({
               value={message}
               onChange={(event) => setMessage(event.target.value)}
             />
-            <Button className="h-8 w-8 rounded-[8px] bg-[#c6613f] px-0 hover:bg-[#b95435]" aria-label="Send message" disabled={!canSend} type="submit">
+            <Button className="h-8 w-8 rounded-[8px] !bg-[#c6613f] px-0 hover:!bg-[#b95435]" aria-label="Send message" disabled={!canSend} type="submit">
               <Send className="h-4 w-4" />
             </Button>
           </div>
@@ -7672,7 +7715,7 @@ function AgentArchiveDialog({
                 Cancel
               </Button>
             </Dialog.Close>
-            <Button className="h-8 w-[117px] rounded-[8px] bg-[#d03b3b] px-0 text-sm text-white [font-weight:550] hover:bg-[#b83232]" onClick={onConfirm}>
+            <Button className="h-8 w-[117px] rounded-[8px] !bg-[#d03b3b] px-0 text-sm text-white [font-weight:550] hover:!bg-[#b83232]" onClick={onConfirm}>
               Archive agent
             </Button>
           </div>
@@ -7828,8 +7871,8 @@ function CollectionPage({ route }: { route: { path: CollectionName; title: strin
           rows={items}
           getKey={(item) => item.id}
           columns={[
-            { key: "id", header: "ID", width: "210px", render: (item) => <span className="font-mono font-semibold">{item.id}</span> },
-            { key: "name", header: "Name", width: "340px", render: (item) => <span className="font-medium">{item.name}</span> },
+            { key: "id", header: "ID", width: "210px", render: (item) => <span className="font-mono text-xs [font-weight:550]">{item.id}</span> },
+            { key: "name", header: "Name", width: "340px", render: (item) => <span className="block truncate [font-weight:400]">{item.name}</span> },
             { key: "primary", header: "Primary", width: "240px", render: (item) => <span className="text-muted">{item.primary}</span> },
             { key: "status", header: "Status", width: "150px", render: (item) => <Badge tone={item.status === "Failed" ? "red" : "green"}>{item.status}</Badge> },
             { key: "updated", header: "Last updated", width: "180px", render: (item) => <span className="text-muted">{item.secondary}</span> }
@@ -8060,6 +8103,20 @@ function SearchClearButton({ onClear }: { onClear: () => void }) {
       variant="ghost"
       size="sm"
       className="-mr-1.5 ml-1 h-[22px] w-[22px] shrink-0 !rounded-[6px] !px-0 !text-ink"
+      aria-label="Clear search"
+      onClick={onClear}
+    >
+      <CdsIconGlyph glyph={""} className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
+    </Button>
+  );
+}
+
+function SearchClearButtonAbsolute({ onClear }: { onClear: () => void }) {
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      className="absolute right-1.5 top-1/2 h-[22px] w-[22px] -translate-y-1/2 shrink-0 !rounded-[6px] !px-0 !text-ink"
       aria-label="Clear search"
       onClick={onClear}
     >
