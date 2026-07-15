@@ -374,6 +374,18 @@ single `--fw-emphasis: 500` token when the variable font is missing.
   full/pill. A copy-code icon button sits at the header's trailing edge,
   **always visible** (not hover-revealed) since it's part of a persistent
   toolbar, not an overlay on read-only text.
+- Environment editor select fields use the boxed field treatment from the
+  live console, not transparent inline triggers: `32px` height, `8px` radius,
+  `rgba(255,255,255,0.5)` fill, and `inset 0 0 0 1px rgba(11,11,11,0.1)`.
+  The select button inside remains transparent with `8px` left padding.
+- Environment package rows are one `36px` row: manager select, `8px` gap,
+  a bordered package input wrapper (`36px`, white fill, `8px` radius,
+  `1px rgba(11,11,11,0.1)` border, `4px 8px` padding), another `8px` gap,
+  then a `32px` icon delete button.
+- Environment metadata rows use two equal-width `36px` inputs plus an aligned
+  `32px` delete button with `8px` gaps. Save/Cancel sit in a right-aligned
+  footer: Cancel is the white/ring secondary button and Save changes is the
+  solid black primary button.
 - Read-only code surfaces embedded in prose (e.g. the agent detail page's
   "System prompt" block) are the opposite case: the copy button there is
   **hover-revealed** (`opacity-0` → `opacity-100` on hovering the block),
