@@ -69,6 +69,10 @@ Values are the observed computed colors. `#0B0B0B` is expressed by the app as
 - **Danger/link** (`#8E2626`): destructive-adjacent inline links such as
   "Turn on auto-reload", underlined with `rgba(142,38,38,0.4)`; also the Error
   badge text on fill `#FAD6D6`.
+- **Danger button fill** (`#D03B3B`, text white, hover `#B83232`): the solid
+  confirm button in destructive confirmation dialogs ("Archive agent", delete
+  dialogs). Distinct from the darker inline danger-link red above — this is a
+  saturated solid button fill, not a text/tint pairing.
 
 ### Transcript Role Colors (session detail)
 
@@ -153,6 +157,19 @@ single `--fw-emphasis: 500` token when the variable font is missing.
   radius `7px`, height `28px`, padding `0 10px`, font 14px/500.
 - **Icon button**: 28-32px square, transparent, icon color `#89857F`, radius
   `7px`; hover fill `rgba(11,11,11,0.05)`.
+- **Small secondary button** (e.g. "Generate" under a describe-agent textarea):
+  same ring + fill language as Secondary/ghost, scaled down — radius `7px`,
+  height `~28px`, padding `0 10px`, font 14px/550. Disabled state dims the
+  whole pill to `opacity: 0.5` — it still shows the ring, it does not disappear
+  into plain text. **Don't** render this as a bare `ghost` (text-only, no ring)
+  button; both idle and disabled states need the visible ring/fill or the
+  control reads as broken/invisible.
+- **Guardrail — idle fill must not out-rank hover/active**: when a button's
+  idle background is set with an `!important`-style override (e.g. a
+  one-off `!bg-white/50`), any `hover:`/`active:` background must be given the
+  **same** override weight, or the idle fill permanently wins and the button
+  never visibly reacts to hover or press. If you need a one-off idle fill,
+  add matching one-off hover/active fills alongside it.
 - **Pagination arrows**: **32×32 rounded-rect boxes**, radius `8px`, fill
   `rgba(255,255,255,0.1)`, with a hairline inset ring **plus a soft shadow**:
   `box-shadow: inset 0 0 0 1px rgba(11,11,11,0.1), 0 1px 2px rgba(0,0,0,0.05)`.
@@ -179,6 +196,10 @@ single `--fw-emphasis: 500` token when the variable font is missing.
   transparent/`rgba(255,255,255,0.5)`, padding `0 12px`, `gap: 8px` between
   prefix and input. Placeholder text muted (`#898781`), input text `#0B0B0B`,
   font 14px.
+- **Search clear button**: when the input has a value, a small clear button
+  (`aria-label="Clear search"`) appears inside the field on the right — a
+  ~22px square ghost icon button with an ink `×` glyph. Clicking it empties
+  the input and the button disappears.
 - **Search prefix varies by page**: Agents/Deployments/Environments use a
   16px magnifier glyph in `#89857F` (rendered as an icon-font glyph ``,
   not an SVG). **Sessions uniquely uses a plain "ID" text prefix** (14px,
@@ -192,9 +213,35 @@ single `--fw-emphasis: 500` token when the variable font is missing.
 
 ### Tables (list pages)
 
+- **Full-row link**: every list row navigates to the object's detail page.
+  Implemented as a link overlay, not a row `onClick`: an `<a>` with
+  `position: absolute; inset: 0; z-index: 1` stretched across the row (the
+  `<tr>` carries a `transform: translate(0,0)` so the absolute link sizes to
+  the row), pointing at the detail URL. Interactive elements inside the row —
+  selection checkbox, ID copy button, row `⋮` menu — sit above it with
+  `z-index: 10` so they don't trigger navigation; plain text/meta cells stay
+  below it and are click-through to the detail page. Middle-click/cmd-click
+  open-in-new-tab works because it is a real link.
 - **ID cell**: `anthropicMono` **12px / weight 550**, ink — slightly bolder
   than body text (use the `--fw-emphasis` fallback mapping below). The ID is a
   link; a small copy button (20px, muted `#898781` icon) fades in on row hover.
+- **ID copy button feedback**: hovering the copy button shows a tooltip
+  labeled "Copy" (see Tooltip below). On click, the copy glyph swaps to a
+  check glyph and the tooltip text changes to "Copied"; after **~2s** the
+  icon reverts to the copy glyph and the tooltip (if still hovered) reads
+  "Copy" again. No toast/snackbar is used — feedback is local to the button.
+  This same check+tooltip feedback rule applies to **every** copy affordance
+  in the app (code-block copy buttons, dropdown-menu "Copy ID" items, etc.),
+  not just table ID cells — a single shared component/hook should back all of
+  them so the timing and wording never drift.
+- **Detail-page header ID (breadcrumb-adjacent)**: unlike the list ID cell,
+  the object ID shown under a detail page's `h1` is **not** paired with a
+  separate copy icon. The ID text itself is the control: `role="button"`,
+  hover fill `rgba(11,11,11,0.05)` on the text (small `-mx-1 -my-0.5` inset
+  so the hover fill doesn't touch neighboring text), click copies and shows
+  the same Copy/Copied tooltip feedback. Use this pattern for every detail
+  page (agent, session, deployment, environment, vault, memory store, file),
+  not only the ones a bug report happens to mention.
 - **Reference chip** (Agent column, also env/agent chips on detail pages): a
   hoverable chip — `border: 0.5px solid rgba(11,11,11,0.1)`, radius `5.5px`,
   padding `2px 6px`, `gap: 6px`, 14px icon + 14px text both `#52514E`,
@@ -203,7 +250,23 @@ single `--fw-emphasis: 500` token when the variable font is missing.
   ink Name column).
 - **Row menu `⋮`**: the dots are **ink/near-black `#0B0B0B`** (not muted), in a
   28px icon button; hover fill `rgba(11,11,11,0.05)`.
-- Row hover: `rgba(11,11,11,0.05)` across the row.
+- Row hover: `rgba(11,11,11,0.05)` across the row. Selected/active rows use
+  the stronger `rgba(11,11,11,0.10)`.
+
+### Tooltip
+
+- Small ink-on-dark tooltip used on icon buttons (e.g. the ID copy button):
+  fill `#0B0B0B`, text `#FFFFFF`, radius `6px`, padding `3px 8px` (~24px
+  tall), font 13px / line-height 18px / weight 400, opens on the `bottom`
+  side with a `4px` offset, subtle scale/opacity enter transition.
+
+### Filter dropdown trigger (Created / Status / Agent …)
+
+- The trigger is a 32px pill (hairline ring, `rgba(255,255,255,0.5)` fill)
+  containing a muted label ("Created"), the selected value in ink, and a
+  muted chevron. **Width is content-driven — do not fix it.** The pill grows
+  and shrinks to fit the selected value (e.g. "All time" → "Last 24 hours"),
+  so long options never overflow the ring.
 
 ### Dropdown menu (filter, open state)
 
@@ -213,6 +276,44 @@ single `--fw-emphasis: 500` token when the variable font is missing.
 - Items: height `32px`, padding `4px 12px`, radius `8px`, 14px ink text.
   Hover: fill `rgba(11,11,11,0.05)`. **Selected item**: same faint fill plus a
   right-aligned **blue check `#184F95`** (16px).
+
+### Version / value-picker dropdown (single current value, e.g. "Version: v2")
+
+- Distinct from the filter dropdown above: this picks **one current value**
+  out of a history list (agent/skill versions), it does not toggle a filter.
+  Trigger: same 32px pill, but render the value in `anthropicMono` at 13px so
+  it visually separates from the "Version:" label instead of reading as one
+  run-on word; keep the label↔value gap at `gap-1` (4px, baseline-aligned).
+- **Selection reads via checkmark only.** Item background changes **only on
+  hover/highlight** (`rgba(11,11,11,0.05)`); do **not** give the
+  currently-selected item a permanent background fill — that collapses the
+  "which one is hovered" vs "which one is selected" distinction into one
+  color. The checkmark (`#184F95`, 20px, right-aligned) is the only marker
+  for "this is the current value."
+- Each item shows the version/value (mono, 14px, ink) stacked above a muted
+  13px "Created …" caption. Popover width ~`256px`.
+- The list must render every entry the object actually has (map over the full
+  version history), not a single hard-coded current-value item — the whole
+  point of the control is to browse past values once more than one exists.
+
+### Code editor / config panel (Create agent, Edit agent)
+
+- YAML/JSON config panels render a **line-number gutter**: fixed ~`40px`
+  column, right-aligned numbers, hairline right border
+  (`rgba(11,11,11,0.08)`), fill `#FAFAF8`, `anthropicMono` 13px muted
+  (`#898781`). The gutter and the code content scroll together as one unit
+  (they share a scroll container, or the gutter's vertical offset is synced
+  to the content's `scrollTop`) — never let the gutter and content scroll
+  independently.
+- Format toggle (YAML | JSON) is a small segmented control in the panel
+  header, `rgba(11,11,11,0.05)` track, white active-segment pill, radius
+  full/pill. A copy-code icon button sits at the header's trailing edge,
+  **always visible** (not hover-revealed) since it's part of a persistent
+  toolbar, not an overlay on read-only text.
+- Read-only code surfaces embedded in prose (e.g. the agent detail page's
+  "System prompt" block) are the opposite case: the copy button there is
+  **hover-revealed** (`opacity-0` → `opacity-100` on hovering the block),
+  because the block itself isn't a persistent toolbar surface.
 
 ### Modal dialog (Create session)
 
@@ -227,6 +328,25 @@ single `--fw-emphasis: 500` token when the variable font is missing.
   14px ink text.
 - Footer: right-aligned primary button; **disabled = `opacity: 0.5`** on the
   solid black button.
+
+### Toast (success/status notification)
+
+- Fires after a completed action (e.g. "Agent archived.") — not a dialog, no
+  confirmation needed, self-dismissing.
+- Position: fixed top-right, `16px` inset from top and right edges, stacked
+  column with `12px` gap for multiple toasts, width `360px`
+  (`max-width: calc(100vw - 2rem)` on narrow viewports).
+- Card: white fill, radius `12px`, ring + soft shadow
+  (`0 0 0 1px rgba(11,11,11,0.1), 0 8px 24px rgba(0,0,0,0.12), 0 2px 6px rgba(0,0,0,0.08)`),
+  padding `12px 16px`, 14px/20px ink text, single line of copy (no title, no
+  icon in the simple success case).
+- Lifecycle: enters with a translate+scale-in, auto-dismisses after **~4s**;
+  do not require the user to close it manually. `role="status"` /
+  `aria-live="polite"` so screen readers announce it without a focus steal.
+- Use for the result of a destructive/state-changing action once its
+  dialog has closed (archive, delete, etc.) — it is the confirmation that the
+  action actually happened, distinct from the confirmation dialog that asked
+  "are you sure."
 
 ### Session detail page (transcript viewer)
 
@@ -399,6 +519,7 @@ Border-first system. Prefer inset rings over shadows.
 | Boxed control | inset ring + `0 1px 2px rgba(0,0,0,0.05)`, fill `rgba(255,255,255,0.1)` | pagination arrows, segmented-control active segment |
 | Popover | ring + `0 4px 16px rgba(0,0,0,0.08)`, radius `12px`, padding `6px` | dropdown menus, row `⋮` action menus |
 | Modal | ring + large soft shadow, radius `12px`, scrim `rgba(0,0,0,0.4)` | Create session dialog |
+| Toast | ring + `0 8px 24px rgba(0,0,0,0.12), 0 2px 6px rgba(0,0,0,0.08)`, radius `12px`, fixed top-right, auto-dismiss ~4s | post-action success notifications |
 
 ## 7. Do's and Don'ts
 
@@ -417,6 +538,15 @@ Border-first system. Prefer inset rings over shadows.
 - Render object IDs and model slugs in monospace.
 - Provide search + filter dropdowns consistently on every list page.
 - Use an en dash `–` for empty cells.
+- Give every list-page detail route the same `max-w-none` full-width page
+  shell; only cap the *reading width* of prose-like content inside a tab
+  (e.g. `max-w-3xl` for a config/system-prompt column), never the page itself.
+- Build one shared component for each repeated interaction pattern (copy
+  feedback, search-clear button, filter dropdown, toast, full-row link) and
+  reuse it everywhere that pattern appears, instead of re-implementing the
+  same hover/feedback logic per page — divergence here is exactly how the
+  same bug (missing copy feedback, filter overflow, wrong hover color) ends
+  up needing to be fixed on every page individually.
 
 ### Don't
 
@@ -428,6 +558,12 @@ Border-first system. Prefer inset rings over shadows.
 - Don't turn list pages into card grids; cards are for dashboard summaries and
   repeated tiles only.
 - Don't rely on color alone for status — always pair tint + colored text label.
+- Don't fix a filter-dropdown trigger's pixel width — it must size to its
+  selected value's content, or long values (e.g. "Last 24 hours") overflow
+  the ring.
+- Don't give a value-picker dropdown item (version history, etc.) a permanent
+  selected background — only the checkmark should mark "selected"; background
+  is a hover/highlight-only affordance.
 
 ## 8. Responsive Behavior
 
@@ -464,7 +600,16 @@ Observed at desktop (~1800px). Mobile behavior is Inferred from the layout:
   collapsible nav groups, footer chips) + canvas main; list pages = title +
   subtitle + right primary action, filter bar (search + dropdowns), full-width
   table (mono ID, name, status/type/meta, `⋮`), pagination; dashboard = greeting
-  + metric cards + model tiles + resource cards.
+  + metric cards + model tiles + resource cards. Detail pages: full-width
+  `max-w-none` page shell (never a page-level width cap); a config-style tab
+  may cap its own reading column at `max-w-3xl`. Detail-page header ID is
+  click-to-copy text (no separate icon); list-row ID keeps a hover-fade copy
+  icon.
+- **Feedback conventions**: every copy affordance (list icon, header ID text,
+  code-block button, dropdown item) shows the same check-glyph + "Copy"/
+  "Copied" tooltip for ~2s. Destructive confirms use a solid `#D03B3B` button
+  (not the primary black) and, once the dialog closes, a top-right auto-
+  dismissing toast reports what happened (e.g. "Agent archived.").
 - **Short prompt**: "Build a quiet, information-dense light-mode ops console.
   Warm off-white canvas `#FCFCFB`, slightly darker `#F9F9F7` sidebar (~245px)
   with a serif 'Claude Console' wordmark, a workspace switcher pill, and

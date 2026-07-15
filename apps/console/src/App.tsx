@@ -74,7 +74,7 @@ import {
   updateDeployment,
   updateEnvironment
 } from "./api";
-import { Badge, Button, CdsDropdownMenu, CdsTabs, ConsoleDialog, DataTable, FieldSelect, SidebarItem, TextInput } from "./components/cds";
+import { Badge, Button, CdsDropdownMenu, CdsTabs, ConsoleDialog, CopyableIdText, CopyIconButton, CopyIdButton, DataTable, FieldSelect, showToast, SidebarItem, TextInput, ToastViewport } from "./components/cds";
 import type { Agent, CollectionName, Deployment, Environment, MemoryRecord, MemoryStore, Resource, Session, SessionEvent, SkillPackage, SkillVersion, UpdateDeploymentInput, Vault, VaultCredential, WorkspaceFile } from "./types";
 
 const managedRoutes: { path: CollectionName; title: string; description: string; action: string }[] = [];
@@ -169,11 +169,8 @@ export default function App() {
   });
   const showBanner = bannerRoute && bannerVisible;
   const fullWidthRoute = location.pathname.startsWith("/memory-stores/");
-  const agentDetailRoute = /^\/agents\/[^/]+/.test(location.pathname);
   const contentShellClass = fullWidthRoute
     ? "w-full max-w-none px-1 pb-8 pt-3"
-    : agentDetailRoute
-      ? `w-full overflow-hidden px-8 pb-8 ${showBanner ? "pt-3" : "pt-6"}`
     : `w-full max-w-none overflow-hidden px-8 pb-8 ${showBanner ? "pt-3" : "pt-6"}`;
   const routeShellClass = fullWidthRoute ? `px-7 ${showBanner ? "pt-6" : "pt-3"}` : showBanner ? "pt-6" : "";
 
@@ -183,6 +180,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-canvas text-ink">
+      <ToastViewport />
       <div className="flex min-h-screen">
         <Sidebar />
         <main className="min-w-0 flex-1">
@@ -780,6 +778,7 @@ function AgentsPage() {
     const updated = await archiveAgent(agent.id);
     setAgents((items) => status === "Archived" ? items.map((item) => (item.id === updated.id ? updated : item)) : items.filter((item) => item.id !== updated.id));
     setArchivingAgent(null);
+    showToast("Agent archived.");
   }
 
   return (
@@ -811,6 +810,7 @@ function AgentsPage() {
             value={search}
             onChange={(event) => setSearch(event.target.value)}
           />
+          {search ? <SearchClearButton onClear={() => setSearch("")} /> : null}
         </div>
         <FieldSelect
           label="Created"
@@ -818,7 +818,6 @@ function AgentsPage() {
           options={["All time", "Last 24 hours", "Last 7 days", "Last 30 days"]}
           onValueChange={setCreated}
           triggerShellClassName={topFilterShellClassName}
-          triggerClassName="w-[142px]"
         />
         <FieldSelect
           label="Status"
@@ -826,7 +825,6 @@ function AgentsPage() {
           options={["Active", "Archived", "All"]}
           onValueChange={setStatus}
           triggerShellClassName={topFilterShellClassName}
-          triggerClassName="w-[123px]"
         />
       </div>
       <DataTable
@@ -834,6 +832,7 @@ function AgentsPage() {
         tableClassName="w-[1106px] border-separate border-spacing-0 whitespace-nowrap"
         rows={agents}
         getKey={(agent) => agent.id}
+        getRowHref={(agent) => `/agents/${agent.id}`}
         columns={[
           {
             key: "id",
@@ -842,15 +841,7 @@ function AgentsPage() {
             render: (agent) => (
               <div className="group/cid flex items-center gap-1 font-mono text-xs [font-weight:550]">
                 <span>{shortId(agent.id)}</span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="-my-1 h-[22px] w-[22px] !rounded-[8px] !px-0 !text-[#898781] !opacity-0 hover:!bg-fill hover:!text-[#52514e] group-hover/cid:!opacity-100"
-                  aria-label={`Copy ${agent.id}`}
-                  onClick={() => copyText(agent.id)}
-                >
-                  <CdsIconGlyph glyph="" className="h-3.5 w-3.5 text-current text-[14px] [font-weight:628.5]" />
-                </Button>
+                <CopyIdButton value={agent.id} />
               </div>
             )
           },
@@ -877,6 +868,7 @@ function AgentsPage() {
         <PaginationButton direction="next" aria-label="Next page" disabled />
       </div>
       <AgentArchiveDialog
+        agentName={archivingAgent?.name ?? "this agent"}
         open={Boolean(archivingAgent)}
         onOpenChange={(open) => {
           if (!open) setArchivingAgent(null);
@@ -964,6 +956,7 @@ function SessionsPage() {
               value={search}
               onChange={(event) => setSearch(event.target.value)}
             />
+            {search ? <SearchClearButton onClear={() => setSearch("")} /> : null}
           </div>
           <span aria-hidden="true" className="h-1 px-1 text-xs text-transparent" />
         </div>
@@ -973,7 +966,6 @@ function SessionsPage() {
           options={["All time", "Last 24 hours", "Last 7 days", "Last 30 days"]}
           onValueChange={setCreated}
           triggerShellClassName={topFilterShellClassName}
-          triggerClassName="w-[142px]"
         />
         <FieldSelect
           label="Agent"
@@ -981,7 +973,6 @@ function SessionsPage() {
           options={["All", "agent_013mi1SmR2hJ6Hk6wNTeJvF9", "agent_017k8CPYuCFRD9AmupUeXd2Z"]}
           onValueChange={setAgent}
           triggerShellClassName={topFilterShellClassName}
-          triggerClassName="w-[112px]"
         />
         <FieldSelect
           label="Deployment"
@@ -989,7 +980,6 @@ function SessionsPage() {
           options={["All", "depl_01ERmHnRJWQSLyxk7pVCMZXs"]}
           onValueChange={setDeployment}
           triggerShellClassName={topFilterShellClassName}
-          triggerClassName="w-[136px]"
         />
         <FieldSelect
           label="Status"
@@ -997,7 +987,6 @@ function SessionsPage() {
           options={["Active", "Idle", "Archived", "All"]}
           onValueChange={setStatus}
           triggerShellClassName={topFilterShellClassName}
-          triggerClassName="w-[123px]"
         />
       </div>
       <div className="-mt-2">
@@ -1006,6 +995,7 @@ function SessionsPage() {
           tableClassName="w-[1066px] border-separate border-spacing-0 whitespace-nowrap"
           rows={visibleSessions}
           getKey={(session) => session.id}
+          getRowHref={(session) => `/sessions/${session.id}`}
           loading={loading}
           columns={[
             {
@@ -1015,15 +1005,7 @@ function SessionsPage() {
               render: (session) => (
                 <div className="group/cid flex items-center gap-1">
                   <span className="font-mono font-semibold">{shortId(session.id)}</span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="-my-1 h-[22px] w-[22px] !rounded-[8px] !px-0 !text-[#898781] !opacity-0 hover:!bg-fill hover:!text-[#52514e] group-hover/cid:!opacity-100"
-                    aria-label={`Copy ${session.id}`}
-                    onClick={() => copyText(session.id)}
-                  >
-                    <CdsIconGlyph glyph="" className="h-3.5 w-3.5 text-current text-[14px] [font-weight:628.5]" />
-                  </Button>
+                  <CopyIdButton value={session.id} />
                 </div>
               )
             },
@@ -1230,7 +1212,7 @@ function SessionDetailPage() {
                 </CdsTabs.Trigger>
               ))}
             </CdsTabs.List>
-            <FieldSelect label="" value={eventFilter} options={["All events", "User", "Agent", "Tool", "System"]} onValueChange={setEventFilter} triggerClassName="!h-7 w-[97px] px-2" />
+            <FieldSelect label="" value={eventFilter} options={["All events", "User", "Agent", "Tool", "System"]} onValueChange={setEventFilter} triggerClassName="!h-7 min-w-[97px] px-2" />
             <Button variant="icon" aria-label="Open search filter" onClick={() => setEventSearchOpen((open) => !open)}>
               <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
             </Button>
@@ -1242,9 +1224,7 @@ function SessionDetailPage() {
             <Button variant="icon" aria-label="Keyboard shortcuts">
               <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
             </Button>
-            <Button variant="icon" aria-label="Copy all" onClick={() => copyText(transcriptText)}>
-              <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
-            </Button>
+            <CopyIconButton value={transcriptText} ariaLabel="Copy all" className="h-7 w-7 !px-0" iconClassName="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
             <Button variant="icon" aria-label="Download" onClick={() => downloadText(`${session.id}-transcript.txt`, transcriptText)}>
               <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
             </Button>
@@ -1286,9 +1266,7 @@ function SessionDetailPage() {
                   <div className="mt-1 flex h-5 items-center gap-2 text-xs text-muted">
                     <span className="font-mono">{shortId(selectedEvent.id)}</span>
                     <span className="hidden font-mono">{selectedEvent.id}</span>
-                    <Button variant="ghost" size="sm" className="h-[20px] w-[20px] px-0" aria-label={`Copy ${selectedEvent.id}`} onClick={() => copyText(selectedEvent.id)}>
-                      <CdsIconGlyph glyph="" className="h-3.5 w-3.5 text-current text-[14px] [font-weight:628.5]" />
-                    </Button>
+                    <CopyIconButton value={selectedEvent.id} className="h-[20px] w-[20px] px-0" iconClassName="h-3.5 w-3.5 text-current text-[14px] [font-weight:628.5]" />
                     <span>·</span>
                     <span>{selectedEvent.offset}</span>
                   </div>
@@ -1527,15 +1505,7 @@ function DeploymentsPage() {
               render: (deployment) => (
                 <div className="group/cid flex min-w-0 items-center gap-2">
                   <span className="truncate font-mono font-semibold">{shortId(deployment.id)}</span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="-my-1 h-[22px] w-[22px] !rounded-[8px] !px-0 !text-[#898781] !opacity-0 hover:!bg-fill hover:!text-[#52514e] group-hover/cid:!opacity-100"
-                    aria-label={`Copy ${deployment.id}`}
-                    onClick={() => copyText(deployment.id)}
-                  >
-                    <CdsIconGlyph glyph="" className="h-3.5 w-3.5 text-current text-[14px] [font-weight:628.5]" />
-                  </Button>
+                  <CopyIdButton value={deployment.id} />
                 </div>
               )
             },
@@ -1690,21 +1660,7 @@ function DeploymentDetailPage() {
             <Badge tone={deploymentTone(deployment.status)}>{deployment.status}</Badge>
           </div>
           <div className="flex flex-wrap items-center gap-2 text-xs leading-4 text-muted">
-            <span
-              role="button"
-              tabIndex={0}
-              aria-label={`Copy ${shortDeploymentDetailId(deployment.id)}`}
-              className="relative -mx-1 -my-0.5 w-fit max-w-full cursor-pointer rounded-md px-1 py-0.5 text-xs text-muted transition-colors hover:bg-fill [font-weight:430]"
-              onClick={() => copyText(deployment.id)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" || event.key === " ") copyText(deployment.id);
-              }}
-            >
-              <span className="relative inline-block max-w-full truncate align-bottom font-mono text-xs text-muted [font-weight:430]">
-                {shortDeploymentDetailId(deployment.id)}
-                <span className="pointer-events-none absolute left-0 top-0 select-none whitespace-nowrap text-transparent">{deployment.id}</span>
-              </span>
-            </span>
+            <CopyableIdText value={deployment.id} display={shortDeploymentDetailId(deployment.id)} />
             <span>·</span>
             <span>Created {deployment.createdLabel === "Jun 16" ? "Jun 16, 2026" : deployment.createdLabel}</span>
           </div>
@@ -1782,14 +1738,7 @@ function DeploymentDetailPage() {
               <div className="flex flex-col gap-1">
                 <div className="group/value flex items-start gap-2 rounded-md border-[0.5px] border-[#dedbd2] bg-[#f9f9f7] px-3 py-2">
                   <pre className="min-w-0 flex-1 whitespace-pre-wrap break-all font-mono text-xs leading-4 text-[#4e4a45]">{deployment.schedule}</pre>
-                  <button
-                    type="button"
-                    className="-my-0.5 inline-flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-[8px] p-1 text-muted opacity-0 transition-colors hover:bg-fill hover:text-ink focus-visible:opacity-100 group-hover/value:opacity-100"
-                    aria-label="Copy"
-                    onClick={() => copyText(deployment.schedule)}
-                  >
-                    <CdsIconGlyph glyph="" className="h-4 w-4 text-[16px] [font-weight:533.25]" />
-                  </button>
+                  <CopyIconButton value={deployment.schedule} className="-my-0.5 h-[22px] w-[22px] shrink-0 rounded-[8px] p-1 text-muted !opacity-0 transition-colors hover:bg-fill hover:text-ink focus-visible:!opacity-100 group-hover/value:!opacity-100" iconClassName="h-4 w-4 text-[16px] [font-weight:533.25]" />
                 </div>
                 <span className="text-xs leading-4 text-muted">Timezone: {deployment.timezone}</span>
               </div>
@@ -1818,14 +1767,7 @@ function DeploymentDetailPage() {
           <DeploymentDetailSection title="Initial message">
             <div className="group/value flex items-start gap-2 rounded-md border-[0.5px] border-[#dedbd2] bg-[#f9f9f7] px-3 py-2">
               <pre className="min-w-0 flex-1 whitespace-pre-wrap break-all font-mono text-xs leading-4 text-[#4e4a45]">{deployment.initialMessage}</pre>
-              <button
-                type="button"
-                className="-my-0.5 inline-flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-[8px] p-1 text-muted opacity-0 transition-colors hover:bg-fill hover:text-ink focus-visible:opacity-100 group-hover/value:opacity-100"
-                aria-label="Copy"
-                onClick={() => copyText(deployment.initialMessage)}
-              >
-                <CdsIconGlyph glyph="" className="h-4 w-4 text-[16px] [font-weight:533.25]" />
-              </button>
+              <CopyIconButton value={deployment.initialMessage} className="-my-0.5 h-[22px] w-[22px] shrink-0 rounded-[8px] p-1 text-muted !opacity-0 transition-colors hover:bg-fill hover:text-ink focus-visible:!opacity-100 group-hover/value:!opacity-100" iconClassName="h-4 w-4 text-[16px] [font-weight:533.25]" />
             </div>
           </DeploymentDetailSection>
         </CdsTabs.Content>
@@ -1853,15 +1795,7 @@ function DeploymentDetailPage() {
                       {shortRunTableId(run.id)}
                       <span className="pointer-events-none absolute left-0 top-0 select-none whitespace-nowrap text-transparent">{run.id}</span>
                     </span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="-my-1 h-[22px] w-[22px] !rounded-[4px] !px-0 !text-[#898781] !opacity-0 hover:!bg-fill hover:!text-[#52514e] group-hover/cid:!opacity-100 focus-visible:!opacity-100"
-                      aria-label={`Copy ${run.id}`}
-                      onClick={() => copyText(run.id)}
-                    >
-                      <CdsIconGlyph glyph="" className="h-3.5 w-3.5 text-current text-[14px] [font-weight:628.5]" />
-                    </Button>
+                    <CopyIconButton value={run.id} ariaLabel={`Copy ${run.id}`} className="-my-1 h-[22px] w-[22px] !rounded-[4px] !px-0 !text-[#898781] !opacity-0 hover:!bg-fill hover:!text-[#52514e] group-hover/cid:!opacity-100 focus-visible:!opacity-100" iconClassName="h-3.5 w-3.5 text-current text-[14px] [font-weight:628.5]" />
                   </span>
                 )
               },
@@ -1989,7 +1923,6 @@ function EnvironmentsPage() {
           options={["All", "Active", "Archived"]}
           onValueChange={setStatus}
           triggerShellClassName={topFilterShellClassName}
-          triggerClassName="w-[98px]"
         />
       </div>
       <div className="overflow-x-auto">
@@ -2010,15 +1943,7 @@ function EnvironmentsPage() {
                 <div className="group/cid relative z-10 inline-flex max-w-full items-center gap-1 align-middle font-mono text-xs [font-weight:550]">
                   <span className="truncate">{shortEnvironmentListId(environment.id)}</span>
                   <span className="hidden">{environment.id}</span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="-my-1 h-[22px] w-[22px] !rounded-[8px] !px-0 !text-[#898781] !opacity-0 hover:!bg-fill hover:!text-[#52514e] group-hover/cid:!opacity-100"
-                    aria-label={`Copy ${environment.id}`}
-                    onClick={() => copyText(environment.id)}
-                  >
-                    <CdsIconGlyph glyph="" className="h-3.5 w-3.5 text-current text-[14px] [font-weight:628.5]" />
-                  </Button>
+                  <CopyIdButton value={environment.id} />
                 </div>
               )
             },
@@ -2199,21 +2124,7 @@ function EnvironmentDetailPage() {
           </div>
           {editing ? null : (
             <div className="flex flex-wrap items-center gap-2 text-xs leading-4 text-muted">
-              <span
-                role="button"
-                tabIndex={0}
-                aria-label={`Copy ${shortEnvironmentDetailId(environment.id)}`}
-                className="relative -mx-1 -my-0.5 w-fit max-w-full cursor-pointer rounded-md px-1 py-0.5 text-xs text-muted transition-colors hover:bg-fill [font-weight:430]"
-                onClick={() => copyText(environment.id)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" || event.key === " ") copyText(environment.id);
-                }}
-              >
-                <span className="relative inline-block max-w-full truncate align-bottom font-mono text-xs text-muted [font-weight:430]">
-                  {shortEnvironmentDetailId(environment.id)}
-                  <span className="pointer-events-none absolute left-0 top-0 select-none whitespace-nowrap text-transparent">{environment.id}</span>
-                </span>
-              </span>
+              <CopyableIdText value={environment.id} display={shortEnvironmentDetailId(environment.id)} />
               <span>·</span>
               <span>Last updated {environment.updatedLabel}</span>
             </div>
@@ -2359,9 +2270,7 @@ function EnvironmentDetailPage() {
           <EnvironmentDetailSection title="Packages" description="Specify packages and their versions available in this environment. Separate multiple values with spaces." separated>
             <div className="group/value flex min-h-[35px] items-start gap-2 rounded-md border-[0.5px] border-line bg-[#f9f9f7] px-3 py-2">
               <pre className="min-w-0 flex-1 whitespace-pre-wrap break-all font-mono text-xs leading-4 text-[#52514e]">{environment.packageManager || "apt"}: {environment.packages || "No packages"}</pre>
-              <Button variant="ghost" size="sm" className="-my-0.5 h-[22px] w-[22px] px-0 text-muted opacity-0 group-hover/value:opacity-100 focus-visible:opacity-100" aria-label="Copy" onClick={() => copyText(`${environment.packageManager || "apt"}: ${environment.packages || ""}`.trim())}>
-                <Copy className="h-3.5 w-3.5" />
-              </Button>
+              <CopyIconButton value={`${environment.packageManager || "apt"}: ${environment.packages || ""}`.trim()} ariaLabel="Copy" className="-my-0.5 h-[22px] w-[22px] px-0 text-muted !opacity-0 group-hover/value:!opacity-100 focus-visible:!opacity-100" iconClassName="h-3.5 w-3.5 text-current" />
             </div>
           </EnvironmentDetailSection>
           <EnvironmentDetailSection title="Metadata" description="Add custom key-value pairs to tag and organize this environment. Keys must be lowercase." separated>
@@ -2460,7 +2369,6 @@ function VaultsPage() {
           options={["All", "Active", "Archived"]}
           onValueChange={setStatus}
           triggerShellClassName={topFilterShellClassName}
-          triggerClassName="w-[98px]"
         />
       </div>
       <div className="overflow-x-auto">
@@ -2479,15 +2387,7 @@ function VaultsPage() {
               render: (vault) => (
                 <div className="group/cid flex items-center gap-2">
                   <span className="font-mono font-semibold">{shortId(vault.id)}</span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="-my-1 h-[22px] w-[22px] !rounded-[8px] !px-0 !text-[#898781] !opacity-0 hover:!bg-fill hover:!text-[#52514e] group-hover/cid:!opacity-100"
-                    aria-label={`Copy ${vault.id}`}
-                    onClick={() => copyText(vault.id)}
-                  >
-                    <CdsIconGlyph glyph="" className="h-3.5 w-3.5 text-current text-[14px] [font-weight:628.5]" />
-                  </Button>
+                  <CopyIdButton value={vault.id} />
                 </div>
               )
             },
@@ -2624,21 +2524,7 @@ function VaultDetailPage() {
             <Badge className="!h-5 !rounded-[5px] px-2 text-xs !leading-[15px] [font-weight:550]" tone={vaultTone(vault.status)}>{vault.status}</Badge>
           </div>
           <div className="flex flex-wrap items-center gap-2 text-sm leading-5 text-muted">
-            <span
-              role="button"
-              tabIndex={0}
-              aria-label={`Copy ${vault.id}`}
-              className="relative -mx-1 -my-0.5 w-fit max-w-full cursor-pointer rounded-md px-1 py-0.5 text-xs text-muted transition-colors hover:bg-fill [font-weight:430]"
-              onClick={() => copyText(vault.id)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" || event.key === " ") copyText(vault.id);
-              }}
-            >
-              <span className="relative inline-block max-w-full truncate align-bottom font-mono text-xs text-muted [font-weight:430]">
-                {vault.id}
-                <span className="pointer-events-none absolute left-0 top-0 select-none whitespace-nowrap text-transparent">{vault.id}</span>
-              </span>
-            </span>
+            <CopyableIdText value={vault.id} />
             <span>·</span>
             <span>Created {vault.createdLabel}</span>
             <span>·</span>
@@ -2679,15 +2565,7 @@ function VaultDetailPage() {
               <div className="group/cid flex items-center gap-2">
                 <span className="font-mono font-semibold">{shortCredentialId(credential.id)}</span>
                 <span className="hidden">{credential.id}</span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="-my-1 h-[22px] w-[22px] !rounded-[8px] !px-0 !text-[#898781] !opacity-0 hover:!bg-fill hover:!text-[#52514e] group-hover/cid:!opacity-100"
-                  aria-label={`Copy ${credential.id}`}
-                  onClick={() => copyText(credential.id)}
-                >
-                  <CdsIconGlyph glyph="" className="h-3.5 w-3.5 text-current text-[14px] [font-weight:628.5]" />
-                </Button>
+                <CopyIdButton value={credential.id} />
               </div>
             )
           },
@@ -2829,7 +2707,6 @@ function MemoryStoresPage() {
           options={["All time", "Last 24 hours", "Last 7 days", "Last 30 days"]}
           onValueChange={setCreated}
           triggerShellClassName={topFilterShellClassName}
-          triggerClassName="w-[142px]"
         />
         <FieldSelect
           label="Status"
@@ -2837,7 +2714,6 @@ function MemoryStoresPage() {
           options={["Active", "Archived", "All"]}
           onValueChange={setStatus}
           triggerShellClassName={topFilterShellClassName}
-          triggerClassName="w-[123px]"
         />
       </div>
       <div className="overflow-x-auto">
@@ -2855,15 +2731,7 @@ function MemoryStoresPage() {
               render: (store) => (
                 <div className="group/cid relative z-10 inline-flex max-w-full items-center gap-1 align-middle font-mono text-xs [font-weight:550]">
                   <span className="truncate">{shortMemoryStoreId(store.id)}</span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="-my-1 h-[22px] w-[22px] !rounded-[8px] !px-0 !text-[#898781] !opacity-0 hover:!bg-fill hover:!text-[#52514e] group-hover/cid:!opacity-100"
-                    aria-label={`Copy ${store.id}`}
-                    onClick={() => copyText(store.id)}
-                  >
-                    <CdsIconGlyph glyph="" className="h-3.5 w-3.5 text-current text-[14px] [font-weight:628.5]" />
-                  </Button>
+                  <CopyIdButton value={store.id} />
                 </div>
               )
             },
@@ -3018,21 +2886,7 @@ function MemoryStoreDetailPage() {
             <Badge className="!h-5 !rounded-[5px] !leading-[15px] [font-weight:550]" tone={memoryTone(store.status)}>{store.status}</Badge>
           </div>
           <div className="mt-3 flex h-4 flex-wrap items-center gap-2 text-xs text-muted">
-            <span
-              role="button"
-              tabIndex={0}
-              aria-label={`Copy ${shortMemoryStoreDetailId(store.id)}`}
-              className="relative -mx-1 -my-0.5 w-fit max-w-full cursor-pointer rounded-md px-1 py-0.5 text-xs text-muted transition-colors hover:bg-fill"
-              onClick={() => copyText(store.id)}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" || event.key === " ") copyText(store.id);
-              }}
-            >
-              <span className="relative inline-block max-w-full truncate align-bottom font-mono text-xs text-muted">
-                {shortMemoryStoreDetailId(store.id)}
-                <span className="pointer-events-none absolute left-0 top-0 select-none whitespace-nowrap text-transparent">{store.id}</span>
-              </span>
-            </span>
+            <CopyableIdText value={store.id} display={shortMemoryStoreDetailId(store.id)} />
             <span>·</span>
             <span>Created {store.createdLabel}</span>
           </div>
@@ -3085,39 +2939,11 @@ function MemoryStoreDetailPage() {
                     <h3 className="truncate font-mono text-sm text-ink">{selectedMemory.path}</h3>
                   </div>
                   <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted">
-                    <span
-                      role="button"
-                      tabIndex={0}
-                      aria-label={`Copy ${shortMemoryRecordId(selectedMemory.id)}`}
-                      className="relative -mx-1 -my-0.5 w-fit max-w-full cursor-pointer rounded-md px-1 py-0.5 text-xs text-muted transition-colors hover:bg-fill"
-                      onClick={() => copyText(selectedMemory.id)}
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter" || event.key === " ") copyText(selectedMemory.id);
-                      }}
-                    >
-                      <span className="relative inline-block max-w-full truncate align-bottom font-mono text-xs text-muted">
-                        {shortMemoryRecordId(selectedMemory.id)}
-                        <span className="pointer-events-none absolute left-0 top-0 select-none whitespace-nowrap text-transparent">{selectedMemory.id}</span>
-                      </span>
-                    </span>
+                    <CopyableIdText value={selectedMemory.id} display={shortMemoryRecordId(selectedMemory.id)} />
                     <span>·</span>
                     <span>Updated {selectedMemory.updatedLabel}</span>
                     <span>·</span>
-                    <span
-                      role="button"
-                      tabIndex={0}
-                      aria-label={`Copy ${shortUserId(selectedMemory.authorId)}`}
-                      className="relative -mx-1 -my-0.5 w-fit max-w-full cursor-pointer rounded-md px-1 py-0.5 text-xs text-muted transition-colors hover:bg-fill"
-                      onClick={() => copyText(selectedMemory.authorId)}
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter" || event.key === " ") copyText(selectedMemory.authorId);
-                      }}
-                    >
-                      <span className="relative inline-block max-w-full truncate align-bottom font-mono text-xs text-muted">
-                        {shortUserId(selectedMemory.authorId)}
-                        <span className="pointer-events-none absolute left-0 top-0 select-none whitespace-nowrap text-transparent">{selectedMemory.authorId}</span>
-                      </span>
-                    </span>
+                    <CopyableIdText value={selectedMemory.authorId} display={shortUserId(selectedMemory.authorId)} />
                   </div>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
@@ -3238,11 +3064,9 @@ function FilesPage() {
                 header: "ID",
                 width: "210px",
                 render: (file) => (
-                  <div className="flex items-center gap-2">
+                  <div className="group/cid flex items-center gap-2">
                     <span className="font-mono font-semibold">{shortId(file.id)}</span>
-                    <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${file.id}`} onClick={() => copyText(file.id)}>
-                      <Copy className="h-3.5 w-3.5" />
-                    </Button>
+                    <CopyIdButton value={file.id} />
                   </div>
                 )
               },
@@ -3286,9 +3110,7 @@ function FilesEmptyState({ language, onLanguageChange }: { language: string; onL
               View docs
               <CdsIconGlyph glyph="" className="h-3.5 w-3.5 text-[#898781] text-[14px] [font-weight:628.5]" />
             </a>
-            <Button variant="ghost" size="sm" className="!h-6 !w-6 !gap-1.5 !rounded-md !px-0 !text-[13px] !leading-5 [font-weight:550]" aria-label="Copy code" onClick={() => copyText(code)}>
-              <CdsIconGlyph glyph="" className="h-3.5 w-3.5 text-current text-[14px] [font-weight:628.5]" />
-            </Button>
+            <CopyIconButton value={code} ariaLabel="Copy code" className="!h-6 !w-6 !gap-1.5 !rounded-md !px-0 !text-[13px] !leading-5 [font-weight:550]" />
           </div>
         </div>
         <div className="code-scroll-region min-h-0 flex-1 overflow-auto focus-visible:outline-none">
@@ -3414,10 +3236,12 @@ function FileDetailPage() {
             <Badge tone={fileTone(file.status)}>{file.status}</Badge>
           </div>
           <div className="flex flex-wrap items-center gap-2 text-sm text-muted">
-            <span className="font-mono">{shortId(file.id)}</span>
-            <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${file.id}`} onClick={() => copyText(file.id)}>
-              <Copy className="h-3.5 w-3.5" />
-            </Button>
+            <CopyableIdText
+              value={file.id}
+              display={shortId(file.id)}
+              className="relative -mx-1 -my-0.5 w-fit max-w-full cursor-pointer rounded-md px-1 py-0.5 font-mono text-sm text-muted transition-colors hover:bg-fill"
+              textClassName="relative inline-block max-w-full truncate align-bottom font-mono text-sm text-muted"
+            />
             <span>·</span>
             <span>{file.kind}</span>
             <span>·</span>
@@ -3561,6 +3385,7 @@ function AgentDetailPage() {
     const updated = await archiveAgent(currentAgent.id);
     setAgent(updated);
     setArchiveOpen(false);
+    showToast("Agent archived.");
   }
 
   const agentDetailHeadingClass = "text-[#52514e] [font-weight:550]";
@@ -3586,7 +3411,7 @@ function AgentDetailPage() {
   }
 
   return (
-    <section className="flex max-w-[1252px] flex-col">
+    <section className="flex w-full max-w-none flex-col">
       <div className="-ml-5 -mt-2 mb-4 flex h-7 items-center text-sm text-muted">
         <Link className="rounded-control px-3 py-1 hover:bg-fill" to="/agents">
           Agents
@@ -3603,10 +3428,7 @@ function AgentDetailPage() {
             </span>
           </div>
           <div className="mt-[9px] flex h-5 flex-wrap items-center gap-2 text-sm text-muted">
-            <span className="font-mono">{agent.id}</span>
-            <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${agent.id}`} onClick={() => copyText(agent.id)}>
-              <CdsIconGlyph glyph="" className="h-3.5 w-3.5 text-[#898781] text-[14px] [font-weight:628.5]" />
-            </Button>
+            <CopyableIdText value={agent.id} className="relative -mx-1 -my-0.5 w-fit max-w-full cursor-pointer rounded-md px-1 py-0.5 font-mono text-sm text-muted transition-colors hover:bg-fill" textClassName="relative inline-block max-w-full truncate align-bottom font-mono text-sm text-muted" />
             <span>·</span>
             <span>Last updated {agent.updatedLabel || "2 days ago"}</span>
           </div>
@@ -3614,7 +3436,7 @@ function AgentDetailPage() {
         <div className="flex shrink-0 gap-2">
           <Button
             variant="secondary"
-            className="!w-[71px] !gap-1.5 !rounded-[8px] !border-[0.5px] !border-[rgba(11,11,11,0.1)] !bg-white/50 !shadow-[0_1px_2px_rgba(0,0,0,0.04)] [font-weight:550]"
+            className="!w-[71px] !gap-1.5 !rounded-[8px] !border-[0.5px] !border-[rgba(11,11,11,0.1)] !bg-white/50 !shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-transform hover:!bg-[rgba(11,11,11,0.05)] active:!bg-[rgba(11,11,11,0.05)] active:scale-[0.975] [font-weight:550]"
             onClick={() => setEditOpen(true)}
           >
             <CdsIconGlyph glyph="" />
@@ -3636,18 +3458,18 @@ function AgentDetailPage() {
             </CdsTabs.Trigger>
           ))}
         </CdsTabs.List>
-        <CdsTabs.Content value="agent" className="grid max-w-[1252px]">
+        <CdsTabs.Content value="agent" className="grid w-full max-w-3xl">
           <div>
             <Select.Root value={agent.version || "v1"} onValueChange={() => undefined}>
-              <div data-cds="FieldSelect" className={`${topFilterShellClassName} w-[105px]`}>
+              <div data-cds="FieldSelect" className={`${topFilterShellClassName} w-[112px]`}>
                 <Select.Trigger
                   data-cds="Button"
                   aria-label="Version"
                   className="cds-focus inline-flex h-8 min-w-0 flex-1 items-center gap-1.5 self-stretch rounded-none border-0 bg-transparent p-0 pl-2 pr-0 text-sm text-ink shadow-none"
                 >
-                  <span className="flex min-w-0 flex-1 items-baseline gap-1.5 whitespace-nowrap">
+                  <span className="flex min-w-0 flex-1 items-baseline gap-1 whitespace-nowrap">
                     <span className="shrink-0 text-muted">Version:</span>
-                    <Select.Value className="min-w-0 truncate">{agent.version || "v1"}</Select.Value>
+                    <Select.Value className="min-w-0 truncate font-mono text-[13px]">{agent.version || "v1"}</Select.Value>
                   </span>
                   <Select.Icon className="shrink-0">
                     <CdsIconGlyph glyph="" className="mr-0.5 h-4 w-4 text-[#898781] text-[16px] [font-weight:533.25]" />
@@ -3661,20 +3483,23 @@ function AgentDetailPage() {
                   className="z-50 w-[256px] rounded-[12px] border-[0.5px] border-[rgba(11,11,11,0.1)] bg-white p-1 shadow-[0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
                 >
                   <Select.Viewport>
-                    <Select.Item
-                      value={agent.version || "v1"}
-                      className="grid h-[46px] cursor-pointer grid-cols-[minmax(0,1fr)_24px] items-center rounded-[8px] bg-fill px-3 text-sm outline-none data-[highlighted]:bg-fill"
-                    >
-                      <Select.ItemText>
-                        <span className="flex min-w-0 flex-col">
-                          <span className="truncate text-sm leading-5 text-ink">{agent.version || "v1"}</span>
-                          <span className="truncate text-sm leading-5 text-[#898781]">{formatVersionCreatedLabel(agent.createdAt)}</span>
-                        </span>
-                      </Select.ItemText>
-                      <Select.ItemIndicator className="justify-self-end">
-                        <CdsIconGlyph glyph="" className="h-5 w-5 shrink-0 text-[#0f5ca8] text-[20px] [font-weight:533.25]" />
-                      </Select.ItemIndicator>
-                    </Select.Item>
+                    {(agent.versions?.length ? agent.versions : [{ version: agent.version || "v1", createdAt: agent.createdAt }]).map((entry) => (
+                      <Select.Item
+                        key={entry.version}
+                        value={entry.version}
+                        className="grid h-[46px] cursor-pointer grid-cols-[minmax(0,1fr)_24px] items-center rounded-[8px] px-3 text-sm outline-none data-[highlighted]:bg-fill"
+                      >
+                        <Select.ItemText>
+                          <span className="flex min-w-0 flex-col">
+                            <span className="truncate font-mono text-sm leading-5 text-ink">{entry.version}</span>
+                            <span className="truncate text-sm leading-5 text-[#898781]">{formatVersionCreatedLabel(entry.createdAt)}</span>
+                          </span>
+                        </Select.ItemText>
+                        <Select.ItemIndicator className="justify-self-end">
+                          <CdsIconGlyph glyph="" className="h-5 w-5 shrink-0 text-[#184f95] text-[20px] [font-weight:533.25]" />
+                        </Select.ItemIndicator>
+                      </Select.Item>
+                    ))}
                   </Select.Viewport>
                 </Select.Content>
               </Select.Portal>
@@ -3684,17 +3509,13 @@ function AgentDetailPage() {
             <div className={`mt-3 font-mono ${agentDetailBodyClass}`}>{agent.model}</div>
           </AgentConfigSection>
           <AgentConfigSection title="System prompt" headingClassName={agentDetailHeadingClass} separated>
-            <div className="relative mt-2 rounded-[8px] bg-[#f9f9f7] px-4 py-4">
+            <div className="group/codeblock relative mt-2 rounded-[8px] bg-[#f9f9f7] px-4 py-4">
               <pre className="max-h-[120px] overflow-hidden whitespace-pre-wrap font-mono text-sm leading-5 text-ink">{agent.systemPrompt}</pre>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="absolute right-2 top-2 h-7 w-7 px-0 text-muted"
-                aria-label="Copy to clipboard"
-                onClick={() => copyText(agent.systemPrompt)}
-              >
-                <CdsIconGlyph glyph="" className="h-3.5 w-3.5 text-[#898781] text-[14px] [font-weight:628.5]" />
-              </Button>
+              <CopyIconButton
+                value={agent.systemPrompt}
+                ariaLabel="Copy to clipboard"
+                className="absolute right-2 top-2 h-7 w-7 px-0 text-muted !opacity-0 transition-opacity hover:bg-white hover:text-[#52514e] focus-visible:!opacity-100 group-hover/codeblock:!opacity-100"
+              />
             </div>
           </AgentConfigSection>
           <AgentConfigSection title="MCPs and tools" headingClassName={agentDetailHeadingClass} separated>
@@ -3708,7 +3529,7 @@ function AgentDetailPage() {
               </div>
               <button
                 type="button"
-                className="flex h-[46px] w-full items-center gap-2 rounded-[8px] border-t-[0.5px] border-[rgba(11,11,11,0.1)] px-4 py-3 text-left text-[#52514e] hover:bg-[#f9f9f7]"
+                className="flex h-[46px] w-full items-center gap-2 rounded-[8px] border-t-[0.5px] border-[rgba(11,11,11,0.1)] py-3 pl-4 pr-10 text-left text-[#52514e] hover:bg-[#f9f9f7]"
                 aria-label="Toggle tool permissions"
                 aria-controls={toolPermissionsId}
                 aria-expanded={toolPermissionsOpen}
@@ -3763,7 +3584,7 @@ function AgentDetailPage() {
           setEditOpen(false);
         }}
       />
-      <AgentArchiveDialog open={archiveOpen} onOpenChange={setArchiveOpen} onConfirm={archiveCurrent} />
+      <AgentArchiveDialog agentName={currentAgent.name} open={archiveOpen} onOpenChange={setArchiveOpen} onConfirm={archiveCurrent} />
     </section>
   );
 }
@@ -3800,7 +3621,6 @@ function AgentSessionsPanel({ agent }: { agent: Agent }) {
           options={["All time", "Last 24 hours", "Last 7 days", "Last 30 days"]}
           onValueChange={setCreated}
           triggerShellClassName={topFilterShellClassName}
-          triggerClassName="w-[150px]"
         />
         <FieldSelect
           label="Version"
@@ -3808,7 +3628,6 @@ function AgentSessionsPanel({ agent }: { agent: Agent }) {
           options={versionOptions}
           onValueChange={setVersion}
           triggerShellClassName={topFilterShellClassName}
-          triggerClassName="w-[132px]"
         />
         <FieldSelect
           label="Deployment"
@@ -3816,7 +3635,6 @@ function AgentSessionsPanel({ agent }: { agent: Agent }) {
           options={deploymentOptions}
           onValueChange={setDeployment}
           triggerShellClassName={topFilterShellClassName}
-          triggerClassName="w-[172px]"
         />
         <FieldSelect
           label="Status"
@@ -3824,7 +3642,6 @@ function AgentSessionsPanel({ agent }: { agent: Agent }) {
           options={["All", "Active", "Idle", "Archived"]}
           onValueChange={setStatus}
           triggerShellClassName={topFilterShellClassName}
-          triggerClassName="w-[106px]"
         />
       </div>
       <DataTable
@@ -3838,11 +3655,9 @@ function AgentSessionsPanel({ agent }: { agent: Agent }) {
             header: "ID",
             width: "160px",
             render: (session) => (
-              <div className="flex items-center gap-2">
+              <div className="group/cid flex items-center gap-2">
                 <span className="font-mono font-semibold">{shortId(session.id)}</span>
-                <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${session.id}`} onClick={() => copyText(session.id)}>
-                  <Copy className="h-3.5 w-3.5" />
-                </Button>
+                <CopyIdButton value={session.id} />
               </div>
             )
           },
@@ -3927,11 +3742,9 @@ function AgentDeploymentsPanel({ agent }: { agent: Agent }) {
               header: "ID",
               width: "160px",
               render: (deployment) => (
-                <div className="flex min-w-0 items-center gap-2">
+                <div className="group/cid flex min-w-0 items-center gap-2">
                   <span className="truncate font-mono font-semibold">{shortId(deployment.id)}</span>
-                  <Button variant="ghost" size="sm" className="h-[22px] w-[22px] px-0" aria-label={`Copy ${deployment.id}`} onClick={() => copyText(deployment.id)}>
-                    <Copy className="h-3.5 w-3.5" />
-                  </Button>
+                  <CopyIdButton value={deployment.id} />
                 </div>
               )
             },
@@ -4093,6 +3906,7 @@ function CreateAgentDialog({
   onOpenChange: (open: boolean) => void;
   onCreated: (agent: Agent) => void;
 }) {
+  const navigate = useNavigate();
   const [description, setDescription] = useState("");
   const [startingPointOpen, setStartingPointOpen] = useState(true);
   const [startingPointMode, setStartingPointMode] = useState<"describe" | "template">("describe");
@@ -4130,6 +3944,7 @@ function CreateAgentDialog({
     setStartingPointMode("describe");
     setSelectedTemplate(agentStartingTemplates[0]);
     setConfigYaml(defaultAgentYaml());
+    navigate(`/agents/${agent.id}`);
   }
 
   return (
@@ -4154,7 +3969,7 @@ function CreateAgentDialog({
           type="button"
           onClick={() => setStartingPointOpen((current) => !current)}
         >
-          <CdsIconGlyph glyph="" className="h-4 w-4 text-[#52514e] text-[16px] [font-weight:533.25]" />
+          <CdsIconGlyph glyph="" className={`h-4 w-4 shrink-0 text-[#52514e] text-[16px] [font-weight:533.25] transition-transform ${startingPointOpen ? "rotate-90" : ""}`} />
           <span className="flex min-w-0 items-baseline gap-2 text-sm">
             <span className="whitespace-nowrap text-ink [font-weight:580]">Starting point</span>
             <span className="flex min-w-0 gap-2 text-[#898781]" style={{ opacity: startingPointOpen ? 0 : 1 }}>
@@ -4207,8 +4022,8 @@ function CreateAgentDialog({
                 />
                 <div className="mt-[10px] flex justify-end">
                   <Button
-                    variant="ghost"
-                    className={`h-[27px] w-[82px] !gap-1.5 rounded-control bg-transparent !px-[10px] [font-weight:550] ${description.trim() ? "!opacity-100" : ""}`}
+                    variant="secondary"
+                    className="h-[27px] w-[82px] !gap-1.5 rounded-control !border-line !bg-white !px-[10px] text-sm [font-weight:550] hover:!bg-fill"
                     disabled={!description.trim()}
                     onClick={generateFromDescription}
                   >
@@ -4256,9 +4071,7 @@ function CreateAgentDialog({
                   JSON
                 </button>
               </div>
-              <Button variant="ghost" className="h-[27px] w-[27px] !gap-1.5 translate-x-px rounded-control !px-0 [font-weight:550]" aria-label="Copy code" onClick={() => copyText(format === "YAML" ? configYaml : jsonConfig)}>
-                <CdsIconGlyph glyph="" />
-              </Button>
+              <CopyIconButton value={format === "YAML" ? configYaml : jsonConfig} ariaLabel="Copy code" className="h-[27px] w-[27px] !gap-1.5 translate-x-px rounded-control !px-0 [font-weight:550]" />
             </div>
             {format === "YAML" ? (
               <div className="relative h-[calc(100%-43px)] min-h-0">
@@ -4271,9 +4084,9 @@ function CreateAgentDialog({
                 />
               </div>
             ) : (
-              <pre className="h-[calc(100%-43px)] min-h-0 overflow-auto whitespace-pre-wrap px-[11px] py-3 font-mono text-[13px] leading-[19px]">
-                <CodeJson source={jsonConfig} />
-              </pre>
+              <div className="h-[calc(100%-43px)] min-h-0">
+                <CodeBlockWithLineNumbers source={jsonConfig} language="JSON" />
+              </div>
             )}
           </div>
         </div>
@@ -4351,9 +4164,7 @@ function EditAgentDialog({
                 JSON
               </button>
             </div>
-            <Button variant="ghost" className="!h-7 !w-7 !gap-1.5 rounded-[7px] !px-0 [font-weight:550]" aria-label="Copy code" onClick={() => copyText(format === "YAML" ? configYaml : jsonConfig)}>
-              <Copy className="h-4 w-4" />
-            </Button>
+            <CopyIconButton value={format === "YAML" ? configYaml : jsonConfig} ariaLabel="Copy code" className="!h-7 !w-7 !gap-1.5 rounded-[7px] !px-0 [font-weight:550]" iconClassName="h-4 w-4 text-current" />
           </div>
           <div className="relative flex-1 overflow-auto px-3 pb-3 pt-[13px] text-ink">
             <p className="sr-only">Tab inserts indentation. Press Escape then Tab to move focus out of the editor.</p>
@@ -4365,9 +4176,9 @@ function EditAgentDialog({
                 language="YAML"
               />
             ) : (
-              <pre className="min-h-[475px] whitespace-pre-wrap p-0 font-mono text-[13px] leading-[19px]">
-                <CodeJson source={jsonConfig} />
-              </pre>
+              <div className="h-[475px]">
+                <CodeBlockWithLineNumbers source={jsonConfig} language="JSON" className="py-0 pl-3" />
+              </div>
             )}
           </div>
         </div>
@@ -6944,22 +6755,12 @@ function SkillVersionDialog({ skillId, onOpenChange }: { skillId: string | null;
                   {(skill.versions ?? []).map((version) => (
                     <div key={version.id} className="flex min-h-[47px] items-center justify-between px-3 py-3 text-sm hover:bg-fill">
                       <div className="flex flex-1 items-center gap-3">
-                        <span
-                          role="button"
-                          tabIndex={0}
+                        <CopyableIdText
+                          value={version.version}
+                          display={<span data-cds="Badge" className="inline-flex h-[22px] items-center rounded-[5.5px] bg-fill px-2 align-bottom font-mono text-xs leading-[15px] text-[#52514e] [font-weight:550]">{version.version}</span>}
                           className="relative cursor-pointer"
-                          aria-label={`Copy ${version.version}`}
-                          onClick={() => copyText(version.version)}
-                          onKeyDown={(event) => {
-                            if (event.key === "Enter" || event.key === " ") copyText(version.version);
-                          }}
-                        >
-                          <span className="relative inline-block max-w-full truncate align-bottom font-mono text-xs text-[#52514e]">
-                            <span data-cds="Badge" className="inline-flex h-[22px] items-center rounded-[5.5px] bg-fill px-2 align-bottom font-mono text-xs leading-[15px] text-[#52514e] [font-weight:550]">{version.version}</span>
-                            <span className="pointer-events-none absolute left-0 top-0 select-none whitespace-nowrap text-transparent">{version.version}</span>
-                            <span className="sr-only" />
-                          </span>
-                        </span>
+                          textClassName="relative inline-block max-w-full truncate align-bottom font-mono text-xs text-[#52514e]"
+                        />
                         <span className="text-[#898781]">{version.releasedAt}</span>
                         {version.latest ? <span data-cds="Badge" className="inline-flex h-[22px] items-center rounded-[5.5px] bg-[#cde2fb] px-2 text-xs leading-[15px] text-[#184f95] [font-weight:550]">Latest</span> : null}
                       </div>
@@ -7030,39 +6831,74 @@ function CodeJson({ source }: { source: string }) {
   return <>{nodes}</>;
 }
 
+function CodeGutter({ lineCount, scrollTop = 0 }: { lineCount: number; scrollTop?: number }) {
+  return (
+    <div
+      className="w-10 shrink-0 select-none overflow-hidden border-r border-[rgba(11,11,11,0.08)] bg-[#fafaf8] py-3 text-right font-mono text-[13px] leading-[19px] text-muted"
+      aria-hidden="true"
+    >
+      <div style={{ transform: `translateY(${-scrollTop}px)` }}>
+        {Array.from({ length: Math.max(lineCount, 1) }, (_, index) => (
+          <div key={index} className="px-2">{index + 1}</div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** Read-only code block (JSON preview) with a synced line-number gutter. */
+function CodeBlockWithLineNumbers({ source, language, className = "px-[11px] py-3" }: { source: string; language: "YAML" | "JSON"; className?: string }) {
+  const lineCount = source.split("\n").length;
+
+  return (
+    <div className="flex h-full min-h-0 overflow-auto">
+      <CodeGutter lineCount={lineCount} />
+      <pre className={`m-0 min-w-0 flex-1 whitespace-pre-wrap font-mono text-[13px] leading-[19px] text-ink ${className}`}>
+        {language === "YAML" ? <CodeYaml source={source} /> : <CodeJson source={source} />}
+      </pre>
+    </div>
+  );
+}
+
 function HighlightedConfigTextarea({
   value,
   onChange,
   language,
   className = "h-full px-[11px] py-3",
+  showLineNumbers = true,
   ...props
 }: {
   value: string;
   onChange: ChangeEventHandler<HTMLTextAreaElement>;
   language: "YAML" | "JSON";
   className?: string;
+  showLineNumbers?: boolean;
 } & Omit<ComponentProps<"textarea">, "value" | "onChange" | "children">) {
   const [scroll, setScroll] = useState({ left: 0, top: 0 });
   const textClassName = `absolute inset-0 font-mono text-[13px] leading-[19px] ${className}`;
+  const lineCount = value.split("\n").length;
 
   return (
-    <div className="relative h-full min-h-0 overflow-hidden">
-      <div className={`${textClassName} pointer-events-none overflow-hidden whitespace-pre-wrap text-ink`} aria-hidden="true">
-        <pre
-          className="m-0 min-h-full whitespace-pre-wrap break-words p-0 font-inherit text-inherit"
-          style={{ transform: `translate(${-scroll.left}px, ${-scroll.top}px)` }}
-        >
-          {language === "YAML" ? <CodeYaml source={value} /> : <CodeJson source={value} />}
-        </pre>
+    <div className="relative flex h-full min-h-0 overflow-hidden">
+      {showLineNumbers ? <CodeGutter lineCount={lineCount} scrollTop={scroll.top} /> : null}
+      <div className="relative min-w-0 flex-1">
+        <div className={`${textClassName} pointer-events-none overflow-hidden whitespace-pre-wrap text-ink`} aria-hidden="true">
+          <pre
+            className="m-0 min-h-full whitespace-pre-wrap break-words p-0 font-inherit text-inherit"
+            style={{ transform: `translate(${-scroll.left}px, ${-scroll.top}px)` }}
+          >
+            {language === "YAML" ? <CodeYaml source={value} /> : <CodeJson source={value} />}
+          </pre>
+        </div>
+        <textarea
+          {...props}
+          className={`${textClassName} z-10 resize-none overflow-auto border-0 bg-transparent font-mono text-transparent caret-[#0b0b0b] outline-none selection:bg-[#cde2fb] selection:text-[#0b0b0b]`}
+          spellCheck={false}
+          value={value}
+          onChange={onChange}
+          onScroll={(event) => setScroll({ left: event.currentTarget.scrollLeft, top: event.currentTarget.scrollTop })}
+        />
       </div>
-      <textarea
-        {...props}
-        className={`${textClassName} z-10 resize-none overflow-auto border-0 bg-transparent font-mono text-transparent caret-[#0b0b0b] outline-none selection:bg-[#cde2fb] selection:text-[#0b0b0b]`}
-        spellCheck={false}
-        value={value}
-        onChange={onChange}
-        onScroll={(event) => setScroll({ left: event.currentTarget.scrollLeft, top: event.currentTarget.scrollTop })}
-      />
     </div>
   );
 }
@@ -7325,7 +7161,7 @@ function CredentialActions({ credential, onArchive, onDelete }: { credential: Va
           align="end"
           sideOffset={6}
         >
-          <CdsDropdownMenu.Item className={cdsMenuItemClass} onSelect={() => copyText(credential.id)}>
+          <CdsDropdownMenu.Item className={cdsMenuItemClass} onSelect={() => { copyText(credential.id); showToast("Copied to clipboard."); }}>
             <Copy className="h-4 w-4" />
             Copy ID
           </CdsDropdownMenu.Item>
@@ -7446,7 +7282,7 @@ function MemoryRecordActions({ record, onDelete }: { record: MemoryRecord; onDel
       </CdsDropdownMenu.Trigger>
       <CdsDropdownMenu.Portal>
         <CdsDropdownMenu.Content data-cds="Menu" className={`${cdsMenuContentClass} w-[160px]`} align="end" sideOffset={6}>
-          <CdsDropdownMenu.Item className={cdsMenuItemClass} onSelect={() => copyText(record.id)}>
+          <CdsDropdownMenu.Item className={cdsMenuItemClass} onSelect={() => { copyText(record.id); showToast("Copied to clipboard."); }}>
             <Copy className="h-4 w-4" />
             Copy ID
           </CdsDropdownMenu.Item>
@@ -7479,7 +7315,7 @@ function FileActions({ file, onDelete }: { file: WorkspaceFile; onDelete: () => 
             <FileText className="h-4 w-4" />
             Open file
           </CdsDropdownMenu.Item>
-          <CdsDropdownMenu.Item className={cdsMenuItemClass} onSelect={() => copyText(file.id)}>
+          <CdsDropdownMenu.Item className={cdsMenuItemClass} onSelect={() => { copyText(file.id); showToast("Copied to clipboard."); }}>
             <Copy className="h-4 w-4" />
             Copy ID
           </CdsDropdownMenu.Item>
@@ -7808,10 +7644,12 @@ function AskClaudeDialog({
 }
 
 function AgentArchiveDialog({
+  agentName,
   open,
   onOpenChange,
   onConfirm
 }: {
+  agentName: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: () => Promise<void> | void;
@@ -7826,7 +7664,7 @@ function AgentArchiveDialog({
         >
           <Dialog.Title className="-mt-1 text-[22px] leading-[26px] text-ink [font-weight:580]">Archive agent</Dialog.Title>
           <Dialog.Description className="mt-1 text-sm leading-5 text-[#52514e]">
-            This agent will be hidden from the default view. Sessions that reference it keep working.
+            Are you sure you want to archive &quot;{agentName}&quot;? Archived agents can&rsquo;t be used to create new sessions.
           </Dialog.Description>
           <div className="mt-3 flex justify-end gap-2">
             <Dialog.Close asChild>
@@ -7834,8 +7672,8 @@ function AgentArchiveDialog({
                 Cancel
               </Button>
             </Dialog.Close>
-            <Button className="h-8 w-[75px] rounded-[8px] bg-[#b33f31] px-0 text-sm text-white [font-weight:550] hover:bg-[#a5362a]" onClick={onConfirm}>
-              Archive
+            <Button className="h-8 w-[117px] rounded-[8px] bg-[#d03b3b] px-0 text-sm text-white [font-weight:550] hover:bg-[#b83232]" onClick={onConfirm}>
+              Archive agent
             </Button>
           </div>
         </Dialog.Content>
@@ -8214,6 +8052,20 @@ function agentSessionCreatedLabel(session: Session) {
 
 function copyText(value: string) {
   void navigator.clipboard?.writeText(value);
+}
+
+function SearchClearButton({ onClear }: { onClear: () => void }) {
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      className="-mr-1.5 ml-1 h-[22px] w-[22px] shrink-0 !rounded-[6px] !px-0 !text-ink"
+      aria-label="Clear search"
+      onClick={onClear}
+    >
+      <CdsIconGlyph glyph={""} className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
+    </Button>
+  );
 }
 
 function downloadText(filename: string, value: string) {

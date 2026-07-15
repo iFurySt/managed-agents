@@ -2,7 +2,8 @@ import * as Dialog from "@radix-ui/react-dialog";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import * as Select from "@radix-ui/react-select";
 import * as Tabs from "@radix-ui/react-tabs";
-import { forwardRef, useMemo, useState, type KeyboardEvent, type MouseEvent, type ReactNode } from "react";
+import * as Tooltip from "@radix-ui/react-tooltip";
+import { forwardRef, useEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent, type ReactNode } from "react";
 import { Link, useLocation } from "react-router-dom";
 
 function CdsIconGlyph({ glyph, className = "h-5 w-5 text-current text-[20px] [font-weight:433.3]" }: { glyph: string; className?: string }) {
@@ -95,6 +96,143 @@ export const Button = forwardRef<HTMLButtonElement, React.ButtonHTMLAttributes<H
     </button>
   );
 });
+
+export function useCopyFeedback(value: string, resetMs = 2000) {
+  const [copied, setCopied] = useState(false);
+  const resetTimer = useRef<number | undefined>(undefined);
+
+  useEffect(() => () => window.clearTimeout(resetTimer.current), []);
+
+  function copy(event?: { stopPropagation?: () => void }) {
+    event?.stopPropagation?.();
+    void navigator.clipboard?.writeText(value);
+    setCopied(true);
+    window.clearTimeout(resetTimer.current);
+    resetTimer.current = window.setTimeout(() => setCopied(false), resetMs);
+  }
+
+  return { copied, copy };
+}
+
+function CopyTooltip({
+  copied,
+  hovered,
+  onHoveredChange,
+  children
+}: {
+  copied: boolean;
+  hovered: boolean;
+  onHoveredChange: (hovered: boolean) => void;
+  children: ReactNode;
+}) {
+  return (
+    <Tooltip.Provider delayDuration={300}>
+      <Tooltip.Root open={hovered || copied} onOpenChange={onHoveredChange}>
+        <Tooltip.Trigger asChild>{children}</Tooltip.Trigger>
+        <Tooltip.Portal>
+          <Tooltip.Content
+            side="bottom"
+            sideOffset={4}
+            className="z-50 rounded-[6px] bg-[#0b0b0b] px-2 py-[3px] text-[13px] leading-[18px] text-white shadow-sm"
+          >
+            {copied ? "Copied" : "Copy"}
+          </Tooltip.Content>
+        </Tooltip.Portal>
+      </Tooltip.Root>
+    </Tooltip.Provider>
+  );
+}
+
+/** Small icon-only copy button: fades in on `group-hover/cid` (list ID cells). */
+export function CopyIdButton({ value, className = "" }: { value: string; className?: string }) {
+  const { copied, copy } = useCopyFeedback(value);
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <CopyTooltip copied={copied} hovered={hovered} onHoveredChange={setHovered}>
+      <Button
+        variant="ghost"
+        size="sm"
+        className={`relative z-10 -my-1 h-[22px] w-[22px] !rounded-[8px] !px-0 !text-[#898781] !opacity-0 transition-colors hover:!bg-fill hover:!text-[#52514e] focus-visible:!opacity-100 group-hover/cid:!opacity-100 ${copied ? "!opacity-100" : ""} ${className}`}
+        aria-label={`Copy ${value}`}
+        onClick={copy}
+      >
+        <CdsIconGlyph glyph={copied ? "" : ""} className="h-3.5 w-3.5 text-current text-[14px] [font-weight:628.5]" />
+      </Button>
+    </CopyTooltip>
+  );
+}
+
+/** Generic icon-only copy button (always visible, or made hover-reveal via `className`). */
+export function CopyIconButton({
+  value,
+  ariaLabel,
+  className = "",
+  iconClassName = "h-3.5 w-3.5 text-current text-[14px] [font-weight:628.5]"
+}: {
+  value: string;
+  ariaLabel?: string;
+  className?: string;
+  iconClassName?: string;
+}) {
+  const { copied, copy } = useCopyFeedback(value);
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <CopyTooltip copied={copied} hovered={hovered} onHoveredChange={setHovered}>
+      <Button
+        variant="ghost"
+        size="sm"
+        className={className}
+        aria-label={ariaLabel ?? `Copy ${value}`}
+        onClick={copy}
+      >
+        <CdsIconGlyph glyph={copied ? "" : ""} className={iconClassName} />
+      </Button>
+    </CopyTooltip>
+  );
+}
+
+/** Click-to-copy plain text (detail-page header IDs): no separate icon, text itself is the control. */
+export function CopyableIdText({
+  value,
+  display,
+  className = "relative -mx-1 -my-0.5 w-fit max-w-full cursor-pointer rounded-md px-1 py-0.5 text-xs text-muted transition-colors hover:bg-fill [font-weight:430]",
+  textClassName = "relative inline-block max-w-full truncate align-bottom font-mono text-xs text-muted [font-weight:430]"
+}: {
+  value: string;
+  display?: ReactNode;
+  className?: string;
+  textClassName?: string;
+}) {
+  const { copied, copy } = useCopyFeedback(value);
+  const [hovered, setHovered] = useState(false);
+
+  function handleKeyDown(event: KeyboardEvent<HTMLSpanElement>) {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      copy();
+    }
+  }
+
+  return (
+    <CopyTooltip copied={copied} hovered={hovered} onHoveredChange={setHovered}>
+      <span
+        role="button"
+        tabIndex={0}
+        aria-label={`Copy ${value}`}
+        className={className}
+        onClick={() => copy()}
+        onKeyDown={handleKeyDown}
+      >
+        <span className={textClassName}>
+          {display ?? value}
+          <span className="pointer-events-none absolute left-0 top-0 select-none whitespace-nowrap text-transparent">{value}</span>
+        </span>
+      </span>
+    </CopyTooltip>
+  );
+}
 
 export function Badge({ children, tone = "neutral", className = "" }: { children: ReactNode; tone?: "neutral" | "green" | "blue" | "red" | "warning"; className?: string }) {
   const tones = {
@@ -197,6 +335,7 @@ export function DataTable<T>({
   columns,
   rows,
   getKey,
+  getRowHref,
   renderActions,
   actionsHeader,
   showSelection = true,
@@ -214,6 +353,7 @@ export function DataTable<T>({
   columns: { key: string; header: string; render: (row: T) => ReactNode; width?: string; align?: "left" | "right" }[];
   rows: T[];
   getKey: (row: T) => string;
+  getRowHref?: (row: T) => string;
   renderActions?: (row: T) => ReactNode;
   actionsHeader?: string;
   showSelection?: boolean;
@@ -329,9 +469,10 @@ export function DataTable<T>({
           ) : rows.map((row) => {
             const key = getKey(row);
             const selected = selectedKeys.has(key);
+            const rowHref = getRowHref?.(row);
 
             return (
-              <tr key={key} data-selected={selected ? "true" : undefined} className="group/cdsrow h-[43px] first:h-11 relative [transform:translate(0,0)] [cursor:var(--cds-cursor-interactive,pointer)] hover:bg-[#fbfaf7]">
+              <tr key={key} data-selected={selected ? "true" : undefined} className="group/cdsrow h-[43px] first:h-11 relative [transform:translate(0,0)] [cursor:var(--cds-cursor-interactive,pointer)] hover:bg-[rgba(11,11,11,0.05)]">
                 {showSelection ? (
                   <td className="relative border-b border-[rgba(11,11,11,0.05)] p-0 [tr:first-child_&]:border-t group-data-[selected=true]/cdsrow:border-transparent group-data-[selected=true]/cdsrow:bg-[rgba(11,11,11,0.05)] group-data-[selected=true]/cdsrow:first:rounded-l-[8px]">
                     <div className="absolute inset-0 z-10 flex items-center justify-center">
@@ -339,10 +480,18 @@ export function DataTable<T>({
                     </div>
                   </td>
                 ) : null}
-                {columns.map((column) => {
+                {columns.map((column, columnIndex) => {
                   const alignClassName = column.align === "right" ? "text-right [&>.flex]:justify-end" : "";
                   return (
                     <td key={column.key} className={`max-w-[260px] truncate border-b border-[rgba(11,11,11,0.05)] px-3 py-2 align-middle [tr:first-child_&]:border-t group-data-[selected=true]/cdsrow:border-transparent group-data-[selected=true]/cdsrow:bg-[rgba(11,11,11,0.05)] ${alignClassName}`} style={{ width: column.width }}>
+                      {columnIndex === 0 && rowHref ? (
+                        <Link
+                          to={rowHref}
+                          aria-label={`Open ${key}`}
+                          tabIndex={-1}
+                          className="absolute inset-0 z-[1] cursor-[inherit] rounded-lg outline-none"
+                        />
+                      ) : null}
                       {column.render(row)}
                     </td>
                   );
@@ -445,3 +594,53 @@ export function ConsoleDialog({
 
 export const CdsTabs = Tabs;
 export const CdsDropdownMenu = DropdownMenu;
+
+type ToastItem = { id: number; message: string };
+let toastItems: ToastItem[] = [];
+let toastListeners: ((items: ToastItem[]) => void)[] = [];
+let toastIdSeq = 0;
+
+function emitToasts() {
+  toastListeners.forEach((listener) => listener(toastItems));
+}
+
+/** Fire-and-forget top-right success toast (e.g. "Agent archived."). Auto-dismisses. */
+export function showToast(message: string) {
+  const id = ++toastIdSeq;
+  toastItems = [...toastItems, { id, message }];
+  emitToasts();
+  window.setTimeout(() => {
+    toastItems = toastItems.filter((item) => item.id !== id);
+    emitToasts();
+  }, 4000);
+}
+
+/** Mount once near the app root. Renders any toast fired via `showToast`. */
+export function ToastViewport() {
+  const [items, setItems] = useState<ToastItem[]>(toastItems);
+
+  useEffect(() => {
+    toastListeners.push(setItems);
+    return () => {
+      toastListeners = toastListeners.filter((listener) => listener !== setItems);
+    };
+  }, []);
+
+  if (items.length === 0) return null;
+
+  return (
+    <div className="pointer-events-none fixed right-4 top-4 z-50 flex w-[360px] max-w-[calc(100vw-2rem)] flex-col gap-3">
+      {items.map((item) => (
+        <div
+          key={item.id}
+          data-cds="Toast"
+          role="status"
+          aria-live="polite"
+          className="pointer-events-auto overflow-hidden rounded-[12px] bg-white text-sm leading-5 text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
+        >
+          <div className="px-4 py-3">{item.message}</div>
+        </div>
+      ))}
+    </div>
+  );
+}

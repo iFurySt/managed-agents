@@ -8,6 +8,8 @@ export type Agent = {
   tools: string;
   skills: string;
   version: string;
+  /** Full version history, newest first. Falls back to a single entry built from `version`/`createdAt` when absent. */
+  versions?: { version: string; createdAt: string }[];
   configYaml: string;
   createdLabel: string;
   updatedLabel: string;
