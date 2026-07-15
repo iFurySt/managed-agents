@@ -1509,6 +1509,7 @@ function DeploymentsPage() {
           headerTextClassName="text-[13px]"
           rows={visibleDeployments}
           getKey={(deployment) => deployment.id}
+          getRowHref={(deployment) => `/deployments/${deployment.id}`}
           showSelection={false}
           actionsWidth="56px"
           actionsHeaderAlign="right"
@@ -1951,6 +1952,7 @@ function EnvironmentsPage() {
           tableClassName="w-full min-w-[913px] border-separate border-spacing-0 whitespace-nowrap"
           rows={visibleEnvironments}
           getKey={(environment) => environment.id}
+          getRowHref={(environment) => `/environments/${environment.id}`}
           loading={loading}
           actionsWidth="56px"
           actionsHeaderAlign="right"
@@ -2402,6 +2404,7 @@ function VaultsPage() {
           tableClassName="w-full min-w-[913px] border-separate border-spacing-0 whitespace-nowrap"
           rows={visibleVaults}
           getKey={(vault) => vault.id}
+          getRowHref={(vault) => `/vaults/${vault.id}`}
           showSelection={false}
           actionsWidth="48px"
           columns={[
@@ -2750,6 +2753,7 @@ function MemoryStoresPage() {
           tableClassName="w-full min-w-[913px] border-separate border-spacing-0 whitespace-nowrap"
           rows={visibleStores}
           getKey={(store) => store.id}
+          getRowHref={(store) => `/memory-stores/${store.id}`}
           actionsWidth="56px"
           columns={[
             {
@@ -3090,6 +3094,7 @@ function FilesPage() {
           <DataTable
             rows={files}
             getKey={(file) => file.id}
+            getRowHref={(file) => `/files/${file.id}`}
             columns={[
               {
                 key: "id",
@@ -3701,6 +3706,7 @@ function AgentSessionsPanel({ agent }: { agent: Agent }) {
         tableClassName="w-full min-w-[1066px] border-separate border-spacing-0 whitespace-nowrap"
         rows={visibleSessions}
         getKey={(session) => session.id}
+        getRowHref={(session) => `/sessions/${session.id}`}
         columns={[
           {
             key: "id",
@@ -3786,6 +3792,7 @@ function AgentDeploymentsPanel({ agent }: { agent: Agent }) {
         <DataTable
           rows={deployments}
           getKey={(deployment) => deployment.id}
+          getRowHref={(deployment) => `/deployments/${deployment.id}`}
           showSelection={false}
           actionsWidth="56px"
           actionsHeaderAlign="right"

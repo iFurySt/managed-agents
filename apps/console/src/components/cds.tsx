@@ -4,7 +4,7 @@ import * as Select from "@radix-ui/react-select";
 import * as Tabs from "@radix-ui/react-tabs";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import { forwardRef, useEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent, type ReactNode } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 function CdsIconGlyph({ glyph, className = "h-5 w-5 text-current text-[20px] [font-weight:433.3]" }: { glyph: string; className?: string }) {
   return (
@@ -369,6 +369,7 @@ export function DataTable<T>({
   emptyState?: ReactNode;
 }) {
   const [selectedKeys, setSelectedKeys] = useState<Set<string>>(() => new Set());
+  const navigate = useNavigate();
   const rowKeys = useMemo(() => rows.map((row) => getKey(row)), [rows, getKey]);
   const selectedVisibleCount = rowKeys.filter((key) => selectedKeys.has(key)).length;
   const allVisibleSelected = rowKeys.length > 0 && selectedVisibleCount === rowKeys.length;
@@ -398,6 +399,11 @@ export function DataTable<T>({
       return next;
     });
   }
+  function shouldIgnoreRowClick(target: EventTarget | null) {
+    if (!(target instanceof HTMLElement)) return false;
+    return Boolean(target.closest("a,button,input,select,textarea,[role='button'],[role='checkbox'],[data-cds-row-ignore-click='true']"));
+  }
+
 
   return (
     <div data-cds="DataTable" className={`min-w-0 overflow-x-auto overflow-y-hidden ${className || "w-full"}`}>
@@ -472,7 +478,15 @@ export function DataTable<T>({
             const rowHref = getRowHref?.(row);
 
             return (
-              <tr key={key} data-selected={selected ? "true" : undefined} className="group/cdsrow h-[43px] first:h-11 relative [transform:translate(0,0)] [cursor:var(--cds-cursor-interactive,pointer)] hover:bg-[rgba(11,11,11,0.05)]">
+              <tr
+                key={key}
+                data-selected={selected ? "true" : undefined}
+                className={`group/cdsrow h-[43px] first:h-11 relative [transform:translate(0,0)] hover:bg-[rgba(11,11,11,0.05)] ${rowHref ? "cursor-pointer" : ""}`}
+                onClick={(event) => {
+                  if (!rowHref || shouldIgnoreRowClick(event.target)) return;
+                  navigate(rowHref);
+                }}
+              >
                 {showSelection ? (
                   <td className="relative border-b border-[rgba(11,11,11,0.05)] p-0 group-data-[selected=true]/cdsrow:border-transparent group-data-[selected=true]/cdsrow:bg-[rgba(11,11,11,0.05)] group-data-[selected=true]/cdsrow:first:rounded-l-[8px]">
                     <div className="absolute inset-0 z-10 flex items-center justify-center">
@@ -484,14 +498,6 @@ export function DataTable<T>({
                   const alignClassName = column.align === "right" ? "text-right [&>.flex]:justify-end" : "";
                   return (
                     <td key={column.key} className={`max-w-[260px] truncate border-b border-[rgba(11,11,11,0.05)] px-3 py-2 align-middle group-data-[selected=true]/cdsrow:border-transparent group-data-[selected=true]/cdsrow:bg-[rgba(11,11,11,0.05)] ${alignClassName}`} style={{ width: column.width }}>
-                      {columnIndex === 0 && rowHref ? (
-                        <Link
-                          to={rowHref}
-                          aria-label={`Open ${key}`}
-                          tabIndex={-1}
-                          className="absolute inset-0 z-[1] cursor-[inherit] rounded-lg outline-none"
-                        />
-                      ) : null}
                       {column.render(row)}
                     </td>
                   );

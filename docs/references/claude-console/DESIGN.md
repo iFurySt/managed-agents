@@ -232,15 +232,13 @@ single `--fw-emphasis: 500` token when the variable font is missing.
   floor with `min-width` (for example Environments is roughly `913px`) plus
   `width: 100%`. This makes split-screen/narrow layouts scroll inside the
   table area instead of widening the whole page.
-- **Full-row link**: every list row navigates to the object's detail page.
-  Implemented as a link overlay, not a row `onClick`: an `<a>` with
-  `position: absolute; inset: 0; z-index: 1` stretched across the row (the
-  `<tr>` carries a `transform: translate(0,0)` so the absolute link sizes to
-  the row), pointing at the detail URL. Interactive elements inside the row —
-  selection checkbox, ID copy button, row `⋮` menu — sit above it with
-  `z-index: 10` so they don't trigger navigation; plain text/meta cells stay
-  below it and are click-through to the detail page. Middle-click/cmd-click
-  open-in-new-tab works because it is a real link.
+- **Full-row navigation**: every list row with a detail page navigates to that
+  object's detail route when a non-interactive part of the row is clicked.
+  Implement this in the shared table primitive, not per-cell, so ID text,
+  whitespace, status/type/meta cells, and name cells all share the behavior.
+  Interactive elements inside the row — selection checkbox, ID copy button,
+  row `⋮` menu, filter/input controls, and explicit links/buttons — keep
+  their own behavior and must not trigger row navigation.
 - **ID cell**: `anthropicMono` **12px / weight 550**, ink — slightly bolder
   than body text (use the `--fw-emphasis` fallback mapping below). The ID is a
   link; a small copy button (20px, muted `#898781` icon) fades in on row hover.
