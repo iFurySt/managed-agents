@@ -18,3 +18,7 @@ Avoid dumping large vendor manuals here. Keep references curated and scoped.
 - [Anthropic Managed Agents Evidence Summary](anthropic-managed-agents-evidence.md):
   curated architecture-relevant conclusions from the June 2026 managed agents
   investigation corpus.
+- [Claude Console Design Reference](claude-console/README.md): design system
+  extracted from the live Claude Console (`claude-console/DESIGN.md`) plus
+  standalone preview pages. **Visual source of truth for `apps/console`** —
+  read it before any console web work.

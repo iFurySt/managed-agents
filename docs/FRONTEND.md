@@ -3,6 +3,25 @@
 Read this file for frontend-heavy tasks once the repository includes a UI
 surface.
 
+## Visual Design System
+
+The visual source of truth for the console web (`apps/console`) is
+[`docs/references/claude-console/DESIGN.md`](references/claude-console/DESIGN.md)
+— a design system extracted from the live Claude Console (colors, typography,
+components, layout, depth, responsive rules), validated by standalone previews
+in the same folder (`preview.html`, `preview-dropdown.html`,
+`preview-create-session.html`, `preview-session-detail.html`).
+
+When building or restyling any console page:
+
+- Match tokens and component specs from that DESIGN.md (border-first depth,
+  warm neutral canvas, compact 28-36px controls, mono IDs, status pills).
+- Compare against the corresponding preview page before and after the change.
+- Mind the variable-font caveat: emphasis weights 550/580 must map to a
+  `--fw-emphasis: 500` fallback, never 600/700.
+- If a spec turns out wrong or missing, fix DESIGN.md (and its preview) in the
+  same task rather than diverging silently.
+
 ## Product Surface
 
 The first UI is an operational console for managed agents. It should open on

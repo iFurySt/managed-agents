@@ -20,4 +20,8 @@ Stable principles:
 - Treat audit and security posture as first-class details, not hidden admin
   tabs.
 - Prefer explicit labels for dangerous actions and icon buttons for frequent
-  operational tools once a design system exists.
+  operational tools.
+- Follow the extracted visual design system in
+  [`docs/references/claude-console/DESIGN.md`](references/claude-console/DESIGN.md)
+  (tokens, typography, components, layout); it is the visual source of truth
+  for `apps/console` and ships with preview pages that double as visual specs.

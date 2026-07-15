@@ -24,7 +24,7 @@ If a code or workflow change makes a doc stale, update the doc in the same task.
 - `docs/RELIABILITY.md`: runtime guardrails, observability expectations, and operational readiness.
 - `docs/SECURITY.md`: secure defaults for auth, data handling, secrets, and external integrations.
 - `docs/SUPPLY_CHAIN_SECURITY.md`: dependency, SBOM, provenance, and supply-chain security integration guidance.
-- `docs/FRONTEND.md`: UI/system guidance if the repo includes a frontend surface.
+- `docs/FRONTEND.md`: UI/system guidance if the repo includes a frontend surface. Web work must follow the visual source of truth in `docs/references/claude-console/DESIGN.md`.
 - `CONTRIBUTING.md`: pull request expectations and default review checklist.
 - `docs/releases/README.md`: how to maintain user-facing release notes.
 - `docs/references/README.md`: curated external references copied into the repo for agent use.
