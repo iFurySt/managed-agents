@@ -886,6 +886,7 @@ function AgentsPage() {
 
 function SessionsPage() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -1059,7 +1060,10 @@ function SessionsPage() {
       <CreateSessionDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-        onCreated={(session) => setSessions((items) => [session, ...items])}
+        onCreated={(session) => {
+          setSessions((items) => [session, ...items]);
+          navigate(`/sessions/${session.id}`);
+        }}
       />
       <SessionArchiveDialog
         open={Boolean(archivingSession)}
@@ -1409,6 +1413,7 @@ function DeploymentFilterSelect({
 }
 
 function DeploymentsPage() {
+  const navigate = useNavigate();
   const [deployments, setDeployments] = useState<Deployment[]>([]);
   const [search, setSearch] = useState("");
   const [agent, setAgent] = useState("All");
@@ -1580,7 +1585,10 @@ function DeploymentsPage() {
       <CreateDeploymentDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-        onCreated={(deployment) => setDeployments((items) => [deployment, ...items])}
+        onCreated={(deployment) => {
+          setDeployments((items) => [deployment, ...items]);
+          navigate(`/deployments/${deployment.id}`);
+        }}
       />
       <CreateDeploymentDialog
         mode="edit"
@@ -1850,6 +1858,7 @@ function DeploymentDetailPage() {
 }
 
 function EnvironmentsPage() {
+  const navigate = useNavigate();
   const [environments, setEnvironments] = useState<Environment[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -1998,7 +2007,10 @@ function EnvironmentsPage() {
       <CreateEnvironmentDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-        onCreated={(environment) => setEnvironments((items) => [environment, ...items])}
+        onCreated={(environment) => {
+          setEnvironments((items) => [environment, ...items]);
+          navigate(`/environments/${environment.id}`);
+        }}
       />
       <EnvironmentConfirmationDialog
         action="archive"
@@ -2312,6 +2324,7 @@ function EnvironmentDetailPage() {
 }
 
 function VaultsPage() {
+  const navigate = useNavigate();
   const [vaults, setVaults] = useState<Vault[]>([]);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("All");
@@ -2443,6 +2456,7 @@ function VaultsPage() {
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         onCreated={(vault) => setVaults((items) => [vault, ...items])}
+        onCompleted={(vault) => navigate(`/vaults/${vault.id}`)}
       />
       <VaultConfirmationDialog
         action="archive"
@@ -2650,6 +2664,7 @@ function VaultDetailPage() {
 }
 
 function MemoryStoresPage() {
+  const navigate = useNavigate();
   const [stores, setStores] = useState<MemoryStore[]>([]);
   const [query, setQuery] = useState("");
   const [created, setCreated] = useState("All time");
@@ -2787,7 +2802,10 @@ function MemoryStoresPage() {
       <CreateMemoryStoreDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-        onCreated={(store) => setStores((items) => [store, ...items])}
+        onCreated={(store) => {
+          setStores((items) => [store, ...items]);
+          navigate(`/memory-stores/${store.id}`);
+        }}
       />
       <MemoryStoreConfirmationDialog
         action="archive"
@@ -3736,6 +3754,7 @@ function AgentSessionsPanel({ agent }: { agent: Agent }) {
 }
 
 function AgentDeploymentsPanel({ agent }: { agent: Agent }) {
+  const navigate = useNavigate();
   const [deployments, setDeployments] = useState<Deployment[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingDeployment, setEditingDeployment] = useState<Deployment | null>(null);
@@ -3828,7 +3847,10 @@ function AgentDeploymentsPanel({ agent }: { agent: Agent }) {
         initialAgentVersion={agent.version || "v1"}
         initialEnvironmentId="env_01UTaKkbFknSkQNEsZjUARMh"
         initialEnvironmentName="managed-ssh-debug-env"
-        onCreated={(deployment) => setDeployments((items) => (deployment.agentId === agent.id ? [deployment, ...items] : items))}
+        onCreated={(deployment) => {
+          setDeployments((items) => (deployment.agentId === agent.id ? [deployment, ...items] : items));
+          navigate(`/deployments/${deployment.id}`);
+        }}
       />
       <CreateDeploymentDialog
         mode="edit"
@@ -3934,11 +3956,13 @@ const agentStartingTemplates = [
 function CreateAgentDialog({
   open,
   onOpenChange,
-  onCreated
+  onCreated,
+  navigateOnCreated = true
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCreated: (agent: Agent) => void;
+  navigateOnCreated?: boolean;
 }) {
   const navigate = useNavigate();
   const [description, setDescription] = useState("");
@@ -3978,7 +4002,7 @@ function CreateAgentDialog({
     setStartingPointMode("describe");
     setSelectedTemplate(agentStartingTemplates[0]);
     setConfigYaml(defaultAgentYaml());
-    navigate(`/agents/${agent.id}`);
+    if (navigateOnCreated) navigate(`/agents/${agent.id}`);
   }
 
   return (
@@ -4393,7 +4417,6 @@ function CreateSessionDialog({
       vaults,
       resources
     });
-    onCreated(session);
     onOpenChange(false);
     setTitle("");
     setAgentId("");
@@ -4401,6 +4424,7 @@ function CreateSessionDialog({
     setVaults([]);
     setVaultAcknowledged(false);
     setResources([]);
+    onCreated(session);
   }
 
   return (
@@ -4516,6 +4540,7 @@ function CreateSessionDialog({
       <CreateAgentDialog
         open={createAgentOpen}
         onOpenChange={setCreateAgentOpen}
+        navigateOnCreated={false}
         onCreated={(agent) => {
           setAgentId(agent.id);
           setCreateAgentOpen(false);
@@ -4859,7 +4884,6 @@ function CreateDeploymentDialog({
       return;
     }
     const created = await createDeployment(input);
-    onCreated?.(created);
     onOpenChange(false);
     setName("");
     setAgentId(initialAgentId);
@@ -4870,6 +4894,7 @@ function CreateDeploymentDialog({
     setTrigger("");
     setScheduleExpression("0 9 * * 1-5");
     setTimezone("Asia/Shanghai");
+    onCreated?.(created);
   }
 
   return (
@@ -6172,11 +6197,11 @@ function CreateEnvironmentDialog({
       hostingType,
       description
     });
-    onCreated(environment);
     onOpenChange(false);
     setName("");
     setHostingType("Cloud");
     setDescription("");
+    onCreated(environment);
   }
 
   return (
@@ -6241,11 +6266,13 @@ function CreateEnvironmentDialog({
 function CreateVaultDialog({
   open,
   onOpenChange,
-  onCreated
+  onCreated,
+  onCompleted
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCreated: (vault: Vault) => void;
+  onCompleted?: (vault: Vault) => void;
 }) {
   const [step, setStep] = useState<"vault" | "credential">("vault");
   const [vault, setVault] = useState<Vault | null>(null);
@@ -6265,6 +6292,7 @@ function CreateVaultDialog({
   function closeDialog(nextOpen: boolean) {
     onOpenChange(nextOpen);
     if (!nextOpen) {
+      if (vault) onCompleted?.(vault);
       setStep("vault");
       setVault(null);
       setName("");
@@ -6530,10 +6558,10 @@ function CreateMemoryStoreDialog({
   async function submit() {
     if (!canCreate) return;
     const store = await createMemoryStore({ name, description });
-    onCreated(store);
     onOpenChange(false);
     setName("");
     setDescription("");
+    onCreated(store);
   }
 
   return (

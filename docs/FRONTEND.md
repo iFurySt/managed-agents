@@ -55,6 +55,8 @@ Primary areas:
 - Keep destructive actions explicit: cancel session, revoke credential, delete
   file, remove skill, and stop host.
 - Use status filters, search, and object links consistently across all pages.
+- After creating a top-level object that has a detail route, navigate to the
+  new object's detail page instead of leaving the user on the list page.
 
 ## Verification Expectations
 
