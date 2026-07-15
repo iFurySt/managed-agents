@@ -226,6 +226,12 @@ single `--fw-emphasis: 500` token when the variable font is missing.
 
 ### Tables (list pages)
 
+- **Responsive overflow contract**: the page shell and `body` do not carry a
+  fixed desktop `min-width`. The table wrapper is `min-width: 0; width: 100%;
+  overflow-x: auto; overflow-y: hidden`; the `<table>` can keep a content
+  floor with `min-width` (for example Environments is roughly `913px`) plus
+  `width: 100%`. This makes split-screen/narrow layouts scroll inside the
+  table area instead of widening the whole page.
 - **Full-row link**: every list row navigates to the object's detail page.
   Implemented as a link overlay, not a row `onClick`: an `<a>` with
   `position: absolute; inset: 0; z-index: 1` stretched across the row (the

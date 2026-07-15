@@ -1895,7 +1895,7 @@ function EnvironmentsPage() {
   }
 
   return (
-    <section className="-mx-2 flex flex-col">
+    <section className="-mx-2 flex min-w-0 flex-col">
       <PageHeader
         title="Environments"
         description="Configuration template for containers, such as sessions or code execution."
@@ -1936,10 +1936,10 @@ function EnvironmentsPage() {
           triggerShellClassName={topFilterShellClassName}
         />
       </div>
-      <div className="overflow-x-auto">
+      <div className="min-w-0">
         <DataTable
-          className="-mx-2 w-[913px] overflow-x-auto p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
-          tableClassName="w-[913px] border-separate border-spacing-0 whitespace-nowrap"
+          className="-mx-2 w-[calc(100%+1rem)] p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
+          tableClassName="w-full min-w-[913px] border-separate border-spacing-0 whitespace-nowrap"
           rows={visibleEnvironments}
           getKey={(environment) => environment.id}
           loading={loading}

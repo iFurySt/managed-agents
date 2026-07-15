@@ -400,7 +400,7 @@ export function DataTable<T>({
   }
 
   return (
-    <div data-cds="DataTable" className={`w-full overflow-hidden ${className}`}>
+    <div data-cds="DataTable" className={`min-w-0 overflow-x-auto overflow-y-hidden ${className || "w-full"}`}>
       <table data-cds="Table" className={`w-full table-fixed text-left text-sm ${tableClassName}`}>
         <colgroup>
           {showSelection ? <col style={{ width: "40px" }} /> : null}
