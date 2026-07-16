@@ -1629,13 +1629,13 @@ function SearchableFilterSelect({
 
   return (
     <div data-cds="Field" className="relative h-10">
-      <div className="inline-flex h-8 items-center rounded-[8px] bg-white/50 pr-2 shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]">
+      <div className={`inline-flex h-8 items-center overflow-hidden rounded-[8px] bg-white/50 shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)] hover:bg-black/[0.03] ${triggerWidth}`}>
         <button
           type="button"
           role="combobox"
           aria-expanded={open}
           aria-label={`${label} filter`}
-          className={`flex h-8 items-center justify-between rounded-[8px] bg-transparent pl-2 pr-0 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-[#c6613f]/35 ${triggerWidth}`}
+          className="flex h-8 w-full items-center justify-between rounded-[8px] bg-transparent px-2 text-left text-sm font-normal text-ink outline-none focus-visible:ring-2 focus-visible:ring-[#c6613f]/35"
           onPointerDown={(event) => {
             event.preventDefault();
             setOpen((current) => !current);
@@ -1730,13 +1730,13 @@ function MultiSelectFilterSelect({
 
   return (
     <div data-cds="Field" className="relative h-10">
-      <div className="inline-flex h-8 items-center rounded-[8px] bg-white/50 pr-2 shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]">
+      <div className={`inline-flex h-8 items-center overflow-hidden rounded-[8px] bg-white/50 shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)] hover:bg-black/[0.03] ${triggerWidth}`}>
         <button
           type="button"
           role="combobox"
           aria-expanded={open}
           aria-label={`${label} filter`}
-          className={`flex h-8 items-center justify-between rounded-[8px] bg-transparent pl-2 pr-0 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-[#c6613f]/35 ${triggerWidth}`}
+          className="flex h-8 w-full items-center justify-between rounded-[8px] bg-transparent px-2 text-left text-sm font-normal text-ink outline-none focus-visible:ring-2 focus-visible:ring-[#c6613f]/35"
           onPointerDown={(event) => {
             event.preventDefault();
             setOpen((current) => !current);
