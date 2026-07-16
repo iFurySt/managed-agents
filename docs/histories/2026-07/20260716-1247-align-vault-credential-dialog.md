@@ -37,6 +37,7 @@
   - Reset credential form Type state when the dialog closes so reopening starts from the reference default.
   - Replaced the vault detail Status filter's transparent trigger with the shared boxed filter shell.
   - Replaced the deployment detail Runs tab Trigger/Result filters' transparent triggers with the shared boxed filter shell.
+  - Moved credential select focus rings from the inner Radix trigger to the outer rounded field shell so focused Type/MCP fields no longer show a square blue outline.
   - Documented the vault credential modal variant in the Claude Console design reference.
 
 ### Design Intent
@@ -57,8 +58,9 @@ interaction.
 
 Credential select hover feedback is intentionally shell-level instead of
 trigger-level. The reference combobox keeps the trigger background transparent
-and darkens the field boundary on hover, so the local implementation mirrors
-that behavior to avoid a filled rectangle appearing inside the field.
+and darkens the field boundary on hover/focus, so the local implementation
+mirrors that behavior to avoid a filled rectangle or square focus outline
+appearing inside the rounded field.
 
 Credential Type controls the rest of the modal. OAuth-style credentials still
 ask for an MCP server endpoint, and the local test set now uses real Gmail and

@@ -7338,7 +7338,7 @@ function CredentialMcpServerSelect({
       <Select.Trigger
         data-cds="Button"
         aria-label="MCP server"
-        className={`cds-focus inline-flex h-[31px] w-[455px] items-center gap-1.5 pl-2 pr-0 text-sm leading-5 text-ink outline-none ${credentialSelectTriggerClass}`}
+        className={`inline-flex h-[31px] w-[455px] items-center gap-1.5 pl-2 pr-0 text-sm leading-5 text-ink outline-none ${credentialSelectTriggerClass}`}
         onPointerDown={(event) => {
           if (!open) return;
           event.preventDefault();
@@ -7552,7 +7552,7 @@ function CredentialAuthTypeSelect({
       <Select.Trigger
         data-cds="Button"
         aria-label="Credential type"
-        className={`cds-focus inline-flex h-[31px] w-[455px] items-center gap-1.5 pl-2 pr-0 text-sm leading-5 text-ink outline-none ${credentialSelectTriggerClass}`}
+        className={`inline-flex h-[31px] w-[455px] items-center gap-1.5 pl-2 pr-0 text-sm leading-5 text-ink outline-none ${credentialSelectTriggerClass}`}
         onPointerDown={(event) => {
           if (!open) return;
           event.preventDefault();

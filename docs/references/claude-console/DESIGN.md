@@ -515,10 +515,11 @@ single `--fw-emphasis: 500` token when the variable font is missing.
   acknowledgement checkbox. The primary button remains disabled until the
   variable name, value, and acknowledgement are present.
 - Credential modal select triggers do **not** use press-scale feedback. Keep
-  the trigger itself transparent on hover; hover feedback belongs on the outer
-  field shell as a darker border/ring, matching the reference combobox field.
-  Avoid `transform: scale(...)`; otherwise the portaled select popover
-  recalculates around a moving trigger and visibly jitters. Dialog
+  the trigger itself transparent on hover and focus; hover/focus feedback
+  belongs on the outer field shell as a darker rounded border/ring, matching
+  the reference combobox field. Avoid `transform: scale(...)`; otherwise the
+  portaled select popover recalculates around a moving trigger and visibly
+  jitters. Dialog
   outside-interaction handling must also allow Radix Select popovers for pointer
   and focus outside events so choosing Type does not close the modal.
 - When a Radix Select combobox inside a modal is already open, clicking its
