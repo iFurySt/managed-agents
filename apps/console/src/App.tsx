@@ -10,6 +10,7 @@ import {
   FolderPlus,
   Gauge,
   Home,
+  Lock,
   MessageSquare,
   Pause,
   Plus,
@@ -134,6 +135,7 @@ const editorImportantControlInteractionClass = "transition-[background-color,col
 const editorIconButtonClass = `h-8 w-8 rounded-[8px] text-sm leading-5 [font-weight:550] ${editorControlInteractionClass}`;
 const editorAddIconButtonClass = `border border-line bg-white shadow-[0_1px_2px_rgba(0,0,0,0.02)] ${editorIconButtonClass}`;
 const editorSelectTriggerClass = `rounded-none !border-transparent !bg-transparent px-0 ${editorImportantControlInteractionClass}`;
+const credentialSelectTriggerClass = "rounded-none !border-transparent !bg-transparent px-0 transition-colors duration-100";
 const editorToolbarButtonClass = `rounded-[8px] bg-transparent [font-weight:550] ${editorControlInteractionClass}`;
 const editorToolbarImportantButtonClass = `rounded-[8px] !bg-transparent [font-weight:550] ${editorImportantControlInteractionClass}`;
 const editorToolbarTabClass = (selected: boolean) =>
@@ -2867,7 +2869,7 @@ function VaultDetailPage() {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button variant="ghost" className="h-8 w-[143px] !gap-1.5 rounded-[8px] px-0 [font-weight:550]" onClick={() => setDialogOpen(true)}>
+          <Button className="h-8 w-[170px] !gap-1.5 rounded-[8px] px-0 [font-weight:550]" onClick={() => setDialogOpen(true)}>
             <CdsIconGlyph glyph="" className="h-5 w-5 text-current text-[20px] [font-weight:566.5]" />
             Add credential
           </Button>
@@ -2886,7 +2888,8 @@ function VaultDetailPage() {
       </div>
       <DataTable
         className="-mx-2 w-[calc(100%+1rem)] p-2 [mask-image:linear-gradient(to_right,transparent,black_var(--fade-left,0px),black_calc(100%-var(--fade-right,0px)),transparent)]"
-        tableClassName="w-full min-w-[1108px] border-separate border-spacing-0 whitespace-nowrap [&_tbody_tr]:!h-[47px] [&_tbody_tr:first-child]:!h-12 [&_tbody_td]:!py-1.5"
+        tableClassName="w-full min-w-[1108px] border-separate border-spacing-0 whitespace-nowrap [&_tbody_tr:not([data-empty-state])]:!h-[47px] [&_tbody_tr:not([data-empty-state]):first-child]:!h-12 [&_tbody_td]:!py-1.5 [&_tbody_tr:last-child_td]:!border-b-0"
+        emptyRowClassName="h-[520px]"
         rows={visibleCredentials}
         getKey={(credential) => credential.id}
         actionsWidth="48px"
@@ -2932,9 +2935,10 @@ function VaultDetailPage() {
         )}
         emptyState={
           <div className="flex flex-col items-center justify-center text-center">
+            <Lock className="mb-5 h-[72px] w-[72px] stroke-[1.75] text-ink" />
             <h2 className="text-base leading-6 text-ink [font-weight:550]">No credentials yet</h2>
             <p className="mt-1 text-sm leading-5 text-[#898781]">Add a credential to give agents access through this vault.</p>
-            <Button variant="ghost" className="mt-4 h-8 w-[143px] !gap-1.5 rounded-[8px] px-0 [font-weight:550]" onClick={() => setDialogOpen(true)}>
+            <Button variant="secondary" className="mt-4 h-8 w-[170px] !gap-1.5 rounded-[8px] border border-line bg-white px-0 text-sm leading-5 text-ink shadow-[0_1px_2px_rgba(0,0,0,0.04)] [font-weight:550] hover:bg-fill" onClick={() => setDialogOpen(true)}>
               <CdsIconGlyph glyph="" className="h-5 w-5 text-current text-[20px] [font-weight:566.5]" />
               Add credential
             </Button>
@@ -6718,6 +6722,7 @@ function CreateVaultDialog({
   const [step, setStep] = useState<"vault" | "credential">("vault");
   const [vault, setVault] = useState<Vault | null>(null);
   const [name, setName] = useState("");
+  const [credentialAuthType, setCredentialAuthType] = useState("MCP OAuth");
   const canContinue = name.trim().length <= 50;
   const fieldLabelClass = "text-sm leading-none [font-weight:550]";
   const helperClass = "text-[13px] font-normal leading-[18px] text-muted";
@@ -6737,6 +6742,7 @@ function CreateVaultDialog({
       setStep("vault");
       setVault(null);
       setName("");
+      setCredentialAuthType("MCP OAuth");
     }
   }
 
@@ -6745,10 +6751,10 @@ function CreateVaultDialog({
       title={step === "vault" ? "Create vault" : "Add a credential"}
       open={open}
       onOpenChange={closeDialog}
-      contentClassName={step === "vault" ? "h-[306px] w-[510px] max-w-[calc(100vw-32px)] !rounded-[12px] border-0 !shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]" : undefined}
-      headerClassName={step === "vault" ? "flex items-start justify-between pl-6 pr-4 pt-4" : undefined}
-      titleClassName={step === "vault" ? "mt-1 w-[431px] -translate-y-px text-[22px] leading-[26px] text-ink [font-weight:580]" : undefined}
-      closeButtonClassName={step === "vault" ? "h-[31px] w-[31px] -translate-y-px !rounded-[8px] px-0" : undefined}
+      contentClassName={step === "vault" ? "h-[306px] w-[510px] max-w-[calc(100vw-32px)] !rounded-[12px] border-0 !shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]" : credentialDialogContentClassName(credentialAuthType)}
+      headerClassName="flex items-start justify-between pl-6 pr-4 pt-4"
+      titleClassName={step === "vault" ? "mt-1 w-[431px] -translate-y-px text-[22px] leading-[26px] text-ink [font-weight:580]" : "mt-1 w-[431px] text-[22px] leading-[26px] text-ink [font-weight:580]"}
+      closeButtonClassName={step === "vault" ? "h-[31px] w-[31px] -translate-y-px !rounded-[8px] px-0" : "h-[31px] w-[31px] rounded-[8px] px-0"}
       closeLabel={step === "vault" ? "Close" : undefined}
     >
       {step === "vault" ? (
@@ -6782,6 +6788,7 @@ function CreateVaultDialog({
           submitLabel="Connect"
           secondaryLabel="Skip for now"
           onSecondary={() => closeDialog(false)}
+          onAuthTypeChange={setCredentialAuthType}
           onSubmit={async (input) => {
             await createVaultCredential(vault.id, input);
             closeDialog(false);
@@ -6807,13 +6814,18 @@ function CreateCredentialDialog({
   onCreated: (credential: VaultCredential) => void;
   create: (input: { name: string; authType: string; target: string }) => Promise<VaultCredential>;
 }) {
+  const [credentialAuthType, setCredentialAuthType] = useState("MCP OAuth");
+
   return (
     <ConsoleDialog
       title={title}
       description={description}
       open={open}
-      onOpenChange={onOpenChange}
-      contentClassName="h-[349px] w-[510px] max-w-[calc(100vw-32px)] !rounded-[12px] border-0 !shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]"
+      onOpenChange={(nextOpen) => {
+        onOpenChange(nextOpen);
+        if (!nextOpen) setCredentialAuthType("MCP OAuth");
+      }}
+      contentClassName={credentialDialogContentClassName(credentialAuthType)}
       headerClassName="flex items-start justify-between pl-6 pr-4 pt-4"
       titleClassName="mt-1 w-[431px] text-[22px] leading-[26px] text-ink [font-weight:580]"
       descriptionClassName="mt-1 text-sm text-[#52514e]"
@@ -6821,7 +6833,9 @@ function CreateCredentialDialog({
       closeLabel="Close"
     >
       <CreateCredentialForm
+        key={open ? "credential-dialog-open" : "credential-dialog-closed"}
         submitLabel="Connect"
+        onAuthTypeChange={setCredentialAuthType}
         onSubmit={async (input) => {
           const credential = await create(input);
           onCreated(credential);
@@ -6837,38 +6851,55 @@ function CreateCredentialForm({
   submitLabel,
   secondaryLabel,
   onSecondary,
+  onAuthTypeChange,
   onSubmit
 }: {
   title?: string;
   submitLabel: string;
   secondaryLabel?: string;
   onSecondary?: () => void;
+  onAuthTypeChange?: (authType: string) => void;
   onSubmit: (input: { name: string; authType: string; target: string }) => Promise<void>;
 }) {
   const [name, setName] = useState("");
   const [authType, setAuthType] = useState("MCP OAuth");
   const [target, setTarget] = useState("");
+  const [environmentValue, setEnvironmentValue] = useState("");
+  const [environmentNetworking, setEnvironmentNetworking] = useState<"Limited" | "Unrestricted">("Limited");
+  const [allowedHosts, setAllowedHosts] = useState("");
+  const [injectHeaders, setInjectHeaders] = useState(true);
+  const [injectBody, setInjectBody] = useState(false);
+  const [acknowledged, setAcknowledged] = useState(false);
 
   useEffect(() => {
     setTarget("");
-  }, [authType]);
+    setEnvironmentValue("");
+    setAllowedHosts("");
+    setInjectHeaders(true);
+    setInjectBody(false);
+    setAcknowledged(false);
+    onAuthTypeChange?.(authType);
+  }, [authType, onAuthTypeChange]);
 
   async function submit() {
-    if (!target.trim()) return;
+    if (!canSubmit) return;
     await onSubmit({ name, authType, target });
     setName("");
     setTarget("");
+    setEnvironmentValue("");
+    setAllowedHosts("");
+    setAcknowledged(false);
   }
 
-  const targetLabel = authType === "Environment variable" ? "Environment variable" : "MCP server";
+  const isEnvironmentVariable = authType === "Environment variable";
   const targetPlaceholder = authType === "Environment variable" ? "ENV_VAR_NAME" : "https://mcp.example.com";
-  const canSubmit = target.trim().length > 0;
+  const canSubmit = isEnvironmentVariable ? target.trim().length > 0 && environmentValue.trim().length > 0 && acknowledged : target.trim().length > 0;
   const fieldLabelClass = "text-sm leading-none [font-weight:550]";
-  const selectShellClass = "flex h-[31px] w-full items-center rounded-[8px] border-0 bg-white/50 pr-2 shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]";
+  const selectShellClass = "credential-select-shell flex h-[31px] w-full items-center rounded-[8px] bg-white/50 pr-2";
   const primaryLabel = authType === "MCP OAuth" ? submitLabel : "Add credential";
 
   return (
-    <div className="px-6 pb-0 pt-[10px]">
+    <div className={`${isEnvironmentVariable ? "px-6 pb-0 pt-3" : "px-6 pb-0 pt-[10px]"}`}>
       {title ? <p className="mb-5 text-sm leading-6 text-muted">{title}</p> : null}
       <div className="grid gap-4">
         <div className="grid gap-2">
@@ -6888,35 +6919,218 @@ function CreateCredentialForm({
             <CredentialAuthTypeSelect value={authType} onValueChange={setAuthType} />
           </div>
         </div>
-        <div className="grid gap-2">
-          <label className={fieldLabelClass}>{targetLabel}</label>
-          {authType === "MCP OAuth" || authType === "Bearer token" ? (
+        {isEnvironmentVariable ? (
+          <EnvironmentCredentialFields
+            variableName={target}
+            value={environmentValue}
+            networking={environmentNetworking}
+            allowedHosts={allowedHosts}
+            injectHeaders={injectHeaders}
+            injectBody={injectBody}
+            acknowledged={acknowledged}
+            onVariableNameChange={setTarget}
+            onValueChange={setEnvironmentValue}
+            onNetworkingChange={setEnvironmentNetworking}
+            onAllowedHostsChange={setAllowedHosts}
+            onInjectHeadersChange={setInjectHeaders}
+            onInjectBodyChange={setInjectBody}
+            onAcknowledgedChange={setAcknowledged}
+          />
+        ) : (
+          <div className="grid gap-2">
+            <label className={fieldLabelClass}>MCP server</label>
             <div className={selectShellClass}>
-              <FieldSelect
-                label=""
-                showLabel={false}
-                ariaLabel={targetLabel}
-                value={target || targetPlaceholder}
-                options={[targetPlaceholder]}
-                onValueChange={(value) => setTarget(value === targetPlaceholder ? "" : value)}
-                triggerClassName={`!h-[31px] w-[455px] !gap-1.5 !pl-2 !pr-0 ${editorSelectTriggerClass}`}
-              />
+              <CredentialMcpServerSelect value={target} placeholder={targetPlaceholder} onValueChange={setTarget} />
             </div>
-          ) : (
-            <TextInput
-              className="h-[31px] rounded-[8px] border-0 bg-white/50 px-3 font-normal shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]"
-              placeholder={targetPlaceholder}
-              value={target}
-              onChange={(event) => setTarget(event.target.value)}
-            />
-          )}
-        </div>
+          </div>
+        )}
       </div>
       <div className="sticky bottom-0 -mx-6 mt-4 flex justify-end gap-2 bg-white px-6 py-0">
-        {secondaryLabel ? <Button variant="ghost" className={`h-[31px] px-3 ${editorToolbarButtonClass}`} onClick={onSecondary}>{secondaryLabel}</Button> : null}
+        {secondaryLabel ? <Button variant="secondary" className="h-[31px] rounded-[8px] border border-line bg-white px-3 text-sm leading-5 text-ink shadow-[0_1px_2px_rgba(0,0,0,0.04)] [font-weight:550] hover:bg-fill" onClick={onSecondary}>{secondaryLabel}</Button> : null}
         <Button className={`h-[31px] rounded-[8px] px-0 transition-transform duration-100 active:scale-[0.975] [font-weight:550] ${primaryLabel === "Add credential" ? "w-[121px]" : "w-[81px]"}`} onClick={submit} disabled={!canSubmit}>{primaryLabel}</Button>
       </div>
     </div>
+  );
+}
+
+function credentialDialogContentClassName(authType: string) {
+  if (authType === "Environment variable") {
+    return "h-[900px] max-h-[calc(100vh-32px)] w-[520px] max-w-[calc(100vw-32px)] !overflow-y-auto !rounded-[12px] border-0 !shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]";
+  }
+  return "h-[349px] w-[510px] max-w-[calc(100vw-32px)] !rounded-[12px] border-0 !shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]";
+}
+
+const credentialMcpServerOptions = [
+  { name: "Gmail", url: "https://gmailmcp.googleapis.com/mcp/v1", mark: "G" },
+  { name: "Notion", url: "https://mcp.notion.com/mcp", mark: "N" }
+];
+
+function CredentialMcpServerSelect({ value, placeholder, onValueChange }: { value: string; placeholder: string; onValueChange: (value: string) => void }) {
+  const selected = credentialMcpServerOptions.find((option) => option.url === value);
+
+  return (
+    <Select.Root value={value} onValueChange={onValueChange}>
+      <Select.Trigger
+        data-cds="Button"
+        aria-label="MCP server"
+        className={`cds-focus inline-flex h-[31px] w-[455px] items-center gap-1.5 pl-2 pr-0 text-sm leading-5 text-ink outline-none ${credentialSelectTriggerClass}`}
+      >
+        <span className={`flex min-w-0 flex-1 items-baseline gap-1.5 whitespace-nowrap ${selected ? "" : "text-muted"}`}>
+          {selected ? (
+            <>
+              <span className="truncate">{selected.name}</span>
+              <span className="min-w-0 truncate font-mono text-xs text-muted">{selected.url}</span>
+            </>
+          ) : (
+            <Select.Value placeholder={placeholder} />
+          )}
+        </span>
+        <Select.Icon className="shrink-0">
+          <CdsIconGlyph glyph="" className="mr-0.5 h-4 w-4 text-[#898781] text-[16px] [font-weight:533.25]" />
+        </Select.Icon>
+      </Select.Trigger>
+      <Select.Portal>
+        <Select.Content
+          position="popper"
+          align="start"
+          sideOffset={6}
+          data-cds="ComboboxPopover"
+          className="z-50 w-[463px] overflow-hidden rounded-[12px] bg-white p-1 shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]"
+        >
+          <Select.Viewport>
+            {credentialMcpServerOptions.map((option) => (
+              <Select.Item
+                key={option.url}
+                value={option.url}
+                className="flex min-h-11 w-full select-none items-center gap-2 rounded-[8px] px-3 py-1 text-sm leading-5 text-ink outline-none data-[highlighted]:bg-fill"
+              >
+                <span className="grid h-5 w-5 shrink-0 place-items-center rounded-[5px] bg-fill text-[13px] leading-none text-[#52514e] [font-weight:550]">{option.mark}</span>
+                <div className="flex min-w-0 flex-1 flex-col">
+                  <Select.ItemText>
+                    <span className="block truncate">{option.name}</span>
+                  </Select.ItemText>
+                  <span className="truncate font-mono text-xs leading-4 text-muted">{option.url}</span>
+                </div>
+                <Select.ItemIndicator>
+                  <CdsIconGlyph glyph="" className="h-4 w-4 shrink-0 text-[#184F95] text-[16px] [font-weight:533.25]" />
+                </Select.ItemIndicator>
+              </Select.Item>
+            ))}
+          </Select.Viewport>
+        </Select.Content>
+      </Select.Portal>
+    </Select.Root>
+  );
+}
+
+function EnvironmentCredentialFields({
+  variableName,
+  value,
+  networking,
+  allowedHosts,
+  injectHeaders,
+  injectBody,
+  acknowledged,
+  onVariableNameChange,
+  onValueChange,
+  onNetworkingChange,
+  onAllowedHostsChange,
+  onInjectHeadersChange,
+  onInjectBodyChange,
+  onAcknowledgedChange
+}: {
+  variableName: string;
+  value: string;
+  networking: "Limited" | "Unrestricted";
+  allowedHosts: string;
+  injectHeaders: boolean;
+  injectBody: boolean;
+  acknowledged: boolean;
+  onVariableNameChange: (value: string) => void;
+  onValueChange: (value: string) => void;
+  onNetworkingChange: (value: "Limited" | "Unrestricted") => void;
+  onAllowedHostsChange: (value: string) => void;
+  onInjectHeadersChange: (value: boolean) => void;
+  onInjectBodyChange: (value: boolean) => void;
+  onAcknowledgedChange: (value: boolean) => void;
+}) {
+  const fieldLabelClass = "text-sm leading-none [font-weight:550]";
+  const inputClassName = "h-[31px] rounded-[8px] border-0 bg-white/50 px-3 font-normal shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]";
+
+  return (
+    <>
+      <div className="grid grid-cols-[192px_minmax(0,1fr)] gap-4">
+        <div className="grid gap-2">
+          <label className={fieldLabelClass}>Variable name</label>
+          <TextInput className={inputClassName} placeholder="MY_API_KEY" value={variableName} onChange={(event) => onVariableNameChange(event.target.value)} />
+        </div>
+        <div className="grid gap-2">
+          <label className={fieldLabelClass}>Value</label>
+          <TextInput className={inputClassName} value={value} onChange={(event) => onValueChange(event.target.value)} />
+        </div>
+      </div>
+      <div className="grid gap-2">
+        <label className={fieldLabelClass}>Networking</label>
+        <div className="inline-flex h-8 w-fit items-stretch rounded-[8px] bg-fill p-px">
+          {(["Limited", "Unrestricted"] as const).map((option) => (
+            <button
+              key={option}
+              type="button"
+              className={`h-[30px] rounded-[7px] px-3 text-sm leading-5 transition-colors ${networking === option ? "bg-white text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.08),0_1px_2px_rgba(0,0,0,0.04)] [font-weight:550]" : "text-muted hover:text-ink"}`}
+              onClick={() => onNetworkingChange(option)}
+            >
+              {option}
+            </button>
+          ))}
+        </div>
+      </div>
+      {networking === "Limited" ? (
+        <div className="grid gap-2">
+          <label className={fieldLabelClass}>Allowed hosts</label>
+          <textarea
+            className="h-14 resize-none rounded-[8px] border-0 bg-white/50 px-3 py-2 font-mono text-sm leading-5 text-ink outline-none shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)] placeholder:text-muted"
+            placeholder="api.example.com, *.example.com"
+            value={allowedHosts}
+            onChange={(event) => onAllowedHostsChange(event.target.value)}
+          />
+          <p className="text-[13px] leading-[17.875px] text-muted">Separate hosts with commas or newlines.</p>
+        </div>
+      ) : null}
+      <div className="grid gap-2">
+        <label className={fieldLabelClass}>Injection location</label>
+        <CredentialCheckbox checked={injectHeaders} onCheckedChange={onInjectHeadersChange}>Request headers</CredentialCheckbox>
+        <CredentialCheckbox checked={injectBody} onCheckedChange={onInjectBodyChange}>Request body</CredentialCheckbox>
+        <p className="text-[13px] leading-[17.875px] text-muted">Limiting to request headers is recommended unless the service reads the secret from the request body.</p>
+      </div>
+      <div className="flex min-h-[124px] items-start gap-2 rounded-[12px] bg-[#f9dca4] px-4 py-3 text-sm leading-5 text-[#734500] shadow-[inset_0_0_0_1px_rgba(115,69,0,0.1)]">
+        <CdsIconGlyph glyph="" className="h-5 w-5 shrink-0 text-[#734500] text-[20px] [font-weight:433.25]" />
+        <p>
+          This credential will be shared across this workspace. Anyone with API key access can use this credential in an agent session to access the service associated with the credential - including reading data and taking actions on behalf of the credential owner.{" "}
+          <span className="font-medium text-[#184f95] underline underline-offset-[3px]">Learn more here</span>
+          <span> (opens in new tab).</span>
+        </p>
+      </div>
+      <CredentialCheckbox checked={acknowledged} onCheckedChange={onAcknowledgedChange} alignStart>
+        I acknowledge this credential is shared and that I am responsible for its storage and use.
+      </CredentialCheckbox>
+    </>
+  );
+}
+
+function CredentialCheckbox({ checked, onCheckedChange, children, alignStart = false }: { checked: boolean; onCheckedChange: (checked: boolean) => void; children: ReactNode; alignStart?: boolean }) {
+  return (
+    <button
+      type="button"
+      role="checkbox"
+      aria-checked={checked}
+      className={`flex w-full gap-2 border-0 bg-transparent p-0 text-left text-sm leading-5 text-ink outline-none ${alignStart ? "items-start" : "items-center"}`}
+      onClick={() => onCheckedChange(!checked)}
+    >
+      <span className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-[4px] ${checked ? "bg-[#2a78d6] text-white" : "bg-white text-transparent shadow-[inset_0_0_0_1px_rgba(11,11,11,0.2)]"}`}>
+        <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:700]" />
+      </span>
+      <span>{children}</span>
+    </button>
   );
 }
 
@@ -6941,7 +7155,7 @@ function CredentialAuthTypeSelect({ value, onValueChange }: { value: string; onV
       <Select.Trigger
         data-cds="Button"
         aria-label="Credential type"
-        className={`cds-focus inline-flex h-[31px] w-[455px] items-center gap-1.5 pl-2 pr-0 text-sm leading-5 text-ink outline-none ${editorSelectTriggerClass}`}
+        className={`cds-focus inline-flex h-[31px] w-[455px] items-center gap-1.5 pl-2 pr-0 text-sm leading-5 text-ink outline-none ${credentialSelectTriggerClass}`}
       >
         <span className="flex min-w-0 flex-1 items-baseline gap-1.5 whitespace-nowrap">
           <Select.Value />

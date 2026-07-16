@@ -6,6 +6,11 @@ import * as Tooltip from "@radix-ui/react-tooltip";
 import { forwardRef, useEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent, type ReactNode } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
+function isRadixSelectPortalTarget(target: EventTarget | null) {
+  if (!(target instanceof HTMLElement)) return false;
+  return Boolean(target.closest("[data-cds='ComboboxPopover'], [data-cds='SelectContent'], [data-radix-popper-content-wrapper], [role='listbox']"));
+}
+
 function CdsIconGlyph({ glyph, className = "h-5 w-5 text-current text-[20px] [font-weight:433.3]" }: { glyph: string; className?: string }) {
   return (
     <span data-cds="Icon" aria-hidden="true" className={`flex shrink-0 select-none items-center justify-center leading-none [font-family:var(--font-anthropicons,Anthropicons-Variable)] ${className}`}>
@@ -294,7 +299,7 @@ export function FieldSelect({
       aria-label={ariaLabel}
       className={`cds-focus inline-flex h-8 items-center gap-2 rounded-control border border-line bg-white px-3 text-sm text-ink ${triggerShellClassName ? "min-w-0 flex-1 self-stretch !gap-1.5 !rounded-none !border-0 !bg-transparent !p-0 !pl-2 !pr-0 !shadow-none" : ""} ${triggerClassName}`}
     >
-      <span className="flex min-w-0 flex-1 items-baseline gap-1.5 whitespace-nowrap">
+      <span className={`flex min-w-0 flex-1 items-baseline gap-1.5 whitespace-nowrap ${!value && placeholder ? "text-muted" : ""}`}>
         {showLabel ? <span className="shrink-0 text-muted">{label}</span> : null}
         <Select.Value className="min-w-0 truncate" placeholder={placeholder} />
       </span>
@@ -309,6 +314,7 @@ export function FieldSelect({
       {triggerShellClassName ? <div data-cds="FieldSelect" className={triggerShellClassName}>{trigger}</div> : trigger}
       <Select.Portal>
         <Select.Content
+          data-cds="SelectContent"
           position={contentPosition}
           align="start"
           sideOffset={contentSideOffset}
@@ -473,7 +479,7 @@ export function DataTable<T>({
               ) : null}
             </tr>
           )) : rows.length === 0 && emptyState ? (
-            <tr className={emptyRowClassName}>
+            <tr data-empty-state="true" className={emptyRowClassName}>
               <td
                 className="border-b border-[rgba(11,11,11,0.05)] px-3 py-2 align-middle"
                 colSpan={(showSelection ? 1 : 0) + columns.length + (showActions ? 1 : 0)}
@@ -594,7 +600,25 @@ export function ConsoleDialog({
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Overlay className={overlayClassName} />
-        <Dialog.Content data-cds="Dialog" className={`fixed left-1/2 top-1/2 z-50 max-h-[86vh] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-cds border border-line bg-white text-sm leading-5 text-ink shadow-xl ${contentClassName}`}>
+        <Dialog.Content
+          data-cds="Dialog"
+          className={`fixed left-1/2 top-1/2 z-50 max-h-[86vh] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-cds border border-line bg-white text-sm leading-5 text-ink shadow-xl ${contentClassName}`}
+          onInteractOutside={(event) => {
+            if (isRadixSelectPortalTarget(event.target)) {
+              event.preventDefault();
+            }
+          }}
+          onPointerDownOutside={(event) => {
+            if (isRadixSelectPortalTarget(event.target)) {
+              event.preventDefault();
+            }
+          }}
+          onFocusOutside={(event) => {
+            if (isRadixSelectPortalTarget(event.target)) {
+              event.preventDefault();
+            }
+          }}
+        >
           <div className={headerClassName}>
             <div className="mr-2 flex min-w-0 flex-1 flex-col">
               <Dialog.Title className={titleClassName}>{title}</Dialog.Title>

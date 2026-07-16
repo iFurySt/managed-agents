@@ -458,6 +458,64 @@ single `--fw-emphasis: 500` token when the variable font is missing.
 - Footer: right-aligned primary button; **disabled = `opacity: 0.5`** on the
   solid black button.
 
+### Modal dialog (Credential vaults)
+
+- Vault detail page header uses the black primary "Add credential" button:
+  `32px` tall, about `170px` wide, `8px` radius, plus icon at `20px`, white
+  text, and the same single-primary-action treatment as other detail headers.
+  The empty-state "Add credential" action is the boxed secondary variant
+  instead of a bare ghost/text button.
+- The "Add credential" modal is the compact dialog variant used from both the
+  vault creation flow and the vault detail page: `510px` wide, `349px` tall,
+  max-width `calc(100vw - 32px)`, white fill, `12px` radius, no CSS border, and
+  the standard ring + soft panel shadow
+  (`0 0 0 1px rgba(11,11,11,0.1), 0 4px 8px rgba(11,11,11,0.08), 0 12px 28px -2px rgba(11,11,11,0.08)`).
+- Header: `24px` left padding, `16px` top padding, title `22px/26px` ink with
+  weight `580`, close icon button `31px` square at the top right.
+- The vault-creation second step title is "Add a credential" and places the
+  readiness sentence as body copy above the fields. The vault-detail action
+  title is "Add credential" and uses a regular header description.
+- Form fields are `31px` tall with `8px` radius, `rgba(255,255,255,0.5)` fill
+  and inset `1px rgba(11,11,11,0.1)` ring. The MCP server field shows
+  `https://mcp.example.com` as muted placeholder text while no target is
+  selected; do not render it as an ink selected value.
+- The MCP server picker should offer real MCP targets, not only the example
+  URL. The local test set includes Gmail
+  (`https://gmailmcp.googleapis.com/mcp/v1`) and Notion
+  (`https://mcp.notion.com/mcp`) with two-line options: product name plus
+  muted mono URL.
+- `MCP OAuth` and `Bearer token` use the compact credential modal and the same
+  MCP server combobox. `MCP OAuth` keeps the primary label `Connect`; `Bearer
+  token` uses `Add credential`.
+- `Environment variable` switches to the taller credential modal variant
+  (`520px` wide, about `900px` tall, constrained to viewport height). Its form
+  replaces the MCP server field with `Variable name`, `Value`, `Networking`
+  segmented control (`Limited` default), `Allowed hosts` textarea while
+  limited, `Injection location` checkboxes (`Request headers` default checked,
+  `Request body` unchecked), the shared-credential amber warning, and an
+  acknowledgement checkbox. The primary button remains disabled until the
+  variable name, value, and acknowledgement are present.
+- Credential modal select triggers do **not** use press-scale feedback. Keep
+  the trigger itself transparent on hover; hover feedback belongs on the outer
+  field shell as a darker border/ring, matching the reference combobox field.
+  Avoid `transform: scale(...)`; otherwise the portaled select popover
+  recalculates around a moving trigger and visibly jitters. Dialog
+  outside-interaction handling must also allow Radix Select popovers for pointer
+  and focus outside events so choosing Type does not close the modal.
+- Footer buttons are right-aligned. `Skip for now` is a bordered secondary
+  button, not a bare text/ghost button. `Connect` is the `81px` primary button
+  and disabled at `opacity: 0.5` until the target is selected.
+
+### Credential vault detail table
+
+- Empty credential tables keep the same tall body as the reference vault detail
+  surface so the empty state sits in the table area and pagination remains near
+  the lower part of the panel instead of directly below the header.
+- Empty credential state includes a large centered outline lock icon above the
+  "No credentials yet" title.
+- Table body row separators stop before the final body row; the last row does
+  not draw an extra bottom divider under itself.
+
 ### Toast (success/status notification)
 
 - Fires after a completed action (e.g. "Agent archived.") — not a dialog, no

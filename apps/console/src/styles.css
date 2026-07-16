@@ -99,3 +99,12 @@ textarea {
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
 }
+
+.credential-select-shell {
+  border: 1px solid rgba(11, 11, 11, 0.1);
+  transition: border-color 100ms;
+}
+
+.credential-select-shell:hover {
+  border-color: rgba(11, 11, 11, 0.2);
+}
