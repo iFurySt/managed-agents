@@ -362,18 +362,46 @@ single `--fw-emphasis: 500` token when the variable font is missing.
 
 ### Code editor / config panel (Create agent, Edit agent)
 
-- YAML/JSON config panels render a **line-number gutter**: fixed ~`40px`
-  column, right-aligned numbers, hairline right border
-  (`rgba(11,11,11,0.08)`), fill `#FAFAF8`, `anthropicMono` 13px muted
-  (`#898781`). The gutter and the code content scroll together as one unit
-  (they share a scroll container, or the gutter's vertical offset is synced
-  to the content's `scrollTop`) — never let the gutter and content scroll
-  independently.
+- YAML/JSON config panels wrap long lines (no horizontal scrollbar) and
+  render a **line number per source line**, `anthropicMono` 13px muted
+  (`#898781`), right-aligned in a ~`28px` slot. The number sits directly on
+  the panel's own canvas — **no background fill, no border/rule** separating
+  it from the code (confirmed against the live product: there is no `#FAFAF8`
+  gutter panel or hairline divider, the number just floats to the left of the
+  text). A wrapped line's continuation row(s) get **no number** — only the
+  line's first visual row shows one, and the row simply grows taller to fit
+  the wrapped text; the next source line's number still lines up correctly
+  underneath because it's the following line's own row, not a separately
+  laid-out gutter cell.
+- **Guardrail — don't build the gutter as an independent scrolling column.**
+  A flat list of one `<div>` per source line (a classic "gutter" component,
+  separate from the code content) can only stay aligned with the content if
+  every line is exactly one visual row tall. The moment content wraps, that
+  breaks — the gutter must either stop the content from wrapping (which
+  contradicts the reference, which does wrap) or the gutter and content
+  fatally desync. The correct construction is to render **one block per
+  source line that contains both the number and that line's text together**
+  (e.g. the number absolutely positioned via `right: 100%` inside a
+  `position: relative` line wrapper, sitting in the block's own reserved
+  left padding) so the browser's normal block flow grows the row to fit
+  wrapped text automatically — no scroll-sync JS needed at all for the
+  read-only case. For the editable case (a real `<textarea>` overlaid with a
+  colorized read-only copy for syntax highlighting), give the invisible
+  `<textarea>` the **same left padding** as the visible line blocks reserve
+  for their numbers, so its wrap points and the overlay's wrap points match
+  exactly and clicks/caret position land on the correct character; only
+  vertical scroll needs syncing (via `scrollTop` → `translateY`), since
+  wrapped content never overflows horizontally.
 - Format toggle (YAML | JSON) is a small segmented control in the panel
   header, `rgba(11,11,11,0.05)` track, white active-segment pill, radius
   full/pill. A copy-code icon button sits at the header's trailing edge,
   **always visible** (not hover-revealed) since it's part of a persistent
   toolbar, not an overlay on read-only text.
+- Editor toolbar controls share one interaction rule: hover fill
+  `rgba(11,11,11,0.05)`, active/pressed fill the same, and press feedback uses
+  `transform: scale(0.975)` with a short `~100ms` transition. Do not use
+  one-off fills such as `#EEEEEB`, and do not suppress hover with transparent
+  overrides on editor select triggers.
 - Environment editor select fields use the boxed field treatment from the
   live console, not transparent inline triggers: `32px` height, `8px` radius,
   `rgba(255,255,255,0.5)` fill, and `inset 0 0 0 1px rgba(11,11,11,0.1)`.

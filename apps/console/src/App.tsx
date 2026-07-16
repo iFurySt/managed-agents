@@ -129,6 +129,18 @@ const cdsMenuDangerItemClass = `${cdsMenuItemClass} text-[#8e2626] data-[highlig
 const cdsMenuSeparatorClass = "my-1 h-px bg-line";
 const topFilterShellClassName =
   "inline-flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[8px] bg-white/50 pl-0 pr-2 text-sm leading-5 text-ink shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]";
+const editorControlInteractionClass = "transition-[background-color,color,transform] duration-100 hover:bg-fill active:scale-[0.975] active:bg-fill";
+const editorImportantControlInteractionClass = "transition-[background-color,color,transform] duration-100 hover:!bg-fill active:scale-[0.975] active:!bg-fill";
+const editorIconButtonClass = `h-8 w-8 rounded-[8px] text-sm leading-5 [font-weight:550] ${editorControlInteractionClass}`;
+const editorSelectTriggerClass = `rounded-none !border-transparent !bg-transparent px-0 ${editorImportantControlInteractionClass}`;
+const editorToolbarButtonClass = `rounded-[8px] bg-transparent [font-weight:550] ${editorControlInteractionClass}`;
+const editorToolbarImportantButtonClass = `rounded-[8px] !bg-transparent [font-weight:550] ${editorImportantControlInteractionClass}`;
+const editorToolbarTabClass = (selected: boolean) =>
+  `transition-[background-color,color,transform] duration-100 rounded-full px-[10px] [font-weight:550] hover:bg-fill active:scale-[0.975] active:bg-fill ${
+    selected ? "bg-fill text-ink" : "text-muted"
+  }`;
+const detailHeaderEditButtonClass =
+  "!w-[71px] !gap-1.5 !rounded-[8px] !border-[0.5px] !border-[rgba(11,11,11,0.1)] !bg-white/50 !shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-transform hover:!bg-[rgba(11,11,11,0.05)] active:!bg-[rgba(11,11,11,0.05)] active:scale-[0.975] [font-weight:550]";
 const environmentEditorSelectShellClass =
   "inline-flex h-8 min-w-0 items-center gap-1.5 rounded-[8px] bg-white/50 pr-2 text-sm leading-5 text-ink shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]";
 const pageTitles: Record<string, string> = {
@@ -513,6 +525,59 @@ function MenuEditIcon() {
   return <CdsIconGlyph glyph="" className="h-5 w-5 text-current text-[20px] [font-weight:433.25]" />;
 }
 
+function BulkActionBar({
+  count,
+  onClear,
+  children
+}: {
+  count: number;
+  onClear: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <div
+      role="toolbar"
+      aria-label="Bulk actions"
+      className="inline-flex h-11 items-center gap-1 rounded-[12px] bg-white pl-4 pr-2 shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
+    >
+      <span className="whitespace-nowrap text-sm text-ink [font-weight:550]">
+        {count} selected
+      </span>
+      <Button variant="ghost" size="sm" className="ml-1 h-7 w-7 shrink-0 !rounded-[6px] !px-0 !text-ink" aria-label="Clear selection" onClick={onClear}>
+        <CdsIconGlyph glyph={"\ue10f"} className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
+      </Button>
+      <span aria-hidden="true" className="mx-1 h-5 w-px shrink-0 bg-[rgba(11,11,11,0.1)]" />
+      <div className="flex items-center gap-1">{children}</div>
+    </div>
+  );
+}
+
+function BulkActionButton({
+  icon,
+  children,
+  onClick,
+  disabled,
+  tone = "default"
+}: {
+  icon: ReactNode;
+  children: ReactNode;
+  onClick: () => void;
+  disabled?: boolean;
+  tone?: "default" | "danger";
+}) {
+  return (
+    <Button
+      variant="ghost"
+      className={`h-8 gap-1.5 whitespace-nowrap rounded-[8px] px-2.5 text-sm [font-weight:550] ${tone === "danger" ? "!text-[#8e2626] hover:!bg-[#fad6d6]/40" : ""}`}
+      onClick={onClick}
+      disabled={disabled}
+    >
+      {icon}
+      {children}
+    </Button>
+  );
+}
+
 function CdsIconGlyph({ glyph, className = "h-5 w-5 text-current text-[20px] [font-weight:433.3]" }: { glyph: string; className?: string }) {
   return (
     <span data-cds="Icon" aria-hidden="true" className={`flex shrink-0 select-none items-center justify-center leading-none [font-family:var(--font-anthropicons,Anthropicons-Variable)] ${className}`}>
@@ -770,6 +835,7 @@ function AgentsPage() {
   const [status, setStatus] = useState("Active");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [archivingAgent, setArchivingAgent] = useState<Agent | null>(null);
+  const [archivingSelection, setArchivingSelection] = useState<{ agents: Agent[]; clear: () => void } | null>(null);
   const agentTableWidths = { id: "180px", name: "240px", model: "170px", status: "120px", created: "150px", updated: "150px", actions: "56px" };
 
   useEffect(() => {
@@ -781,6 +847,18 @@ function AgentsPage() {
     setAgents((items) => status === "Archived" ? items.map((item) => (item.id === updated.id ? updated : item)) : items.filter((item) => item.id !== updated.id));
     setArchivingAgent(null);
     showToast("Agent archived.");
+  }
+
+  async function archiveSelection() {
+    if (!archivingSelection) return;
+    const { agents: selected, clear } = archivingSelection;
+    const updated = await Promise.all(selected.map((agent) => archiveAgent(agent.id)));
+    const updatedById = new Map(updated.map((agent) => [agent.id, agent]));
+    const selectedIds = new Set(selected.map((agent) => agent.id));
+    setAgents((items) => status === "Archived" ? items.map((item) => updatedById.get(item.id) ?? item) : items.filter((item) => !selectedIds.has(item.id)));
+    setArchivingSelection(null);
+    clear();
+    showToast(`${selected.length} agent${selected.length === 1 ? "" : "s"} archived.`);
   }
 
   return (
@@ -864,6 +942,13 @@ function AgentsPage() {
         ]}
         actionsWidth={agentTableWidths.actions}
         renderActions={(agent) => <AgentRowActions agent={agent} onArchive={() => setArchivingAgent(agent)} />}
+        renderBulkActions={({ count, rows, clearSelection }) => (
+          <BulkActionBar count={count} onClear={clearSelection}>
+            <BulkActionButton icon={<MenuArchiveIcon />} onClick={() => setArchivingSelection({ agents: rows, clear: clearSelection })}>
+              Archive
+            </BulkActionButton>
+          </BulkActionBar>
+        )}
       />
       <div className="-mt-[1.5px] flex gap-2">
         <PaginationButton direction="previous" aria-label="Previous page" disabled />
@@ -876,6 +961,14 @@ function AgentsPage() {
           if (!open) setArchivingAgent(null);
         }}
         onConfirm={() => archivingAgent ? archiveCurrent(archivingAgent) : undefined}
+      />
+      <AgentArchiveDialog
+        agentName={archivingSelection ? `${archivingSelection.agents.length} agent${archivingSelection.agents.length === 1 ? "" : "s"}` : "these agents"}
+        open={Boolean(archivingSelection)}
+        onOpenChange={(open) => {
+          if (!open) setArchivingSelection(null);
+        }}
+        onConfirm={archiveSelection}
       />
       <CreateAgentDialog
         open={dialogOpen}
@@ -899,6 +992,7 @@ function SessionsPage() {
   const [page, setPage] = useState(0);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [archivingSession, setArchivingSession] = useState<Session | null>(null);
+  const [archivingSelection, setArchivingSelection] = useState<{ sessions: Session[]; clear: () => void } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -927,6 +1021,18 @@ function SessionsPage() {
     const updated = await archiveSession(session.id);
     setSessions((items) => status === "Archived" ? items.map((item) => (item.id === updated.id ? updated : item)) : items.filter((item) => item.id !== updated.id));
     setArchivingSession(null);
+  }
+
+  async function archiveSelection() {
+    if (!archivingSelection) return;
+    const { sessions: selected, clear } = archivingSelection;
+    const updated = await Promise.all(selected.map((session) => archiveSession(session.id)));
+    const updatedById = new Map(updated.map((session) => [session.id, session]));
+    const selectedIds = new Set(selected.map((session) => session.id));
+    setSessions((items) => status === "Archived" ? items.map((item) => updatedById.get(item.id) ?? item) : items.filter((item) => !selectedIds.has(item.id)));
+    setArchivingSelection(null);
+    clear();
+    showToast(`${selected.length} session${selected.length === 1 ? "" : "s"} archived.`);
   }
 
   return (
@@ -1043,6 +1149,13 @@ function SessionsPage() {
           ]}
           actionsWidth="56px"
           renderActions={(session) => <SessionRowActions session={session} onArchive={() => setArchivingSession(session)} />}
+          renderBulkActions={({ count, rows, clearSelection }) => (
+            <BulkActionBar count={count} onClear={clearSelection}>
+              <BulkActionButton icon={<MenuArchiveIcon />} onClick={() => setArchivingSelection({ sessions: rows, clear: clearSelection })}>
+                Archive
+              </BulkActionButton>
+            </BulkActionBar>
+          )}
         />
       </div>
       <div className="mt-3 flex gap-2">
@@ -1073,6 +1186,13 @@ function SessionsPage() {
           if (!open) setArchivingSession(null);
         }}
         onConfirm={() => archivingSession ? archiveCurrent(archivingSession) : undefined}
+      />
+      <SessionArchiveDialog
+        open={Boolean(archivingSelection)}
+        onOpenChange={(open) => {
+          if (!open) setArchivingSelection(null);
+        }}
+        onConfirm={archiveSelection}
       />
     </section>
   );
@@ -1376,15 +1496,16 @@ function DeploymentFilterSelect({
           className={`absolute left-0 top-[38px] z-50 rounded-[12px] bg-white p-1 shadow-[0_10px_28px_rgba(0,0,0,0.12)] ${menuWidth}`}
         >
           {showSearch ? (
-            <input
-              role="combobox"
-              aria-expanded="true"
-              aria-label={`${label} filter search`}
-              className="-mx-1 -mt-1 mb-1 block h-[37px] w-[calc(100%+8px)] shrink-0 border-0 border-b border-black/10 bg-transparent px-3 text-sm outline-none placeholder:text-muted"
-              placeholder={searchPlaceholder}
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-            />
+            <div role="combobox" aria-expanded="true" className="-mx-1 -mt-1 mb-1 flex h-[37px] w-[calc(100%+8px)] shrink-0 items-center border-b border-black/10 px-3">
+              <input
+                aria-label={`${label} filter search`}
+                className="h-full min-w-0 flex-1 border-0 bg-transparent p-0 text-sm outline-none placeholder:text-muted"
+                placeholder={searchPlaceholder}
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+              />
+              {query ? <SearchClearButton onClear={() => setQuery("")} /> : null}
+            </div>
           ) : null}
           <div role="listbox" className="grid gap-0">
             {visibleOptions.map((option) => (
@@ -1424,6 +1545,7 @@ function DeploymentsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingDeployment, setEditingDeployment] = useState<Deployment | null>(null);
   const [archivingDeployment, setArchivingDeployment] = useState<Deployment | null>(null);
+  const [archivingSelection, setArchivingSelection] = useState<{ items: Deployment[]; clear: () => void } | null>(null);
 
   useEffect(() => {
     setPage(0);
@@ -1442,6 +1564,17 @@ function DeploymentsPage() {
           ? await resumeDeployment(deployment.id)
           : await archiveDeployment(deployment.id);
     setDeployments((items) => items.map((item) => (item.id === updated.id ? updated : item)));
+  }
+
+  async function archiveSelection() {
+    if (!archivingSelection) return;
+    const { items: selected, clear } = archivingSelection;
+    const updated = await Promise.all(selected.map((deployment) => archiveDeployment(deployment.id)));
+    const updatedById = new Map(updated.map((deployment) => [deployment.id, deployment]));
+    setDeployments((items) => items.map((item) => updatedById.get(item.id) ?? item));
+    setArchivingSelection(null);
+    clear();
+    showToast(`${selected.length} deployment${selected.length === 1 ? "" : "s"} archived.`);
   }
 
   async function updateCurrent(deployment: Deployment, input: UpdateDeploymentInput) {
@@ -1494,6 +1627,7 @@ function DeploymentsPage() {
           itemHeight="h-12"
           fallbackLabel="All"
           showSearch
+          searchPlaceholder="Search agents by name or exact ID"
         />
         <DeploymentFilterSelect
           label="Status"
@@ -1512,7 +1646,6 @@ function DeploymentsPage() {
           rows={visibleDeployments}
           getKey={(deployment) => deployment.id}
           getRowHref={(deployment) => `/deployments/${deployment.id}`}
-          showSelection={false}
           actionsWidth="56px"
           actionsHeaderAlign="right"
           columns={[
@@ -1569,6 +1702,13 @@ function DeploymentsPage() {
               onArchive={() => setArchivingDeployment(deployment)}
             />
           )}
+          renderBulkActions={({ count, rows, clearSelection }) => (
+            <BulkActionBar count={count} onClear={clearSelection}>
+              <BulkActionButton icon={<MenuArchiveIcon />} onClick={() => setArchivingSelection({ items: rows, clear: clearSelection })}>
+                Archive
+              </BulkActionButton>
+            </BulkActionBar>
+          )}
         />
       </div>
       <div className="mt-5 flex gap-2">
@@ -1612,6 +1752,13 @@ function DeploymentsPage() {
           await applyStatus(archivingDeployment, "archive");
           setArchivingDeployment(null);
         }}
+      />
+      <DeploymentArchiveDialog
+        open={Boolean(archivingSelection)}
+        onOpenChange={(open) => {
+          if (!open) setArchivingSelection(null);
+        }}
+        onConfirm={archiveSelection}
       />
     </section>
   );
@@ -1870,6 +2017,8 @@ function EnvironmentsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [archivingEnvironment, setArchivingEnvironment] = useState<Environment | null>(null);
   const [deletingEnvironment, setDeletingEnvironment] = useState<Environment | null>(null);
+  const [archivingSelection, setArchivingSelection] = useState<{ items: Environment[]; clear: () => void } | null>(null);
+  const [deletingSelection, setDeletingSelection] = useState<{ items: Environment[]; clear: () => void } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -1904,6 +2053,28 @@ function EnvironmentsPage() {
     await deleteEnvironment(environment.id);
     setEnvironments((items) => items.filter((item) => item.id !== environment.id));
     setDeletingEnvironment(null);
+  }
+
+  async function archiveSelection() {
+    if (!archivingSelection) return;
+    const { items: selected, clear } = archivingSelection;
+    const updated = await Promise.all(selected.map((environment) => archiveEnvironment(environment.id)));
+    const updatedById = new Map(updated.map((environment) => [environment.id, environment]));
+    setEnvironments((items) => items.map((item) => updatedById.get(item.id) ?? item));
+    setArchivingSelection(null);
+    clear();
+    showToast(`${selected.length} environment${selected.length === 1 ? "" : "s"} archived.`);
+  }
+
+  async function deleteSelection() {
+    if (!deletingSelection) return;
+    const { items: selected, clear } = deletingSelection;
+    await Promise.all(selected.map((environment) => deleteEnvironment(environment.id)));
+    const selectedIds = new Set(selected.map((environment) => environment.id));
+    setEnvironments((items) => items.filter((item) => !selectedIds.has(item.id)));
+    setDeletingSelection(null);
+    clear();
+    showToast(`${selected.length} environment${selected.length === 1 ? "" : "s"} deleted.`);
   }
 
   return (
@@ -1992,6 +2163,16 @@ function EnvironmentsPage() {
               onDelete={() => setDeletingEnvironment(environment)}
             />
           )}
+          renderBulkActions={({ count, rows, clearSelection }) => (
+            <BulkActionBar count={count} onClear={clearSelection}>
+              <BulkActionButton icon={<MenuArchiveIcon />} onClick={() => setArchivingSelection({ items: rows, clear: clearSelection })}>
+                Archive
+              </BulkActionButton>
+              <BulkActionButton icon={<MenuDeleteIcon />} tone="danger" onClick={() => setDeletingSelection({ items: rows, clear: clearSelection })}>
+                Delete
+              </BulkActionButton>
+            </BulkActionBar>
+          )}
         />
       </div>
       <div className="mt-[8.5px] flex gap-2">
@@ -2033,6 +2214,26 @@ function EnvironmentsPage() {
           if (!open) setDeletingEnvironment(null);
         }}
         onConfirm={() => deletingEnvironment ? deleteCurrent(deletingEnvironment) : undefined}
+      />
+      <EnvironmentConfirmationDialog
+        action="archive"
+        environment={null}
+        nameOverride={archivingSelection ? `${archivingSelection.items.length} environment${archivingSelection.items.length === 1 ? "" : "s"}` : undefined}
+        open={Boolean(archivingSelection)}
+        onOpenChange={(open) => {
+          if (!open) setArchivingSelection(null);
+        }}
+        onConfirm={archiveSelection}
+      />
+      <EnvironmentConfirmationDialog
+        action="delete"
+        environment={null}
+        nameOverride={deletingSelection ? `${deletingSelection.items.length} environment${deletingSelection.items.length === 1 ? "" : "s"}` : undefined}
+        open={Boolean(deletingSelection)}
+        onOpenChange={(open) => {
+          if (!open) setDeletingSelection(null);
+        }}
+        onConfirm={deleteSelection}
       />
     </section>
   );
@@ -2163,7 +2364,14 @@ function EnvironmentDetailPage() {
             <EnvironmentActions environment={environment} triggerClassName="" onArchive={() => setArchiveOpen(true)} onDelete={() => setDeleteOpen(true)} />
           ) : (
             <>
-              <Button variant="ghost" className="h-8 bg-transparent px-3 [font-weight:550] hover:bg-fill" onClick={startEdit}>Edit</Button>
+              <Button
+                variant="secondary"
+                className={detailHeaderEditButtonClass}
+                onClick={startEdit}
+              >
+                <CdsIconGlyph glyph="" />
+                Edit
+              </Button>
               <EnvironmentActions environment={environment} triggerClassName="" onArchive={() => setArchiveOpen(true)} onDelete={() => setDeleteOpen(true)} />
             </>
           )}
@@ -2202,7 +2410,7 @@ function EnvironmentDetailPage() {
             description="Specify packages and their versions available in this environment. Separate multiple values with spaces."
             separated
             action={
-              <Button variant="icon" className="h-8 w-8 rounded-[8px] text-sm leading-5 transition-[background-color,color,transform] duration-100 [font-weight:550] hover:bg-fill active:scale-[0.975] active:bg-fill" aria-label="Add package" onClick={addPackage}>
+              <Button variant="icon" className={editorIconButtonClass} aria-label="Add package" onClick={addPackage}>
                 <Plus className="h-4 w-4" />
               </Button>
             }
@@ -2221,7 +2429,7 @@ function EnvironmentDetailPage() {
               {packages.map((item) => (
                 <span key={item} className="inline-flex h-6 items-center gap-1.5 rounded-md border border-line bg-white px-2 font-mono text-[13px] leading-5">
                   {item}
-                  <button className="text-muted hover:text-ink" aria-label={`Remove ${item}`} onClick={() => setPackages((values) => values.filter((value) => value !== item))}>
+                  <button className="grid h-5 w-5 place-items-center rounded-[6px] text-muted transition-[background-color,color,transform] duration-100 hover:bg-fill hover:text-ink active:scale-[0.975] active:bg-fill" aria-label={`Remove ${item}`} onClick={() => setPackages((values) => values.filter((value) => value !== item))}>
                     ×
                   </button>
                 </span>
@@ -2243,7 +2451,7 @@ function EnvironmentDetailPage() {
               </div>
               <Button
                 variant="icon"
-                className="h-8 w-8 rounded-[8px] text-sm leading-5 transition-[background-color,color,transform] duration-100 [font-weight:550] hover:bg-fill active:scale-[0.975] active:bg-fill"
+                className={editorIconButtonClass}
                 aria-label="Remove package"
                 onClick={() => setPackages((values) => values.slice(0, -1))}
                 disabled={packages.length === 0}
@@ -2257,7 +2465,7 @@ function EnvironmentDetailPage() {
             description="Add custom key-value pairs to tag and organize this environment. Keys must be lowercase."
             separated
             action={
-              <Button variant="icon" className="h-8 w-8 rounded-[8px] text-sm leading-5 transition-[background-color,color,transform] duration-100 [font-weight:550] hover:bg-fill active:scale-[0.975] active:bg-fill" aria-label="Add metadata entry" onClick={addMetadataRow}>
+              <Button variant="icon" className={editorIconButtonClass} aria-label="Add metadata entry" onClick={addMetadataRow}>
                 <Plus className="h-4 w-4" />
               </Button>
             }
@@ -2279,7 +2487,7 @@ function EnvironmentDetailPage() {
                     value={row.value}
                     onChange={(event) => updateMetadataRow(row.id, "value", event.target.value)}
                   />
-                  <Button variant="icon" className="h-8 w-8 rounded-[8px] text-sm leading-5 transition-[background-color,color,transform] duration-100 [font-weight:550] hover:bg-fill active:scale-[0.975] active:bg-fill" aria-label={`Remove metadata row ${index + 1}`} onClick={() => removeMetadataRow(row.id)} disabled={metadataRows.length === 1}>
+                  <Button variant="icon" className={editorIconButtonClass} aria-label={`Remove metadata row ${index + 1}`} onClick={() => removeMetadataRow(row.id)} disabled={metadataRows.length === 1}>
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
@@ -2345,6 +2553,8 @@ function VaultsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [archivingVault, setArchivingVault] = useState<Vault | null>(null);
   const [deletingVault, setDeletingVault] = useState<Vault | null>(null);
+  const [archivingSelection, setArchivingSelection] = useState<{ items: Vault[]; clear: () => void } | null>(null);
+  const [deletingSelection, setDeletingSelection] = useState<{ items: Vault[]; clear: () => void } | null>(null);
 
   useEffect(() => {
     setPage(0);
@@ -2367,8 +2577,30 @@ function VaultsPage() {
     setDeletingVault(null);
   }
 
+  async function archiveSelection() {
+    if (!archivingSelection) return;
+    const { items: selected, clear } = archivingSelection;
+    const updated = await Promise.all(selected.map((vault) => archiveVault(vault.id)));
+    const updatedById = new Map(updated.map((vault) => [vault.id, vault]));
+    setVaults((items) => items.map((item) => updatedById.get(item.id) ?? item));
+    setArchivingSelection(null);
+    clear();
+    showToast(`${selected.length} vault${selected.length === 1 ? "" : "s"} archived.`);
+  }
+
+  async function deleteSelection() {
+    if (!deletingSelection) return;
+    const { items: selected, clear } = deletingSelection;
+    await Promise.all(selected.map((vault) => deleteVault(vault.id)));
+    const selectedIds = new Set(selected.map((vault) => vault.id));
+    setVaults((items) => items.filter((item) => !selectedIds.has(item.id)));
+    setDeletingSelection(null);
+    clear();
+    showToast(`${selected.length} vault${selected.length === 1 ? "" : "s"} deleted.`);
+  }
+
   return (
-    <section className="-mx-2 flex flex-col">
+    <section className="-mx-2 flex min-w-0 flex-col">
       <PageHeader
         title="Credential vaults"
         description="Manage credential vaults that provide your agents with access to MCP servers and other tools."
@@ -2416,7 +2648,6 @@ function VaultsPage() {
           rows={visibleVaults}
           getKey={(vault) => vault.id}
           getRowHref={(vault) => `/vaults/${vault.id}`}
-          showSelection={false}
           actionsWidth="48px"
           columns={[
             {
@@ -2449,6 +2680,16 @@ function VaultsPage() {
               onArchive={() => setArchivingVault(vault)}
               onDelete={() => setDeletingVault(vault)}
             />
+          )}
+          renderBulkActions={({ count, rows, clearSelection }) => (
+            <BulkActionBar count={count} onClear={clearSelection}>
+              <BulkActionButton icon={<MenuArchiveIcon />} onClick={() => setArchivingSelection({ items: rows, clear: clearSelection })}>
+                Archive
+              </BulkActionButton>
+              <BulkActionButton icon={<MenuDeleteIcon />} tone="danger" onClick={() => setDeletingSelection({ items: rows, clear: clearSelection })}>
+                Delete
+              </BulkActionButton>
+            </BulkActionBar>
           )}
         />
       </div>
@@ -2489,6 +2730,26 @@ function VaultsPage() {
           if (!open) setDeletingVault(null);
         }}
         onConfirm={() => deletingVault ? deleteCurrent(deletingVault) : undefined}
+      />
+      <VaultConfirmationDialog
+        action="archive"
+        vault={null}
+        nameOverride={archivingSelection ? `${archivingSelection.items.length} vault${archivingSelection.items.length === 1 ? "" : "s"}` : undefined}
+        open={Boolean(archivingSelection)}
+        onOpenChange={(open) => {
+          if (!open) setArchivingSelection(null);
+        }}
+        onConfirm={archiveSelection}
+      />
+      <VaultConfirmationDialog
+        action="delete"
+        vault={null}
+        nameOverride={deletingSelection ? `${deletingSelection.items.length} vault${deletingSelection.items.length === 1 ? "" : "s"}` : undefined}
+        open={Boolean(deletingSelection)}
+        onOpenChange={(open) => {
+          if (!open) setDeletingSelection(null);
+        }}
+        onConfirm={deleteSelection}
       />
     </section>
   );
@@ -2536,6 +2797,24 @@ function VaultDetailPage() {
     if (!vault) return;
     await deleteVaultCredential(vault.id, credential.id);
     setVault({ ...vault, credentials: (vault.credentials ?? []).filter((item) => item.id !== credential.id) });
+  }
+
+  async function archiveCredentialSelection(selected: VaultCredential[], clear: () => void) {
+    if (!vault) return;
+    const updated = await Promise.all(selected.map((credential) => archiveVaultCredential(vault.id, credential.id)));
+    const updatedById = new Map(updated.map((credential) => [credential.id, credential]));
+    setVault({ ...vault, credentials: (vault.credentials ?? []).map((item) => updatedById.get(item.id) ?? item) });
+    clear();
+    showToast(`${selected.length} credential${selected.length === 1 ? "" : "s"} archived.`);
+  }
+
+  async function deleteCredentialSelection(selected: VaultCredential[], clear: () => void) {
+    if (!vault) return;
+    await Promise.all(selected.map((credential) => deleteVaultCredential(vault.id, credential.id)));
+    const selectedIds = new Set(selected.map((credential) => credential.id));
+    setVault({ ...vault, credentials: (vault.credentials ?? []).filter((item) => !selectedIds.has(item.id)) });
+    clear();
+    showToast(`${selected.length} credential${selected.length === 1 ? "" : "s"} deleted.`);
   }
 
   if (!vault) return <EmptyState title="Credential vault not found" description="The selected vault could not be loaded." />;
@@ -2594,7 +2873,6 @@ function VaultDetailPage() {
         tableClassName="w-full min-w-[1108px] border-separate border-spacing-0 whitespace-nowrap [&_tbody_tr]:!h-[47px] [&_tbody_tr:first-child]:!h-12 [&_tbody_td]:!py-1.5"
         rows={visibleCredentials}
         getKey={(credential) => credential.id}
-        showSelection={false}
         actionsWidth="48px"
         columns={[
           {
@@ -2626,6 +2904,16 @@ function VaultDetailPage() {
           { key: "updated", header: "Updated", width: "180px", render: (credential) => <span className="text-muted">{credential.updatedLabel}</span> }
         ]}
         renderActions={(credential) => <CredentialActions credential={credential} onArchive={() => archiveCredential(credential)} onDelete={() => deleteCredential(credential)} />}
+        renderBulkActions={({ count, rows, clearSelection }) => (
+          <BulkActionBar count={count} onClear={clearSelection}>
+            <BulkActionButton icon={<MenuArchiveIcon />} onClick={() => archiveCredentialSelection(rows, clearSelection)}>
+              Archive
+            </BulkActionButton>
+            <BulkActionButton icon={<MenuDeleteIcon />} tone="danger" onClick={() => deleteCredentialSelection(rows, clearSelection)}>
+              Delete
+            </BulkActionButton>
+          </BulkActionBar>
+        )}
         emptyState={
           <div className="flex flex-col items-center justify-center text-center">
             <h2 className="text-base leading-6 text-ink [font-weight:550]">No credentials yet</h2>
@@ -2687,6 +2975,8 @@ function MemoryStoresPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [archivingStore, setArchivingStore] = useState<MemoryStore | null>(null);
   const [deletingStore, setDeletingStore] = useState<MemoryStore | null>(null);
+  const [archivingSelection, setArchivingSelection] = useState<{ items: MemoryStore[]; clear: () => void } | null>(null);
+  const [deletingSelection, setDeletingSelection] = useState<{ items: MemoryStore[]; clear: () => void } | null>(null);
 
   useEffect(() => {
     setPage(0);
@@ -2709,8 +2999,30 @@ function MemoryStoresPage() {
     setDeletingStore(null);
   }
 
+  async function archiveSelection() {
+    if (!archivingSelection) return;
+    const { items: selected, clear } = archivingSelection;
+    const updated = await Promise.all(selected.map((store) => archiveMemoryStore(store.id)));
+    const updatedById = new Map(updated.map((store) => [store.id, store]));
+    setStores((items) => items.map((item) => updatedById.get(item.id) ?? item));
+    setArchivingSelection(null);
+    clear();
+    showToast(`${selected.length} memory store${selected.length === 1 ? "" : "s"} archived.`);
+  }
+
+  async function deleteSelection() {
+    if (!deletingSelection) return;
+    const { items: selected, clear } = deletingSelection;
+    await Promise.all(selected.map((store) => deleteMemoryStore(store.id)));
+    const selectedIds = new Set(selected.map((store) => store.id));
+    setStores((items) => items.filter((item) => !selectedIds.has(item.id)));
+    setDeletingSelection(null);
+    clear();
+    showToast(`${selected.length} memory store${selected.length === 1 ? "" : "s"} deleted.`);
+  }
+
   return (
-    <section className="-mx-2 flex flex-col">
+    <section className="-mx-2 flex min-w-0 flex-col">
       <PageHeader
         title="Memory stores"
         description="Browse and manage persistent memory for your agents."
@@ -2798,6 +3110,16 @@ function MemoryStoresPage() {
               onDelete={() => setDeletingStore(store)}
             />
           )}
+          renderBulkActions={({ count, rows, clearSelection }) => (
+            <BulkActionBar count={count} onClear={clearSelection}>
+              <BulkActionButton icon={<MenuArchiveIcon />} onClick={() => setArchivingSelection({ items: rows, clear: clearSelection })}>
+                Archive
+              </BulkActionButton>
+              <BulkActionButton icon={<MenuDeleteIcon />} tone="danger" onClick={() => setDeletingSelection({ items: rows, clear: clearSelection })}>
+                Delete
+              </BulkActionButton>
+            </BulkActionBar>
+          )}
         />
       </div>
       <div className="mt-[8.5px] flex gap-2">
@@ -2837,6 +3159,22 @@ function MemoryStoresPage() {
           if (!open) setDeletingStore(null);
         }}
         onConfirm={() => deletingStore ? deleteStore(deletingStore) : undefined}
+      />
+      <MemoryStoreConfirmationDialog
+        action="archive"
+        open={Boolean(archivingSelection)}
+        onOpenChange={(open) => {
+          if (!open) setArchivingSelection(null);
+        }}
+        onConfirm={archiveSelection}
+      />
+      <MemoryStoreConfirmationDialog
+        action="delete"
+        open={Boolean(deletingSelection)}
+        onOpenChange={(open) => {
+          if (!open) setDeletingSelection(null);
+        }}
+        onConfirm={deleteSelection}
       />
     </section>
   );
@@ -3066,6 +3404,14 @@ function FilesPage() {
     setFiles((items) => items.filter((item) => item.id !== file.id));
   }
 
+  async function deleteSelection(selected: WorkspaceFile[], clear: () => void) {
+    await Promise.all(selected.map((file) => deleteFile(file.id)));
+    const selectedIds = new Set(selected.map((file) => file.id));
+    setFiles((items) => items.filter((item) => !selectedIds.has(item.id)));
+    clear();
+    showToast(`${selected.length} file${selected.length === 1 ? "" : "s"} deleted.`);
+  }
+
   return (
     <section className="mx-auto flex w-full max-w-[1216px] flex-col gap-2">
       <PageHeader
@@ -3134,6 +3480,13 @@ function FilesPage() {
               { key: "created", header: "Created", width: "150px", render: (file) => <span className="text-muted">{file.createdLabel}</span> }
             ]}
             renderActions={(file) => <FileActions file={file} onDelete={() => deleteCurrent(file)} />}
+            renderBulkActions={({ count, rows, clearSelection }) => (
+              <BulkActionBar count={count} onClear={clearSelection}>
+                <BulkActionButton icon={<MenuDeleteIcon />} tone="danger" onClick={() => deleteSelection(rows, clearSelection)}>
+                  Delete
+                </BulkActionButton>
+              </BulkActionBar>
+            )}
           />
         </>
       ) : (
@@ -3154,11 +3507,11 @@ function FilesEmptyState({ language, onLanguageChange }: { language: string; onL
         <div className="flex h-9 shrink-0 items-center gap-2 pl-3 pr-2">
           <FilesLanguageMenu language={language} onLanguageChange={onLanguageChange} />
           <div className="ml-auto flex items-center gap-1">
-            <a data-cds="Button" className="inline-flex h-6 w-[96px] items-center gap-1.5 whitespace-nowrap rounded-md px-2 text-[13px] leading-5 [font-weight:550] hover:bg-[#eeeeeb]" href="https://docs.claude.com/en/docs/build-with-claude/files">
+            <a data-cds="Button" className={`inline-flex h-6 w-[96px] items-center gap-1.5 whitespace-nowrap px-2 text-[13px] leading-5 ${editorToolbarButtonClass}`} href="https://docs.claude.com/en/docs/build-with-claude/files">
               View docs
               <CdsIconGlyph glyph="" className="h-3.5 w-3.5 text-[#898781] text-[14px] [font-weight:628.5]" />
             </a>
-            <CopyIconButton value={code} ariaLabel="Copy code" className="!h-6 !w-6 !gap-1.5 !rounded-md !px-0 !text-[13px] !leading-5 [font-weight:550]" />
+            <CopyIconButton value={code} ariaLabel="Copy code" className={`!h-6 !w-6 !gap-1.5 !px-0 !text-[13px] !leading-5 ${editorToolbarImportantButtonClass}`} />
           </div>
         </div>
         <div className="code-scroll-region min-h-0 flex-1 overflow-auto focus-visible:outline-none">
@@ -3217,7 +3570,7 @@ function FilesLanguageMenu({ language, onLanguageChange }: { language: string; o
   return (
     <CdsDropdownMenu.Root>
       <CdsDropdownMenu.Trigger asChild>
-        <Button variant="ghost" className="!h-6 !w-[81px] !gap-1.5 !rounded-md !bg-transparent !px-2 !text-[13px] !text-[#52514e] [font-weight:550] hover:!bg-[#eeeeeb]">
+        <Button variant="ghost" className={`!h-6 !w-[81px] !gap-1.5 !px-2 !text-[13px] !text-[#52514e] ${editorToolbarImportantButtonClass}`}>
           {language}
           <CdsIconGlyph glyph="" className="h-3.5 w-3.5 text-[#898781] text-[14px] [font-weight:628.5]" />
         </Button>
@@ -3503,7 +3856,7 @@ function AgentDetailPage() {
         <div className="flex shrink-0 gap-2">
           <Button
             variant="secondary"
-            className="!w-[71px] !gap-1.5 !rounded-[8px] !border-[0.5px] !border-[rgba(11,11,11,0.1)] !bg-white/50 !shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-transform hover:!bg-[rgba(11,11,11,0.05)] active:!bg-[rgba(11,11,11,0.05)] active:scale-[0.975] [font-weight:550]"
+            className={detailHeaderEditButtonClass}
             onClick={() => setEditOpen(true)}
           >
             <CdsIconGlyph glyph="" />
@@ -3664,6 +4017,7 @@ function AgentSessionsPanel({ agent }: { agent: Agent }) {
   const [deployment, setDeployment] = useState("All");
   const [status, setStatus] = useState("All");
   const [archivingSession, setArchivingSession] = useState<Session | null>(null);
+  const [archivingSelection, setArchivingSelection] = useState<{ sessions: Session[]; clear: () => void } | null>(null);
 
   useEffect(() => {
     listSessions({ agentId: agent.id, created, deploymentId: deployment, status }).then(setSessions).catch(() => setSessions([]));
@@ -3673,6 +4027,18 @@ function AgentSessionsPanel({ agent }: { agent: Agent }) {
     const updated = await archiveSession(session.id);
     setSessions((items) => status === "Archived" || status === "All" ? items.map((item) => (item.id === updated.id ? updated : item)) : items.filter((item) => item.id !== updated.id));
     setArchivingSession(null);
+  }
+
+  async function archiveSelection() {
+    if (!archivingSelection) return;
+    const { sessions: selected, clear } = archivingSelection;
+    const updated = await Promise.all(selected.map((session) => archiveSession(session.id)));
+    const updatedById = new Map(updated.map((session) => [session.id, session]));
+    const selectedIds = new Set(selected.map((session) => session.id));
+    setSessions((items) => status === "Archived" || status === "All" ? items.map((item) => updatedById.get(item.id) ?? item) : items.filter((item) => !selectedIds.has(item.id)));
+    setArchivingSelection(null);
+    clear();
+    showToast(`${selected.length} session${selected.length === 1 ? "" : "s"} archived.`);
   }
 
   const agentVersion = agent.version || "v1";
@@ -3747,6 +4113,13 @@ function AgentSessionsPanel({ agent }: { agent: Agent }) {
         ]}
         actionsWidth="56px"
         renderActions={(session) => <SessionRowActions session={session} onArchive={() => setArchivingSession(session)} />}
+        renderBulkActions={({ count, rows, clearSelection }) => (
+          <BulkActionBar count={count} onClear={clearSelection}>
+            <BulkActionButton icon={<MenuArchiveIcon />} onClick={() => setArchivingSelection({ sessions: rows, clear: clearSelection })}>
+              Archive
+            </BulkActionButton>
+          </BulkActionBar>
+        )}
         emptyRowClassName="h-[317px]"
         emptyState={
           <div className="flex translate-y-10 flex-col items-center justify-center text-center">
@@ -3766,6 +4139,13 @@ function AgentSessionsPanel({ agent }: { agent: Agent }) {
         }}
         onConfirm={() => archivingSession ? archiveCurrent(archivingSession) : undefined}
       />
+      <SessionArchiveDialog
+        open={Boolean(archivingSelection)}
+        onOpenChange={(open) => {
+          if (!open) setArchivingSelection(null);
+        }}
+        onConfirm={archiveSelection}
+      />
     </div>
   );
 }
@@ -3776,6 +4156,7 @@ function AgentDeploymentsPanel({ agent }: { agent: Agent }) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingDeployment, setEditingDeployment] = useState<Deployment | null>(null);
   const [archivingDeployment, setArchivingDeployment] = useState<Deployment | null>(null);
+  const [archivingSelection, setArchivingSelection] = useState<{ items: Deployment[]; clear: () => void } | null>(null);
 
   useEffect(() => {
     listDeployments({ agentId: agent.id }).then(setDeployments).catch(() => setDeployments([]));
@@ -3791,6 +4172,17 @@ function AgentDeploymentsPanel({ agent }: { agent: Agent }) {
     setDeployments((items) => items.map((item) => (item.id === updated.id ? updated : item)));
   }
 
+  async function archiveSelection() {
+    if (!archivingSelection) return;
+    const { items: selected, clear } = archivingSelection;
+    const updated = await Promise.all(selected.map((deployment) => archiveDeployment(deployment.id)));
+    const updatedById = new Map(updated.map((deployment) => [deployment.id, deployment]));
+    setDeployments((items) => items.map((item) => updatedById.get(item.id) ?? item));
+    setArchivingSelection(null);
+    clear();
+    showToast(`${selected.length} deployment${selected.length === 1 ? "" : "s"} archived.`);
+  }
+
   async function updateCurrent(deployment: Deployment, input: UpdateDeploymentInput) {
     const updated = await updateDeployment(deployment.id, input);
     setDeployments((items) => items.map((item) => (item.id === updated.id ? updated : item)).filter((item) => item.agentId === agent.id));
@@ -3804,7 +4196,6 @@ function AgentDeploymentsPanel({ agent }: { agent: Agent }) {
           rows={deployments}
           getKey={(deployment) => deployment.id}
           getRowHref={(deployment) => `/deployments/${deployment.id}`}
-          showSelection={false}
           actionsWidth="56px"
           actionsHeaderAlign="right"
           columns={[
@@ -3842,6 +4233,13 @@ function AgentDeploymentsPanel({ agent }: { agent: Agent }) {
               onEdit={() => setEditingDeployment(deployment)}
               onArchive={() => setArchivingDeployment(deployment)}
             />
+          )}
+          renderBulkActions={({ count, rows, clearSelection }) => (
+            <BulkActionBar count={count} onClear={clearSelection}>
+              <BulkActionButton icon={<MenuArchiveIcon />} onClick={() => setArchivingSelection({ items: rows, clear: clearSelection })}>
+                Archive
+              </BulkActionButton>
+            </BulkActionBar>
           )}
         />
       ) : (
@@ -3889,6 +4287,13 @@ function AgentDeploymentsPanel({ agent }: { agent: Agent }) {
           await applyStatus(archivingDeployment, "archive");
           setArchivingDeployment(null);
         }}
+      />
+      <DeploymentArchiveDialog
+        open={Boolean(archivingSelection)}
+        onOpenChange={(open) => {
+          if (!open) setArchivingSelection(null);
+        }}
+        onConfirm={archiveSelection}
       />
     </>
   );
@@ -4099,7 +4504,7 @@ function CreateAgentDialog({
                 <div className="mt-[10px] flex justify-end">
                   <Button
                     variant="secondary"
-                    className="h-[27px] w-[82px] !gap-1.5 rounded-control !border-line !bg-white !px-[10px] text-sm [font-weight:550] hover:!bg-fill"
+                    className={`h-[27px] w-[82px] !gap-1.5 rounded-control !border-line !bg-white !px-[10px] text-sm [font-weight:550] ${editorImportantControlInteractionClass}`}
                     disabled={!description.trim()}
                     onClick={generateFromDescription}
                   >
@@ -4131,23 +4536,25 @@ function CreateAgentDialog({
             <div className="flex h-[43px] items-center justify-between pb-0 pl-3 pr-2 pt-0">
               <div className="flex h-[27px] -translate-x-px text-sm leading-5" role="tablist" aria-label="Agent config format">
                 <button
-                  className={`h-[27px] w-[59px] rounded-full px-[10px] [font-weight:550] ${format === "YAML" ? "bg-fill text-ink" : "text-muted"}`}
+                  className={`h-[27px] w-[59px] ${editorToolbarTabClass(format === "YAML")}`}
                   role="tab"
                   aria-selected={format === "YAML"}
+                  type="button"
                   onClick={() => setFormat("YAML")}
                 >
                   YAML
                 </button>
                 <button
-                  className={`h-[27px] w-[58px] rounded-full px-[10px] [font-weight:550] ${format === "JSON" ? "bg-fill text-ink" : "text-muted"}`}
+                  className={`h-[27px] w-[58px] ${editorToolbarTabClass(format === "JSON")}`}
                   role="tab"
                   aria-selected={format === "JSON"}
+                  type="button"
                   onClick={() => setFormat("JSON")}
                 >
                   JSON
                 </button>
               </div>
-              <CopyIconButton value={format === "YAML" ? configYaml : jsonConfig} ariaLabel="Copy code" className="h-[27px] w-[27px] !gap-1.5 translate-x-px rounded-control !px-0 [font-weight:550]" />
+              <CopyIconButton value={format === "YAML" ? configYaml : jsonConfig} ariaLabel="Copy code" className={`h-[27px] w-[27px] !gap-1.5 translate-x-px !px-0 ${editorToolbarButtonClass}`} />
             </div>
             {format === "YAML" ? (
               <div className="relative h-[calc(100%-43px)] min-h-0">
@@ -4223,7 +4630,7 @@ function EditAgentDialog({
             <div className="flex min-w-0 flex-1 items-center text-sm" role="tablist" aria-label="Agent config format">
               <button
                 aria-selected={format === "YAML"}
-                className={`h-7 w-[60px] rounded-full px-[10px] [font-weight:550] ${format === "YAML" ? "text-ink" : "text-muted"}`}
+                className={`h-7 w-[60px] ${editorToolbarTabClass(format === "YAML")}`}
                 role="tab"
                 type="button"
                 onClick={() => setFormat("YAML")}
@@ -4232,7 +4639,7 @@ function EditAgentDialog({
               </button>
               <button
                 aria-selected={format === "JSON"}
-                className={`h-7 w-[59px] rounded-full px-[10px] [font-weight:550] ${format === "JSON" ? "text-ink" : "text-muted"}`}
+                className={`h-7 w-[59px] ${editorToolbarTabClass(format === "JSON")}`}
                 role="tab"
                 type="button"
                 onClick={() => setFormat("JSON")}
@@ -4240,20 +4647,20 @@ function EditAgentDialog({
                 JSON
               </button>
             </div>
-            <CopyIconButton value={format === "YAML" ? configYaml : jsonConfig} ariaLabel="Copy code" className="!h-7 !w-7 !gap-1.5 rounded-[7px] !px-0 [font-weight:550]" iconClassName="h-4 w-4 text-current" />
+            <CopyIconButton value={format === "YAML" ? configYaml : jsonConfig} ariaLabel="Copy code" className={`!h-7 !w-7 !gap-1.5 !px-0 ${editorToolbarImportantButtonClass}`} iconClassName="h-4 w-4 text-current" />
           </div>
           <div className="relative flex-1 overflow-auto px-3 pb-3 pt-[13px] text-ink">
             <p className="sr-only">Tab inserts indentation. Press Escape then Tab to move focus out of the editor.</p>
             {format === "YAML" ? (
               <HighlightedConfigTextarea
-                className="h-[475px] px-0 py-0"
+                className="h-[475px] py-0 pr-0 pl-12"
                 value={configYaml}
                 onChange={(event) => setConfigYaml(event.target.value)}
                 language="YAML"
               />
             ) : (
               <div className="h-[475px]">
-                <CodeBlockWithLineNumbers source={jsonConfig} language="JSON" className="py-0 pl-3" />
+                <CodeBlockWithLineNumbers source={jsonConfig} language="JSON" className="py-0 pr-0 pl-12" />
               </div>
             )}
           </div>
@@ -6476,7 +6883,7 @@ function CreateCredentialForm({
                 value={target || targetPlaceholder}
                 options={[targetPlaceholder]}
                 onValueChange={(value) => setTarget(value === targetPlaceholder ? "" : value)}
-                triggerClassName="!h-[31px] w-[455px] !gap-1.5 rounded-none !border-transparent !bg-transparent !pl-2 !pr-0 hover:!bg-transparent"
+                triggerClassName={`!h-[31px] w-[455px] !gap-1.5 !pl-2 !pr-0 ${editorSelectTriggerClass}`}
               />
             </div>
           ) : (
@@ -6490,8 +6897,8 @@ function CreateCredentialForm({
         </div>
       </div>
       <div className="sticky bottom-0 -mx-6 mt-4 flex justify-end gap-2 bg-white px-6 py-0">
-        {secondaryLabel ? <Button variant="ghost" className="h-[31px] rounded-[8px] px-3 [font-weight:550]" onClick={onSecondary}>{secondaryLabel}</Button> : null}
-        <Button className={`h-[31px] rounded-[8px] px-0 [font-weight:550] ${primaryLabel === "Add credential" ? "w-[121px]" : "w-[81px]"}`} onClick={submit} disabled={!canSubmit}>{primaryLabel}</Button>
+        {secondaryLabel ? <Button variant="ghost" className={`h-[31px] px-3 ${editorToolbarButtonClass}`} onClick={onSecondary}>{secondaryLabel}</Button> : null}
+        <Button className={`h-[31px] rounded-[8px] px-0 transition-transform duration-100 active:scale-[0.975] [font-weight:550] ${primaryLabel === "Add credential" ? "w-[121px]" : "w-[81px]"}`} onClick={submit} disabled={!canSubmit}>{primaryLabel}</Button>
       </div>
     </div>
   );
@@ -6518,7 +6925,7 @@ function CredentialAuthTypeSelect({ value, onValueChange }: { value: string; onV
       <Select.Trigger
         data-cds="Button"
         aria-label="Credential type"
-        className="cds-focus inline-flex h-[31px] w-[455px] items-center gap-1.5 rounded-none border border-transparent bg-transparent pl-2 pr-0 text-sm leading-5 text-ink outline-none hover:bg-transparent"
+        className={`cds-focus inline-flex h-[31px] w-[455px] items-center gap-1.5 pl-2 pr-0 text-sm leading-5 text-ink outline-none ${editorSelectTriggerClass}`}
       >
         <span className="flex min-w-0 flex-1 items-baseline gap-1.5 whitespace-nowrap">
           <Select.Value />
@@ -6867,38 +7274,31 @@ function SkillVersionDialog({ skillId, onOpenChange }: { skillId: string | null;
   );
 }
 
-function CodeYaml({ source }: { source: string }) {
+function highlightYamlLine(line: string): ReactNode {
+  const [key, rest] = line.includes(":") ? line.split(/:(.*)/s) : ["", line];
   return (
     <>
-      {source.split("\n").map((line, index) => {
-        const [key, rest] = line.includes(":") ? line.split(/:(.*)/s) : ["", line];
-        return (
-          <span key={`${line}-${index}`}>
-            {key ? <span className="text-[#b80a18]">{key}:</span> : null}
-            <span className="text-[#008000]">{key ? rest : line}</span>
-            {"\n"}
-          </span>
-        );
-      })}
+      {key ? <span className="text-[#b80a18]">{key}:</span> : null}
+      <span className="text-[#008000]">{key ? rest : line}</span>
     </>
   );
 }
 
-function CodeJson({ source }: { source: string }) {
+function highlightJsonLine(line: string): ReactNode {
   const tokenPattern = /"(?:\\.|[^"\\])*"(?=\s*:)|"(?:\\.|[^"\\])*"|-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?|\b(?:true|false|null)\b/g;
   const nodes: ReactNode[] = [];
   let cursor = 0;
   let tokenIndex = 0;
 
-  for (const match of source.matchAll(tokenPattern)) {
+  for (const match of line.matchAll(tokenPattern)) {
     const token = match[0];
     const start = match.index ?? 0;
     if (start > cursor) {
-      nodes.push(source.slice(cursor, start));
+      nodes.push(line.slice(cursor, start));
     }
 
     let className = "text-[#008000]";
-    if (token.startsWith("\"") && source.slice(start + token.length).trimStart().startsWith(":")) {
+    if (token.startsWith("\"") && line.slice(start + token.length).trimStart().startsWith(":")) {
       className = "text-[#b80a18]";
     } else if (!token.startsWith("\"")) {
       className = token === "null" ? "text-[#898781]" : "text-[#6f42c1]";
@@ -6913,38 +7313,45 @@ function CodeJson({ source }: { source: string }) {
     tokenIndex += 1;
   }
 
-  if (cursor < source.length) {
-    nodes.push(source.slice(cursor));
+  if (cursor < line.length) {
+    nodes.push(line.slice(cursor));
   }
 
   return <>{nodes}</>;
 }
 
-function CodeGutter({ lineCount, scrollTop = 0 }: { lineCount: number; scrollTop?: number }) {
+/**
+ * Renders `source` as one block per source line, each carrying its own line
+ * number via `right-full` absolute positioning — that anchors the number to
+ * the line's own left edge regardless of the line's width, landing it in
+ * the container's reserved left padding, with no background/border of its
+ * own (it sits directly on the panel's canvas, matching the reference).
+ * Because the number lives inside the same flow element as its line's text,
+ * a wrapped line's continuation rows grow that one block's height instead
+ * of desyncing a separately-scrolled gutter column from the content next to
+ * it — a flat gutter-of-divs approach can't stay aligned once any line
+ * wraps, which is what "line numbers drift on entry N" bugs come from.
+ */
+function CodeLines({ source, language }: { source: string; language: "YAML" | "JSON" }) {
   return (
-    <div
-      className="w-10 shrink-0 select-none overflow-hidden border-r border-[rgba(11,11,11,0.08)] bg-[#fafaf8] py-3 text-right font-mono text-[13px] leading-[19px] text-muted"
-      aria-hidden="true"
-    >
-      <div style={{ transform: `translateY(${-scrollTop}px)` }}>
-        {Array.from({ length: Math.max(lineCount, 1) }, (_, index) => (
-          <div key={index} className="px-2">{index + 1}</div>
-        ))}
-      </div>
-    </div>
+    <>
+      {source.split("\n").map((line, index) => (
+        <div key={index} className="relative whitespace-pre-wrap break-words">
+          <span className="absolute right-full mr-2 w-7 select-none text-right text-muted" aria-hidden="true">
+            {index + 1}
+          </span>
+          {language === "YAML" ? highlightYamlLine(line) : highlightJsonLine(line)}
+        </div>
+      ))}
+    </>
   );
 }
 
-/** Read-only code block (JSON preview) with a synced line-number gutter. */
-function CodeBlockWithLineNumbers({ source, language, className = "px-[11px] py-3" }: { source: string; language: "YAML" | "JSON"; className?: string }) {
-  const lineCount = source.split("\n").length;
-
+/** Read-only code block (JSON preview) with an inline line-number gutter. */
+function CodeBlockWithLineNumbers({ source, language, className = "py-3 pr-3 pl-12" }: { source: string; language: "YAML" | "JSON"; className?: string }) {
   return (
-    <div className="flex h-full min-h-0 overflow-auto">
-      <CodeGutter lineCount={lineCount} />
-      <pre className={`m-0 min-w-0 flex-1 whitespace-pre-wrap font-mono text-[13px] leading-[19px] text-ink ${className}`}>
-        {language === "YAML" ? <CodeYaml source={source} /> : <CodeJson source={source} />}
-      </pre>
+    <div className={`overflow-auto font-mono text-[13px] leading-[19px] text-ink ${className}`}>
+      <CodeLines source={source} language={language} />
     </div>
   );
 }
@@ -6953,41 +7360,32 @@ function HighlightedConfigTextarea({
   value,
   onChange,
   language,
-  className = "h-full px-[11px] py-3",
-  showLineNumbers = true,
+  className = "h-full py-3 pr-[11px] pl-12",
   ...props
 }: {
   value: string;
   onChange: ChangeEventHandler<HTMLTextAreaElement>;
   language: "YAML" | "JSON";
   className?: string;
-  showLineNumbers?: boolean;
 } & Omit<ComponentProps<"textarea">, "value" | "onChange" | "children">) {
-  const [scroll, setScroll] = useState({ left: 0, top: 0 });
-  const textClassName = `absolute inset-0 font-mono text-[13px] leading-[19px] ${className}`;
-  const lineCount = value.split("\n").length;
+  const [scrollTop, setScrollTop] = useState(0);
+  const textClassName = `absolute inset-0 overflow-hidden whitespace-pre-wrap break-words font-mono text-[13px] leading-[19px] ${className}`;
 
   return (
-    <div className="relative flex h-full min-h-0 overflow-hidden">
-      {showLineNumbers ? <CodeGutter lineCount={lineCount} scrollTop={scroll.top} /> : null}
-      <div className="relative min-w-0 flex-1">
-        <div className={`${textClassName} pointer-events-none overflow-hidden whitespace-pre-wrap text-ink`} aria-hidden="true">
-          <pre
-            className="m-0 min-h-full whitespace-pre-wrap break-words p-0 font-inherit text-inherit"
-            style={{ transform: `translate(${-scroll.left}px, ${-scroll.top}px)` }}
-          >
-            {language === "YAML" ? <CodeYaml source={value} /> : <CodeJson source={value} />}
-          </pre>
+    <div className="relative h-full min-h-0 overflow-hidden">
+      <div className={`${textClassName} pointer-events-none text-ink`} aria-hidden="true">
+        <div style={{ transform: `translateY(${-scrollTop}px)` }}>
+          <CodeLines source={value} language={language} />
         </div>
-        <textarea
-          {...props}
-          className={`${textClassName} z-10 resize-none overflow-auto border-0 bg-transparent font-mono text-transparent caret-[#0b0b0b] outline-none selection:bg-[#cde2fb] selection:text-[#0b0b0b]`}
-          spellCheck={false}
-          value={value}
-          onChange={onChange}
-          onScroll={(event) => setScroll({ left: event.currentTarget.scrollLeft, top: event.currentTarget.scrollTop })}
-        />
       </div>
+      <textarea
+        {...props}
+        className={`${textClassName} z-10 resize-none overflow-auto border-0 bg-transparent text-transparent caret-[#0b0b0b] outline-none selection:bg-[#cde2fb] selection:text-[#0b0b0b]`}
+        spellCheck={false}
+        value={value}
+        onChange={onChange}
+        onScroll={(event) => setScrollTop(event.currentTarget.scrollTop)}
+      />
     </div>
   );
 }
@@ -7101,12 +7499,14 @@ function EnvironmentActions({
 function EnvironmentConfirmationDialog({
   action,
   environment,
+  nameOverride,
   open,
   onOpenChange,
   onConfirm
 }: {
   action: "archive" | "delete";
   environment: Environment | null;
+  nameOverride?: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: () => Promise<void> | void;
@@ -7114,9 +7514,10 @@ function EnvironmentConfirmationDialog({
   const isDelete = action === "delete";
   const title = isDelete ? "Delete profile" : "Archive profile";
   const confirmLabel = isDelete ? "Delete" : "Archive";
+  const name = nameOverride ?? environment?.name ?? "this profile";
   const description = isDelete
-    ? `Are you sure you want to delete "${environment?.name ?? "this profile"}"? This action cannot be undone.`
-    : `Are you sure you want to archive "${environment?.name ?? "this profile"}"? Archived profiles can no longer be used to create new sessions.`;
+    ? `Are you sure you want to delete "${name}"? This action cannot be undone.`
+    : `Are you sure you want to archive "${name}"? Archived profiles can no longer be used to create new sessions.`;
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
@@ -7187,12 +7588,14 @@ function VaultRowActions({ vault, onArchive, onDelete }: { vault: Vault; onArchi
 function VaultConfirmationDialog({
   action,
   vault,
+  nameOverride,
   open,
   onOpenChange,
   onConfirm
 }: {
   action: "archive" | "delete";
   vault: Vault | null;
+  nameOverride?: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onConfirm: () => Promise<void> | void;
@@ -7200,9 +7603,10 @@ function VaultConfirmationDialog({
   const isDelete = action === "delete";
   const title = isDelete ? "Delete vault" : "Archive vault";
   const confirmLabel = isDelete ? "Delete" : "Archive";
+  const name = nameOverride ?? vault?.name ?? "this vault";
   const description = isDelete
-    ? `Are you sure you want to delete "${vault?.name ?? "this vault"}"? This will also delete all credentials in this vault. This action cannot be undone.`
-    : `Are you sure you want to archive "${vault?.name ?? "this vault"}"? Any active sessions using this vault will lose their credentials, and it can no longer be used to create new sessions.`;
+    ? `Are you sure you want to delete "${name}"? This will also delete all credentials in this vault. This action cannot be undone.`
+    : `Are you sure you want to archive "${name}"? Any active sessions using this vault will lose their credentials, and it can no longer be used to create new sessions.`;
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>

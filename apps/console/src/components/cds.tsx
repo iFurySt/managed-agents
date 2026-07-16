@@ -270,8 +270,8 @@ export function FieldSelect({
   ariaLabel,
   contentClassName = "",
   itemClassName = "",
-  contentPosition,
-  contentSideOffset
+  contentPosition = "popper",
+  contentSideOffset = 4
 }: {
   label: ReactNode;
   value: string;
@@ -308,6 +308,7 @@ export function FieldSelect({
       <Select.Portal>
         <Select.Content
           position={contentPosition}
+          align="start"
           sideOffset={contentSideOffset}
           className={`z-50 min-w-[192px] rounded-[12px] bg-white p-1.5 shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_16px_rgba(0,0,0,0.08)] ${contentClassName}`}
         >
@@ -348,7 +349,8 @@ export function DataTable<T>({
   tableClassName = "",
   headerTextClassName,
   emptyRowClassName = "h-[365px]",
-  emptyState
+  emptyState,
+  renderBulkActions
 }: {
   columns: { key: string; header: string; render: (row: T) => ReactNode; width?: string; align?: "left" | "right" }[];
   rows: T[];
@@ -367,9 +369,10 @@ export function DataTable<T>({
   headerTextClassName?: string;
   emptyRowClassName?: string;
   emptyState?: ReactNode;
+  renderBulkActions?: (selection: { count: number; rows: T[]; clearSelection: () => void }) => ReactNode;
 }) {
-  const [selectedKeys, setSelectedKeys] = useState<Set<string>>(() => new Set());
   const navigate = useNavigate();
+  const [selectedKeys, setSelectedKeys] = useState<Set<string>>(() => new Set());
   const rowKeys = useMemo(() => rows.map((row) => getKey(row)), [rows, getKey]);
   const selectedVisibleCount = rowKeys.filter((key) => selectedKeys.has(key)).length;
   const allVisibleSelected = rowKeys.length > 0 && selectedVisibleCount === rowKeys.length;
@@ -399,13 +402,17 @@ export function DataTable<T>({
       return next;
     });
   }
+
+  const selectedRows = useMemo(() => rows.filter((row) => selectedKeys.has(getKey(row))), [rows, selectedKeys, getKey]);
+  const clearSelection = () => setSelectedKeys(new Set());
+
   function shouldIgnoreRowClick(target: EventTarget | null) {
     if (!(target instanceof HTMLElement)) return false;
     return Boolean(target.closest("a,button,input,select,textarea,[role='button'],[role='checkbox'],[data-cds-row-ignore-click='true']"));
   }
 
-
   return (
+    <>
     <div data-cds="DataTable" className={`min-w-0 overflow-x-auto overflow-y-hidden ${className || "w-full"}`}>
       <table data-cds="Table" className={`w-full table-fixed text-left text-sm ${tableClassName}`}>
         <colgroup>
@@ -521,6 +528,12 @@ export function DataTable<T>({
         </tbody>
       </table>
     </div>
+    {renderBulkActions && selectedRows.length > 0 ? (
+      <div className="sticky bottom-6 z-40 flex pt-3">
+        {renderBulkActions({ count: selectedRows.length, rows: selectedRows, clearSelection })}
+      </div>
+    ) : null}
+    </>
   );
 }
 
