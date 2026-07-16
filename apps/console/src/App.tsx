@@ -1944,8 +1944,8 @@ function DeploymentDetailPage() {
         </CdsTabs.Content>
         <CdsTabs.Content value="runs" className="-ml-2 -mt-10 flex flex-col gap-2">
           <div className="flex gap-4">
-            <FieldSelect label="Trigger" value={trigger} options={["All", "Manual", "Schedule"]} onValueChange={setTrigger} triggerClassName="w-[101px] rounded-none !border-transparent !bg-transparent px-0 hover:!bg-transparent" />
-            <FieldSelect label="Result" value={result} options={["All", "Success", "Failed"]} onValueChange={setResult} triggerClassName="w-[98px] rounded-none !border-transparent !bg-transparent px-0 hover:!bg-transparent" />
+            <FieldSelect label="Trigger" value={trigger} options={["All", "Manual", "Schedule"]} onValueChange={setTrigger} triggerShellClassName={topFilterShellClassName} />
+            <FieldSelect label="Result" value={result} options={["All", "Success", "Failed"]} onValueChange={setResult} triggerShellClassName={topFilterShellClassName} />
           </div>
           <DataTable
             rows={visibleRuns}
@@ -2883,7 +2883,7 @@ function VaultDetailPage() {
           value={status}
           options={["All", "Active", "Archived"]}
           onValueChange={setStatus}
-          triggerClassName="w-[98px] rounded-none !border-transparent !bg-transparent px-0 hover:!bg-transparent"
+          triggerShellClassName={topFilterShellClassName}
         />
       </div>
       <DataTable

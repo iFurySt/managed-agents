@@ -15,6 +15,7 @@
 > Follow-up: restore the empty credential state lock icon.
 > Follow-up: align the Add credential Type select hover behavior.
 > Follow-up: add real Gmail and Notion MCP targets and render Type-specific credential forms.
+> Follow-up: restore boxed Status filter styling on vault detail and align detail-page filter controls.
 
 ### Changes Overview
 
@@ -34,6 +35,8 @@
   - Added real MCP server options for Gmail and Notion in the credential MCP server picker.
   - Added Type-specific credential form behavior: MCP OAuth and Bearer token use the MCP server picker, while Environment variable expands to variable/value, networking, allowed hosts, injection location, warning, and acknowledgement controls.
   - Reset credential form Type state when the dialog closes so reopening starts from the reference default.
+  - Replaced the vault detail Status filter's transparent trigger with the shared boxed filter shell.
+  - Replaced the deployment detail Runs tab Trigger/Result filters' transparent triggers with the shared boxed filter shell.
   - Documented the vault credential modal variant in the Claude Console design reference.
 
 ### Design Intent
@@ -63,6 +66,11 @@ Notion MCP endpoints. Environment variable credentials require a larger dialog
 because the reference form collects secret name/value, networking restrictions,
 injection location, and an explicit shared-credential acknowledgement before
 enabling submission.
+
+Detail-page table filters should use the same boxed filter shell as top-level
+table filters unless a component has a separate explicit reference variant. A
+transparent trigger makes the label/value pair read like plain text and breaks
+alignment with the Claude Console filter control.
 
 ### Files Modified
 
