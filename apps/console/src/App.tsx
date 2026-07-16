@@ -75,7 +75,7 @@ import {
   updateEnvironment
 } from "./api";
 import { Badge, Button, CdsDropdownMenu, CdsTabs, ConsoleDialog, CopyableIdText, CopyIconButton, CopyIdButton, DataTable, FieldSelect, showToast, SidebarItem, TextInput, ToastViewport } from "./components/cds";
-import type { Agent, AgentVersionEntry, CollectionName, Deployment, Environment, MemoryRecord, MemoryStore, Resource, Session, SessionEvent, SkillPackage, SkillVersion, UpdateDeploymentInput, Vault, VaultCredential, WorkspaceFile } from "./types";
+import type { Agent, AgentVersionEntry, CollectionName, Deployment, Environment, EnvironmentPackageRow, MemoryRecord, MemoryStore, Resource, Session, SessionEvent, SkillPackage, SkillVersion, UpdateDeploymentInput, Vault, VaultCredential, WorkspaceFile } from "./types";
 
 const managedRoutes: { path: CollectionName; title: string; description: string; action: string }[] = [];
 const sidebarCollapsedStorageKey = "managed-agents.sidebar.collapsed";
@@ -132,6 +132,7 @@ const topFilterShellClassName =
 const editorControlInteractionClass = "transition-[background-color,color,transform] duration-100 hover:bg-fill active:scale-[0.975] active:bg-fill";
 const editorImportantControlInteractionClass = "transition-[background-color,color,transform] duration-100 hover:!bg-fill active:scale-[0.975] active:!bg-fill";
 const editorIconButtonClass = `h-8 w-8 rounded-[8px] text-sm leading-5 [font-weight:550] ${editorControlInteractionClass}`;
+const editorAddIconButtonClass = `border border-line bg-white shadow-[0_1px_2px_rgba(0,0,0,0.02)] ${editorIconButtonClass}`;
 const editorSelectTriggerClass = `rounded-none !border-transparent !bg-transparent px-0 ${editorImportantControlInteractionClass}`;
 const editorToolbarButtonClass = `rounded-[8px] bg-transparent [font-weight:550] ${editorControlInteractionClass}`;
 const editorToolbarImportantButtonClass = `rounded-[8px] !bg-transparent [font-weight:550] ${editorImportantControlInteractionClass}`;
@@ -2247,9 +2248,7 @@ function EnvironmentDetailPage() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [networkingType, setNetworkingType] = useState("Unrestricted");
-  const [packageManager, setPackageManager] = useState("apt");
-  const [packages, setPackages] = useState<string[]>([]);
-  const [packageDraft, setPackageDraft] = useState("");
+  const [packageRows, setPackageRows] = useState<PackageRow[]>(emptyPackageRows());
   const [metadataRows, setMetadataRows] = useState<MetadataRow[]>(emptyMetadataRows());
   const [archiveOpen, setArchiveOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -2263,9 +2262,7 @@ function EnvironmentDetailPage() {
     setName(environment.name);
     setDescription(environment.description);
     setNetworkingType(environment.networkingType || "Unrestricted");
-    setPackageManager(environment.packageManager || "apt");
-    setPackages(splitValues(environment.packages));
-    setPackageDraft("");
+    setPackageRows(parsePackageRows(environment.packageManager || "apt", environment.packages));
     setMetadataRows(parseMetadataRows(environment.metadata));
     setEditing(true);
   }
@@ -2276,8 +2273,9 @@ function EnvironmentDetailPage() {
       name,
       description,
       networkingType,
-      packageManager,
-      packages,
+      packageManager: packageRows[0]?.manager || "apt",
+      packages: serializePackageRows(packageRows),
+      packageRows: serializePackageRowsForRequest(packageRows),
       metadata: serializeMetadataRows(metadataRows)
     });
     setEnvironment(updated);
@@ -2298,11 +2296,32 @@ function EnvironmentDetailPage() {
     navigate("/environments");
   }
 
-  function addPackage() {
-    const next = packageDraft.trim();
+  function updatePackageRow(id: string, field: "manager" | "draft", value: string) {
+    setPackageRows((rows) => rows.map((row) => (row.id === id ? { ...row, [field]: value } : row)));
+  }
+
+  function addPackageRow() {
+    setPackageRows((rows) => [...rows, { id: nextLocalId("package"), manager: "", packages: [], draft: "" }]);
+  }
+
+  function removePackageRow(id: string) {
+    setPackageRows((rows) => {
+      const next = rows.filter((row) => row.id !== id);
+      return next.length ? next : emptyPackageRows();
+    });
+  }
+
+  function addPackage(rowId: string) {
+    const row = packageRows.find((item) => item.id === rowId);
+    const next = row?.draft.trim() || "";
     if (!next) return;
-    setPackages((items) => [...items, next]);
-    setPackageDraft("");
+    setPackageRows((rows) => rows.map((item) => (item.id === rowId ? { ...item, packages: [...item.packages, next], draft: "" } : item)));
+  }
+
+  function removePackage(rowId: string, index: number) {
+    setPackageRows((rows) =>
+      rows.map((row) => (row.id === rowId ? { ...row, packages: row.packages.filter((_, itemIndex) => itemIndex !== index) } : row))
+    );
   }
 
   function updateMetadataRow(id: string, field: "key" | "value", value: string) {
@@ -2386,7 +2405,7 @@ function EnvironmentDetailPage() {
           <div className="max-w-[800px]">
             <label className="mb-1 block text-sm leading-5 [font-weight:550]">Description</label>
             <textarea
-              className="cds-focus h-[66px] min-h-[66px] w-full resize-none rounded-[9px] border border-line bg-white px-3 py-2 text-sm leading-5"
+              className="cds-focus h-[66px] min-h-[66px] w-full resize-none rounded-[0.6rem] border border-line bg-white px-3 py-2 text-sm leading-5"
               placeholder="Add a description for this environment (optional)"
               value={description}
               onChange={(event) => setDescription(event.target.value)}
@@ -2410,54 +2429,58 @@ function EnvironmentDetailPage() {
             description="Specify packages and their versions available in this environment. Separate multiple values with spaces."
             separated
             action={
-              <Button variant="icon" className={editorIconButtonClass} aria-label="Add package" onClick={addPackage}>
+              <Button variant="icon" className={editorAddIconButtonClass} aria-label="Add package row" onClick={addPackageRow}>
                 <Plus className="h-4 w-4" />
               </Button>
             }
           >
-            <div className="flex w-full min-h-9 items-center gap-2">
-              <div className="w-1/4 min-w-[108px]">
-                <FieldSelect
-                  label="Manager"
-                  showLabel={false}
-                  value={packageManager}
-                  options={["apt", "pip", "npm"]}
-                  onValueChange={setPackageManager}
-                  triggerShellClassName={`w-full ${environmentEditorSelectShellClass}`}
-                />
-              </div>
-              {packages.map((item) => (
-                <span key={item} className="inline-flex h-6 items-center gap-1.5 rounded-md border border-line bg-white px-2 font-mono text-[13px] leading-5">
-                  {item}
-                  <button className="grid h-5 w-5 place-items-center rounded-[6px] text-muted transition-[background-color,color,transform] duration-100 hover:bg-fill hover:text-ink active:scale-[0.975] active:bg-fill" aria-label={`Remove ${item}`} onClick={() => setPackages((values) => values.filter((value) => value !== item))}>
-                    ×
-                  </button>
-                </span>
+            <div className="grid gap-2">
+              {packageRows.map((row, rowIndex) => (
+                <div key={row.id} className="flex min-h-9 w-full items-start gap-2">
+                  <div className="w-[122px] shrink-0">
+                    <FieldSelect
+                      label={`Package manager ${rowIndex + 1}`}
+                      showLabel={false}
+                      value={row.manager}
+                      options={["apt", "pip", "npm"]}
+                      onValueChange={(value) => updatePackageRow(row.id, "manager", value)}
+                      placeholder={<span className="text-muted">Manager</span>}
+                      triggerShellClassName={`w-full ${environmentEditorSelectShellClass}`}
+                    />
+                  </div>
+                  <div className="flex min-h-9 min-w-0 flex-1 cursor-text flex-wrap items-center gap-2 rounded-[8px] border border-line bg-white px-2 py-1 transition-colors hover:border-[rgba(11,11,11,0.2)] focus-within:border-[rgba(11,11,11,0.2)] focus-within:shadow-[0_0_0_1px_inset_#fcfcfb,0_0_0_1px_#2a78d6,0_0_6px_1px_#cde2fb]">
+                    {row.packages.map((item, itemIndex) => (
+                      <span key={`${item}-${itemIndex}`} className="flex max-w-full items-center gap-1 rounded-md border-[0.5px] border-line bg-[#F6F6F4]/50 px-2 py-0.5 font-mono text-[13px] leading-[19.5px]">
+                        <span className="min-w-0 break-all">{item}</span>
+                        <button className="h-3 w-3 shrink-0 text-muted transition-colors hover:text-ink" aria-label={`Remove ${item}`} onClick={() => removePackage(row.id, itemIndex)}>
+                          <CdsIconGlyph glyph="" className="h-3 w-3 text-current text-[12px] [font-weight:533.25]" />
+                        </button>
+                      </span>
+                    ))}
+                    <input
+                      className="h-[19.5px] min-w-[80px] flex-1 bg-transparent font-mono text-[13px] leading-[19.5px] outline-none placeholder:text-muted"
+                      aria-label={`Package value ${rowIndex + 1}`}
+                      placeholder={row.packages.length === 0 ? "package package==1.0.0" : ""}
+                      value={row.draft}
+                      onChange={(event) => updatePackageRow(row.id, "draft", event.target.value)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter") {
+                          event.preventDefault();
+                          addPackage(row.id);
+                        }
+                      }}
+                    />
+                  </div>
+                  <Button
+                    variant="icon"
+                    className={editorIconButtonClass}
+                    aria-label={`Remove package row ${rowIndex + 1}`}
+                    onClick={() => removePackageRow(row.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               ))}
-              <div className="flex min-h-9 min-w-[80px] flex-1 cursor-text flex-wrap items-center gap-2 rounded-[8px] border border-line bg-white px-2 py-1 transition-colors hover:border-[rgba(11,11,11,0.2)] focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[#2a78d6]/30">
-                <input
-                  className="h-[19.5px] min-w-[80px] flex-1 bg-transparent font-mono text-[13px] leading-[19.5px] outline-none placeholder:text-muted"
-                  aria-label="package package==1.0.0"
-                  placeholder="package package==1.0.0"
-                  value={packageDraft}
-                  onChange={(event) => setPackageDraft(event.target.value)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter") {
-                      event.preventDefault();
-                      addPackage();
-                    }
-                  }}
-                />
-              </div>
-              <Button
-                variant="icon"
-                className={editorIconButtonClass}
-                aria-label="Remove package"
-                onClick={() => setPackages((values) => values.slice(0, -1))}
-                disabled={packages.length === 0}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
             </div>
           </EnvironmentEditSection>
           <EnvironmentEditSection
@@ -2465,7 +2488,7 @@ function EnvironmentDetailPage() {
             description="Add custom key-value pairs to tag and organize this environment. Keys must be lowercase."
             separated
             action={
-              <Button variant="icon" className={editorIconButtonClass} aria-label="Add metadata entry" onClick={addMetadataRow}>
+              <Button variant="icon" className={editorAddIconButtonClass} aria-label="Add metadata entry" onClick={addMetadataRow}>
                 <Plus className="h-4 w-4" />
               </Button>
             }
@@ -2512,17 +2535,10 @@ function EnvironmentDetailPage() {
             </div>
           </EnvironmentDetailSection>
           <EnvironmentDetailSection title="Packages" description="Specify packages and their versions available in this environment. Separate multiple values with spaces." separated>
-            <div className="group/value flex min-h-[35px] items-start gap-2 rounded-md border-[0.5px] border-line bg-[#f9f9f7] px-3 py-2">
-              <pre className="min-w-0 flex-1 whitespace-pre-wrap break-all font-mono text-xs leading-4 text-[#52514e]">{environment.packageManager || "apt"}: {environment.packages || "No packages"}</pre>
-              <CopyIconButton value={`${environment.packageManager || "apt"}: ${environment.packages || ""}`.trim()} ariaLabel="Copy" className="-my-0.5 h-[22px] w-[22px] px-0 text-muted !opacity-0 group-hover/value:!opacity-100 focus-visible:!opacity-100" iconClassName="h-3.5 w-3.5 text-current" />
-            </div>
+            <EnvironmentPackageReadOnlyRows environment={environment} />
           </EnvironmentDetailSection>
           <EnvironmentDetailSection title="Metadata" description="Add custom key-value pairs to tag and organize this environment. Keys must be lowercase." separated>
-            {environment.metadata ? (
-              <pre className="min-h-[37px] rounded-md border-[0.5px] border-line bg-fill px-3 py-2 font-mono text-sm leading-5">{environment.metadata}</pre>
-            ) : (
-              <div className="min-h-[37px] rounded-md border-[0.5px] border-line bg-canvas px-3 py-2 text-sm text-muted">No metadata</div>
-            )}
+            <EnvironmentMetadataReadOnlyRows metadata={environment.metadata} />
           </EnvironmentDetailSection>
         </div>
       )}
@@ -8250,6 +8266,52 @@ function splitValues(value: string) {
   return value.split(/\s+/).map((item) => item.trim()).filter(Boolean);
 }
 
+type PackageRow = { id: string; manager: string; packages: string[]; draft: string };
+
+type PackageDisplayRow = { manager: string; packages: string[] };
+
+function emptyPackageRows(): PackageRow[] {
+  return [{ id: nextLocalId("package"), manager: "apt", packages: [], draft: "" }];
+}
+
+function parsePackageRows(manager: string, value: string): PackageRow[] {
+  const rows = parsePackageDisplayRows(manager, value).map((row) => ({ ...row, id: nextLocalId("package"), draft: "" }));
+  return rows.length ? rows : emptyPackageRows();
+}
+
+function parsePackageDisplayRows(manager: string, value: string): PackageDisplayRow[] {
+  const trimmed = value.trim();
+  if (!trimmed) return [];
+  const lines = trimmed.split(/\n+/).map((line) => line.trim()).filter(Boolean);
+  const hasExplicitRows = lines.some((line) => /^[A-Za-z][\w.-]*\s*:/.test(line));
+  if (!hasExplicitRows) {
+    return [{ manager, packages: splitValues(trimmed) }];
+  }
+  return lines
+    .map((line) => {
+      const match = line.match(/^([A-Za-z][\w.-]*)\s*:\s*(.*)$/);
+      if (!match) return { manager: "", packages: splitValues(line) };
+      return { manager: match[1].trim(), packages: splitValues(match[2] || "") };
+    })
+    .filter((row) => row.manager || row.packages.length > 0);
+}
+
+function serializePackageRows(rows: PackageRow[]) {
+  return rows.flatMap((row) => row.packages.map((item) => item.trim()).filter(Boolean));
+}
+
+function serializePackageRowsForRequest(rows: PackageRow[]): EnvironmentPackageRow[] {
+  return rows
+    .map((row) => ({ manager: row.manager.trim(), packages: row.packages.map((item) => item.trim()).filter(Boolean) }))
+    .filter((row) => row.manager || row.packages.length > 0);
+}
+
+function formatPackageDisplayRow(row: PackageDisplayRow) {
+  const packages = row.packages.join(" ");
+  if (!row.manager) return packages || "No packages";
+  return packages ? `${row.manager}: ${packages}` : `${row.manager}:`;
+}
+
 type MetadataRow = { id: string; key: string; value: string };
 
 function emptyMetadataRows(): MetadataRow[] {
@@ -8416,6 +8478,43 @@ function DeploymentDetailSection({ title, children }: { title: string; children:
       <h3 className="text-sm leading-5 [font-weight:550]">{title}</h3>
       {children}
     </section>
+  );
+}
+
+function EnvironmentPackageReadOnlyRows({ environment }: { environment: Environment }) {
+  const rows = parsePackageDisplayRows(environment.packageManager || "apt", environment.packages);
+  if (rows.length === 0) {
+    return <div className="min-h-[37px] rounded-md border-[0.5px] border-line bg-[#f9f9f7] px-3 py-2 text-sm text-muted">No packages</div>;
+  }
+  return (
+    <div className="grid gap-2">
+      {rows.map((row, index) => {
+        const value = formatPackageDisplayRow(row);
+        return (
+          <div key={`${row.manager}-${index}-${row.packages.join(" ")}`} className="group/value flex min-h-[37px] items-start gap-2 rounded-md border-[0.5px] border-line bg-[#f9f9f7] px-3 py-2">
+            <pre className="min-w-0 flex-1 whitespace-pre-wrap break-all font-mono text-[13px] leading-5 text-[#52514e]">{value}</pre>
+            <CopyIconButton value={value} ariaLabel="Copy" className="-my-0.5 h-[22px] w-[22px] px-0 text-muted !opacity-0 group-hover/value:!opacity-100 focus-visible:!opacity-100" iconClassName="h-3.5 w-3.5 text-current" />
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function EnvironmentMetadataReadOnlyRows({ metadata }: { metadata: string }) {
+  const rows = parseMetadataRows(metadata).filter((row) => row.key || row.value);
+  if (rows.length === 0) {
+    return <div className="min-h-[37px] rounded-md border-[0.5px] border-line bg-canvas px-3 py-2 text-sm text-muted">No metadata</div>;
+  }
+  return (
+    <div className="overflow-hidden rounded-md border-[0.5px] border-line bg-canvas font-mono text-sm leading-5">
+      {rows.map((row, index) => (
+        <div key={`${row.key}-${index}`} className={`grid min-h-[37px] grid-cols-2 ${index === 0 ? "" : "border-t-[0.5px] border-line"}`}>
+          <div className="min-w-0 break-all px-3 py-2 text-muted">{row.key}</div>
+          <div className="min-w-0 break-all px-3 py-2 text-ink">{row.value}</div>
+        </div>
+      ))}
+    </div>
   );
 }
 

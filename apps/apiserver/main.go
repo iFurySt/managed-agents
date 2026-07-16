@@ -332,12 +332,18 @@ type CreateEnvironmentRequest struct {
 }
 
 type UpdateEnvironmentRequest struct {
-	Name           string   `json:"name"`
-	Description    string   `json:"description"`
-	NetworkingType string   `json:"networkingType"`
-	PackageManager string   `json:"packageManager"`
-	Packages       []string `json:"packages"`
-	Metadata       string   `json:"metadata"`
+	Name           string                         `json:"name"`
+	Description    string                         `json:"description"`
+	NetworkingType string                         `json:"networkingType"`
+	PackageManager string                         `json:"packageManager"`
+	Packages       []string                       `json:"packages"`
+	PackageRows    []EnvironmentPackageRowRequest `json:"packageRows"`
+	Metadata       string                         `json:"metadata"`
+}
+
+type EnvironmentPackageRowRequest struct {
+	Manager  string   `json:"manager"`
+	Packages []string `json:"packages"`
 }
 
 type CreateVaultRequest struct {
@@ -1276,7 +1282,12 @@ func updateEnvironment(db *gorm.DB) gin.HandlerFunc {
 		environment.Description = strings.TrimSpace(req.Description)
 		environment.NetworkingType = defaultString(req.NetworkingType, environment.NetworkingType)
 		environment.PackageManager = defaultString(req.PackageManager, environment.PackageManager)
-		environment.Packages = strings.Join(req.Packages, " ")
+		if len(req.PackageRows) > 0 {
+			environment.PackageManager = defaultString(firstPackageRowManager(req.PackageRows), environment.PackageManager)
+			environment.Packages = serializeEnvironmentPackageRows(req.PackageRows)
+		} else {
+			environment.Packages = strings.Join(req.Packages, " ")
+		}
 		environment.Metadata = strings.TrimSpace(req.Metadata)
 		environment.UpdatedLabel = "just now"
 		environment.UpdatedAt = time.Now().UTC()
@@ -1286,6 +1297,37 @@ func updateEnvironment(db *gorm.DB) gin.HandlerFunc {
 		}
 		c.JSON(http.StatusOK, environment)
 	}
+}
+
+func firstPackageRowManager(rows []EnvironmentPackageRowRequest) string {
+	for _, row := range rows {
+		if manager := strings.TrimSpace(row.Manager); manager != "" {
+			return manager
+		}
+	}
+	return ""
+}
+
+func serializeEnvironmentPackageRows(rows []EnvironmentPackageRowRequest) string {
+	lines := []string{}
+	for _, row := range rows {
+		manager := strings.TrimSpace(row.Manager)
+		packages := []string{}
+		for _, item := range row.Packages {
+			if value := strings.TrimSpace(item); value != "" {
+				packages = append(packages, value)
+			}
+		}
+		if manager == "" && len(packages) == 0 {
+			continue
+		}
+		if manager == "" {
+			lines = append(lines, strings.Join(packages, " "))
+			continue
+		}
+		lines = append(lines, strings.TrimSpace(manager+": "+strings.Join(packages, " ")))
+	}
+	return strings.Join(lines, "\n")
 }
 
 func archiveEnvironment(db *gorm.DB) gin.HandlerFunc {

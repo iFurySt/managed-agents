@@ -222,7 +222,9 @@ single `--fw-emphasis: 500` token when the variable font is missing.
   hairline ring, fill `rgba(255,255,255,0.5)`, padding `0 12px`; selects show
   the value + a muted 14px chevron; removable values swap the chevron for a
   muted `×`.
-- Focus (Inferred): ring darkens to `rgba(11,11,11,0.25)` or a 2px focus ring.
+- Focus: no browser outline; border darkens to about `rgba(11,11,11,0.2)`
+  and a Claude-blue focus treatment appears as
+  `0 0 0 1px inset #fcfcfb, 0 0 0 1px #2a78d6, 0 0 6px 1px #cde2fb`.
 
 ### Tables (list pages)
 
@@ -402,18 +404,41 @@ single `--fw-emphasis: 500` token when the variable font is missing.
   `transform: scale(0.975)` with a short `~100ms` transition. Do not use
   one-off fills such as `#EEEEEB`, and do not suppress hover with transparent
   overrides on editor select triggers.
+- Environment section add controls use a visible `32px` bordered icon button:
+  white fill, `8px` radius, `1px rgba(11,11,11,0.1)` border, and a very soft
+  `0 1px 2px rgba(0,0,0,0.02)` shadow. Row-level remove/trash icon buttons
+  stay unboxed.
 - Environment editor select fields use the boxed field treatment from the
   live console, not transparent inline triggers: `32px` height, `8px` radius,
   `rgba(255,255,255,0.5)` fill, and `inset 0 0 0 1px rgba(11,11,11,0.1)`.
   The select button inside remains transparent with `8px` left padding.
-- Environment package rows are one `36px` row: manager select, `8px` gap,
-  a bordered package input wrapper (`36px`, white fill, `8px` radius,
-  `1px rgba(11,11,11,0.1)` border, `4px 8px` padding), another `8px` gap,
-  then a `32px` icon delete button.
+- Environment package rows start as one `36px` row: a fixed-width manager
+  select, `8px` gap, a bordered package input wrapper (`min-height: 36px`,
+  white fill, `8px` radius, `1px rgba(11,11,11,0.1)` border, `4px 8px`
+  padding), another `8px` gap, then a `32px` icon delete button. Package
+  chips live inside the bordered wrapper before the text input and wrap onto
+  additional lines as values accumulate. The section-level `+` button appends
+  another package row with no manager selected; the manager select shows a
+  muted placeholder until the user chooses a package manager. The draft input's
+  placeholder is only shown while that row has no package chips. Package chips
+  use the reference's compact code-token treatment: `0.5px` neutral border,
+  `#F6F6F4` at roughly 50% opacity, `6px` radius, `2px 8px` padding, `4px`
+  internal gap, and mono `13px`/`19.5px` text. The chip close control is a bare
+  `12px` muted icon with text-only hover; do not add a circular hover fill.
+- Environment read-only package values render one bordered row per package
+  manager row, not one flattened paragraph. Each row is a `37px` minimum
+  rounded box with `0.5px rgba(11,11,11,0.1)` border, warm-gray `#F9F9F7`
+  fill, `12px 8px` internal padding, and mono `13px/20px` secondary text formatted as
+  `manager: package package`. Persist row grouping as package rows and serialize
+  the legacy `packages` text as newline-separated display rows for older
+  consumers.
 - Environment metadata rows use two equal-width `36px` inputs plus an aligned
   `32px` delete button with `8px` gaps. Save/Cancel sit in a right-aligned
   footer: Cancel is the white/ring secondary button and Save changes is the
-  solid black primary button.
+  solid black primary button. Read-only metadata uses the same row structure as
+  the reference: a single rounded bordered table, one `37px` row per key/value
+  pair, horizontal `0.5px` separators, two equal columns, muted key text and ink
+  value text in mono `14px/20px`.
 - Read-only code surfaces embedded in prose (e.g. the agent detail page's
   "System prompt" block) are the opposite case: the copy button there is
   **hover-revealed** (`opacity-0` → `opacity-100` on hovering the block),

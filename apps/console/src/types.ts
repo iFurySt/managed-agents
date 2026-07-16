@@ -63,6 +63,11 @@ export type Environment = {
   updatedAt: string;
 };
 
+export type EnvironmentPackageRow = {
+  manager: string;
+  packages: string[];
+};
+
 export type CreateEnvironmentInput = {
   name: string;
   hostingType: string;
@@ -75,6 +80,7 @@ export type UpdateEnvironmentInput = {
   networkingType: string;
   packageManager: string;
   packages: string[];
+  packageRows: EnvironmentPackageRow[];
   metadata: string;
 };
 

@@ -271,7 +271,8 @@ export function FieldSelect({
   contentClassName = "",
   itemClassName = "",
   contentPosition = "popper",
-  contentSideOffset = 4
+  contentSideOffset = 4,
+  placeholder
 }: {
   label: ReactNode;
   value: string;
@@ -285,6 +286,7 @@ export function FieldSelect({
   itemClassName?: string;
   contentPosition?: "item-aligned" | "popper";
   contentSideOffset?: number;
+  placeholder?: ReactNode;
 }) {
   const trigger = (
     <Select.Trigger
@@ -294,7 +296,7 @@ export function FieldSelect({
     >
       <span className="flex min-w-0 flex-1 items-baseline gap-1.5 whitespace-nowrap">
         {showLabel ? <span className="shrink-0 text-muted">{label}</span> : null}
-        <Select.Value className="min-w-0 truncate" />
+        <Select.Value className="min-w-0 truncate" placeholder={placeholder} />
       </span>
       <Select.Icon className="shrink-0">
         <CdsIconGlyph glyph="" className="mr-0.5 h-4 w-4 text-[#898781] text-[16px] [font-weight:533.25]" />
