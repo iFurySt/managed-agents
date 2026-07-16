@@ -575,7 +575,7 @@ export function ConsoleDialog({
   open,
   onOpenChange,
   children,
-  contentClassName = "w-[706px]",
+  contentClassName = "w-[min(706px,calc(100dvw-32px))]",
   titleClassName = "text-2xl font-semibold text-ink",
   descriptionClassName = "mt-1 text-sm text-muted",
   headerClassName = "flex items-start justify-between px-6 pt-6",
@@ -602,7 +602,7 @@ export function ConsoleDialog({
         <Dialog.Overlay className={overlayClassName} />
         <Dialog.Content
           data-cds="Dialog"
-          className={`fixed left-1/2 top-1/2 z-50 max-h-[86vh] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-cds border border-line bg-white text-sm leading-5 text-ink shadow-xl ${contentClassName}`}
+          className={`fixed left-1/2 top-1/2 z-50 max-h-[calc(100dvh-32px)] max-w-[calc(100dvw-32px)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-cds border border-line bg-white text-sm leading-5 text-ink shadow-xl ${contentClassName}`}
           onInteractOutside={(event) => {
             if (isRadixFloatingPortalTarget(event.target)) {
               event.preventDefault();

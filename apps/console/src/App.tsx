@@ -129,6 +129,12 @@ const defaultSessionVaultId = "test_secret";
 const createSessionSelectShellClass = "flex h-8 w-full min-w-0 items-center rounded-[8px] bg-white/50 shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]";
 const createSessionSelectTriggerClass = "cds-focus inline-flex h-8 min-w-0 flex-1 items-center gap-1.5 rounded-none border-0 bg-transparent pl-2 pr-0 text-left text-sm leading-5 text-ink outline-none";
 const createSessionSearchInputClass = "h-full min-w-0 flex-1 border-0 bg-transparent p-0 text-sm leading-5 text-ink caret-ink outline-none placeholder:text-[#898781] focus:outline-none";
+const dialogSurfaceShadowClass =
+  "!rounded-[12px] border-0 !shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]";
+const dialogWidth510Class = `w-[min(510px,calc(100dvw-32px))] ${dialogSurfaceShadowClass}`;
+const dialogWidth520Class = `w-[min(520px,calc(100dvw-32px))] ${dialogSurfaceShadowClass}`;
+const dialogWidth706Class = `w-[min(706px,calc(100dvw-32px))] ${dialogSurfaceShadowClass}`;
+const dialogWidth720Class = `w-[min(720px,calc(100dvw-32px))] ${dialogSurfaceShadowClass}`;
 const sessionResourceKinds = ["GitHub Repository", "File", "Memory Store"] as const;
 type SessionResourceKind = (typeof sessionResourceKinds)[number];
 const builtInToolPermissions = [
@@ -4752,7 +4758,7 @@ function CreateAgentDialog({
       description="Start from a template or describe what you need."
       open={open}
       onOpenChange={onOpenChange}
-      contentClassName="flex w-[720px] max-w-[calc(100vw-32px)] flex-col !max-h-[calc(100dvh-2rem)] !rounded-[12px] border-0 !shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]"
+      contentClassName={`flex ${dialogWidth720Class} flex-col !max-h-[calc(100dvh-2rem)]`}
       headerClassName="flex items-start justify-between pl-6 pr-4 pt-4"
       titleClassName="mt-1 text-[22px] leading-[26px] text-ink [font-weight:580]"
       descriptionClassName="mt-1 text-sm leading-5 text-[#52514e]"
@@ -4936,7 +4942,7 @@ function EditAgentDialog({
       title="Edit agent"
       open={open}
       onOpenChange={onOpenChange}
-      contentClassName="h-[670px] w-[720px] max-w-[calc(100vw-32px)] !max-h-[calc(100dvh-32px)] !rounded-[12px] border-0 !shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]"
+      contentClassName={`h-[670px] ${dialogWidth720Class} !max-h-[calc(100dvh-32px)]`}
       headerClassName="flex items-start justify-between pl-6 pr-4 pt-4"
       titleClassName="mt-1 text-[22px] leading-[26px] text-ink [font-weight:580]"
       closeButtonClassName="h-8 w-8 !rounded-[8px] !px-0"
@@ -5226,7 +5232,7 @@ function CreateSessionDialog({
         description="Set up an instance of your agent in its environment."
         open={open}
         onOpenChange={handleDialogOpenChange}
-        contentClassName={`flex flex-col ${dialogHeightClass} !max-h-[calc(100dvh-32px)] w-[706px] max-w-[calc(100vw-32px)] !rounded-[12px] border-0 !shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]`}
+        contentClassName={`flex flex-col ${dialogHeightClass} !max-h-[calc(100dvh-32px)] ${dialogWidth706Class}`}
         headerClassName="flex items-start justify-between pl-6 pr-4 pt-4"
         titleClassName="mt-1 text-[22px] leading-[26px] text-ink [font-weight:580]"
         descriptionClassName="mt-1 text-sm text-[#52514e]"
@@ -5421,7 +5427,7 @@ function CreateSessionAgentPicker({
           position="popper"
           sideOffset={7}
           data-cds="ComboboxPopover"
-          className="z-50 flex max-h-[320px] w-[672px] flex-col overflow-hidden rounded-[12px] bg-white p-1 shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]"
+          className="z-50 flex max-h-[320px] w-[var(--radix-select-trigger-width)] max-w-[calc(100dvw-32px)] flex-col overflow-hidden rounded-[12px] bg-white p-1 shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]"
           onCloseAutoFocus={(event) => event.preventDefault()}
         >
           <div role="combobox" aria-expanded="true" className="-mx-1 -mt-1 mb-1 flex h-[37px] w-[calc(100%+8px)] shrink-0 items-center border-b border-line px-4 py-2">
@@ -5540,7 +5546,7 @@ function CreateSessionEnvironmentPicker({
           position="popper"
           sideOffset={6}
           data-cds="ComboboxPopover"
-          className="z-50 max-h-[238px] w-[672px] overflow-hidden rounded-[12px] bg-white p-1 shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]"
+          className="z-50 max-h-[238px] w-[var(--radix-select-trigger-width)] max-w-[calc(100dvw-32px)] overflow-hidden rounded-[12px] bg-white p-1 shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]"
           onCloseAutoFocus={(event) => event.preventDefault()}
         >
           <div role="combobox" aria-expanded="true" className="-mx-1 -mt-1 mb-1 flex h-[37px] w-[calc(100%+8px)] items-center border-b border-line px-4 py-2">
@@ -5704,7 +5710,7 @@ function CreateDeploymentDialog({
       description={mode === "edit" ? "Update this deployment's trigger, environment, and credentials. Changes apply to future runs." : "Deploy an agent with a trigger, environment, and credentials."}
       open={open}
       onOpenChange={onOpenChange}
-      contentClassName={`${dialogHeightClass} w-[520px] max-w-[calc(100vw-32px)] max-h-[calc(100dvh-32px)] !rounded-[12px] border-0 !shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]`}
+      contentClassName={`${dialogHeightClass} ${dialogWidth520Class} max-h-[calc(100dvh-32px)]`}
       headerClassName="flex items-start justify-between pl-6 pr-4 pt-4"
       titleClassName="mt-1 text-[22px] leading-[26px] text-ink [font-weight:580]"
       descriptionClassName="mt-1 text-sm text-[#52514e]"
@@ -5724,7 +5730,7 @@ function CreateDeploymentDialog({
             />
           </label>
           {scopedAgent ? (
-            <div className="grid grid-cols-[300px_160px] gap-3">
+            <div className="grid grid-cols-[minmax(0,1fr)_minmax(128px,160px)] gap-3 max-[560px]:grid-cols-1">
               <div className="grid gap-2">
                 <div className="flex items-center justify-between">
                   <label className={fieldLabelClass}>Agent</label>
@@ -5738,7 +5744,7 @@ function CreateDeploymentDialog({
               </div>
             </div>
           ) : agentId ? (
-            <div className="grid grid-cols-[292px_160px] gap-5">
+            <div className="grid grid-cols-[minmax(0,1fr)_minmax(128px,160px)] gap-5 max-[560px]:grid-cols-1">
               <div className="grid gap-2">
                 <div className="flex items-center justify-between">
                   <label className={fieldLabelClass}>Agent</label>
@@ -5826,14 +5832,14 @@ function DeploymentVersionPicker({ value }: { value: string }) {
   const label = `${value} · latest`;
 
   return (
-    <div data-cds="Field" className="relative w-[160px]">
+    <div data-cds="Field" className="relative w-full min-w-0">
       <div className="h-8 rounded-[8px] bg-white/50">
         <button
           type="button"
           role="combobox"
           aria-expanded={open}
           aria-label="Select deployment version"
-          className="flex h-8 w-[152px] items-center justify-between rounded-[8px] bg-transparent px-2 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-[#c6613f]/35"
+          className="flex h-8 w-full items-center justify-between rounded-[8px] bg-transparent px-2 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-[#c6613f]/35"
           onClick={() => setOpen((current) => !current)}
         >
           <span className="truncate">{label}</span>
@@ -5844,14 +5850,14 @@ function DeploymentVersionPicker({ value }: { value: string }) {
         <div
           data-cds="Combobox"
           role="dialog"
-          className="absolute left-0 top-[38px] z-50 w-[192px] rounded-[12px] bg-white p-1 shadow-[0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
+          className="absolute left-0 top-[38px] z-50 w-full min-w-[160px] max-w-[calc(100dvw-32px)] rounded-[12px] bg-white p-1 shadow-[0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
         >
           <div role="listbox">
             <button
               type="button"
               role="option"
               aria-selected="true"
-              className="flex h-8 w-[184px] items-center justify-between rounded-[8px] bg-black/[0.05] px-3 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.05]"
+              className="flex h-8 w-full items-center justify-between rounded-[8px] bg-black/[0.05] px-3 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.05]"
               onClick={() => setOpen(false)}
             >
               <span>{label}</span>
@@ -5864,7 +5870,9 @@ function DeploymentVersionPicker({ value }: { value: string }) {
   );
 }
 
-const deploymentPickerShellClass = "h-8 w-[472px] rounded-[8px] bg-white/50 shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]";
+const deploymentPickerShellClass = "h-8 w-full min-w-0 rounded-[8px] bg-white/50 shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]";
+const deploymentPickerPopoverClass =
+  "absolute left-0 z-50 w-full min-w-[min(320px,calc(100dvw-32px))] max-w-[calc(100dvw-32px)] overflow-hidden rounded-[12px] bg-white p-1 shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]";
 
 function DeploymentAgentPicker({
   value,
@@ -5881,14 +5889,14 @@ function DeploymentAgentPicker({
   const filteredOptions = deploymentAgentOptions.filter((option) => option.name.toLowerCase().includes(search.toLowerCase()));
 
   return (
-    <div data-cds="Field" className={`relative ${wide ? "w-[472px]" : "w-[300px]"}`}>
-      <div className={`${deploymentPickerShellClass} ${wide ? "" : "!w-[300px]"}`}>
+    <div data-cds="Field" className="relative w-full min-w-0">
+      <div className={deploymentPickerShellClass}>
         <button
           type="button"
           role="combobox"
           aria-expanded={open}
           aria-label="Select deployment agent"
-          className={`flex h-8 min-w-0 items-center gap-1.5 rounded-none bg-transparent p-0 pl-2 text-left text-sm font-normal text-ink outline-none focus-visible:ring-2 focus-visible:ring-[#c6613f]/35 ${wide ? "w-[464px]" : "w-[292px]"}`}
+          className="flex h-8 w-full min-w-0 items-center gap-1.5 rounded-none bg-transparent p-0 pl-2 text-left text-sm font-normal text-ink outline-none focus-visible:ring-2 focus-visible:ring-[#c6613f]/35"
           onClick={() => setOpen((current) => !current)}
         >
           <span className="min-w-0 flex-1 truncate">
@@ -5901,7 +5909,7 @@ function DeploymentAgentPicker({
         <div
           data-cds="Combobox"
           role="dialog"
-          className="absolute left-0 top-[38px] z-50 max-h-[320px] w-[472px] overflow-hidden rounded-[12px] bg-white p-1 shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
+          className={`${deploymentPickerPopoverClass} top-[38px] max-h-[320px]`}
         >
           <div role="combobox" aria-expanded="true" className="-mx-1 -mt-1 mb-1 flex h-[37px] w-[calc(100%+8px)] items-center border-b border-line px-4 py-2">
             <input
@@ -5972,7 +5980,7 @@ function DeploymentEnvironmentPicker({
           role="combobox"
           aria-expanded={open}
           aria-label="Select deployment environment"
-          className="flex h-8 w-[464px] min-w-0 items-center gap-1.5 rounded-none bg-transparent p-0 pl-2 text-left text-sm font-normal text-ink outline-none focus-visible:ring-2 focus-visible:ring-[#c6613f]/35"
+          className="flex h-8 w-full min-w-0 items-center gap-1.5 rounded-none bg-transparent p-0 pl-2 text-left text-sm font-normal text-ink outline-none focus-visible:ring-2 focus-visible:ring-[#c6613f]/35"
           onClick={() => setOpen((current) => !current)}
         >
           <span className="min-w-0 flex-1 truncate">
@@ -5985,7 +5993,7 @@ function DeploymentEnvironmentPicker({
         <div
           data-cds="Combobox"
           role="dialog"
-          className="absolute left-0 top-[38px] z-50 max-h-[238px] w-[472px] overflow-hidden rounded-[12px] bg-white p-1 shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
+          className={`${deploymentPickerPopoverClass} top-[38px] max-h-[238px]`}
         >
           <div role="combobox" aria-expanded="true" className="-mx-1 -mt-1 mb-1 flex h-[37px] w-[calc(100%+8px)] items-center border-b border-line px-4 py-2">
             <input
@@ -6169,7 +6177,7 @@ function DeploymentVaultPicker({ value, onValueChange }: { value: string; onValu
           role="combobox"
           aria-expanded={open}
           aria-label="Add credential vault"
-          className="flex h-8 w-[464px] min-w-0 items-center gap-1.5 rounded-none bg-transparent p-0 pl-2 text-left text-sm font-normal text-ink outline-none focus-visible:ring-2 focus-visible:ring-[#c6613f]/35"
+          className="flex h-8 w-full min-w-0 items-center gap-1.5 rounded-none bg-transparent p-0 pl-2 text-left text-sm font-normal text-ink outline-none focus-visible:ring-2 focus-visible:ring-[#c6613f]/35"
           onClick={() => setOpen((current) => !current)}
         >
           <span className="min-w-0 flex-1 truncate">
@@ -6185,7 +6193,7 @@ function DeploymentVaultPicker({ value, onValueChange }: { value: string; onValu
         <div
           data-cds="Combobox"
           role="dialog"
-          className="absolute left-0 top-[38px] z-50 max-h-[137px] w-[472px] overflow-hidden rounded-[12px] bg-white p-1 shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
+          className={`${deploymentPickerPopoverClass} top-[38px] max-h-[137px]`}
         >
           <div role="combobox" aria-expanded="true" className="-mx-1 -mt-1 mb-1 flex h-[37px] w-[calc(100%+8px)] items-center border-b border-line px-4 py-2">
             <input
@@ -6282,7 +6290,7 @@ function DeploymentMemoryStorePicker({ value, onValueChange }: { value: string; 
           role="combobox"
           aria-expanded={open}
           aria-label="Add memory store"
-          className="flex h-8 w-[464px] min-w-0 items-center gap-1.5 rounded-none bg-transparent p-0 pl-2 text-left text-sm font-normal text-ink outline-none focus-visible:ring-2 focus-visible:ring-[#c6613f]/35"
+          className="flex h-8 w-full min-w-0 items-center gap-1.5 rounded-none bg-transparent p-0 pl-2 text-left text-sm font-normal text-ink outline-none focus-visible:ring-2 focus-visible:ring-[#c6613f]/35"
           onClick={() => setOpen((current) => !current)}
         >
           <span className="min-w-0 flex-1 truncate">
@@ -6298,7 +6306,7 @@ function DeploymentMemoryStorePicker({ value, onValueChange }: { value: string; 
         <div
           data-cds="Combobox"
           role="dialog"
-          className="absolute bottom-[37px] left-0 z-50 max-h-[229px] w-[472px] overflow-hidden rounded-[12px] bg-white p-1 shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
+          className={`${deploymentPickerPopoverClass} bottom-[37px] max-h-[229px]`}
         >
           <div role="combobox" aria-expanded="true" className="-mx-1 -mt-1 mb-1 flex h-[37px] w-[calc(100%+8px)] items-center border-b border-line px-4 py-2">
             <input
@@ -6353,7 +6361,7 @@ function DeploymentTriggerPicker({ value, onValueChange }: { value: string; onVa
           role="combobox"
           aria-expanded={open}
           aria-label="Select deployment trigger"
-          className="flex h-8 w-[464px] min-w-0 items-center gap-1.5 rounded-none bg-transparent p-0 pl-2 text-left text-sm font-normal text-ink outline-none focus-visible:ring-2 focus-visible:ring-[#c6613f]/35"
+          className="flex h-8 w-full min-w-0 items-center gap-1.5 rounded-none bg-transparent p-0 pl-2 text-left text-sm font-normal text-ink outline-none focus-visible:ring-2 focus-visible:ring-[#c6613f]/35"
           onClick={() => setOpen((current) => !current)}
         >
           <span className="inline-flex min-w-0 flex-1 items-center gap-2 truncate">
@@ -6367,7 +6375,7 @@ function DeploymentTriggerPicker({ value, onValueChange }: { value: string; onVa
         <div
           data-cds="Combobox"
           role="dialog"
-          className="absolute bottom-[37px] left-0 z-50 w-[472px] rounded-[12px] bg-white p-1 shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
+          className={`${deploymentPickerPopoverClass} bottom-[37px]`}
         >
           <div role="listbox" className="grid gap-0">
             {options.map((option) => {
@@ -7010,9 +7018,9 @@ function CreateEnvironmentDialog({
       title="Create environment"
       open={open}
       onOpenChange={onOpenChange}
-      contentClassName="h-[429px] w-[510px] max-w-[calc(100vw-32px)] !rounded-[12px] border-0 !shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]"
+      contentClassName={`h-[429px] ${dialogWidth510Class}`}
       headerClassName="flex items-start justify-between pl-6 pr-4 pt-4"
-      titleClassName="relative -top-px mt-1 w-[431px] text-[22px] leading-[26px] text-ink [font-weight:580]"
+      titleClassName="relative -top-px mt-1 text-[22px] leading-[26px] text-ink [font-weight:580]"
       closeButtonClassName="relative -top-px h-[31px] w-[31px] !rounded-[8px] px-0"
       closeLabel="Close"
     >
@@ -7040,7 +7048,7 @@ function CreateEnvironmentDialog({
               triggerClassName="!h-[31px] w-full"
               contentPosition="popper"
               contentSideOffset={6}
-              contentClassName="w-[462px] overflow-hidden !rounded-[12px] border-0 !shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]"
+              contentClassName="w-[var(--radix-select-trigger-width)] max-w-[calc(100dvw-32px)] overflow-hidden !rounded-[12px] border-0 !shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]"
               itemClassName="!rounded-[8px] px-3"
             />
             <p className={helperClass}>This cannot be changed after creation.</p>
@@ -7117,9 +7125,9 @@ function CreateVaultDialog({
       title={step === "vault" ? "Create vault" : "Add a credential"}
       open={open}
       onOpenChange={handleDialogOpenChange}
-      contentClassName={step === "vault" ? "h-[306px] w-[510px] max-w-[calc(100vw-32px)] !rounded-[12px] border-0 !shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]" : credentialDialogContentClassName(credentialAuthType)}
+      contentClassName={step === "vault" ? `h-[306px] ${dialogWidth510Class}` : credentialDialogContentClassName(credentialAuthType)}
       headerClassName="flex items-start justify-between pl-6 pr-4 pt-4"
-      titleClassName={step === "vault" ? "mt-1 w-[431px] -translate-y-px text-[22px] leading-[26px] text-ink [font-weight:580]" : "mt-1 w-[431px] text-[22px] leading-[26px] text-ink [font-weight:580]"}
+      titleClassName={step === "vault" ? "mt-1 -translate-y-px text-[22px] leading-[26px] text-ink [font-weight:580]" : "mt-1 text-[22px] leading-[26px] text-ink [font-weight:580]"}
       closeButtonClassName={step === "vault" ? "h-[31px] w-[31px] -translate-y-px !rounded-[8px] px-0" : "h-[31px] w-[31px] rounded-[8px] px-0"}
       closeLabel={step === "vault" ? "Close" : undefined}
     >
@@ -7202,7 +7210,7 @@ function CreateCredentialDialog({
       onOpenChange={handleDialogOpenChange}
       contentClassName={credentialDialogContentClassName(credentialAuthType)}
       headerClassName="flex items-start justify-between pl-6 pr-4 pt-4"
-      titleClassName="mt-1 w-[431px] text-[22px] leading-[26px] text-ink [font-weight:580]"
+      titleClassName="mt-1 text-[22px] leading-[26px] text-ink [font-weight:580]"
       descriptionClassName="mt-1 text-sm text-[#52514e]"
       closeButtonClassName="h-[31px] w-[31px] rounded-[8px] px-0"
       closeLabel="Close"
@@ -7333,9 +7341,9 @@ function CreateCredentialForm({
 
 function credentialDialogContentClassName(authType: string) {
   if (authType === "Environment variable") {
-    return "h-[900px] max-h-[calc(100vh-32px)] w-[520px] max-w-[calc(100vw-32px)] !overflow-y-auto !rounded-[12px] border-0 !shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]";
+    return `h-[900px] max-h-[calc(100dvh-32px)] ${dialogWidth520Class} !overflow-y-auto`;
   }
-  return "h-[349px] w-[510px] max-w-[calc(100vw-32px)] !rounded-[12px] border-0 !shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]";
+  return `h-[349px] ${dialogWidth510Class}`;
 }
 
 const credentialMcpServerOptions = [
@@ -7378,7 +7386,7 @@ function CredentialMcpServerSelect({
       <Select.Trigger
         data-cds="Button"
         aria-label="MCP server"
-        className={`inline-flex h-[31px] w-[455px] items-center gap-1.5 pl-2 pr-0 text-sm leading-5 text-ink outline-none ${credentialSelectTriggerClass}`}
+        className={`inline-flex h-[31px] w-full items-center gap-1.5 pl-2 pr-0 text-sm leading-5 text-ink outline-none ${credentialSelectTriggerClass}`}
         onPointerDown={(event) => {
           if (!open) return;
           event.preventDefault();
@@ -7406,7 +7414,7 @@ function CredentialMcpServerSelect({
           align="start"
           sideOffset={6}
           data-cds="ComboboxPopover"
-          className="z-50 w-[463px] overflow-hidden rounded-[12px] bg-white p-1 shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]"
+          className="z-50 w-[var(--radix-select-trigger-width)] max-w-[calc(100dvw-32px)] overflow-hidden rounded-[12px] bg-white p-1 shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]"
         >
           <Select.Viewport>
             {credentialMcpServerOptions.map((option) => (
@@ -7592,7 +7600,7 @@ function CredentialAuthTypeSelect({
       <Select.Trigger
         data-cds="Button"
         aria-label="Credential type"
-        className={`inline-flex h-[31px] w-[455px] items-center gap-1.5 pl-2 pr-0 text-sm leading-5 text-ink outline-none ${credentialSelectTriggerClass}`}
+        className={`inline-flex h-[31px] w-full items-center gap-1.5 pl-2 pr-0 text-sm leading-5 text-ink outline-none ${credentialSelectTriggerClass}`}
         onPointerDown={(event) => {
           if (!open) return;
           event.preventDefault();
@@ -7612,7 +7620,7 @@ function CredentialAuthTypeSelect({
           position="popper"
           sideOffset={6}
           data-cds="ComboboxPopover"
-          className="z-50 w-[463px] overflow-hidden rounded-[12px] bg-white p-1 shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]"
+          className="z-50 w-[var(--radix-select-trigger-width)] max-w-[calc(100dvw-32px)] overflow-hidden rounded-[12px] bg-white p-1 shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]"
         >
           <Select.Viewport>
             {credentialAuthTypeOptions.map((option) => (
@@ -7667,9 +7675,9 @@ function CreateMemoryStoreDialog({
       title="Create memory store"
       open={open}
       onOpenChange={onOpenChange}
-      contentClassName="h-[337px] w-[510px] max-w-[calc(100vw-32px)] !rounded-[12px] border-0 !shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]"
+      contentClassName={`h-[337px] ${dialogWidth510Class}`}
       headerClassName="flex items-start justify-between pl-6 pr-4 pt-4"
-      titleClassName="mt-1 w-[431px] text-[22px] leading-[26px] text-ink [font-weight:580]"
+      titleClassName="mt-1 text-[22px] leading-[26px] text-ink [font-weight:580]"
       closeButtonClassName="h-[31px] w-[31px] !rounded-[8px] px-0"
       closeLabel="Close"
     >
@@ -7733,9 +7741,9 @@ function AddMemoryDialog({
       title="Add memory"
       open={open}
       onOpenChange={onOpenChange}
-      contentClassName="h-[496px] w-[510px] max-w-[calc(100vw-32px)] !rounded-[12px] border-0"
+      contentClassName={`h-[496px] ${dialogWidth510Class}`}
       headerClassName="flex items-start justify-between pl-6 pr-4 pt-4"
-      titleClassName="mt-1 w-[431px] text-[22px] leading-[26px] text-ink [font-weight:580]"
+      titleClassName="mt-1 text-[22px] leading-[26px] text-ink [font-weight:580]"
       closeButtonClassName="h-[31px] w-[31px] rounded-[8px] px-0"
       closeLabel="Close"
     >
@@ -7809,7 +7817,7 @@ function CreateSkillDialog({
       open={open}
       onOpenChange={onOpenChange}
       overlayClassName="fixed inset-0 z-40 bg-black/40 backdrop-blur-[2px]"
-      contentClassName="min-h-[265px] w-[510px] max-w-[calc(100vw-32px)] !rounded-[12px] border-0 !shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]"
+      contentClassName={`min-h-[265px] ${dialogWidth510Class}`}
       headerClassName="flex items-start justify-between pl-6 pr-4 pt-4"
       titleClassName="mt-1 text-[22px] leading-[26px] text-ink [font-weight:580]"
       closeButtonClassName="h-[31px] w-[31px] !rounded-[8px] px-0"
@@ -7899,7 +7907,7 @@ function SkillVersionDialog({ skillId, onOpenChange }: { skillId: string | null;
         <Dialog.Overlay className="fixed inset-0 z-40 bg-black/40 backdrop-blur-[2px]" />
         <Dialog.Content
           data-cds="Dialog"
-          className="fixed left-1/2 top-1/2 z-50 flex h-[396px] w-[520px] max-w-[calc(100vw-32px)] -translate-x-1/2 -translate-y-1/2 flex-col overflow-y-auto rounded-[12px] bg-white p-6 text-sm text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)] outline-none"
+          className="fixed left-1/2 top-1/2 z-50 flex h-[396px] max-h-[calc(100dvh-32px)] w-[min(520px,calc(100dvw-32px))] -translate-x-1/2 -translate-y-1/2 flex-col overflow-y-auto rounded-[12px] bg-white p-6 text-sm text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)] outline-none"
         >
           <div className="mb-4 flex min-h-0 items-start gap-2">
             <div className="-mt-1 flex min-w-0 flex-1 flex-col gap-1">
@@ -8224,7 +8232,7 @@ function EnvironmentConfirmationDialog({
         <Dialog.Content
           data-cds="ConfirmationDialog"
           role="alertdialog"
-          className="fixed left-1/2 top-1/2 z-50 flex w-[510px] max-w-[calc(100vw-32px)] -translate-x-1/2 -translate-y-1/2 flex-col rounded-[12px] bg-white p-6 text-sm text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)] outline-none"
+          className="fixed left-1/2 top-1/2 z-50 flex max-h-[calc(100dvh-32px)] w-[min(510px,calc(100dvw-32px))] -translate-x-1/2 -translate-y-1/2 flex-col overflow-y-auto rounded-[12px] bg-white p-6 text-sm text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)] outline-none"
         >
           <Dialog.Title className="-mt-1 text-[22px] leading-[26px] text-ink [font-weight:580]">{title}</Dialog.Title>
           <Dialog.Description className="mt-1 text-sm leading-5 text-[#52514e]">{description}</Dialog.Description>
@@ -8313,7 +8321,7 @@ function VaultConfirmationDialog({
         <Dialog.Content
           data-cds="ConfirmationDialog"
           role="alertdialog"
-          className="fixed left-1/2 top-1/2 z-50 flex w-[510px] max-w-[calc(100vw-32px)] -translate-x-1/2 -translate-y-1/2 flex-col rounded-[12px] bg-white p-6 text-sm text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)] outline-none"
+          className="fixed left-1/2 top-1/2 z-50 flex max-h-[calc(100dvh-32px)] w-[min(510px,calc(100dvw-32px))] -translate-x-1/2 -translate-y-1/2 flex-col overflow-y-auto rounded-[12px] bg-white p-6 text-sm text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)] outline-none"
         >
           <Dialog.Title className="-mt-1 text-[22px] leading-[26px] text-ink [font-weight:580]">{title}</Dialog.Title>
           <Dialog.Description className="mt-1 text-sm leading-5 text-[#52514e]">{description}</Dialog.Description>
@@ -8441,7 +8449,7 @@ function MemoryStoreConfirmationDialog({
         <Dialog.Content
           data-cds="ConfirmationDialog"
           role="alertdialog"
-          className="fixed left-1/2 top-1/2 z-50 flex w-[510px] max-w-[calc(100vw-32px)] -translate-x-1/2 -translate-y-1/2 flex-col rounded-[12px] bg-white p-6 text-sm text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)] outline-none"
+          className="fixed left-1/2 top-1/2 z-50 flex max-h-[calc(100dvh-32px)] w-[min(510px,calc(100dvw-32px))] -translate-x-1/2 -translate-y-1/2 flex-col overflow-y-auto rounded-[12px] bg-white p-6 text-sm text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)] outline-none"
         >
           <Dialog.Title className="-mt-1 text-[22px] leading-[26px] text-ink [font-weight:580]">{title}</Dialog.Title>
           <Dialog.Description className="mt-1 text-sm leading-5 text-[#52514e]">{description}</Dialog.Description>
@@ -8540,7 +8548,7 @@ function SessionArchiveDialog({
         <Dialog.Content
           data-cds="ConfirmationDialog"
           role="alertdialog"
-          className="fixed left-1/2 top-1/2 z-50 flex w-[510px] max-w-[calc(100vw-32px)] -translate-x-1/2 -translate-y-1/2 flex-col rounded-[12px] bg-white p-6 text-sm text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)] outline-none"
+          className="fixed left-1/2 top-1/2 z-50 flex max-h-[calc(100dvh-32px)] w-[min(510px,calc(100dvw-32px))] -translate-x-1/2 -translate-y-1/2 flex-col overflow-y-auto rounded-[12px] bg-white p-6 text-sm text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)] outline-none"
         >
           <Dialog.Title className="-mt-1 text-[22px] leading-[26px] text-ink [font-weight:580]">Archive session</Dialog.Title>
           <Dialog.Description className="mt-1 text-sm leading-5 text-[#52514e]">
@@ -8608,7 +8616,7 @@ function DeploymentArchiveDialog({
         <Dialog.Content
           data-cds="ConfirmationDialog"
           role="alertdialog"
-          className="fixed left-1/2 top-1/2 z-50 flex w-[510px] max-w-[calc(100vw-32px)] -translate-x-1/2 -translate-y-1/2 flex-col rounded-[12px] bg-white p-6 text-sm text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)] outline-none"
+          className="fixed left-1/2 top-1/2 z-50 flex max-h-[calc(100dvh-32px)] w-[min(510px,calc(100dvw-32px))] -translate-x-1/2 -translate-y-1/2 flex-col overflow-y-auto rounded-[12px] bg-white p-6 text-sm text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)] outline-none"
         >
           <Dialog.Title className="-mt-1 text-[22px] leading-[26px] text-ink [font-weight:580]">Archive deployment?</Dialog.Title>
           <Dialog.Description className="mt-1 text-sm leading-5 text-[#52514e]">
@@ -8852,7 +8860,7 @@ function AgentArchiveDialog({
         <Dialog.Content
           data-cds="ConfirmationDialog"
           role="alertdialog"
-          className="fixed left-1/2 top-1/2 z-50 flex w-[510px] max-w-[calc(100vw-32px)] -translate-x-1/2 -translate-y-1/2 flex-col rounded-[12px] bg-white p-6 text-sm text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)] outline-none"
+          className="fixed left-1/2 top-1/2 z-50 flex max-h-[calc(100dvh-32px)] w-[min(510px,calc(100dvw-32px))] -translate-x-1/2 -translate-y-1/2 flex-col overflow-y-auto rounded-[12px] bg-white p-6 text-sm text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)] outline-none"
         >
           <Dialog.Title className="-mt-1 text-[22px] leading-[26px] text-ink [font-weight:580]">Archive agent</Dialog.Title>
           <Dialog.Description className="mt-1 text-sm leading-5 text-[#52514e]">
