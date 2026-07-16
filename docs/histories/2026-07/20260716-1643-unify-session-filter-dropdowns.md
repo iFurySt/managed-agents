@@ -21,6 +21,7 @@
   - Fixed searchable and multi-select filter trigger hover backgrounds so the right-side chevron area receives the same hover fill as the rest of the control.
   - Replaced the Sessions Status filter's fixed width with a content-safe minimum width so "Active" does not truncate in narrower layouts.
   - Added shared outside-click and Escape dismissal for custom filter popovers so filters remain mutually exclusive.
+  - Prevented modal-embedded Radix Select triggers from closing their parent dialog when users click an already-open trigger to collapse the picker.
 
 ### Design Intent
 
@@ -31,6 +32,8 @@ Filter trigger hover state belongs on the complete bordered shell, not only the 
 The Sessions Status trigger should not hard-code an exact width. The label, value, and chevron need enough intrinsic space to render "Status Active" without ellipsis, and longer summaries can still grow from the same minimum.
 
 Filter popovers should behave like one coordinated filter bar. Opening another filter is an outside interaction for the active custom popover, so the active popover closes before the next one opens.
+
+Dialog-embedded Radix Select controls need a close-only path when their trigger is clicked while already open. That interaction should close the select popover and stop propagation before dialog outside-interaction handling can interpret it as a modal dismissal.
 
 ### Files Modified
 

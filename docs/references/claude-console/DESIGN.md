@@ -521,6 +521,11 @@ single `--fw-emphasis: 500` token when the variable font is missing.
   recalculates around a moving trigger and visibly jitters. Dialog
   outside-interaction handling must also allow Radix Select popovers for pointer
   and focus outside events so choosing Type does not close the modal.
+- When a Radix Select combobox inside a modal is already open, clicking its
+  trigger again should only close that select popover. It must not propagate
+  into dialog outside-interaction handling and close the parent modal. This
+  applies to Create Session's Agent/Environment pickers and credential Type/MCP
+  server pickers.
 - Footer buttons are right-aligned. `Skip for now` is a bordered secondary
   button, not a bare text/ghost button. `Connect` is the `81px` primary button
   and disabled at `opacity: 0.5` until the target is selected.

@@ -5348,6 +5348,12 @@ function CreateSessionAgentPicker({
         <Select.Trigger
           data-cds="Button"
           className={createSessionSelectTriggerClass}
+          onPointerDown={(event) => {
+            if (!open) return;
+            event.preventDefault();
+            event.stopPropagation();
+            onOpenChange(false);
+          }}
         >
           <span className={`min-w-0 flex-1 truncate ${selected ? "" : "text-muted [font-weight:430]"}`}>{selected?.name ?? "Select an agent"}</span>
           <Select.Icon className="shrink-0">
@@ -5461,6 +5467,12 @@ function CreateSessionEnvironmentPicker({
         <Select.Trigger
           data-cds="Button"
           className={createSessionSelectTriggerClass}
+          onPointerDown={(event) => {
+            if (!open) return;
+            event.preventDefault();
+            event.stopPropagation();
+            onOpenChange(false);
+          }}
         >
           <span className={`min-w-0 flex-1 truncate ${selected ? "" : "text-muted [font-weight:430]"}`}>{selected?.name ?? "Select an environment"}</span>
           <Select.Icon className="shrink-0">
@@ -7256,13 +7268,28 @@ const credentialMcpServerOptions = [
 
 function CredentialMcpServerSelect({ value, placeholder, onValueChange }: { value: string; placeholder: string; onValueChange: (value: string) => void }) {
   const selected = credentialMcpServerOptions.find((option) => option.url === value);
+  const [open, setOpen] = useState(false);
 
   return (
-    <Select.Root value={value} onValueChange={onValueChange}>
+    <Select.Root
+      value={value}
+      open={open}
+      onOpenChange={setOpen}
+      onValueChange={(nextValue) => {
+        onValueChange(nextValue);
+        setOpen(false);
+      }}
+    >
       <Select.Trigger
         data-cds="Button"
         aria-label="MCP server"
         className={`cds-focus inline-flex h-[31px] w-[455px] items-center gap-1.5 pl-2 pr-0 text-sm leading-5 text-ink outline-none ${credentialSelectTriggerClass}`}
+        onPointerDown={(event) => {
+          if (!open) return;
+          event.preventDefault();
+          event.stopPropagation();
+          setOpen(false);
+        }}
       >
         <span className={`flex min-w-0 flex-1 items-baseline gap-1.5 whitespace-nowrap ${selected ? "" : "text-muted"}`}>
           {selected ? (
@@ -7439,12 +7466,28 @@ const credentialAuthTypeOptions = [
 ];
 
 function CredentialAuthTypeSelect({ value, onValueChange }: { value: string; onValueChange: (value: string) => void }) {
+  const [open, setOpen] = useState(false);
+
   return (
-    <Select.Root value={value} onValueChange={onValueChange}>
+    <Select.Root
+      value={value}
+      open={open}
+      onOpenChange={setOpen}
+      onValueChange={(nextValue) => {
+        onValueChange(nextValue);
+        setOpen(false);
+      }}
+    >
       <Select.Trigger
         data-cds="Button"
         aria-label="Credential type"
         className={`cds-focus inline-flex h-[31px] w-[455px] items-center gap-1.5 pl-2 pr-0 text-sm leading-5 text-ink outline-none ${credentialSelectTriggerClass}`}
+        onPointerDown={(event) => {
+          if (!open) return;
+          event.preventDefault();
+          event.stopPropagation();
+          setOpen(false);
+        }}
       >
         <span className="flex min-w-0 flex-1 items-baseline gap-1.5 whitespace-nowrap">
           <Select.Value />
