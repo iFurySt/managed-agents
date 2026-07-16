@@ -104,6 +104,9 @@ const sessionEnvironmentOptions = [
   { value: "env_01AzQWp3SXQEATgdCFUNwteR", name: "myenv", updated: "5 days ago", type: "Self-hosted" },
   { value: "env_01UNo9NMB1ZQLKCZk21qryb8", name: "world-cup-digest-env", updated: "5 days ago", type: "Cloud" }
 ];
+const sessionDeploymentOptions = [
+  { value: "depl_01ERmHnRJWQSLyxk7pVCMZXs", name: "CronWorldCupDailyDigest", updated: "Jun 16" }
+];
 const defaultSessionAgentId = sessionAgentOptions.find((option) => option.name === "World Cup Daily Digest")?.value ?? sessionAgentOptions[0]?.value ?? "";
 const defaultSessionEnvironmentId = sessionEnvironmentOptions.find((option) => option.name === "world-cup-digest-env")?.value ?? sessionEnvironmentOptions[0]?.value ?? "";
 const defaultSessionVaultId = "test_secret";
@@ -1203,19 +1206,35 @@ function SessionsPage() {
           onValueChange={setCreated}
           triggerShellClassName={topFilterShellClassName}
         />
-        <FieldSelect
+        <SearchableFilterSelect
           label="Agent"
           value={agent}
-          options={["All", "agent_013mi1SmR2hJ6Hk6wNTeJvF9", "agent_017k8CPYuCFRD9AmupUeXd2Z"]}
+          options={[
+            { value: "All", label: "All" },
+            ...sessionAgentOptions.map((option) => ({ value: option.value, label: option.name, helper: option.updated }))
+          ]}
           onValueChange={setAgent}
-          triggerShellClassName={topFilterShellClassName}
+          triggerWidth="w-[128px]"
+          menuWidth="w-[320px]"
+          itemHeight="h-12"
+          fallbackLabel="All"
+          showSearch
+          searchPlaceholder="Search agents by name or exact ID"
         />
-        <FieldSelect
+        <SearchableFilterSelect
           label="Deployment"
           value={deployment}
-          options={["All", "depl_01ERmHnRJWQSLyxk7pVCMZXs"]}
+          options={[
+            { value: "All", label: "All" },
+            ...sessionDeploymentOptions.map((option) => ({ value: option.value, label: option.name, helper: option.updated }))
+          ]}
           onValueChange={setDeployment}
-          triggerShellClassName={topFilterShellClassName}
+          triggerWidth="w-[162px]"
+          menuWidth="w-[320px]"
+          itemHeight="h-12"
+          fallbackLabel="All"
+          showSearch
+          searchPlaceholder="Search by name or exact ID"
         />
         <FieldSelect
           label="Status"
@@ -1561,13 +1580,13 @@ function SessionDetailPage() {
   );
 }
 
-type DeploymentFilterOption = {
+type SearchableFilterOption = {
   value: string;
   label: string;
   helper?: string;
 };
 
-function DeploymentFilterSelect({
+function SearchableFilterSelect({
   label,
   value,
   options,
@@ -1581,7 +1600,7 @@ function DeploymentFilterSelect({
 }: {
   label: string;
   value: string;
-  options: DeploymentFilterOption[];
+  options: SearchableFilterOption[];
   onValueChange: (value: string) => void;
   triggerWidth: string;
   menuWidth: string;
@@ -1607,7 +1626,10 @@ function DeploymentFilterSelect({
           aria-expanded={open}
           aria-label={`${label} filter`}
           className={`flex h-8 items-center justify-between rounded-[8px] bg-transparent pl-2 pr-0 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-[#c6613f]/35 ${triggerWidth}`}
-          onClick={() => setOpen((current) => !current)}
+          onPointerDown={(event) => {
+            event.preventDefault();
+            setOpen((current) => !current);
+          }}
         >
           <span className="inline-flex min-w-0 items-center gap-1.5 truncate">
             <span className="text-muted">{label}</span>
@@ -1630,6 +1652,7 @@ function DeploymentFilterSelect({
                 placeholder={searchPlaceholder}
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
+                onInput={(event) => setQuery(event.currentTarget.value)}
               />
               {query ? <SearchClearButton onClear={() => setQuery("")} /> : null}
             </div>
@@ -1744,7 +1767,7 @@ function DeploymentsPage() {
           </div>
           <span aria-hidden="true" className="h-1 px-1 text-xs text-transparent" />
         </div>
-        <DeploymentFilterSelect
+        <SearchableFilterSelect
           label="Agent"
           value={agent}
           options={deploymentAgentOptions.map((option) => ({ value: option.value, label: option.name, helper: option.updated }))}
@@ -1756,7 +1779,7 @@ function DeploymentsPage() {
           showSearch
           searchPlaceholder="Search agents by name or exact ID"
         />
-        <DeploymentFilterSelect
+        <SearchableFilterSelect
           label="Status"
           value={status}
           options={["All", "Active", "Paused"].map((option) => ({ value: option, label: option }))}
