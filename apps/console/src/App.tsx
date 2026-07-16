@@ -290,14 +290,14 @@ function Sidebar() {
             <span className="sr-only">Default</span>
           </button>
         </div>
-        <nav className="mt-[17px] flex min-h-0 flex-1 flex-col items-start gap-1 overflow-y-auto pb-0 pl-1.5">
+        <nav className="mt-[17px] flex min-h-0 flex-1 flex-col items-start gap-1 overflow-visible pb-0 pl-1.5">
           <CollapsedSidebarLink glyph="" label="Dashboard" to="/dashboard" testId="sidebar-nav-dashboard-concise" />
           <CollapsedSidebarLink glyph="" label="API keys" to="/settings/workspaces/default/keys" testId="sidebar-nav-api-keys-concise" />
-          <CollapsedSidebarButton glyph="" label="Build" active={buildSectionActive} testId="sidebar-section-build-concise" />
-          <CollapsedSidebarButton glyph="" label="Managed Agents" active={managedSectionActive} testId="sidebar-section-managed-agents-concise" />
-          <CollapsedSidebarButton glyph="" label="Analytics" testId="sidebar-section-analytics-concise" />
-          <CollapsedSidebarButton glyph="" label="Claude Code" testId="sidebar-section-claude-code-concise" />
-          <CollapsedSidebarButton glyph="" label="Manage" testId="sidebar-section-manage-concise" />
+          <CollapsedSidebarGroup glyph="" label="Build" items={["Workbench", "Files", "Skills", "Batches"]} active={buildSectionActive} testId="sidebar-section-build-concise" />
+          <CollapsedSidebarGroup glyph="" label="Managed Agents" items={["Quickstart", "Agents", "Sessions", "Deployments", "Environments", "Credential vaults", "Memory stores"]} managed active={managedSectionActive} testId="sidebar-section-managed-agents-concise" />
+          <CollapsedSidebarGroup glyph="" label="Analytics" items={["Usage", "Caching", "Rate limits", "Cost", "Logs"]} testId="sidebar-section-analytics-concise" />
+          <CollapsedSidebarGroup glyph="" label="Claude Code" items={["Usage", "Settings"]} testId="sidebar-section-claude-code-concise" />
+          <CollapsedSidebarGroup glyph="" label="Manage" items={["Limits", "Service accounts", "Privacy controls", "Security", "Webhooks", "Tags"]} testId="sidebar-section-manage-concise" />
         </nav>
         <div className="flex flex-col items-start gap-1 border-t-[0.5px] border-line pb-5 pl-1.5 pt-2">
           <CollapsedSidebarLink glyph="" label="Documentation" to="/docs/en/home" testId="sidebar-nav-documentation-concise" />
@@ -490,18 +490,142 @@ function CollapsedSidebarLink({ glyph, label, to = "#", testId }: { glyph: strin
   );
 }
 
-function CollapsedSidebarButton({ glyph, label, active = false, testId }: { glyph: string; label: string; active?: boolean; testId?: string }) {
+function CollapsedSidebarGroup({
+  glyph,
+  label,
+  items,
+  managed = false,
+  active = false,
+  testId
+}: {
+  glyph: string;
+  label: string;
+  items: string[];
+  managed?: boolean;
+  active?: boolean;
+  testId?: string;
+}) {
+  const location = useLocation();
+  const itemRoute = (item: string) => collapsedSidebarItemRoute(label, item, managed);
+  const [open, setOpen] = useState(false);
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => () => {
+    if (closeTimerRef.current) window.clearTimeout(closeTimerRef.current);
+  }, []);
+
+  function openFlyout() {
+    if (closeTimerRef.current) window.clearTimeout(closeTimerRef.current);
+    closeTimerRef.current = null;
+    setOpen(true);
+  }
+
+  function scheduleCloseFlyout() {
+    if (closeTimerRef.current) window.clearTimeout(closeTimerRef.current);
+    closeTimerRef.current = window.setTimeout(() => {
+      setOpen(false);
+      closeTimerRef.current = null;
+    }, 120);
+  }
+
   return (
-    <button
-      className={`flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-[#52514e] transition-colors hover:bg-fill hover:text-ink ${active ? "bg-[rgba(11,11,11,0.05)] !text-ink" : ""}`}
-      type="button"
-      aria-expanded={false}
-      aria-label={label}
-      data-testid={testId}
+    <div
+      className="group/collapsed-nav relative"
+      onMouseEnter={openFlyout}
+      onMouseLeave={scheduleCloseFlyout}
+      onFocus={openFlyout}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) scheduleCloseFlyout();
+      }}
     >
-      <SidebarGlyph glyph={glyph} className="h-5 w-5 text-current text-[20px] [font-weight:433.3]" />
-    </button>
+      <button
+        className={`flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-[#52514e] transition-colors hover:bg-fill hover:text-ink group-hover/collapsed-nav:bg-fill group-hover/collapsed-nav:text-ink ${open ? "bg-fill text-ink" : ""} ${active ? "bg-[rgba(11,11,11,0.05)] !text-ink" : ""}`}
+        type="button"
+        aria-expanded={open}
+        aria-label={label}
+        data-testid={testId}
+      >
+        <SidebarGlyph glyph={glyph} className="h-5 w-5 text-current text-[20px] [font-weight:433.3]" />
+      </button>
+      <div
+        data-testid={`${testId || label.toLowerCase().replace(/\s+/g, "-")}-flyout`}
+        className={`absolute left-[42px] top-[-4px] z-50 w-60 rounded-[12px] bg-white p-1 text-sm leading-5 text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)] ${open ? "block" : "hidden"}`}
+      >
+        <div className="flex h-8 items-center px-2 text-[13px] leading-4 text-[#898781] [font-weight:550]">{label}</div>
+        <div className="flex flex-col gap-1">
+          {items.map((item) => {
+            const route = itemRoute(item);
+            const activeItem = route ? sidebarRouteActive(location.pathname, route) : false;
+            const className = `flex h-9 items-center rounded-[8px] px-3 text-sm leading-5 ${activeItem ? "bg-[rgba(11,11,11,0.05)] text-ink" : "text-[#52514e] hover:bg-fill hover:text-ink"}`;
+
+            return route ? (
+              <Link key={item} to={route} className={className} aria-current={activeItem ? "page" : undefined}>
+                <span className="min-w-0 truncate">{item}</span>
+                {item === "Deployments" ? <span className="ml-2 rounded-md bg-[#d7e8ff] px-2 py-0.5 text-xs font-semibold text-[#1b5eb8]">New</span> : null}
+              </Link>
+            ) : (
+              <div key={item} className={className}>
+                <span className="min-w-0 truncate">{item}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
   );
+}
+
+function collapsedSidebarItemRoute(group: string, item: string, managed: boolean) {
+  if (group === "Build") {
+    if (item === "Workbench") return "/workbench";
+    if (item === "Files") return "/workspaces/default/files";
+    if (item === "Skills") return "/workspaces/default/skills";
+    if (item === "Batches") return "/workspaces/default/batches";
+  }
+
+  if (managed) {
+    if (item === "Quickstart") return "/workspaces/default/agent-quickstart";
+    const section = item.toLowerCase().replaceAll(" ", "-").replace("credential-vaults", "vaults");
+    return `/workspaces/default/${section}`;
+  }
+
+  if (group === "Analytics") {
+    const routes: Record<string, string> = {
+      Usage: "/usage",
+      Caching: "/usage/cache",
+      "Rate limits": "/usage/limits",
+      Cost: "/cost",
+      Logs: "/workspaces/default/logs"
+    };
+    return routes[item] ?? null;
+  }
+
+  if (group === "Claude Code") {
+    const routes: Record<string, string> = {
+      Usage: "/claude-code",
+      Settings: "/claude-code/settings"
+    };
+    return routes[item] ?? null;
+  }
+
+  if (group === "Manage") {
+    const routes: Record<string, string> = {
+      Limits: "/settings/workspaces/default/limits",
+      "Service accounts": "/settings/workspaces/default/service-accounts",
+      "Privacy controls": "/settings/workspaces/default/privacy",
+      Security: "/settings/workspaces/default/security-compliance",
+      Webhooks: "/settings/workspaces/default/webhooks",
+      Tags: "/settings/workspaces/default/tags"
+    };
+    return routes[item] ?? null;
+  }
+
+  return null;
+}
+
+function sidebarRouteActive(pathname: string, route: string) {
+  const aliases = [route, route.replace("/workspaces/default", "")];
+  return aliases.some((alias) => pathname === alias || pathname.startsWith(`${alias}/`));
 }
 
 function SidebarPanelIcon() {

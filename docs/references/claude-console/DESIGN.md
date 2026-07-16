@@ -608,6 +608,16 @@ single `--fw-emphasis: 500` token when the variable font is missing.
   a name line (14px/550 ink) and a role line ("Admin · …", 12px `#52514E`), and
   a trailing chevron. Footer rows ("Documentation", "Credits") are 36px with a
   `12px` icon↔label gap.
+- Collapsed sidebar: width ~`48px`, same `#F9F9F7` fill and right hairline.
+  Top-level icons remain 36×36 rounded-`8px`. Hovering or keyboard-focusing a
+  collapsed **group** icon opens a flyout to the right instead of expanding the
+  whole sidebar. The flyout is a white `240px` panel, radius `12px`, `4px`
+  padding, standard menu shadow/ring
+  (`0 0 0 1px rgba(11,11,11,0.1), 0 8px 24px rgba(0,0,0,0.12), 0 2px 6px rgba(0,0,0,0.08)`),
+  with an 8px-ish offset from the icon rail. It starts with a muted 13px/550
+  group label, then 36px child rows. Active child rows use
+  `rgba(11,11,11,0.05)` fill and ink text; idle rows use `#52514E` and hover
+  to the same faint fill.
 - Global top banner (dismissible): full-width, hairline bottom, info icon +
   message on the left, small dark "Learn more" button + close "×" on the right.
 
