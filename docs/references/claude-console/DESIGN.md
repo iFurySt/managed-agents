@@ -614,7 +614,9 @@ single `--fw-emphasis: 500` token when the variable font is missing.
   whole sidebar. The flyout is a white `240px` panel, radius `12px`, `4px`
   padding, standard menu shadow/ring
   (`0 0 0 1px rgba(11,11,11,0.1), 0 8px 24px rgba(0,0,0,0.12), 0 2px 6px rgba(0,0,0,0.08)`),
-  with an 8px-ish offset from the icon rail. It starts with a muted 13px/550
+  with an 8px-ish offset from the icon rail. The collapsed rail and flyout must
+  sit above main table rows and other transformed content; the flyout background
+  is fully opaque white, never translucent. It starts with a muted 13px/550
   group label, then 36px child rows. Active child rows use
   `rgba(11,11,11,0.05)` fill and ink text; idle rows use `#52514E` and hover
   to the same faint fill.

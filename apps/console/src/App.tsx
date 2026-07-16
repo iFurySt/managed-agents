@@ -272,7 +272,7 @@ function Sidebar() {
 
   if (collapsed) {
     return (
-      <aside aria-label="Main navigation" className="sticky top-0 flex h-screen w-12 shrink-0 flex-col border-r-[0.5px] border-line bg-[#f9f9f7] p-0 shadow-[inset_-4px_0px_6px_-4px_rgba(0,0,0,0.04)]">
+      <aside aria-label="Main navigation" className="sticky top-0 z-[70] flex h-screen w-12 shrink-0 flex-col border-r-[0.5px] border-line bg-[#f9f9f7] p-0 shadow-[inset_-4px_0px_6px_-4px_rgba(0,0,0,0.04)]">
         <div className="flex h-[52px] items-start justify-start pl-2 pt-3">
           <SidebarIconButton aria-label="Expand" data-testid="menu-sidebar-open" onClick={() => setCollapsed(false)}>
             <SidebarPanelIcon />
@@ -549,7 +549,7 @@ function CollapsedSidebarGroup({
       </button>
       <div
         data-testid={`${testId || label.toLowerCase().replace(/\s+/g, "-")}-flyout`}
-        className={`absolute left-[42px] top-[-4px] z-50 w-60 rounded-[12px] bg-white p-1 text-sm leading-5 text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)] ${open ? "block" : "hidden"}`}
+        className={`absolute left-[42px] top-[-4px] z-[90] w-60 rounded-[12px] bg-white p-1 text-sm leading-5 text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)] ${open ? "block" : "hidden"}`}
       >
         <div className="flex h-8 items-center px-2 text-[13px] leading-4 text-[#898781] [font-weight:550]">{label}</div>
         <div className="flex flex-col gap-1">
