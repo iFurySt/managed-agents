@@ -334,6 +334,21 @@ single `--fw-emphasis: 500` token when the variable font is missing.
   (search input + name/date item) — reuse one shared component/markup for
   both instead of re-deriving it per page.
 
+### Multi-select filter dropdown (Sessions Status)
+
+- Same trigger and popover chrome as the plain filter dropdown above, but used
+  when one filter value represents several underlying lifecycle states. The
+  Sessions Status filter defaults to `Running`, `Idle`, and `Rescheduling`
+  checked, while the trigger summary reads **"Status Active"**.
+- Menu rows are `32px` high with a leading checkbox and label. Checked boxes
+  are blue (`#2a78d6`) with a white check; unchecked boxes are white with a
+  subtle black hairline border. Row hover uses the same
+  `rgba(11,11,11,0.05)` fill as the other filter dropdowns.
+- Toggling a checkbox does **not** close the menu. Keep at least one option
+  selected so the trigger and API query never fall into an ambiguous empty
+  state. If the selection no longer matches the named Active set, summarize
+  as the single selected label or "`N selected`".
+
 ### Version / value-picker dropdown (single current value, e.g. "Version: v2")
 
 - Distinct from the filter dropdown above: this picks **one current value**

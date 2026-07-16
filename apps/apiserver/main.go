@@ -681,7 +681,14 @@ func listSessions(db *gorm.DB) gin.HandlerFunc {
 		}
 		if status := strings.TrimSpace(c.Query("status")); status != "" && !strings.EqualFold(status, "all") {
 			if strings.EqualFold(status, "active") {
-				query = query.Where("status IN ?", []string{"Active", "Idle", "Running", "Queued"})
+				query = query.Where("status IN ?", []string{"Active", "Idle", "Running", "Queued", "Rescheduling"})
+			} else if strings.Contains(status, ",") {
+				statuses := splitCSV(status)
+				if len(statuses) == 0 {
+					query = query.Where("1 = 0")
+				} else {
+					query = query.Where("status IN ?", statuses)
+				}
 			} else {
 				query = query.Where("status = ?", status)
 			}
@@ -2513,6 +2520,18 @@ func createdCutoff(value string, now time.Time) (time.Time, bool) {
 	default:
 		return time.Time{}, false
 	}
+}
+
+func splitCSV(value string) []string {
+	parts := strings.Split(value, ",")
+	values := make([]string, 0, len(parts))
+	for _, part := range parts {
+		trimmed := strings.TrimSpace(part)
+		if trimmed != "" {
+			values = append(values, trimmed)
+		}
+	}
+	return values
 }
 
 func validCredentialType(value string) bool {

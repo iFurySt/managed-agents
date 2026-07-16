@@ -107,6 +107,13 @@ const sessionEnvironmentOptions = [
 const sessionDeploymentOptions = [
   { value: "depl_01ERmHnRJWQSLyxk7pVCMZXs", name: "CronWorldCupDailyDigest", updated: "Jun 16" }
 ];
+const sessionActiveStatusValues = ["Running", "Idle", "Rescheduling"];
+const sessionStatusFilterOptions = [
+  { value: "Running", label: "Running" },
+  { value: "Idle", label: "Idle" },
+  { value: "Rescheduling", label: "Rescheduling" },
+  { value: "Terminated", label: "Terminated" }
+];
 const defaultSessionAgentId = sessionAgentOptions.find((option) => option.name === "World Cup Daily Digest")?.value ?? sessionAgentOptions[0]?.value ?? "";
 const defaultSessionEnvironmentId = sessionEnvironmentOptions.find((option) => option.name === "world-cup-digest-env")?.value ?? sessionEnvironmentOptions[0]?.value ?? "";
 const defaultSessionVaultId = "test_secret";
@@ -1118,17 +1125,18 @@ function SessionsPage() {
   const [created, setCreated] = useState("All time");
   const [agent, setAgent] = useState(searchParams.get("agentId") ?? "All");
   const [deployment, setDeployment] = useState(searchParams.get("deploymentId") ?? "All");
-  const [status, setStatus] = useState(searchParams.get("status") ?? "Active");
+  const [status, setStatus] = useState<string[]>(() => initialSessionStatusFilter(searchParams.get("status")));
   const [page, setPage] = useState(0);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [archivingSession, setArchivingSession] = useState<Session | null>(null);
   const [archivingSelection, setArchivingSelection] = useState<{ sessions: Session[]; clear: () => void } | null>(null);
+  const sessionStatusParam = useMemo(() => sessionStatusQuery(status), [status]);
 
   useEffect(() => {
     let cancelled = false;
     setPage(0);
     setLoading(true);
-    listSessions({ q: search, status, agentId: agent, deploymentId: deployment, created })
+    listSessions({ q: search, status: sessionStatusParam, agentId: agent, deploymentId: deployment, created })
       .then((items) => {
         if (!cancelled) setSessions(items);
       })
@@ -1141,7 +1149,7 @@ function SessionsPage() {
     return () => {
       cancelled = true;
     };
-  }, [agent, created, deployment, search, status]);
+  }, [agent, created, deployment, search, sessionStatusParam]);
 
   const pageSize = 8;
   const maxPage = Math.max(0, Math.ceil(sessions.length / pageSize) - 1);
@@ -1149,7 +1157,7 @@ function SessionsPage() {
 
   async function archiveCurrent(session: Session) {
     const updated = await archiveSession(session.id);
-    setSessions((items) => status === "Archived" ? items.map((item) => (item.id === updated.id ? updated : item)) : items.filter((item) => item.id !== updated.id));
+    setSessions((items) => status.includes("Archived") ? items.map((item) => (item.id === updated.id ? updated : item)) : items.filter((item) => item.id !== updated.id));
     setArchivingSession(null);
   }
 
@@ -1159,7 +1167,7 @@ function SessionsPage() {
     const updated = await Promise.all(selected.map((session) => archiveSession(session.id)));
     const updatedById = new Map(updated.map((session) => [session.id, session]));
     const selectedIds = new Set(selected.map((session) => session.id));
-    setSessions((items) => status === "Archived" ? items.map((item) => updatedById.get(item.id) ?? item) : items.filter((item) => !selectedIds.has(item.id)));
+    setSessions((items) => status.includes("Archived") ? items.map((item) => updatedById.get(item.id) ?? item) : items.filter((item) => !selectedIds.has(item.id)));
     setArchivingSelection(null);
     clear();
     showToast(`${selected.length} session${selected.length === 1 ? "" : "s"} archived.`);
@@ -1236,12 +1244,14 @@ function SessionsPage() {
           showSearch
           searchPlaceholder="Search by name or exact ID"
         />
-        <FieldSelect
+        <MultiSelectFilterSelect
           label="Status"
-          value={status}
-          options={["Active", "Idle", "Archived", "All"]}
-          onValueChange={setStatus}
-          triggerShellClassName={topFilterShellClassName}
+          selectedValues={status}
+          options={sessionStatusFilterOptions}
+          onSelectedValuesChange={setStatus}
+          triggerWidth="w-[123px]"
+          menuWidth="w-[220px]"
+          summary={sessionStatusSummary(status)}
         />
       </div>
       <div className="-mt-2 min-w-0">
@@ -1685,6 +1695,97 @@ function SearchableFilterSelect({
   );
 }
 
+type MultiSelectFilterOption = {
+  value: string;
+  label: string;
+};
+
+function MultiSelectFilterSelect({
+  label,
+  selectedValues,
+  options,
+  onSelectedValuesChange,
+  triggerWidth,
+  menuWidth,
+  summary
+}: {
+  label: string;
+  selectedValues: string[];
+  options: MultiSelectFilterOption[];
+  onSelectedValuesChange: (values: string[]) => void;
+  triggerWidth: string;
+  menuWidth: string;
+  summary: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const selectedSet = new Set(selectedValues);
+
+  function toggleValue(value: string) {
+    const next = selectedSet.has(value)
+      ? selectedValues.filter((selected) => selected !== value)
+      : [...selectedValues, value];
+    if (next.length === 0) return;
+    onSelectedValuesChange(next);
+  }
+
+  return (
+    <div data-cds="Field" className="relative h-10">
+      <div className="inline-flex h-8 items-center rounded-[8px] bg-white/50 pr-2 shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]">
+        <button
+          type="button"
+          role="combobox"
+          aria-expanded={open}
+          aria-label={`${label} filter`}
+          className={`flex h-8 items-center justify-between rounded-[8px] bg-transparent pl-2 pr-0 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.03] focus-visible:ring-2 focus-visible:ring-[#c6613f]/35 ${triggerWidth}`}
+          onPointerDown={(event) => {
+            event.preventDefault();
+            setOpen((current) => !current);
+          }}
+        >
+          <span className="inline-flex min-w-0 items-center gap-1.5 truncate">
+            <span className="text-muted">{label}</span>
+            <span className="truncate">{summary}</span>
+          </span>
+          <CdsIconGlyph glyph="" className="mr-0.5 h-4 w-4 shrink-0 text-[#898781] text-[16px] [font-weight:533.25]" />
+        </button>
+      </div>
+      {open ? (
+        <div
+          data-cds="Combobox"
+          role="dialog"
+          className={`absolute left-0 top-[38px] z-50 rounded-[12px] bg-white p-1 shadow-[0_10px_28px_rgba(0,0,0,0.12)] ${menuWidth}`}
+        >
+          <div role="listbox" aria-multiselectable="true" className="grid gap-0">
+            {options.map((option) => {
+              const selected = selectedSet.has(option.value);
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  role="option"
+                  aria-selected={selected}
+                  className="flex h-8 w-full items-center gap-2 rounded-[8px] px-2 text-left text-sm leading-5 text-ink outline-none hover:bg-fill"
+                  onClick={() => toggleValue(option.value)}
+                >
+                  <span
+                    aria-hidden="true"
+                    className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-[4px] border ${
+                      selected ? "border-[#2a78d6] bg-[#2a78d6] text-white" : "border-black/15 bg-white text-transparent"
+                    }`}
+                  >
+                    <Check className="h-3 w-3" strokeWidth={3} />
+                  </span>
+                  <span className="truncate">{option.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function DeploymentsPage() {
   const navigate = useNavigate();
   const [deployments, setDeployments] = useState<Deployment[]>([]);
@@ -1770,7 +1871,10 @@ function DeploymentsPage() {
         <SearchableFilterSelect
           label="Agent"
           value={agent}
-          options={deploymentAgentOptions.map((option) => ({ value: option.value, label: option.name, helper: option.updated }))}
+          options={[
+            { value: "All", label: "All" },
+            ...deploymentAgentOptions.map((option) => ({ value: option.value, label: option.name, helper: option.updated }))
+          ]}
           onValueChange={setAgent}
           triggerWidth="w-[112px]"
           menuWidth="w-[320px]"
@@ -4210,6 +4314,12 @@ function AgentSessionsPanel({ agent }: { agent: Agent }) {
 
   const agentVersion = agent.version || "v1";
   const deploymentOptions = ["All", ...Array.from(new Set([deployment === "All" ? "" : deployment, ...sessions.map((session) => session.deploymentId)].filter(Boolean)))];
+  const deploymentFilterOptions = deploymentOptions.map((value) => {
+    const knownDeployment = sessionDeploymentOptions.find((option) => option.value === value);
+    return value === "All"
+      ? { value, label: "All" }
+      : { value, label: knownDeployment?.name ?? value, helper: knownDeployment?.updated };
+  });
   const versionOptions = ["All", agentVersion];
   const visibleSessions = version === "All" || version === agentVersion ? sessions : [];
 
@@ -4230,12 +4340,17 @@ function AgentSessionsPanel({ agent }: { agent: Agent }) {
           onValueChange={setVersion}
           triggerShellClassName={topFilterShellClassName}
         />
-        <FieldSelect
+        <SearchableFilterSelect
           label="Deployment"
           value={deployment}
-          options={deploymentOptions}
+          options={deploymentFilterOptions}
           onValueChange={setDeployment}
-          triggerShellClassName={topFilterShellClassName}
+          triggerWidth="w-[162px]"
+          menuWidth="w-[320px]"
+          itemHeight="h-12"
+          fallbackLabel="All"
+          showSearch
+          searchPlaceholder="Search by name or exact ID"
         />
         <FieldSelect
           label="Status"
@@ -7765,6 +7880,32 @@ function HighlightedConfigTextarea({
       />
     </div>
   );
+}
+
+function initialSessionStatusFilter(value: string | null) {
+  if (!value || value === "Active") return [...sessionActiveStatusValues];
+  if (value === "All") return sessionStatusFilterOptions.map((option) => option.value);
+  const values = value.split(",").map((item) => item.trim()).filter(Boolean);
+  const allowed = new Set(sessionStatusFilterOptions.map((option) => option.value));
+  const knownValues = values.filter((item) => allowed.has(item));
+  return knownValues.length > 0 ? knownValues : [...sessionActiveStatusValues];
+}
+
+function sessionStatusQuery(values: string[]) {
+  if (sameStringSet(values, sessionActiveStatusValues)) return "Active";
+  return values.join(",");
+}
+
+function sessionStatusSummary(values: string[]) {
+  if (sameStringSet(values, sessionActiveStatusValues)) return "Active";
+  if (values.length === 1) return sessionStatusFilterOptions.find((option) => option.value === values[0])?.label ?? values[0];
+  return `${values.length} selected`;
+}
+
+function sameStringSet(left: string[], right: string[]) {
+  if (left.length !== right.length) return false;
+  const rightSet = new Set(right);
+  return left.every((item) => rightSet.has(item));
 }
 
 function sessionTone(status: string): "neutral" | "green" | "blue" | "red" {
