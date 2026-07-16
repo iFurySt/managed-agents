@@ -1249,7 +1249,7 @@ function SessionsPage() {
           selectedValues={status}
           options={sessionStatusFilterOptions}
           onSelectedValuesChange={setStatus}
-          triggerWidth="w-[123px]"
+          triggerWidth="min-w-[142px]"
           menuWidth="w-[220px]"
           summary={sessionStatusSummary(status)}
         />

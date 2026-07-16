@@ -19,12 +19,15 @@
   - Added CSV status filtering support to the apiserver session list endpoint.
   - Documented the multi-select filter dropdown behavior in the Claude Console design reference.
   - Fixed searchable and multi-select filter trigger hover backgrounds so the right-side chevron area receives the same hover fill as the rest of the control.
+  - Replaced the Sessions Status filter's fixed width with a content-safe minimum width so "Active" does not truncate in narrower layouts.
 
 ### Design Intent
 
 Session status is a grouped user-facing filter: "Active" means a specific set of runtime lifecycle states, while users can still refine that set with checkboxes. Reference-object filters use search because their option lists can grow and are identified by names or exact IDs. Small fixed enums remain plain dropdowns.
 
 Filter trigger hover state belongs on the complete bordered shell, not only the inner button, because the shell owns the full visual width and the chevron area. Keeping the button transparent and full-width avoids clipped hover fills.
+
+The Sessions Status trigger should not hard-code an exact width. The label, value, and chevron need enough intrinsic space to render "Status Active" without ellipsis, and longer summaries can still grow from the same minimum.
 
 ### Files Modified
 
