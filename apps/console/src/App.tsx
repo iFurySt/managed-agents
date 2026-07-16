@@ -5117,6 +5117,7 @@ function CreateSessionDialog({
   const [openPicker, setOpenPicker] = useState<"agent" | "environment" | "vault" | null>(null);
   const [createAgentOpen, setCreateAgentOpen] = useState(false);
   const dialogBodyRef = useRef<HTMLDivElement>(null);
+  const nestedPickerClosedUntilRef = useRef(0);
   const canCreate = Boolean(agentId && environmentId && (!vaults.length || vaultAcknowledged));
   const fieldLabelClass = "text-sm leading-none [font-weight:550]";
   const dialogHeightClass = resources.length ? "h-[706px]" : resourceMenuOpen ? "h-[650px]" : "h-[606px]";
@@ -5161,13 +5162,27 @@ function CreateSessionDialog({
     onCreated(session);
   }
 
+  function markNestedPickerClosed() {
+    nestedPickerClosedUntilRef.current = Date.now() + 500;
+  }
+
+  function setDialogPicker(nextPicker: "agent" | "environment" | "vault", nextOpen: boolean) {
+    if (!nextOpen) markNestedPickerClosed();
+    setOpenPicker(nextOpen ? nextPicker : null);
+  }
+
+  function handleDialogOpenChange(nextOpen: boolean) {
+    if (!nextOpen && Date.now() < nestedPickerClosedUntilRef.current) return;
+    onOpenChange(nextOpen);
+  }
+
   return (
     <>
       <ConsoleDialog
         title="Create session"
         description="Set up an instance of your agent in its environment."
         open={open}
-        onOpenChange={onOpenChange}
+        onOpenChange={handleDialogOpenChange}
         contentClassName={`flex flex-col ${dialogHeightClass} !max-h-[calc(100dvh-32px)] w-[706px] max-w-[calc(100vw-32px)] !rounded-[12px] border-0 !shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]`}
         headerClassName="flex items-start justify-between pl-6 pr-4 pt-4"
         titleClassName="mt-1 text-[22px] leading-[26px] text-ink [font-weight:580]"
@@ -5195,7 +5210,7 @@ function CreateSessionDialog({
               <CreateSessionAgentPicker
                 value={agentId}
                 open={openPicker === "agent"}
-                onOpenChange={(nextOpen) => setOpenPicker(nextOpen ? "agent" : null)}
+                onOpenChange={(nextOpen) => setDialogPicker("agent", nextOpen)}
                 onValueChange={setAgentId}
                 onCreateNewAgent={() => setCreateAgentOpen(true)}
               />
@@ -5208,7 +5223,7 @@ function CreateSessionDialog({
               <CreateSessionEnvironmentPicker
                 value={environmentId}
                 open={openPicker === "environment"}
-                onOpenChange={(nextOpen) => setOpenPicker(nextOpen ? "environment" : null)}
+                onOpenChange={(nextOpen) => setDialogPicker("environment", nextOpen)}
                 onValueChange={setEnvironmentId}
               />
             </div>
@@ -5220,7 +5235,7 @@ function CreateSessionDialog({
               <CreateSessionVaultPicker
                 value={vaults}
                 open={openPicker === "vault"}
-                onOpenChange={(nextOpen) => setOpenPicker(nextOpen ? "vault" : null)}
+                onOpenChange={(nextOpen) => setDialogPicker("vault", nextOpen)}
                 onValueChange={(nextVaults) => {
                   setVaults(nextVaults);
                   setVaultAcknowledged(false);
@@ -7024,6 +7039,7 @@ function CreateVaultDialog({
   const [vault, setVault] = useState<Vault | null>(null);
   const [name, setName] = useState("");
   const [credentialAuthType, setCredentialAuthType] = useState("MCP OAuth");
+  const credentialPickerClosedUntilRef = useRef(0);
   const canContinue = name.trim().length <= 50;
   const fieldLabelClass = "text-sm leading-none [font-weight:550]";
   const helperClass = "text-[13px] font-normal leading-[18px] text-muted";
@@ -7034,6 +7050,10 @@ function CreateVaultDialog({
     setVault(created);
     onCreated(created);
     setStep("credential");
+  }
+
+  function markCredentialPickerClosed() {
+    credentialPickerClosedUntilRef.current = Date.now() + 500;
   }
 
   function closeDialog(nextOpen: boolean) {
@@ -7047,11 +7067,16 @@ function CreateVaultDialog({
     }
   }
 
+  function handleDialogOpenChange(nextOpen: boolean) {
+    if (!nextOpen && Date.now() < credentialPickerClosedUntilRef.current) return;
+    closeDialog(nextOpen);
+  }
+
   return (
     <ConsoleDialog
       title={step === "vault" ? "Create vault" : "Add a credential"}
       open={open}
-      onOpenChange={closeDialog}
+      onOpenChange={handleDialogOpenChange}
       contentClassName={step === "vault" ? "h-[306px] w-[510px] max-w-[calc(100vw-32px)] !rounded-[12px] border-0 !shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_4px_8px_rgba(11,11,11,0.08),0_12px_28px_-2px_rgba(11,11,11,0.08)]" : credentialDialogContentClassName(credentialAuthType)}
       headerClassName="flex items-start justify-between pl-6 pr-4 pt-4"
       titleClassName={step === "vault" ? "mt-1 w-[431px] -translate-y-px text-[22px] leading-[26px] text-ink [font-weight:580]" : "mt-1 w-[431px] text-[22px] leading-[26px] text-ink [font-weight:580]"}
@@ -7090,6 +7115,7 @@ function CreateVaultDialog({
           secondaryLabel="Skip for now"
           onSecondary={() => closeDialog(false)}
           onAuthTypeChange={setCredentialAuthType}
+          onPickerClose={markCredentialPickerClosed}
           onSubmit={async (input) => {
             await createVaultCredential(vault.id, input);
             closeDialog(false);
@@ -7116,16 +7142,24 @@ function CreateCredentialDialog({
   create: (input: { name: string; authType: string; target: string }) => Promise<VaultCredential>;
 }) {
   const [credentialAuthType, setCredentialAuthType] = useState("MCP OAuth");
+  const credentialPickerClosedUntilRef = useRef(0);
+
+  function markCredentialPickerClosed() {
+    credentialPickerClosedUntilRef.current = Date.now() + 500;
+  }
+
+  function handleDialogOpenChange(nextOpen: boolean) {
+    if (!nextOpen && Date.now() < credentialPickerClosedUntilRef.current) return;
+    onOpenChange(nextOpen);
+    if (!nextOpen) setCredentialAuthType("MCP OAuth");
+  }
 
   return (
     <ConsoleDialog
       title={title}
       description={description}
       open={open}
-      onOpenChange={(nextOpen) => {
-        onOpenChange(nextOpen);
-        if (!nextOpen) setCredentialAuthType("MCP OAuth");
-      }}
+      onOpenChange={handleDialogOpenChange}
       contentClassName={credentialDialogContentClassName(credentialAuthType)}
       headerClassName="flex items-start justify-between pl-6 pr-4 pt-4"
       titleClassName="mt-1 w-[431px] text-[22px] leading-[26px] text-ink [font-weight:580]"
@@ -7137,6 +7171,7 @@ function CreateCredentialDialog({
         key={open ? "credential-dialog-open" : "credential-dialog-closed"}
         submitLabel="Connect"
         onAuthTypeChange={setCredentialAuthType}
+        onPickerClose={markCredentialPickerClosed}
         onSubmit={async (input) => {
           const credential = await create(input);
           onCreated(credential);
@@ -7153,6 +7188,7 @@ function CreateCredentialForm({
   secondaryLabel,
   onSecondary,
   onAuthTypeChange,
+  onPickerClose,
   onSubmit
 }: {
   title?: string;
@@ -7160,6 +7196,7 @@ function CreateCredentialForm({
   secondaryLabel?: string;
   onSecondary?: () => void;
   onAuthTypeChange?: (authType: string) => void;
+  onPickerClose?: () => void;
   onSubmit: (input: { name: string; authType: string; target: string }) => Promise<void>;
 }) {
   const [name, setName] = useState("");
@@ -7217,7 +7254,7 @@ function CreateCredentialForm({
         <div className="grid gap-[7px]">
           <label className={fieldLabelClass}>Type</label>
           <div className={selectShellClass}>
-            <CredentialAuthTypeSelect value={authType} onValueChange={setAuthType} />
+            <CredentialAuthTypeSelect value={authType} onValueChange={setAuthType} onPickerClose={onPickerClose} />
           </div>
         </div>
         {isEnvironmentVariable ? (
@@ -7241,7 +7278,7 @@ function CreateCredentialForm({
           <div className="grid gap-2">
             <label className={fieldLabelClass}>MCP server</label>
             <div className={selectShellClass}>
-              <CredentialMcpServerSelect value={target} placeholder={targetPlaceholder} onValueChange={setTarget} />
+              <CredentialMcpServerSelect value={target} placeholder={targetPlaceholder} onValueChange={setTarget} onPickerClose={onPickerClose} />
             </div>
           </div>
         )}
@@ -7266,18 +7303,36 @@ const credentialMcpServerOptions = [
   { name: "Notion", url: "https://mcp.notion.com/mcp", mark: "N" }
 ];
 
-function CredentialMcpServerSelect({ value, placeholder, onValueChange }: { value: string; placeholder: string; onValueChange: (value: string) => void }) {
+function CredentialMcpServerSelect({
+  value,
+  placeholder,
+  onValueChange,
+  onPickerClose
+}: {
+  value: string;
+  placeholder: string;
+  onValueChange: (value: string) => void;
+  onPickerClose?: () => void;
+}) {
   const selected = credentialMcpServerOptions.find((option) => option.url === value);
   const [open, setOpen] = useState(false);
+
+  function closeSelect() {
+    onPickerClose?.();
+    setOpen(false);
+  }
 
   return (
     <Select.Root
       value={value}
       open={open}
-      onOpenChange={setOpen}
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) onPickerClose?.();
+        setOpen(nextOpen);
+      }}
       onValueChange={(nextValue) => {
         onValueChange(nextValue);
-        setOpen(false);
+        closeSelect();
       }}
     >
       <Select.Trigger
@@ -7288,7 +7343,7 @@ function CredentialMcpServerSelect({ value, placeholder, onValueChange }: { valu
           if (!open) return;
           event.preventDefault();
           event.stopPropagation();
-          setOpen(false);
+          closeSelect();
         }}
       >
         <span className={`flex min-w-0 flex-1 items-baseline gap-1.5 whitespace-nowrap ${selected ? "" : "text-muted"}`}>
@@ -7465,17 +7520,33 @@ const credentialAuthTypeOptions = [
   }
 ];
 
-function CredentialAuthTypeSelect({ value, onValueChange }: { value: string; onValueChange: (value: string) => void }) {
+function CredentialAuthTypeSelect({
+  value,
+  onValueChange,
+  onPickerClose
+}: {
+  value: string;
+  onValueChange: (value: string) => void;
+  onPickerClose?: () => void;
+}) {
   const [open, setOpen] = useState(false);
+
+  function closeSelect() {
+    onPickerClose?.();
+    setOpen(false);
+  }
 
   return (
     <Select.Root
       value={value}
       open={open}
-      onOpenChange={setOpen}
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) onPickerClose?.();
+        setOpen(nextOpen);
+      }}
       onValueChange={(nextValue) => {
         onValueChange(nextValue);
-        setOpen(false);
+        closeSelect();
       }}
     >
       <Select.Trigger
@@ -7486,7 +7557,7 @@ function CredentialAuthTypeSelect({ value, onValueChange }: { value: string; onV
           if (!open) return;
           event.preventDefault();
           event.stopPropagation();
-          setOpen(false);
+          closeSelect();
         }}
       >
         <span className="flex min-w-0 flex-1 items-baseline gap-1.5 whitespace-nowrap">

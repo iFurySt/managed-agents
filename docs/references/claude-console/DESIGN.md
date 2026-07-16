@@ -524,8 +524,12 @@ single `--fw-emphasis: 500` token when the variable font is missing.
 - When a Radix Select combobox inside a modal is already open, clicking its
   trigger again should only close that select popover. It must not propagate
   into dialog outside-interaction handling and close the parent modal. This
-  applies to Create Session's Agent/Environment pickers and credential Type/MCP
-  server pickers.
+  applies to Create Session's Agent/Environment/Vault pickers and credential
+  Type/MCP server pickers. In addition to stopping the trigger event when it is
+  observable, the parent dialog should suppress close requests for a short
+  debounce window immediately after one of its embedded select/picker popovers
+  closes; Radix can emit the select close before the trigger receives the second
+  pointer event.
 - Footer buttons are right-aligned. `Skip for now` is a bordered secondary
   button, not a bare text/ghost button. `Connect` is the `81px` primary button
   and disabled at `opacity: 0.5` until the target is selected.
