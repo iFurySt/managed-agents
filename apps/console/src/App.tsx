@@ -98,11 +98,20 @@ const sessionAgentOptions = [
   { value: "agent_017k8CPYuCFRD9AmupUeXd2Z", name: "World Cup Daily Digest", updated: "5 days ago" },
   { value: "agent_01MNpVPKyrSECHGA6HqAmREZ", name: "Untitled agent", updated: "5 days ago" }
 ];
+function formatConsoleDateLabel(isoDate: string, now = new Date()) {
+  const date = new Date(`${isoDate}T12:00:00Z`);
+  const sameYear = date.getUTCFullYear() === now.getFullYear();
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    ...(sameYear ? {} : { year: "numeric" })
+  }).format(date);
+}
 const sessionEnvironmentOptions = [
-  { value: "env_01UTaKkbFknSkQNEsZjUARMh", name: "managed-ssh-debug-env", updated: "5 days ago", type: "Cloud" },
-  { value: "env_01LiiuDCwZBtqZd5EYMk9D9x", name: "123", updated: "5 days ago", type: "Self-hosted" },
-  { value: "env_01AzQWp3SXQEATgdCFUNwteR", name: "myenv", updated: "5 days ago", type: "Self-hosted" },
-  { value: "env_01UNo9NMB1ZQLKCZk21qryb8", name: "world-cup-digest-env", updated: "5 days ago", type: "Cloud" }
+  { value: "env_01UTaKkbFknSkQNEsZjUARMh", name: "managed-ssh-debug-env", updated: formatConsoleDateLabel("2026-06-16"), type: "Cloud" },
+  { value: "env_01LiiuDCwZBtqZd5EYMk9D9x", name: "123", updated: formatConsoleDateLabel("2026-06-16"), type: "Self-hosted" },
+  { value: "env_01AzQWp3SXQEATgdCFUNwteR", name: "myenv", updated: formatConsoleDateLabel("2026-06-16"), type: "Self-hosted" },
+  { value: "env_01UNo9NMB1ZQLKCZk21qryb8", name: "world-cup-digest-env", updated: formatConsoleDateLabel("2026-06-16"), type: "Cloud" }
 ];
 const sessionDeploymentOptions = [
   { value: "depl_01ERmHnRJWQSLyxk7pVCMZXs", name: "CronWorldCupDailyDigest", updated: "Jun 16" }
@@ -5243,7 +5252,7 @@ function CreateSessionDialog({
               />
             </div>
             {vaults.length ? (
-              <label className="ml-3 mr-3 mt-2 mb-[13px] flex min-h-[39px] cursor-pointer items-start gap-3 text-left text-sm leading-5 text-ink">
+              <label className="mt-2 mb-[13px] flex min-h-[60px] cursor-pointer items-start gap-3 rounded-[8px] border border-[#d3942d] bg-[#f9dca4] px-3 py-3 text-left text-sm leading-5 text-[#734500]">
                 <span className="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-[4px] bg-white shadow-[inset_0_0_0_1px_rgba(11,11,11,0.18)]">
                   <input
                     className="sr-only"
@@ -5529,10 +5538,10 @@ function CreateSessionEnvironmentPicker({
                   <Select.ItemText>
                     <span className="block truncate">{option.name}</span>
                   </Select.ItemText>
-                  <span className="truncate text-xs leading-4 text-[#898781]">
-                    {option.updated}
-                    <span className="mx-1.5">·</span>
-                    {option.type}
+                  <span className="inline-flex items-center gap-1.5 truncate text-[13px] leading-[18px] text-muted">
+                    <span>{option.updated}</span>
+                    <span aria-hidden="true">·</span>
+                    <span className="inline-flex h-4 shrink-0 items-center rounded-[6px] bg-fill px-1.5 text-[10px] leading-[12px] text-[#52514e] [font-weight:550]">{option.type}</span>
                   </span>
                 </div>
                 <Select.ItemIndicator>

@@ -471,9 +471,13 @@ single `--fw-emphasis: 500` token when the variable font is missing.
 - Field blocks stack with `20px` gaps: label row (label 14px/550 ink, optional
   right-aligned **blue link `#184F95`** "Manage agents ↗" with a 12px external
   arrow) above a 36px field.
-- Authorization warning box (credential vaults): amber fill `#F7E3B4`
-  (tint of the warning family), radius `8px`, padding `12px`, leading checkbox,
-  14px ink text.
+- Environment picker options show name above metadata. Metadata is a
+  concrete date label (`Jun 16` for same-year dates; include the year for older
+  years, e.g. `Jun 16, 2025`), a muted dot separator, and a neutral tag pill
+  for `Cloud` / `Self-hosted`.
+- Authorization warning box (credential vaults): amber fill `#F9DCA4`,
+  border `#D3942D`, radius `8px`, padding `12px`, leading checkbox, 14px
+  warning text `#734500`.
 - Footer: right-aligned primary button; **disabled = `opacity: 0.5`** on the
   solid black button.
 

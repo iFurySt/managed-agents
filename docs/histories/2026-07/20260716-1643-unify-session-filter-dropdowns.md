@@ -23,6 +23,8 @@
   - Added shared outside-click and Escape dismissal for custom filter popovers so filters remain mutually exclusive.
   - Prevented modal-embedded Radix Select triggers from closing their parent dialog when users click an already-open trigger to collapse the picker.
   - Added dialog-level suppression for close requests emitted immediately after Create Session and Add Credential embedded pickers close, covering Radix close paths that bypass trigger pointer handlers.
+  - Aligned the Create Session Environment picker option metadata to use concrete console date labels and Cloud/Self-hosted neutral tag chips.
+  - Restored the Create Session credential-vault authorization acknowledgement as an amber warning block.
 
 ### Design Intent
 
@@ -37,6 +39,8 @@ Filter popovers should behave like one coordinated filter bar. Opening another f
 Dialog-embedded Radix Select controls need a close-only path when their trigger is clicked while already open. That interaction should close the select popover and stop propagation before dialog outside-interaction handling can interpret it as a modal dismissal.
 
 Some Radix Select close paths fire before the second trigger pointer event is observable by the trigger handler. Modal dialogs therefore also track a short "nested picker just closed" window and ignore parent dialog close requests in that window. This keeps Create Session Agent/Environment/Vault and Add Credential Type/MCP picker collapse interactions from dismissing the whole modal.
+
+Create Session reference pickers use concrete date captions for environment rows rather than relative "5 days ago" labels in this modal. Same-year dates render like `Jun 16`; older years include the year. Environment type is a neutral tag chip so Cloud and Self-hosted metadata aligns with the rest of the console badge system. Selecting a credential vault exposes an amber authorization block because the acknowledgement is a warning/consent action, not plain inline helper text.
 
 ### Files Modified
 
