@@ -20,6 +20,7 @@
   - Documented the multi-select filter dropdown behavior in the Claude Console design reference.
   - Fixed searchable and multi-select filter trigger hover backgrounds so the right-side chevron area receives the same hover fill as the rest of the control.
   - Replaced the Sessions Status filter's fixed width with a content-safe minimum width so "Active" does not truncate in narrower layouts.
+  - Added shared outside-click and Escape dismissal for custom filter popovers so filters remain mutually exclusive.
 
 ### Design Intent
 
@@ -28,6 +29,8 @@ Session status is a grouped user-facing filter: "Active" means a specific set of
 Filter trigger hover state belongs on the complete bordered shell, not only the inner button, because the shell owns the full visual width and the chevron area. Keeping the button transparent and full-width avoids clipped hover fills.
 
 The Sessions Status trigger should not hard-code an exact width. The label, value, and chevron need enough intrinsic space to render "Status Active" without ellipsis, and longer summaries can still grow from the same minimum.
+
+Filter popovers should behave like one coordinated filter bar. Opening another filter is an outside interaction for the active custom popover, so the active popover closes before the next one opens.
 
 ### Files Modified
 

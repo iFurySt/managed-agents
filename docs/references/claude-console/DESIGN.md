@@ -310,6 +310,10 @@ single `--fw-emphasis: 500` token when the variable font is missing.
   selected" into one color and does not match the live product. The
   right-aligned **blue check `#184F95`** (16px) is the only marker for "this
   is the current value."
+- Filter popovers are mutually exclusive within a filter bar. Opening one
+  filter closes the previously-open filter, and clicking outside the active
+  filter or pressing Escape closes it. Do not allow two filter popovers, such
+  as Deployment and Status, to remain open at the same time.
 
 ### Searchable filter dropdown (Agent / Deployment / Environment / Vault filters)
 

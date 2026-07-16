@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as Select from "@radix-ui/react-select";
-import { useEffect, useMemo, useRef, useState, type ButtonHTMLAttributes, type ChangeEventHandler, type ComponentProps, type DragEvent, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ButtonHTMLAttributes, type ChangeEventHandler, type ComponentProps, type DragEvent, type ReactNode, type RefObject } from "react";
 import { Link, Navigate, Route, Routes, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   archiveSession,
@@ -1596,6 +1596,29 @@ type SearchableFilterOption = {
   helper?: string;
 };
 
+function useFilterDropdownDismiss(open: boolean, setOpen: (open: boolean) => void, rootRef: RefObject<HTMLDivElement | null>) {
+  useEffect(() => {
+    if (!open) return;
+
+    function closeIfOutside(event: PointerEvent) {
+      const target = event.target;
+      if (target instanceof Node && rootRef.current?.contains(target)) return;
+      setOpen(false);
+    }
+
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") setOpen(false);
+    }
+
+    document.addEventListener("pointerdown", closeIfOutside, true);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("pointerdown", closeIfOutside, true);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [open, rootRef, setOpen]);
+}
+
 function SearchableFilterSelect({
   label,
   value,
@@ -1619,6 +1642,7 @@ function SearchableFilterSelect({
   showSearch?: boolean;
   searchPlaceholder?: string;
 }) {
+  const rootRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const selected = options.find((option) => option.value === value);
@@ -1626,9 +1650,10 @@ function SearchableFilterSelect({
   const visibleOptions = showSearch
     ? options.filter((option) => `${option.label} ${option.helper ?? ""}`.toLowerCase().includes(query.trim().toLowerCase()))
     : options;
+  useFilterDropdownDismiss(open, setOpen, rootRef);
 
   return (
-    <div data-cds="Field" className="relative h-10">
+    <div ref={rootRef} data-cds="Field" className="relative h-10">
       <div className={`inline-flex h-8 items-center overflow-hidden rounded-[8px] bg-white/50 shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)] hover:bg-black/[0.03] ${triggerWidth}`}>
         <button
           type="button"
@@ -1717,8 +1742,10 @@ function MultiSelectFilterSelect({
   menuWidth: string;
   summary: string;
 }) {
+  const rootRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const selectedSet = new Set(selectedValues);
+  useFilterDropdownDismiss(open, setOpen, rootRef);
 
   function toggleValue(value: string) {
     const next = selectedSet.has(value)
@@ -1729,7 +1756,7 @@ function MultiSelectFilterSelect({
   }
 
   return (
-    <div data-cds="Field" className="relative h-10">
+    <div ref={rootRef} data-cds="Field" className="relative h-10">
       <div className={`inline-flex h-8 items-center overflow-hidden rounded-[8px] bg-white/50 shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)] hover:bg-black/[0.03] ${triggerWidth}`}>
         <button
           type="button"
