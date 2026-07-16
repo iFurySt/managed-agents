@@ -6,9 +6,9 @@ import * as Tooltip from "@radix-ui/react-tooltip";
 import { forwardRef, useEffect, useMemo, useRef, useState, type KeyboardEvent, type MouseEvent, type ReactNode } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 
-function isRadixSelectPortalTarget(target: EventTarget | null) {
+function isRadixFloatingPortalTarget(target: EventTarget | null) {
   if (!(target instanceof HTMLElement)) return false;
-  return Boolean(target.closest("[data-cds='ComboboxPopover'], [data-cds='SelectContent'], [data-radix-popper-content-wrapper], [role='listbox']"));
+  return Boolean(target.closest("[data-cds='ComboboxPopover'], [data-cds='SelectContent'], [data-cds='Menu'], [data-radix-popper-content-wrapper], [role='listbox'], [role='menu']"));
 }
 
 function CdsIconGlyph({ glyph, className = "h-5 w-5 text-current text-[20px] [font-weight:433.3]" }: { glyph: string; className?: string }) {
@@ -604,17 +604,17 @@ export function ConsoleDialog({
           data-cds="Dialog"
           className={`fixed left-1/2 top-1/2 z-50 max-h-[86vh] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-cds border border-line bg-white text-sm leading-5 text-ink shadow-xl ${contentClassName}`}
           onInteractOutside={(event) => {
-            if (isRadixSelectPortalTarget(event.target)) {
+            if (isRadixFloatingPortalTarget(event.target)) {
               event.preventDefault();
             }
           }}
           onPointerDownOutside={(event) => {
-            if (isRadixSelectPortalTarget(event.target)) {
+            if (isRadixFloatingPortalTarget(event.target)) {
               event.preventDefault();
             }
           }}
           onFocusOutside={(event) => {
-            if (isRadixSelectPortalTarget(event.target)) {
+            if (isRadixFloatingPortalTarget(event.target)) {
               event.preventDefault();
             }
           }}

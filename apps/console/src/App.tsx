@@ -4992,39 +4992,67 @@ function EditAgentDialog({
 }
 
 function CreateSessionResourceMenu({ onAdd, onOpenChange }: { onAdd: (kind: SessionResourceKind) => void; onOpenChange?: (open: boolean) => void }) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  function updateOpen(nextOpen: boolean) {
+    setOpen(nextOpen);
+    onOpenChange?.(nextOpen);
+  }
+
+  useEffect(() => {
+    if (!open) return;
+    const closeOnOutsidePointer = (event: PointerEvent) => {
+      if (!rootRef.current?.contains(event.target as Node)) updateOpen(false);
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") updateOpen(false);
+    };
+    document.addEventListener("pointerdown", closeOnOutsidePointer);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("pointerdown", closeOnOutsidePointer);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [open]);
+
   return (
-    <CdsDropdownMenu.Root onOpenChange={onOpenChange}>
-      <CdsDropdownMenu.Trigger asChild>
+    <div ref={rootRef} className="relative justify-self-start">
         <button
           type="button"
           data-cds="Button"
-          className="cds-focus inline-flex h-[27px] w-[121px] items-center justify-center gap-1.5 justify-self-start rounded-[8px] bg-transparent px-3 text-sm text-ink outline-none [font-weight:550] hover:bg-fill"
+          aria-haspopup="menu"
+          aria-expanded={open}
+          className="cds-focus inline-flex h-[31px] w-[121px] items-center justify-center gap-1.5 justify-self-start rounded-[8px] border border-line bg-white/50 px-3 text-sm text-ink shadow-[0_1px_2px_rgba(0,0,0,0.04)] outline-none [font-weight:550] hover:bg-fill"
+          onClick={() => updateOpen(!open)}
         >
           <CdsIconGlyph glyph="" className="-ml-1 h-5 w-5 text-ink text-[20px] [font-weight:433.25]" />
           <span>Resource</span>
           <CdsIconGlyph glyph="" className="h-4 w-4 text-[#898781] text-[16px] [font-weight:533.25]" />
         </button>
-      </CdsDropdownMenu.Trigger>
-      <CdsDropdownMenu.Portal>
-        <CdsDropdownMenu.Content
+      {open ? (
+        <div
           data-cds="Menu"
-          side="bottom"
-          align="start"
-          sideOffset={6}
-          className="z-50 w-[190px] rounded-[12px] bg-white p-1 text-sm text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
+          role="menu"
+          className="absolute left-0 top-[37px] z-50 w-[190px] rounded-[12px] bg-white p-1 text-sm text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
         >
           {sessionResourceKinds.map((kind) => (
-            <CdsDropdownMenu.Item
+            <button
               key={kind}
+              type="button"
+              role="menuitem"
               className="flex h-8 w-full cursor-pointer items-center whitespace-nowrap rounded-[8px] px-2.5 text-sm leading-5 text-ink outline-none data-[highlighted]:bg-fill"
-              onSelect={() => onAdd(kind)}
+              onClick={() => {
+                onAdd(kind);
+                updateOpen(false);
+              }}
             >
               {kind}
-            </CdsDropdownMenu.Item>
+            </button>
           ))}
-        </CdsDropdownMenu.Content>
-      </CdsDropdownMenu.Portal>
-    </CdsDropdownMenu.Root>
+        </div>
+      ) : null}
+    </div>
   );
 }
 
@@ -5180,6 +5208,12 @@ function CreateSessionDialog({
     setOpenPicker(nextOpen ? nextPicker : null);
   }
 
+  function setDialogResourceMenu(nextOpen: boolean) {
+    markNestedPickerClosed();
+    setResourceMenuOpen(nextOpen);
+    if (nextOpen) setOpenPicker(null);
+  }
+
   function handleDialogOpenChange(nextOpen: boolean) {
     if (!nextOpen && Date.now() < nestedPickerClosedUntilRef.current) return;
     onOpenChange(nextOpen);
@@ -5283,10 +5317,7 @@ function CreateSessionDialog({
                 onAdd={(kind) => {
                   setResources((current) => [...current, kind]);
                 }}
-                onOpenChange={(nextOpen) => {
-                  setResourceMenuOpen(nextOpen);
-                  if (nextOpen) setOpenPicker(null);
-                }}
+                onOpenChange={setDialogResourceMenu}
               />
             </div>
           </div>

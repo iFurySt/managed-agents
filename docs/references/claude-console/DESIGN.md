@@ -478,6 +478,13 @@ single `--fw-emphasis: 500` token when the variable font is missing.
 - Authorization warning box (credential vaults): amber fill `#F9DCA4`,
   border `#D3942D`, radius `8px`, padding `12px`, leading checkbox, 14px
   warning text `#734500`.
+- The `+ Resource` control is the boxed secondary button variant: about
+  `31px` tall, `8px` radius, hairline border, white/50 fill, subtle shadow,
+  plus icon and chevron. Its dropdown menu stays inside the dialog DOM and
+  must not be treated as an outside click that closes the parent Create Session
+  dialog. The menu must open after the trigger click completes, not on trigger
+  pointer-down, so releasing the same mouse press cannot accidentally select
+  the first resource item.
 - Footer: right-aligned primary button; **disabled = `opacity: 0.5`** on the
   solid black button.
 

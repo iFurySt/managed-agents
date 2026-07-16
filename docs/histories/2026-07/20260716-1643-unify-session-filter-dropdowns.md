@@ -25,6 +25,7 @@
   - Added dialog-level suppression for close requests emitted immediately after Create Session and Add Credential embedded pickers close, covering Radix close paths that bypass trigger pointer handlers.
   - Aligned the Create Session Environment picker option metadata to use concrete console date labels and Cloud/Self-hosted neutral tag chips.
   - Restored the Create Session credential-vault authorization acknowledgement as an amber warning block.
+  - Reworked the Create Session Resource menu as an in-dialog click-open menu with boxed secondary trigger styling, preventing trigger press/release from accidentally selecting the first resource item or closing the modal.
 
 ### Design Intent
 
@@ -41,6 +42,8 @@ Dialog-embedded Radix Select controls need a close-only path when their trigger 
 Some Radix Select close paths fire before the second trigger pointer event is observable by the trigger handler. Modal dialogs therefore also track a short "nested picker just closed" window and ignore parent dialog close requests in that window. This keeps Create Session Agent/Environment/Vault and Add Credential Type/MCP picker collapse interactions from dismissing the whole modal.
 
 Create Session reference pickers use concrete date captions for environment rows rather than relative "5 days ago" labels in this modal. Same-year dates render like `Jun 16`; older years include the year. Environment type is a neutral tag chip so Cloud and Self-hosted metadata aligns with the rest of the console badge system. Selecting a credential vault exposes an amber authorization block because the acknowledgement is a warning/consent action, not plain inline helper text.
+
+The Resource menu is intentionally rendered inside the dialog and opened after the trigger click completes. This avoids Radix DropdownMenu's pointer-down opening behavior, where releasing the same mouse press over the newly opened first item can accidentally add a GitHub Repository resource.
 
 ### Files Modified
 
