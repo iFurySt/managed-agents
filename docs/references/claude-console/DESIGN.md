@@ -494,13 +494,13 @@ single `--fw-emphasis: 500` token when the variable font is missing.
   warning text `#734500`.
 - The `+ Resource` control is the boxed secondary button variant: about
   `31px` tall, `8px` radius, hairline border, white/50 fill, subtle shadow,
-  plus icon and chevron. Its dropdown menu is portaled to the modal surface
-  rather than rendered inside the dialog body's scroll region, so it can visually
-  extend outside the dialog bounds without being clipped while still remaining
-  part of the modal interaction. The Create Session dialog content must allow
-  this overflow to be visible. Choosing an item must not close the parent Create
-  Session dialog before the resource is added. The menu opens after the trigger
-  click completes, not on trigger
+  plus icon and chevron. Its dropdown menu is a fixed-position portal rather
+  than a child of the dialog body's scroll region, so it can visually extend
+  outside the dialog bounds without disabling the dialog content's rounded-corner
+  clipping. Because Radix modal dialogs suppress pointer events on the document
+  body, the portal must explicitly set `pointer-events: auto`; choosing an item
+  must not close the parent Create Session dialog before the resource is added.
+  The menu opens after the trigger click completes, not on trigger
   pointer-down, so releasing the same mouse press cannot accidentally select
   the first resource item. Once the menu is already open, menu items may select
   on pointer-down as well as click so portal/modal hit-testing does not depend

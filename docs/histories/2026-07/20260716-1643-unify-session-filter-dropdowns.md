@@ -31,8 +31,8 @@
   - Added post-add scroll stabilization so adding multiple resources keeps the resource list end and `+ Resource` control reachable.
   - Aligned File resource details with the reference modal: red required markers, `Manage files` link on the File ID row, `Mount path` casing, and a larger gap before the next `+ Resource` control.
   - Made GitHub Repository Checkout and Memory Store Access real selectable controls with in-dialog option menus and selected-value updates.
-  - Moved the `+ Resource` menu to a portal outside the dialog scroll body so it can render above the modal surface and extend outside the dialog bounds.
-  - Mounted that portal on the dialog surface with visible overflow so resource menu items remain hoverable/clickable inside Radix modal pointer-event constraints.
+  - Moved the `+ Resource` menu to a fixed-position body portal outside the dialog scroll body so it can render above the modal surface and extend outside the dialog bounds.
+  - Kept the Create Session dialog content clipped with rounded corners, and made the body-level resource portal explicitly accept pointer events so menu items remain hoverable/clickable inside Radix modal pointer-event constraints.
 
 ### Design Intent
 
@@ -60,7 +60,7 @@ Select-like controls in resource cards must not be static buttons. They use the 
 
 The `+ Resource` menu is visually layered over the modal rather than confined by the dialog body's overflow. Outside-click logic must treat both the trigger and the portal menu as inside the same interaction so selecting a resource still adds it without dismissing the parent dialog first.
 
-When a modal uses body-level pointer-event suppression, portaling interactive content directly to `document.body` can make it visually present but non-interactive. The Resource menu is therefore portaled to the dialog surface, outside the scroll body but still inside the modal content layer, with visible overflow enabled on the dialog.
+When a modal uses body-level pointer-event suppression, body-portaled interactive content must explicitly opt back into pointer events. The Resource menu uses a fixed-position `document.body` portal with `pointer-events: auto`, while the dialog itself keeps overflow clipping so sticky footers and scroll content cannot square off the modal's rounded bottom corners.
 
 ### Files Modified
 

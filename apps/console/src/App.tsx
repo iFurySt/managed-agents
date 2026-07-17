@@ -5020,14 +5020,12 @@ function CreateSessionResourceMenu({
   function updateMenuPosition() {
     const trigger = rootRef.current?.querySelector("button");
     if (!trigger) return;
-    const portalTarget = rootRef.current?.closest("[role='dialog']");
     const rect = trigger.getBoundingClientRect();
-    const portalRect = portalTarget?.getBoundingClientRect() ?? { left: 0, top: 0 };
     const menuHeight = 104;
     const gap = 6;
     const belowTop = rect.bottom + gap;
     const top = belowTop + menuHeight > window.innerHeight - 8 ? Math.max(8, rect.top - gap - menuHeight) : belowTop;
-    setMenuPosition({ left: rect.left - portalRect.left, top: top - portalRect.top });
+    setMenuPosition({ left: rect.left, top });
   }
 
   function selectResource(kind: SessionResourceKind) {
@@ -5079,7 +5077,7 @@ function CreateSessionResourceMenu({
           ref={menuRef}
           data-cds="Menu"
           role="menu"
-          className="pointer-events-auto absolute z-[80] w-[190px] rounded-[12px] bg-white p-1 text-sm text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
+          className="pointer-events-auto fixed z-[80] w-[190px] rounded-[12px] bg-white p-1 text-sm text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
           style={{ left: menuPosition.left, top: menuPosition.top }}
         >
           {sessionResourceKinds.map((kind) => (
@@ -5100,7 +5098,7 @@ function CreateSessionResourceMenu({
             </button>
           ))}
         </div>,
-        (rootRef.current?.closest("[role='dialog']") as HTMLElement | null) ?? document.body
+        document.body
       ) : null}
     </div>
   );
@@ -5384,7 +5382,7 @@ function CreateSessionDialog({
         description="Set up an instance of your agent in its environment."
         open={open}
         onOpenChange={handleDialogOpenChange}
-        contentClassName={`flex flex-col ${dialogHeightClass} !max-h-[calc(100dvh-32px)] !overflow-visible ${dialogWidth706Class}`}
+        contentClassName={`flex flex-col ${dialogHeightClass} !max-h-[calc(100dvh-32px)] ${dialogWidth706Class}`}
         headerClassName="flex items-start justify-between pl-6 pr-4 pt-4"
         titleClassName="mt-1 text-[22px] leading-[26px] text-ink [font-weight:580]"
         descriptionClassName="mt-1 text-sm text-[#52514e]"
