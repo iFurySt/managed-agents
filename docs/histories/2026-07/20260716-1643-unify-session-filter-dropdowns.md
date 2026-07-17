@@ -29,6 +29,7 @@
   - Aligned all Create Session resource cards so GitHub Repository, File, and Memory Store fields share the same hairline borders, white fill, 35px control height, muted chevrons, and Claude-blue focus treatment.
   - Made the Resource menu open above the trigger once resource cards exist, and removed menu-open scroll resets that could place the trigger and menu outside the visible modal body.
   - Added post-add scroll stabilization so adding multiple resources keeps the resource list end and `+ Resource` control reachable.
+  - Aligned File resource details with the reference modal: red required markers, `Manage files` link on the File ID row, `Mount path` casing, and a larger gap before the next `+ Resource` control.
 
 ### Design Intent
 
@@ -49,6 +50,8 @@ Create Session reference pickers use concrete date captions for environment rows
 The Resource menu is intentionally rendered inside the dialog and opened after the trigger click completes. This avoids Radix DropdownMenu's pointer-down opening behavior, where releasing the same mouse press over the newly opened first item can accidentally add a GitHub Repository resource.
 
 Resource card fields use the same modal control vocabulary as the rest of Create Session. The warning amber palette is reserved for the credential-vault authorization block, while focus remains the Claude-blue ring. Resource menus should preserve local scroll context: opening a menu is not a reason to reset the dialog to the top, and adding several resources should keep the user near the resource editor rather than requiring manual scroll recovery.
+
+Required markers inside resource cards are independent red asterisks so they do not inherit the muted label color. Resource-specific management links belong on the relevant label row, and the next Resource button should not visually crowd an existing resource card.
 
 ### Files Modified
 

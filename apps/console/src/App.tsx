@@ -5073,6 +5073,7 @@ function CreateSessionResourceMenu({
 function CreateSessionResourceCard({ kind, onRemove }: { kind: SessionResourceKind; onRemove: () => void }) {
   const fieldClass = "grid gap-[5px]";
   const labelClass = "text-sm leading-[20px] text-[#52514e] [font-weight:430]";
+  const requiredStar = <span className="text-[#b23b32]">*</span>;
   const inputClass = "cds-focus h-[35px] w-full rounded-[8px] border border-line bg-white px-3 text-sm leading-5 text-ink outline-none placeholder:text-[#898781]";
   const resourceButtonClass = "cds-focus flex h-[35px] w-full items-center justify-between rounded-[8px] border border-line bg-white px-3 text-sm leading-5 text-ink outline-none hover:bg-fill";
   const textareaClass = "cds-focus h-[65px] w-full resize-none rounded-[8px] border border-line bg-white px-3 py-2 text-sm leading-5 text-ink outline-none placeholder:text-[#898781]";
@@ -5091,11 +5092,14 @@ function CreateSessionResourceCard({ kind, onRemove }: { kind: SessionResourceKi
       {kind === "File" ? (
         <div className="grid gap-3">
           <div className={fieldClass}>
-            <span className={labelClass}>File ID *</span>
+            <div className="flex items-center justify-between">
+              <span className={labelClass}>File ID {requiredStar}</span>
+              <DialogTextLink href="/files">Manage files</DialogTextLink>
+            </div>
             <input className={inputClass} placeholder="file_abc123..." />
           </div>
           <div className={fieldClass}>
-            <span className={labelClass}>Mount Path *</span>
+            <span className={labelClass}>Mount path {requiredStar}</span>
             <input className={inputClass} placeholder="/uploads/myfile.txt" />
             <span className="text-xs leading-4 text-[#52514e]">Must start with /uploads/</span>
           </div>
@@ -5103,11 +5107,11 @@ function CreateSessionResourceCard({ kind, onRemove }: { kind: SessionResourceKi
       ) : kind === "GitHub Repository" ? (
         <div className="grid gap-3">
           <div className={fieldClass}>
-            <span className={labelClass}>URL *</span>
+            <span className={labelClass}>URL {requiredStar}</span>
             <input className={inputClass} placeholder="https://github.com/owner/repo" />
           </div>
           <div className={fieldClass}>
-            <span className={labelClass}>Authorization Token *</span>
+            <span className={labelClass}>Authorization Token {requiredStar}</span>
             <input className={inputClass} placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" />
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -5128,7 +5132,7 @@ function CreateSessionResourceCard({ kind, onRemove }: { kind: SessionResourceKi
         <div className="grid gap-3">
           <div className={fieldClass}>
             <div className="flex items-center justify-between">
-              <span className={labelClass}>Memory store *</span>
+              <span className={labelClass}>Memory store {requiredStar}</span>
               <DialogTextLink href="/memory-stores">Manage memory stores</DialogTextLink>
             </div>
             <button type="button" role="combobox" aria-label="Memory store" className={resourceButtonClass}>
@@ -5344,14 +5348,16 @@ function CreateSessionDialog({
                   ))}
                 </div>
               ) : null}
-              <CreateSessionResourceMenu
-                openAbove={resources.length > 0}
-                onAdd={(kind) => {
-                  setResources((current) => [...current, kind]);
-                  scrollDialogToResourceEnd();
-                }}
-                onOpenChange={setDialogResourceMenu}
-              />
+              <div className={resources.length ? "pt-2" : ""}>
+                <CreateSessionResourceMenu
+                  openAbove={resources.length > 0}
+                  onAdd={(kind) => {
+                    setResources((current) => [...current, kind]);
+                    scrollDialogToResourceEnd();
+                  }}
+                  onOpenChange={setDialogResourceMenu}
+                />
+              </div>
             </div>
           </div>
           <div className="sticky bottom-0 -mx-6 mt-[37px] flex justify-end bg-white px-6 pb-[23px] pt-0">

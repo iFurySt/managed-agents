@@ -206,7 +206,8 @@ single `--fw-emphasis: 500` token when the variable font is missing.
   `8px` radius, hairline border, white fill, and the Claude-blue focus ring.
   Select-like controls such as Checkout, Access, and Memory store include the
   muted chevron and must not use the warm amber/orange warning color as focus
-  affordance.
+  affordance. Required markers inside these resource forms are a small red
+  asterisk immediately after the label text, not the same muted label color.
 
 ### Inputs & Forms
 
@@ -502,7 +503,11 @@ single `--fw-emphasis: 500` token when the variable font is missing.
   must not reset the dialog scroll position; otherwise the trigger and menu can
   be laid out outside the visible modal body. Adding a resource should keep the
   resource list end and `+ Resource` control reachable in the modal viewport so
-  users can add multiple resources without manual scroll repair.
+  users can add multiple resources without manual scroll repair. When a
+  resource card is present, leave roughly a normal field gap between the card
+  and the next `+ Resource` control. Resource-specific management links are
+  shown on the field label row when present, for example File ID exposes
+  "Manage files ↗".
 - Footer: right-aligned primary button; **disabled = `opacity: 0.5`** on the
   solid black button.
 
