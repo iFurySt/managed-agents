@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as Select from "@radix-ui/react-select";
-import { useEffect, useMemo, useRef, useState, type ButtonHTMLAttributes, type ChangeEventHandler, type ComponentProps, type DragEvent, type ReactNode, type RefObject } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type ButtonHTMLAttributes, type ChangeEventHandler, type ComponentProps, type DragEvent, type ReactNode, type RefObject } from "react";
 import { Link, Navigate, Route, Routes, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   archiveSession,
@@ -136,6 +136,8 @@ const dialogWidth520Class = `w-[min(520px,calc(100dvw-32px))] ${dialogSurfaceSha
 const dialogWidth706Class = `w-[min(706px,calc(100dvw-32px))] ${dialogSurfaceShadowClass}`;
 const dialogWidth720Class = `w-[min(720px,calc(100dvw-32px))] ${dialogSurfaceShadowClass}`;
 const sessionResourceKinds = ["GitHub Repository", "File", "Memory Store"] as const;
+const sessionResourceCheckoutOptions = ["None", "Branch", "Tag", "Commit SHA"] as const;
+const sessionResourceAccessOptions = ["Read & write", "Read only"] as const;
 type SessionResourceKind = (typeof sessionResourceKinds)[number];
 const builtInToolPermissions = [
   { name: "bash", description: "Execute bash commands" },
@@ -5070,7 +5072,88 @@ function CreateSessionResourceMenu({
   );
 }
 
+function CreateSessionResourceInlineSelect({
+  value,
+  options,
+  onValueChange,
+  ariaLabel,
+  triggerClassName
+}: {
+  value: string;
+  options: readonly string[];
+  onValueChange: (value: string) => void;
+  ariaLabel: string;
+  triggerClassName: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const selectId = useId();
+
+  useEffect(() => {
+    if (!open) return;
+    const closeOnOutsidePointer = (event: PointerEvent) => {
+      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("pointerdown", closeOnOutsidePointer);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("pointerdown", closeOnOutsidePointer);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [open]);
+
+  return (
+    <div ref={rootRef} className="relative min-w-0">
+      <button
+        type="button"
+        role="combobox"
+        aria-label={ariaLabel}
+        aria-expanded={open}
+        aria-controls={`${selectId}-resource-options`}
+        className={triggerClassName}
+        onClick={() => setOpen((current) => !current)}
+      >
+        <span>{value}</span>
+        <CdsIconGlyph glyph="" className="h-4 w-4 text-[#898781] text-[16px] [font-weight:533.25]" />
+      </button>
+      {open ? (
+        <div
+          id={`${selectId}-resource-options`}
+          data-cds="Menu"
+          role="listbox"
+          className="absolute left-0 right-0 top-[39px] z-50 rounded-[12px] bg-white p-1 text-sm text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
+        >
+          {options.map((option) => {
+            const selected = option === value;
+            return (
+              <button
+                key={option}
+                type="button"
+                role="option"
+                aria-selected={selected}
+                className="flex h-8 w-full cursor-pointer items-center justify-between whitespace-nowrap rounded-[8px] px-2.5 text-sm leading-5 text-ink outline-none hover:bg-fill focus-visible:bg-fill"
+                onClick={() => {
+                  onValueChange(option);
+                  setOpen(false);
+                }}
+              >
+                <span>{option}</span>
+                {selected ? <CdsIconGlyph glyph="" className="h-4 w-4 text-[#184f95] text-[16px] [font-weight:700]" /> : null}
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function CreateSessionResourceCard({ kind, onRemove }: { kind: SessionResourceKind; onRemove: () => void }) {
+  const [checkout, setCheckout] = useState<(typeof sessionResourceCheckoutOptions)[number]>("None");
+  const [access, setAccess] = useState<(typeof sessionResourceAccessOptions)[number]>("Read & write");
   const fieldClass = "grid gap-[5px]";
   const labelClass = "text-sm leading-[20px] text-[#52514e] [font-weight:430]";
   const requiredStar = <span className="text-[#b23b32]">*</span>;
@@ -5117,10 +5200,13 @@ function CreateSessionResourceCard({ kind, onRemove }: { kind: SessionResourceKi
           <div className="grid grid-cols-2 gap-3">
             <div className={fieldClass}>
               <span className={labelClass}>Checkout</span>
-              <button type="button" className={resourceButtonClass}>
-                <span>None</span>
-                {chevron}
-              </button>
+              <CreateSessionResourceInlineSelect
+                value={checkout}
+                options={sessionResourceCheckoutOptions}
+                onValueChange={(value) => setCheckout(value as (typeof sessionResourceCheckoutOptions)[number])}
+                ariaLabel="Checkout"
+                triggerClassName={resourceButtonClass}
+              />
             </div>
           </div>
           <div className={fieldClass}>
@@ -5142,10 +5228,13 @@ function CreateSessionResourceCard({ kind, onRemove }: { kind: SessionResourceKi
           </div>
           <div className={fieldClass}>
             <span className={labelClass}>Access</span>
-            <button type="button" className={resourceButtonClass}>
-              <span>Read &amp; write</span>
-              {chevron}
-            </button>
+            <CreateSessionResourceInlineSelect
+              value={access}
+              options={sessionResourceAccessOptions}
+              onValueChange={(value) => setAccess(value as (typeof sessionResourceAccessOptions)[number])}
+              ariaLabel="Access"
+              triggerClassName={resourceButtonClass}
+            />
           </div>
           <div className={fieldClass}>
             <span className={labelClass}>Instructions (optional)</span>

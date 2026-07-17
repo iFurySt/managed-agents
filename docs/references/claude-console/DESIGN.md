@@ -205,9 +205,10 @@ single `--fw-emphasis: 500` token when the variable font is missing.
   modal field treatment as the rest of Create Session: `35-36px` height,
   `8px` radius, hairline border, white fill, and the Claude-blue focus ring.
   Select-like controls such as Checkout, Access, and Memory store include the
-  muted chevron and must not use the warm amber/orange warning color as focus
-  affordance. Required markers inside these resource forms are a small red
-  asterisk immediately after the label text, not the same muted label color.
+  muted chevron, open a real option menu, and update their displayed value when
+  an option is selected. They must not use the warm amber/orange warning color
+  as focus affordance. Required markers inside these resource forms are a small
+  red asterisk immediately after the label text, not the same muted label color.
 
 ### Inputs & Forms
 

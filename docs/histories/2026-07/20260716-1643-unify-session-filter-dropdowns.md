@@ -30,6 +30,7 @@
   - Made the Resource menu open above the trigger once resource cards exist, and removed menu-open scroll resets that could place the trigger and menu outside the visible modal body.
   - Added post-add scroll stabilization so adding multiple resources keeps the resource list end and `+ Resource` control reachable.
   - Aligned File resource details with the reference modal: red required markers, `Manage files` link on the File ID row, `Mount path` casing, and a larger gap before the next `+ Resource` control.
+  - Made GitHub Repository Checkout and Memory Store Access real selectable controls with in-dialog option menus and selected-value updates.
 
 ### Design Intent
 
@@ -52,6 +53,8 @@ The Resource menu is intentionally rendered inside the dialog and opened after t
 Resource card fields use the same modal control vocabulary as the rest of Create Session. The warning amber palette is reserved for the credential-vault authorization block, while focus remains the Claude-blue ring. Resource menus should preserve local scroll context: opening a menu is not a reason to reset the dialog to the top, and adding several resources should keep the user near the resource editor rather than requiring manual scroll recovery.
 
 Required markers inside resource cards are independent red asterisks so they do not inherit the muted label color. Resource-specific management links belong on the relevant label row, and the next Resource button should not visually crowd an existing resource card.
+
+Select-like controls in resource cards must not be static buttons. They use the same click-open local menu pattern as the Resource menu so option selection updates the displayed value without triggering parent modal dismissal.
 
 ### Files Modified
 
