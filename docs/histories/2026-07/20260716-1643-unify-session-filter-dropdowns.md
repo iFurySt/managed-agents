@@ -31,6 +31,7 @@
   - Added post-add scroll stabilization so adding multiple resources keeps the resource list end and `+ Resource` control reachable.
   - Aligned File resource details with the reference modal: red required markers, `Manage files` link on the File ID row, `Mount path` casing, and a larger gap before the next `+ Resource` control.
   - Made GitHub Repository Checkout and Memory Store Access real selectable controls with in-dialog option menus and selected-value updates.
+  - Moved the `+ Resource` menu to a fixed-position portal so it can render above the modal surface and extend outside the dialog bounds without being clipped by the scroll body.
 
 ### Design Intent
 
@@ -55,6 +56,8 @@ Resource card fields use the same modal control vocabulary as the rest of Create
 Required markers inside resource cards are independent red asterisks so they do not inherit the muted label color. Resource-specific management links belong on the relevant label row, and the next Resource button should not visually crowd an existing resource card.
 
 Select-like controls in resource cards must not be static buttons. They use the same click-open local menu pattern as the Resource menu so option selection updates the displayed value without triggering parent modal dismissal.
+
+The `+ Resource` menu is visually layered over the modal rather than confined by the dialog body's overflow. Outside-click logic must treat both the trigger and the portal menu as inside the same interaction so selecting a resource still adds it without dismissing the parent dialog first.
 
 ### Files Modified
 

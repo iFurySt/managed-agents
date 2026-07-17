@@ -25,6 +25,7 @@ import {
 import * as Dialog from "@radix-ui/react-dialog";
 import * as Select from "@radix-ui/react-select";
 import { useEffect, useId, useMemo, useRef, useState, type ButtonHTMLAttributes, type ChangeEventHandler, type ComponentProps, type DragEvent, type ReactNode, type RefObject } from "react";
+import { createPortal } from "react-dom";
 import { Link, Navigate, Route, Routes, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   archiveSession,
@@ -5001,34 +5002,51 @@ function EditAgentDialog({
 
 function CreateSessionResourceMenu({
   onAdd,
-  onOpenChange,
-  openAbove = false
+  onOpenChange
 }: {
   onAdd: (kind: SessionResourceKind) => void;
   onOpenChange?: (open: boolean) => void;
-  openAbove?: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  const [menuPosition, setMenuPosition] = useState({ left: 0, top: 0 });
   const rootRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   function updateOpen(nextOpen: boolean) {
     setOpen(nextOpen);
     onOpenChange?.(nextOpen);
   }
 
+  function updateMenuPosition() {
+    const trigger = rootRef.current?.querySelector("button");
+    if (!trigger) return;
+    const rect = trigger.getBoundingClientRect();
+    const menuHeight = 104;
+    const gap = 6;
+    const belowTop = rect.bottom + gap;
+    const top = belowTop + menuHeight > window.innerHeight - 8 ? Math.max(8, rect.top - gap - menuHeight) : belowTop;
+    setMenuPosition({ left: rect.left, top });
+  }
+
   useEffect(() => {
     if (!open) return;
     const closeOnOutsidePointer = (event: PointerEvent) => {
-      if (!rootRef.current?.contains(event.target as Node)) updateOpen(false);
+      const target = event.target as Node;
+      if (!rootRef.current?.contains(target) && !menuRef.current?.contains(target)) updateOpen(false);
     };
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") updateOpen(false);
     };
+    updateMenuPosition();
     document.addEventListener("pointerdown", closeOnOutsidePointer);
     document.addEventListener("keydown", closeOnEscape);
+    window.addEventListener("resize", updateMenuPosition);
+    window.addEventListener("scroll", updateMenuPosition, true);
     return () => {
       document.removeEventListener("pointerdown", closeOnOutsidePointer);
       document.removeEventListener("keydown", closeOnEscape);
+      window.removeEventListener("resize", updateMenuPosition);
+      window.removeEventListener("scroll", updateMenuPosition, true);
     };
   }, [open]);
 
@@ -5040,17 +5058,22 @@ function CreateSessionResourceMenu({
           aria-haspopup="menu"
           aria-expanded={open}
           className="cds-focus inline-flex h-[31px] w-[121px] items-center justify-center gap-1.5 justify-self-start rounded-[8px] border border-line bg-white/50 px-3 text-sm text-ink shadow-[0_1px_2px_rgba(0,0,0,0.04)] outline-none [font-weight:550] hover:bg-fill"
-          onClick={() => updateOpen(!open)}
+          onClick={() => {
+            updateMenuPosition();
+            updateOpen(!open);
+          }}
         >
           <CdsIconGlyph glyph="" className="-ml-1 h-5 w-5 text-ink text-[20px] [font-weight:433.25]" />
           <span>Resource</span>
           <CdsIconGlyph glyph="" className="h-4 w-4 text-[#898781] text-[16px] [font-weight:533.25]" />
         </button>
-      {open ? (
+      {open ? createPortal(
         <div
+          ref={menuRef}
           data-cds="Menu"
           role="menu"
-          className={`absolute left-0 z-50 w-[190px] rounded-[12px] bg-white p-1 text-sm text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)] ${openAbove ? "bottom-[37px]" : "top-[37px]"}`}
+          className="fixed z-[80] w-[190px] rounded-[12px] bg-white p-1 text-sm text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
+          style={{ left: menuPosition.left, top: menuPosition.top }}
         >
           {sessionResourceKinds.map((kind) => (
             <button
@@ -5066,7 +5089,8 @@ function CreateSessionResourceMenu({
               {kind}
             </button>
           ))}
-        </div>
+        </div>,
+        document.body
       ) : null}
     </div>
   );
@@ -5439,7 +5463,6 @@ function CreateSessionDialog({
               ) : null}
               <div className={resources.length ? "pt-2" : ""}>
                 <CreateSessionResourceMenu
-                  openAbove={resources.length > 0}
                   onAdd={(kind) => {
                     setResources((current) => [...current, kind]);
                     scrollDialogToResourceEnd();
