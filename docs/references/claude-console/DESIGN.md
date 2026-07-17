@@ -494,15 +494,18 @@ single `--fw-emphasis: 500` token when the variable font is missing.
   warning text `#734500`.
 - The `+ Resource` control is the boxed secondary button variant: about
   `31px` tall, `8px` radius, hairline border, white/50 fill, subtle shadow,
-  plus icon and chevron. Its dropdown menu is a fixed-position portal above the
-  modal surface, so it can visually extend outside the dialog bounds instead of
-  being clipped by the dialog body's scroll region. The menu must still be
-  treated as part of the modal interaction for outside-click purposes: choosing
-  an item must not close the parent Create Session dialog before the resource is
-  added. The menu opens after the trigger click completes, not on trigger
+  plus icon and chevron. Its dropdown menu is portaled to the modal surface
+  rather than rendered inside the dialog body's scroll region, so it can visually
+  extend outside the dialog bounds without being clipped while still remaining
+  part of the modal interaction. The Create Session dialog content must allow
+  this overflow to be visible. Choosing an item must not close the parent Create
+  Session dialog before the resource is added. The menu opens after the trigger
+  click completes, not on trigger
   pointer-down, so releasing the same mouse press cannot accidentally select
-  the first resource item. Prefer opening below the trigger; flip above only
-  when the browser viewport bottom would clip the menu. Opening the menu must
+  the first resource item. Once the menu is already open, menu items may select
+  on pointer-down as well as click so portal/modal hit-testing does not depend
+  on a synthesized click event. Prefer opening below the trigger; flip above
+  only when the browser viewport bottom would clip the menu. Opening the menu must
   not reset the dialog scroll position; otherwise the trigger and menu can be
   laid out outside the visible modal body. Adding a resource should keep the
   resource list end and `+ Resource` control reachable in the modal viewport so
