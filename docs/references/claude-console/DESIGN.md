@@ -201,7 +201,12 @@ single `--fw-emphasis: 500` token when the variable font is missing.
   row below. Model tiles are 4-up with a colored art header band (~`120px` tall,
   radius `12px` top) over a white body listing name + capability tags.
 - Resource cards: hairline ring, `16-20px` padding, icon + title + one-line
-  description, radius `12px`.
+  description, radius `12px`. Form controls inside resource cards use the same
+  modal field treatment as the rest of Create Session: `35-36px` height,
+  `8px` radius, hairline border, white fill, and the Claude-blue focus ring.
+  Select-like controls such as Checkout, Access, and Memory store include the
+  muted chevron and must not use the warm amber/orange warning color as focus
+  affordance.
 
 ### Inputs & Forms
 
@@ -491,7 +496,13 @@ single `--fw-emphasis: 500` token when the variable font is missing.
   must not be treated as an outside click that closes the parent Create Session
   dialog. The menu must open after the trigger click completes, not on trigger
   pointer-down, so releasing the same mouse press cannot accidentally select
-  the first resource item.
+  the first resource item. When no resource has been added, the menu opens
+  below the trigger; once resource cards are present near the dialog footer, it
+  opens above the trigger to remain inside the modal viewport. Opening the menu
+  must not reset the dialog scroll position; otherwise the trigger and menu can
+  be laid out outside the visible modal body. Adding a resource should keep the
+  resource list end and `+ Resource` control reachable in the modal viewport so
+  users can add multiple resources without manual scroll repair.
 - Footer: right-aligned primary button; **disabled = `opacity: 0.5`** on the
   solid black button.
 

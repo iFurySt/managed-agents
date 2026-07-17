@@ -26,6 +26,9 @@
   - Aligned the Create Session Environment picker option metadata to use concrete console date labels and Cloud/Self-hosted neutral tag chips.
   - Restored the Create Session credential-vault authorization acknowledgement as an amber warning block.
   - Reworked the Create Session Resource menu as an in-dialog click-open menu with boxed secondary trigger styling, preventing trigger press/release from accidentally selecting the first resource item or closing the modal.
+  - Aligned all Create Session resource cards so GitHub Repository, File, and Memory Store fields share the same hairline borders, white fill, 35px control height, muted chevrons, and Claude-blue focus treatment.
+  - Made the Resource menu open above the trigger once resource cards exist, and removed menu-open scroll resets that could place the trigger and menu outside the visible modal body.
+  - Added post-add scroll stabilization so adding multiple resources keeps the resource list end and `+ Resource` control reachable.
 
 ### Design Intent
 
@@ -44,6 +47,8 @@ Some Radix Select close paths fire before the second trigger pointer event is ob
 Create Session reference pickers use concrete date captions for environment rows rather than relative "5 days ago" labels in this modal. Same-year dates render like `Jun 16`; older years include the year. Environment type is a neutral tag chip so Cloud and Self-hosted metadata aligns with the rest of the console badge system. Selecting a credential vault exposes an amber authorization block because the acknowledgement is a warning/consent action, not plain inline helper text.
 
 The Resource menu is intentionally rendered inside the dialog and opened after the trigger click completes. This avoids Radix DropdownMenu's pointer-down opening behavior, where releasing the same mouse press over the newly opened first item can accidentally add a GitHub Repository resource.
+
+Resource card fields use the same modal control vocabulary as the rest of Create Session. The warning amber palette is reserved for the credential-vault authorization block, while focus remains the Claude-blue ring. Resource menus should preserve local scroll context: opening a menu is not a reason to reset the dialog to the top, and adding several resources should keep the user near the resource editor rather than requiring manual scroll recovery.
 
 ### Files Modified
 

@@ -4997,7 +4997,15 @@ function EditAgentDialog({
   );
 }
 
-function CreateSessionResourceMenu({ onAdd, onOpenChange }: { onAdd: (kind: SessionResourceKind) => void; onOpenChange?: (open: boolean) => void }) {
+function CreateSessionResourceMenu({
+  onAdd,
+  onOpenChange,
+  openAbove = false
+}: {
+  onAdd: (kind: SessionResourceKind) => void;
+  onOpenChange?: (open: boolean) => void;
+  openAbove?: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -5040,14 +5048,14 @@ function CreateSessionResourceMenu({ onAdd, onOpenChange }: { onAdd: (kind: Sess
         <div
           data-cds="Menu"
           role="menu"
-          className="absolute left-0 top-[37px] z-50 w-[190px] rounded-[12px] bg-white p-1 text-sm text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
+          className={`absolute left-0 z-50 w-[190px] rounded-[12px] bg-white p-1 text-sm text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)] ${openAbove ? "bottom-[37px]" : "top-[37px]"}`}
         >
           {sessionResourceKinds.map((kind) => (
             <button
               key={kind}
               type="button"
               role="menuitem"
-              className="flex h-8 w-full cursor-pointer items-center whitespace-nowrap rounded-[8px] px-2.5 text-sm leading-5 text-ink outline-none data-[highlighted]:bg-fill"
+              className="flex h-8 w-full cursor-pointer items-center whitespace-nowrap rounded-[8px] px-2.5 text-sm leading-5 text-ink outline-none hover:bg-fill focus-visible:bg-fill data-[highlighted]:bg-fill"
               onClick={() => {
                 onAdd(kind);
                 updateOpen(false);
@@ -5065,8 +5073,10 @@ function CreateSessionResourceMenu({ onAdd, onOpenChange }: { onAdd: (kind: Sess
 function CreateSessionResourceCard({ kind, onRemove }: { kind: SessionResourceKind; onRemove: () => void }) {
   const fieldClass = "grid gap-[5px]";
   const labelClass = "text-sm leading-[20px] text-[#52514e] [font-weight:430]";
-  const inputClass = "h-[35px] rounded-[8px] border border-line bg-white px-3 text-sm leading-5 text-ink outline-none placeholder:text-[#898781] focus-visible:ring-2 focus-visible:ring-[#c6613f]/35";
-  const resourceButtonClass = "flex h-[35px] items-center justify-between rounded-[8px] border border-line bg-white px-3 text-sm leading-5 text-ink outline-none hover:bg-fill";
+  const inputClass = "cds-focus h-[35px] w-full rounded-[8px] border border-line bg-white px-3 text-sm leading-5 text-ink outline-none placeholder:text-[#898781]";
+  const resourceButtonClass = "cds-focus flex h-[35px] w-full items-center justify-between rounded-[8px] border border-line bg-white px-3 text-sm leading-5 text-ink outline-none hover:bg-fill";
+  const textareaClass = "cds-focus h-[65px] w-full resize-none rounded-[8px] border border-line bg-white px-3 py-2 text-sm leading-5 text-ink outline-none placeholder:text-[#898781]";
+  const chevron = <CdsIconGlyph glyph="" className="h-4 w-4 text-[#898781] text-[16px] [font-weight:533.25]" />;
 
   return (
     <div className="rounded-[8px] border border-line bg-white/50 px-3 pb-3 pt-2">
@@ -5105,6 +5115,7 @@ function CreateSessionResourceCard({ kind, onRemove }: { kind: SessionResourceKi
               <span className={labelClass}>Checkout</span>
               <button type="button" className={resourceButtonClass}>
                 <span>None</span>
+                {chevron}
               </button>
             </div>
           </div>
@@ -5122,18 +5133,19 @@ function CreateSessionResourceCard({ kind, onRemove }: { kind: SessionResourceKi
             </div>
             <button type="button" role="combobox" aria-label="Memory store" className={resourceButtonClass}>
               <span className="text-[#898781] [font-weight:430]">Select a memory store</span>
-              <CdsIconGlyph glyph="" className="h-4 w-4 text-[#898781] text-[16px] [font-weight:533.25]" />
+              {chevron}
             </button>
           </div>
           <div className={fieldClass}>
             <span className={labelClass}>Access</span>
             <button type="button" className={resourceButtonClass}>
               <span>Read &amp; write</span>
+              {chevron}
             </button>
           </div>
           <div className={fieldClass}>
             <span className={labelClass}>Instructions (optional)</span>
-            <textarea className="h-[65px] resize-none rounded-[8px] border border-line bg-white px-3 py-2 text-sm leading-5 text-ink outline-none placeholder:text-[#898781] focus-visible:ring-2 focus-visible:ring-[#c6613f]/35" placeholder="Tell the agent what this store contains and when to use it." />
+            <textarea className={textareaClass} placeholder="Tell the agent what this store contains and when to use it." />
           </div>
         </div>
       )}
@@ -5184,7 +5196,7 @@ function CreateSessionDialog({
     requestAnimationFrame(resetDialogScroll);
     window.setTimeout(resetDialogScroll, 0);
     window.setTimeout(resetDialogScroll, 80);
-  }, [open, resourceMenuOpen, resources.length]);
+  }, [open]);
 
   async function submit() {
     if (!canCreate) return;
@@ -5218,6 +5230,19 @@ function CreateSessionDialog({
     markNestedPickerClosed();
     setResourceMenuOpen(nextOpen);
     if (nextOpen) setOpenPicker(null);
+  }
+
+  function scrollDialogToResourceEnd() {
+    const scrollToEnd = () => {
+      const body = dialogBodyRef.current;
+      if (!body) return;
+      body.scrollTo({ top: body.scrollHeight });
+    };
+    requestAnimationFrame(scrollToEnd);
+    window.setTimeout(scrollToEnd, 0);
+    window.setTimeout(scrollToEnd, 80);
+    window.setTimeout(scrollToEnd, 160);
+    window.setTimeout(scrollToEnd, 300);
   }
 
   function handleDialogOpenChange(nextOpen: boolean) {
@@ -5320,8 +5345,10 @@ function CreateSessionDialog({
                 </div>
               ) : null}
               <CreateSessionResourceMenu
+                openAbove={resources.length > 0}
                 onAdd={(kind) => {
                   setResources((current) => [...current, kind]);
+                  scrollDialogToResourceEnd();
                 }}
                 onOpenChange={setDialogResourceMenu}
               />
