@@ -306,12 +306,12 @@
   .scrim {
     position: fixed; inset: 0; z-index: 40;
     background: rgba(0, 0, 0, 0.4);
-    display: flex; align-items: flex-start; justify-content: center;
-    padding: 64px 24px;
+    display: flex; align-items: center; justify-content: center;
+    padding: 16px;
   }
   .modal {
-    width: 720px; max-width: 100%; max-height: calc(100vh - 128px);
-    overflow-y: auto;
+    width: calc(100vw - 32px); max-width: 720px; max-height: calc(100vh - 32px);
+    overflow: hidden;
     background: #fff; border-radius: var(--radius-lg); padding: 24px;
     box-shadow: 0 0 0 1px var(--ring), 0 16px 40px rgba(0, 0, 0, 0.16);
   }
@@ -341,7 +341,8 @@
   }
   .warn-box .cbox { margin-top: 2px; flex: 0 0 auto; background: #fff; }
   .field-desc { font-size: 14px; line-height: 20px; color: var(--text-secondary); margin: 0 0 8px; }
-  .modal-foot { display: flex; justify-content: flex-end; margin-top: 24px; }
+  .modal-foot { display: flex; margin-top: 24px; }
+  .modal-foot .btn-primary { width: 100%; justify-content: center; }
   .btn[disabled] { opacity: 0.5; cursor: default; }
 
   /* mobile */
@@ -560,7 +561,7 @@
         <span class="field-label">Agent</span>
         <span class="field-link">Manage agents<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
       </div>
-      <span class="select"><span class="value">World Cup Daily Digest</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></span>
+      <span class="select"><span class="placeholder">Select an agent</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></span>
     </div>
 
     <div class="field">
@@ -568,7 +569,7 @@
         <span class="field-label">Environment</span>
         <span class="field-link">Manage environments<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
       </div>
-      <span class="select"><span class="value">world-cup-digest-env</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></span>
+      <span class="select"><span class="placeholder">Select an environment</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></span>
     </div>
 
     <div class="field">
@@ -576,11 +577,7 @@
         <span class="field-label">Credential vaults</span>
         <span class="field-link">Manage credential vaults<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17 17 7M9 7h8v8"/></svg></span>
       </div>
-      <span class="select"><span class="value">test_secret</span><svg class="clear" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 6 12 12M18 6 6 18"/></svg></span>
-      <div class="warn-box">
-        <span class="cbox"></span>
-        <span>I own or am authorized to use this vault. I understand this means this agent can assume the identity granted by this vault.</span>
-      </div>
+      <span class="select"><span class="placeholder">Select one or more vaults</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg></span>
     </div>
 
     <div class="field">
@@ -590,7 +587,7 @@
     </div>
 
     <div class="modal-foot">
-      <button class="btn btn-primary" disabled>Create session</button>
+      <button class="btn btn-primary">Create session</button>
     </div>
   </div>
 </div>

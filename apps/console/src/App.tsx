@@ -124,9 +124,6 @@ const sessionStatusFilterOptions = [
   { value: "Rescheduling", label: "Rescheduling" },
   { value: "Terminated", label: "Terminated" }
 ];
-const defaultSessionAgentId = sessionAgentOptions.find((option) => option.name === "World Cup Daily Digest")?.value ?? sessionAgentOptions[0]?.value ?? "";
-const defaultSessionEnvironmentId = sessionEnvironmentOptions.find((option) => option.name === "world-cup-digest-env")?.value ?? sessionEnvironmentOptions[0]?.value ?? "";
-const defaultSessionVaultId = "test_secret";
 const createSessionSelectShellClass = "flex h-8 w-full min-w-0 items-center rounded-[8px] bg-white/50 shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)]";
 const createSessionSelectTriggerClass = "cds-focus inline-flex h-8 min-w-0 flex-1 items-center gap-1.5 rounded-none border-0 bg-transparent pl-2 pr-0 text-left text-sm leading-5 text-ink outline-none";
 const createSessionSearchInputClass = "h-full min-w-0 flex-1 border-0 bg-transparent p-0 text-sm leading-5 text-ink caret-ink outline-none placeholder:text-[#898781] focus:outline-none";
@@ -5293,21 +5290,19 @@ function CreateSessionDialog({
   const [vaults, setVaults] = useState<string[]>([]);
   const [vaultAcknowledged, setVaultAcknowledged] = useState(false);
   const [resources, setResources] = useState<SessionResourceKind[]>([]);
-  const [resourceMenuOpen, setResourceMenuOpen] = useState(false);
   const [openPicker, setOpenPicker] = useState<"agent" | "environment" | "vault" | null>(null);
   const [createAgentOpen, setCreateAgentOpen] = useState(false);
   const dialogBodyRef = useRef<HTMLDivElement>(null);
   const nestedPickerClosedUntilRef = useRef(0);
-  const canCreate = Boolean(agentId && environmentId && (!vaults.length || vaultAcknowledged));
+  const canCreate = !vaults.length || vaultAcknowledged;
   const fieldLabelClass = "text-sm leading-none [font-weight:550]";
-  const dialogHeightClass = resources.length ? "h-[706px]" : resourceMenuOpen ? "h-[650px]" : "h-[606px]";
 
   useEffect(() => {
     if (!open) return;
     setTitle("");
-    setAgentId(defaultSessionAgentId);
-    setEnvironmentId(defaultSessionEnvironmentId);
-    setVaults(defaultSessionVaultId ? [defaultSessionVaultId] : []);
+    setAgentId("");
+    setEnvironmentId("");
+    setVaults([]);
     setVaultAcknowledged(false);
     setResources([]);
     setOpenPicker(null);
@@ -5353,7 +5348,6 @@ function CreateSessionDialog({
 
   function setDialogResourceMenu(nextOpen: boolean) {
     markNestedPickerClosed();
-    setResourceMenuOpen(nextOpen);
     if (nextOpen) setOpenPicker(null);
   }
 
@@ -5382,7 +5376,7 @@ function CreateSessionDialog({
         description="Set up an instance of your agent in its environment."
         open={open}
         onOpenChange={handleDialogOpenChange}
-        contentClassName={`flex flex-col ${dialogHeightClass} !max-h-[calc(100dvh-32px)] ${dialogWidth706Class}`}
+        contentClassName={`flex flex-col ${dialogWidth720Class} !max-h-[calc(100dvh-32px)]`}
         headerClassName="flex items-start justify-between pl-6 pr-4 pt-4"
         titleClassName="mt-1 text-[22px] leading-[26px] text-ink [font-weight:580]"
         descriptionClassName="mt-1 text-sm text-[#52514e]"
@@ -5480,9 +5474,9 @@ function CreateSessionDialog({
               </div>
             </div>
           </div>
-          <div className="sticky bottom-0 -mx-6 mt-[37px] flex justify-end bg-white px-6 pb-[23px] pt-0">
-            <Button className="h-[31px] w-[122px] !gap-1.5 !rounded-[8px] !px-3 [font-weight:550]" onClick={submit} disabled={!canCreate}>Create session</Button>
-          </div>
+        </div>
+        <div className="flex-shrink-0 px-6 pb-6 pt-8">
+          <Button className="h-8 w-full !gap-1.5 !rounded-[8px] !px-3 [font-weight:550]" onClick={submit} disabled={!canCreate}>Create session</Button>
         </div>
       </ConsoleDialog>
       <CreateAgentDialog
@@ -8948,7 +8942,7 @@ function AskClaudeDialog({
   if (!open) return null;
 
   return (
-    <aside className="fixed bottom-0 right-0 top-0 z-50 w-[368px] border-l border-line bg-white shadow-[-4px_0_10px_rgba(0,0,0,0.04)]">
+    <aside className="fixed bottom-0 right-0 top-0 z-50 w-[min(368px,100dvw)] border-l border-line bg-white shadow-[-4px_0_10px_rgba(0,0,0,0.04)]">
       <div className="absolute left-0 top-0 h-full w-px bg-line" />
       <Button variant="ghost" className="absolute right-3 top-3 z-20 h-7 w-7 rounded-[7px] px-0" aria-label="Close" onClick={() => onOpenChange(false)}>
         ×

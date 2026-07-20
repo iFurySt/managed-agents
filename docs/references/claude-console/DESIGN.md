@@ -472,8 +472,9 @@ single `--fw-emphasis: 500` token when the variable font is missing.
 
 ### Modal dialog (Create session)
 
-- Scrim `rgba(0,0,0,0.4)`; modal width `720px`, white, radius `12px`, padding
-  `24px`, ring + soft shadow.
+- Scrim `rgba(0,0,0,0.4)`; modal target width `720px`, white, radius `12px`,
+  ring + soft shadow. Height is content-adaptive until it reaches the viewport
+  cap.
 - Modal width is a target, not a minimum: cap every dialog with
   `min(target-width, calc(100dvw - 32px))` and cap height with
   `calc(100dvh - 32px)`. Dialog bodies that can exceed the cap must be the
@@ -485,6 +486,9 @@ single `--fw-emphasis: 500` token when the variable font is missing.
 - Field blocks stack with `20px` gaps: label row (label 14px/550 ink, optional
   right-aligned **blue link `#184F95`** "Manage agents ↗" with a 12px external
   arrow) above a 36px field.
+- The dialog opens with empty Agent, Environment, and Credential vaults fields
+  showing placeholders. The primary button remains enabled in that empty state;
+  the local API applies default agent/environment values when omitted.
 - Environment picker options show name above metadata. Metadata is a
   concrete date label (`Jun 16` for same-year dates; include the year for older
   years, e.g. `Jun 16, 2025`), a muted dot separator, and a neutral tag pill
@@ -514,8 +518,8 @@ single `--fw-emphasis: 500` token when the variable font is missing.
   and the next `+ Resource` control. Resource-specific management links are
   shown on the field label row when present, for example File ID exposes
   "Manage files ↗".
-- Footer: right-aligned primary button; **disabled = `opacity: 0.5`** on the
-  solid black button.
+- Footer: full-width primary button with `24px` side/bottom inset;
+  **disabled = `opacity: 0.5`** on the solid black button.
 
 ### Modal dialog (Credential vaults)
 
@@ -610,6 +614,8 @@ single `--fw-emphasis: 500` token when the variable font is missing.
   (13px, emphasis weight, ink). Right-aligned: "Actions ▾" secondary button +
   a black primary **"Ask Claude"** button with an orange starburst icon
   (`#D97757`).
+- **Ask Claude panel**: right-docked panel target width `368px`, capped at
+  `100dvw` so narrow viewports never place the panel outside the visible page.
 - **Title block**: h1 22px/550 + status pill inline; below it a meta row (14px
   `#52514E`): agent reference chip · environment chip · duration (timer icon) ·
   tokens `in / out` · relative time, separated by `·` dots.
