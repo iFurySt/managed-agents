@@ -83,8 +83,6 @@ Values are the observed computed colors. `#0B0B0B` is expressed by the app as
   outline and focus-ring blue.
 - **Tool neutral** (`#F6F6F4` fill, `#52514E` text; ticks
   `rgba(139,138,133,0.7)`).
-- **Ask Claude spark** (`#D97757`): the only warm-orange accent, used for the
-  starburst icon inside the black "Ask Claude" button.
 
 ### Model Art Tiles (Dashboard only)
 
@@ -620,11 +618,9 @@ single `--fw-emphasis: 500` token when the variable font is missing.
 ### Session detail page (transcript viewer)
 
 - **Breadcrumb row**: "Sessions" (14px muted, hover ink) `/` mono ID
-  (13px, emphasis weight, ink). Right-aligned: "Actions ▾" secondary button +
-  a black primary **"Ask Claude"** button with an orange starburst icon
-  (`#D97757`).
-- **Ask Claude panel**: right-docked panel target width `368px`, capped at
-  `100dvw` so narrow viewports never place the panel outside the visible page.
+  (13px, emphasis weight, ink). Right-aligned: "Actions ▾" secondary button.
+  This project intentionally omits the Claude Console reference's Ask Claude
+  button and right-docked Ask Claude panel.
 - **Title block**: h1 22px/550 + status pill inline; below it a meta row (14px
   `#52514E`): agent reference chip · environment chip · duration (timer icon) ·
   tokens `in / out` · relative time, separated by `·` dots.

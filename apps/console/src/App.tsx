@@ -11,15 +11,11 @@ import {
   Gauge,
   Home,
   Lock,
-  MessageSquare,
   Pause,
   Plus,
   Search,
-  Send,
   Settings,
   Shield,
-  Sparkles,
-  Terminal,
   Trash2,
   Wrench
 } from "lucide-react";
@@ -1379,7 +1375,6 @@ function SessionDetailPage() {
   const [eventSearch, setEventSearch] = useState("");
   const [detailEvent, setDetailEvent] = useState<string | null>(null);
   const [detailClosed, setDetailClosed] = useState(false);
-  const [askOpen, setAskOpen] = useState(false);
   const [archiveOpen, setArchiveOpen] = useState(false);
   const eventParam = searchParams.get("event");
 
@@ -1452,13 +1447,8 @@ function SessionDetailPage() {
           <SessionDetailActions
             session={session}
             onSendInterrupt={sendInterrupt}
-            onSendEvent={() => setAskOpen(true)}
             onArchive={() => setArchiveOpen(true)}
           />
-          <Button className="w-[132px] gap-1.5" onClick={() => setAskOpen(true)}>
-            <Sparkles className="h-4 w-4 text-[#d97757]" fill="currentColor" strokeWidth={1.8} />
-            Ask Claude
-          </Button>
         </div>
       </div>
 
@@ -1609,15 +1599,6 @@ function SessionDetailPage() {
           </DetailSection>
         </CdsTabs.Content>
       </CdsTabs.Root>
-      <AskClaudeDialog
-        session={session}
-        open={askOpen}
-        onOpenChange={setAskOpen}
-        onUpdated={(updated) => {
-          setSession(updated);
-          setAskOpen(false);
-        }}
-      />
       <SessionArchiveDialog open={archiveOpen} onOpenChange={setArchiveOpen} onConfirm={archiveCurrentSession} />
     </section>
   );
@@ -8972,12 +8953,10 @@ function DeploymentActions({
 function SessionDetailActions({
   session,
   onSendInterrupt,
-  onSendEvent,
   onArchive
 }: {
   session: Session;
   onSendInterrupt: () => void;
-  onSendEvent: () => void;
   onArchive: () => void;
 }) {
   const archived = session.status === "Archived";
@@ -9003,13 +8982,6 @@ function SessionDetailActions({
             <Pause className="h-4 w-4 text-muted" />
             Send interrupt
           </CdsDropdownMenu.Item>
-          <CdsDropdownMenu.Item
-            className={cdsMenuItemClass}
-            onSelect={onSendEvent}
-          >
-            <Terminal className="h-4 w-4 text-muted" />
-            Send event…
-          </CdsDropdownMenu.Item>
           <CdsDropdownMenu.Separator className={cdsMenuSeparatorClass} />
           <CdsDropdownMenu.Item
             className={cdsMenuItemClass}
@@ -9022,100 +8994,6 @@ function SessionDetailActions({
         </CdsDropdownMenu.Content>
       </CdsDropdownMenu.Portal>
     </CdsDropdownMenu.Root>
-  );
-}
-
-function AskClaudeDialog({
-  session,
-  open,
-  onOpenChange,
-  onUpdated
-}: {
-  session: Session;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  onUpdated: (session: Session) => void;
-}) {
-  const [message, setMessage] = useState("");
-  const canSend = message.trim().length > 0;
-  const suggestions = [
-    {
-      title: "Identify errors",
-      description: "Find errors, exceptions, or failed operations during the session.",
-      prompt: "Identify errors, exceptions, or failed operations during this session."
-    },
-    {
-      title: "Analyze performance",
-      description: "Review tool execution times, timeouts, and performance bottlenecks.",
-      prompt: "Analyze this session for performance bottlenecks, slow tool calls, and timeouts."
-    },
-    {
-      title: "Trace conversation flow",
-      description: "Follow the conversation logic and key decision points throughout the session.",
-      prompt: "Trace the conversation flow and summarize the key decision points in this session."
-    },
-    {
-      title: "Suggest improvements",
-      description: "Get recommendations for better prompting, tool usage, and user experience.",
-      prompt: "Suggest improvements for prompting, tool usage, and user experience based on this session."
-    }
-  ];
-
-  async function submit() {
-    if (!canSend) return;
-    const updated = await createSessionMessage(session.id, message);
-    onUpdated(updated);
-    setMessage("");
-  }
-
-  if (!open) return null;
-
-  return (
-    <aside className="fixed bottom-0 right-0 top-0 z-50 w-[min(368px,100dvw)] border-l border-line bg-white shadow-[-4px_0_10px_rgba(0,0,0,0.04)]">
-      <div className="absolute left-0 top-0 h-full w-px bg-line" />
-      <Button variant="ghost" className="absolute right-3 top-3 z-20 h-7 w-7 rounded-[7px] px-0" aria-label="Close" onClick={() => onOpenChange(false)}>
-        ×
-      </Button>
-      <div className="flex h-full flex-col">
-        <div className="flex-1 overflow-y-auto p-4 pt-12">
-          <div className="flex h-full flex-col items-center justify-center text-center">
-            <h2 className="text-xl font-semibold leading-7">How can I help?</h2>
-            <div className="mt-4 w-full space-y-3">
-              {suggestions.map((suggestion) => (
-                <button
-                  key={suggestion.title}
-                  className="w-full rounded-xl border border-line bg-[#fcfcfb] p-3 text-left transition hover:bg-white"
-                  onClick={() => setMessage(suggestion.prompt)}
-                >
-                  <div className="text-sm leading-5 [font-weight:550]">{suggestion.title}</div>
-                  <div className="mt-1 text-xs leading-4 text-muted">{suggestion.description}</div>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-        <form
-          className="p-3 pt-0"
-          onSubmit={(event) => {
-            event.preventDefault();
-            void submit();
-          }}
-        >
-          <div className="flex min-h-[69px] cursor-text items-end gap-2 overflow-hidden rounded-2xl border border-line bg-white p-2 pl-4 shadow-sm">
-            <textarea
-              aria-label="Ask about this session..."
-              className="min-h-[52px] max-h-[200px] min-w-0 flex-1 resize-none border-0 bg-transparent px-0 py-1.5 text-sm leading-5 text-ink outline-none placeholder:text-muted"
-              placeholder="Ask about this session..."
-              value={message}
-              onChange={(event) => setMessage(event.target.value)}
-            />
-            <Button className="h-8 w-8 rounded-[8px] !bg-[#c6613f] px-0 hover:!bg-[#b95435]" aria-label="Send message" disabled={!canSend} type="submit">
-              <Send className="h-4 w-4" />
-            </Button>
-          </div>
-        </form>
-      </div>
-    </aside>
   );
 }
 
