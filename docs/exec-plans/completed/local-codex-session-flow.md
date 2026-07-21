@@ -61,3 +61,9 @@ chat content in the session detail page.
   on the session detail page, the message composer is present, the removed Ask
   Claude control stays absent, and the page has no horizontal scroll at the
   checked desktop viewport.
+- OBU smoke on `http://localhost:5173` created a local agent, environment, and
+  session, posted a message through the composer, ran `sandbox-codex`, and
+  verified the Codex response rendered in the transcript. The follow-up layout
+  comparison against the Claude Console reference matched the key horizontal
+  anchors: page content `x=80`, row start `x=48`, and transcript row width
+  within 2px of the reference sample.

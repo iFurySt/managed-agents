@@ -1492,7 +1492,7 @@ function SessionDetailPage() {
   }
 
   return (
-    <section className="-mx-2 flex min-h-[calc(100dvh-48px)] w-full min-w-0 max-w-[1600px] flex-col">
+    <section className="flex min-h-[calc(100dvh-48px)] w-full min-w-0 max-w-[1600px] flex-col">
       <div className="-mt-2 mb-4 flex min-h-9 w-full min-w-0 flex-wrap items-center justify-between gap-3">
         <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-2 text-sm text-muted">
           <Link className="shrink-0 rounded-control px-3 py-1.5 hover:bg-fill" to="/sessions">
@@ -1588,7 +1588,7 @@ function SessionDetailPage() {
           </div>
         </div>
         <SessionTimeline events={session.events ?? []} selectedEventId={detailEvent} />
-        <CdsTabs.Content value="transcript" className={`-mx-8 mt-3 grid min-w-0 flex-1 border-t border-line ${selectedEvent ? "grid-cols-1 md:grid-cols-[minmax(0,1.38fr)_minmax(300px,1fr)]" : "grid-cols-1"}`}>
+        <CdsTabs.Content value="transcript" className={`-mx-8 mt-3 grid min-w-0 flex-1 border-t border-line ${selectedEvent ? "grid-cols-1 md:grid-cols-[minmax(0,1.18fr)_minmax(320px,1fr)]" : "grid-cols-1"}`}>
           <div className="min-w-0 overflow-y-auto py-2">
             <div className="flex min-w-0 flex-col">
               {filteredEvents.map((event) => (

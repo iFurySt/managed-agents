@@ -640,11 +640,15 @@ single `--fw-emphasis: 500` token when the variable font is missing.
   `rgba(196,102,134,0.8)`, Tool gray `rgba(139,138,133,0.7)`, Agent blue
   `rgba(37,107,193,0.8)`; idle stretches render as faint diagonal hatching;
   the playhead is a white bar with a 2px blue `#256BC1` outline.
-- **Two panes** under a full-width hairline: transcript list (left, ~58%) and
-  a detail panel (right, ~42%, hairline left border, `16px 24px` padding).
+- **Two panes** under a full-width hairline: transcript list (left, ~54%) and
+  a detail panel (right, ~46%, hairline left border, `16px 24px` padding).
   The panes and the breadcrumb/action row are container-responsive; do not use
   fixed composite widths such as `984px`/`1016px` that push the detail panel or
   top actions out of split-screen viewports.
+  In the collapsed-sidebar desktop reference viewport, the page content starts
+  at `x=80`, the timeline starts at `x=80`, and transcript rows extend from
+  `x=48` to roughly `x=665`; avoid negative outer margins that shift the
+  session detail page 8px left of the rest of the console shell.
 - **Transcript rows**: height `36px`, padding `0 32px`, hover
   `rgba(11,11,11,0.05)`, **selected `rgba(11,11,11,0.10)`** (stronger than
   hover). Row = role pill + text (tool rows: tool name in ink + command in

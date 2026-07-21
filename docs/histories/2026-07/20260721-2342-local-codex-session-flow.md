@@ -12,6 +12,10 @@ event in the session detail page.
 - Added a generic session message composer to the session detail page. It posts
   user turns through the existing session message API, polls while work is
   queued/running, and keeps the removed Ask Claude control absent.
+- Aligned the session detail page with the Claude Console reference at the
+  checked desktop viewport by removing the page-level negative margin and
+  narrowing the transcript/detail split so transcript rows land at the same
+  `x=48` start and approximately the same width as the reference.
 - Changed session message creation to mark the user event and session as
   `Queued`, so the console can detect that a worker turn is pending.
 - Switched Create Session agent and environment pickers from static-only
@@ -41,6 +45,14 @@ event in the session detail page.
 - Browser smoke on `http://127.0.0.1:5174` confirmed the Codex response renders,
   the composer is present, Ask Claude is absent, and there is no horizontal
   scroll at the checked desktop viewport.
+- OBU smoke on `http://localhost:5173` created a local agent, environment, and
+  session, posted a session message through the page composer, ran the queued
+  turn with `sandbox-codex`, and verified the Codex response rendered in the
+  session transcript.
+- OBU layout comparison against the Claude Console reference URL verified the
+  local session detail page now starts at `x=80`, transcript rows start at
+  `x=48`, row width is within 2px of the reference sample, and there is no
+  horizontal scroll.
 
 ## Files
 
