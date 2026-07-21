@@ -479,6 +479,10 @@ single `--fw-emphasis: 500` token when the variable font is missing.
   `min(target-width, calc(100dvw - 32px))` and cap height with
   `calc(100dvh - 32px)`. Dialog bodies that can exceed the cap must be the
   scrolling region; headers and footers remain visible inside the modal.
+- The modal layer must visually own the whole viewport: scrim and content sit
+  above both expanded/collapsed sidebars and collapsed-sidebar flyouts. Do not
+  raise sidebar chrome above Radix dialog content; otherwise narrow centered
+  dialogs appear clipped by the rail even when their width cap is correct.
 - Controls inside modal bodies must be `w-full`/`min-w-0` and responsive grid
   tracks (`minmax(0, 1fr)`) rather than fixed pixel tracks that can force the
   dialog wider than its viewport cap.
