@@ -185,6 +185,13 @@ const editorSelectTriggerClass = `rounded-none !border-transparent !bg-transpare
 const credentialSelectTriggerClass = "rounded-none !border-transparent !bg-transparent px-0 transition-colors duration-100";
 const editorToolbarButtonClass = `rounded-[8px] bg-transparent [font-weight:550] ${editorControlInteractionClass}`;
 const editorToolbarImportantButtonClass = `rounded-[8px] !bg-transparent [font-weight:550] ${editorImportantControlInteractionClass}`;
+const sessionDetailToolbarButtonClass =
+  "!h-7 !w-7 !rounded-[8px] !bg-transparent !text-[#52514e] hover:!bg-fill active:scale-[0.975] active:!bg-fill ![font-weight:500]";
+const sessionDetailToolbarIconClass = "h-4 w-4 text-current text-[16px] [font-weight:533.25]";
+const sessionDetailFilterShellClass =
+  "inline-flex h-7 w-[97px] shrink-0 items-center rounded-[8px] bg-transparent pr-2 text-sm leading-5 text-[#52514e]";
+const sessionDetailFilterTriggerClass =
+  "!h-7 !min-w-0 !gap-1.5 !px-0 !text-[#52514e] !shadow-none ![font-weight:500]";
 const editorToolbarTabClass = (selected: boolean) =>
   `transition-[background-color,color,transform] duration-100 rounded-full px-[10px] [font-weight:550] hover:bg-fill active:scale-[0.975] active:bg-fill ${
     selected ? "bg-fill text-ink" : "text-muted"
@@ -1493,7 +1500,7 @@ function SessionDetailPage() {
 
   return (
     <section className="flex min-h-[calc(100dvh-48px)] w-full min-w-0 max-w-[1600px] flex-col">
-      <div className="-mt-2 mb-4 flex min-h-9 w-full min-w-0 flex-wrap items-center justify-between gap-3">
+      <div className="-mt-3 mb-4 flex min-h-9 w-full min-w-0 flex-wrap items-center justify-between gap-3">
         <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-2 text-sm text-muted">
           <Link className="shrink-0 rounded-control px-3 py-1.5 hover:bg-fill" to="/sessions">
             Sessions
@@ -1560,9 +1567,16 @@ function SessionDetailPage() {
               ))}
             </CdsTabs.List>
             <span aria-hidden="true" className="h-5 w-px bg-line" />
-            <FieldSelect label="" value={eventFilter} options={["All events", "User", "Agent", "Tool", "System"]} onValueChange={setEventFilter} triggerClassName="!h-7 min-w-[97px] px-2" />
-            <Button variant="icon" className="h-7 w-7 text-[#52514e]" aria-label="Open search filter" onClick={() => setEventSearchOpen((open) => !open)}>
-              <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
+            <FieldSelect
+              label=""
+              value={eventFilter}
+              options={["All events", "User", "Agent", "Tool", "System"]}
+              onValueChange={setEventFilter}
+              triggerShellClassName={sessionDetailFilterShellClass}
+              triggerClassName={sessionDetailFilterTriggerClass}
+            />
+            <Button variant="icon" className={sessionDetailToolbarButtonClass} aria-label="Open search filter" onClick={() => setEventSearchOpen((open) => !open)}>
+              <CdsIconGlyph glyph="" className={sessionDetailToolbarIconClass} />
             </Button>
             {eventSearchOpen ? (
               <div className="relative w-[220px]">
@@ -1578,12 +1592,12 @@ function SessionDetailPage() {
             ) : null}
           </div>
           <div className="flex shrink-0 gap-2">
-            <Button variant="icon" className="h-7 w-7 text-[#52514e]" aria-label="Keyboard shortcuts">
-              <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
+            <Button variant="icon" className={sessionDetailToolbarButtonClass} aria-label="Keyboard shortcuts">
+              <CdsIconGlyph glyph="" className={sessionDetailToolbarIconClass} />
             </Button>
-            <CopyIconButton value={transcriptText} ariaLabel="Copy all" className="h-7 w-7 !px-0 text-[#52514e]" iconClassName="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
-            <Button variant="icon" className="h-7 w-7 text-[#52514e]" aria-label="Download" onClick={() => downloadText(`${session.id}-transcript.txt`, transcriptText)}>
-              <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
+            <CopyIconButton value={transcriptText} ariaLabel="Copy all" className={`${sessionDetailToolbarButtonClass} !px-0`} iconClassName={sessionDetailToolbarIconClass} />
+            <Button variant="icon" className={sessionDetailToolbarButtonClass} aria-label="Download" onClick={() => downloadText(`${session.id}-transcript.txt`, transcriptText)}>
+              <CdsIconGlyph glyph="" className={sessionDetailToolbarIconClass} />
             </Button>
           </div>
         </div>
@@ -1651,17 +1665,18 @@ function SessionDetailPage() {
             </aside>
           ) : null}
         </CdsTabs.Content>
-        <CdsTabs.Content value="debug" className="py-8">
-          <DetailSection title="Mounted resources">
-            <pre className="whitespace-pre-wrap rounded-cds border border-line bg-white p-4 font-mono text-sm text-[#3f3a35]">{session.resources || "No resources mounted."}</pre>
-          </DetailSection>
+        <CdsTabs.Content value="debug" className="-mx-8 mt-3 flex-1 border-t border-line px-8 py-5">
+          <div className="max-w-[640px] text-sm">
+            <h2 className="text-[16px] leading-6 text-ink [font-weight:550]">Mounted resources</h2>
+            <pre className="mt-3 whitespace-pre-wrap font-mono text-sm leading-5 text-[#52514e]">{session.resources || "No resources mounted."}</pre>
+          </div>
         </CdsTabs.Content>
       </CdsTabs.Root>
-      <form className="mt-4 flex min-w-0 items-end gap-2 border-t border-line pt-3" onSubmit={sendSessionMessage}>
+      <form className="mt-3 flex min-w-0 items-center gap-2 border-t border-line bg-canvas pt-2" onSubmit={sendSessionMessage}>
         <label className="sr-only" htmlFor="session-message-composer">Session message</label>
         <textarea
           id="session-message-composer"
-          className="cds-focus min-h-[42px] flex-1 resize-y rounded-[8px] border border-line bg-white px-3 py-2 text-sm leading-5 text-ink outline-none placeholder:text-[#898781]"
+          className="cds-focus h-8 min-h-8 flex-1 resize-none rounded-[8px] border-0 bg-white/50 px-3 py-[5px] text-sm leading-5 text-ink shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1)] outline-none placeholder:text-[#898781]"
           placeholder="Message this session"
           value={messageDraft}
           onChange={(event) => setMessageDraft(event.target.value)}
@@ -1671,7 +1686,7 @@ function SessionDetailPage() {
             }
           }}
         />
-        <Button className="h-[42px] shrink-0 !rounded-[8px] px-3 [font-weight:550]" type="submit" disabled={messageSending || !messageDraft.trim()}>
+        <Button className="h-8 shrink-0 !rounded-[8px] px-3 [font-weight:550]" type="submit" disabled={messageSending || !messageDraft.trim()}>
           <SendHorizontal className="h-4 w-4" />
           Send
         </Button>
@@ -9098,7 +9113,7 @@ function SessionDetailActions({
   return (
     <CdsDropdownMenu.Root>
       <CdsDropdownMenu.Trigger asChild>
-        <Button variant="secondary" className="w-[96px]">
+        <Button variant="ghost" className="h-8 w-[96px] !rounded-[8px] !bg-transparent px-3 !text-ink hover:!bg-fill ![font-weight:500]">
           Actions
           <ChevronDown className="h-4 w-4" />
         </Button>

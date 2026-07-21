@@ -622,7 +622,9 @@ single `--fw-emphasis: 500` token when the variable font is missing.
 ### Session detail page (transcript viewer)
 
 - **Breadcrumb row**: "Sessions" (14px muted, hover ink) `/` mono ID
-  (13px, emphasis weight, ink). Right-aligned: "Actions ▾" secondary button.
+  (13px, emphasis weight, ink). Right-aligned: "Actions ▾" is a transparent
+  ghost button, 32px tall, 96px wide, 8px radius, 500 weight; do not give it a
+  visible secondary-button border.
   This project intentionally omits the Claude Console reference's Ask Claude
   button and right-docked Ask Claude panel.
 - **Title block**: h1 22px/550 + status pill inline; below it a meta row (14px
@@ -633,8 +635,10 @@ single `--fw-emphasis: 500` token when the variable font is missing.
   radius `6px`, hairline ring + `0 1px 2px rgba(0,0,0,0.04)`, ink text; idle
   segment text `#52514E`. A small 12px variant (Rendered | Raw | Deltas) is
   `24px` tall, radius `6px`.
-- **Toolbar**: segmented control, 1px divider, "All events ▾" filter (28px),
-  search icon button; right-aligned icon buttons (shortcuts / copy / download).
+- **Toolbar**: segmented control, 1px divider, "All events ▾" filter (28px)
+  using a transparent shell + borderless trigger, search icon button;
+  right-aligned icon buttons (shortcuts / copy / download). These controls are
+  hover-fill buttons, not bordered secondary buttons.
 - **Timeline scrubber**: full-width track, height `28px`, radius `8px`, fill
   `#F6F6F4`; event ticks are `24px` tall rounded-`4px` bars — User rose
   `rgba(196,102,134,0.8)`, Tool gray `rgba(139,138,133,0.7)`, Agent blue
@@ -669,10 +673,13 @@ single `--fw-emphasis: 500` token when the variable font is missing.
   content sits in a card (`#FAFAF8`, radius `8px`, hairline ring, `16px`
   padding) — tables inside use 12px cells, hairline cell borders, mono values
   in faint code chips.
+- **Debug panel**: share the transcript surface's top hairline and page inset.
+  Render diagnostic text directly on canvas without an extra bordered card.
 - **Message composer**: a compact bottom composer belongs below the transcript
-  surface, separated by a top hairline. It uses a white textarea with 8px radius
-  and a black primary `Send` button with a send icon. This is a generic session
-  message control and must not be labeled "Ask Claude".
+  surface, separated by a top hairline. It uses a 32px-high white/50 textarea
+  with 8px radius and an inset hairline ring, plus a 32px black primary `Send`
+  button with a send icon. This is a generic session message control and must
+  not be labeled "Ask Claude".
 
 ### Navigation
 
