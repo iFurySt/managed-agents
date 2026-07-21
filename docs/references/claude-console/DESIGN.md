@@ -642,6 +642,9 @@ single `--fw-emphasis: 500` token when the variable font is missing.
   the playhead is a white bar with a 2px blue `#256BC1` outline.
 - **Two panes** under a full-width hairline: transcript list (left, ~58%) and
   a detail panel (right, ~42%, hairline left border, `16px 24px` padding).
+  The panes and the breadcrumb/action row are container-responsive; do not use
+  fixed composite widths such as `984px`/`1016px` that push the detail panel or
+  top actions out of split-screen viewports.
 - **Transcript rows**: height `36px`, padding `0 32px`, hover
   `rgba(11,11,11,0.05)`, **selected `rgba(11,11,11,0.10)`** (stronger than
   hover). Row = role pill + text (tool rows: tool name in ink + command in

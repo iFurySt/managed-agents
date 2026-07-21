@@ -18,6 +18,7 @@ import {
   Send,
   Settings,
   Shield,
+  Sparkles,
   Terminal,
   Trash2,
   Wrench
@@ -1402,7 +1403,7 @@ function SessionDetailPage() {
       return;
     }
     if (!eventParam && !detailEvent && !detailClosed && events.length) {
-      setDetailEvent(events[0].id);
+      setDetailEvent(events[events.length - 1].id);
     }
   }, [detailClosed, detailEvent, eventParam, session]);
 
@@ -1438,56 +1439,57 @@ function SessionDetailPage() {
   }
 
   return (
-    <section className="flex max-w-[952px] flex-col">
-      <div className="-ml-8 -mt-3 mb-4 flex h-9 w-[984px] items-center justify-between">
-        <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-sm text-muted">
-          <Link className="rounded-control px-3 py-1.5 hover:bg-fill" to="/sessions">
+    <section className="-mx-2 flex min-h-[calc(100dvh-48px)] w-full min-w-0 max-w-[1600px] flex-col">
+      <div className="-mt-2 mb-4 flex min-h-9 w-full min-w-0 flex-wrap items-center justify-between gap-3">
+        <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-2 text-sm text-muted">
+          <Link className="shrink-0 rounded-control px-3 py-1.5 hover:bg-fill" to="/sessions">
             Sessions
           </Link>
-          <span>/</span>
-          <span className="font-mono text-ink">{shortId(session.id)}</span>
+          <span className="shrink-0">/</span>
+          <span className="min-w-0 truncate font-mono text-[13px] text-ink [font-weight:550]">{shortId(session.id)}</span>
         </nav>
-        <div className="flex gap-2">
+        <div className="flex shrink-0 gap-2">
           <SessionDetailActions
             session={session}
             onSendInterrupt={sendInterrupt}
             onSendEvent={() => setAskOpen(true)}
             onArchive={() => setArchiveOpen(true)}
           />
-          <Button className="w-[116px]" onClick={() => setAskOpen(true)}>
+          <Button className="w-[132px] gap-1.5" onClick={() => setAskOpen(true)}>
+            <Sparkles className="h-4 w-4 text-[#d97757]" fill="currentColor" strokeWidth={1.8} />
             Ask Claude
           </Button>
         </div>
       </div>
 
-      <div>
-        <div className="flex items-center gap-4">
-          <h1 className="text-[22px] font-semibold leading-7 tracking-[-0.01em]">{session.name}</h1>
-          <span className={`inline-flex h-5 items-center rounded-md px-2 text-xs font-semibold ${session.status === "Idle" ? "bg-fill text-[#52514e]" : "bg-[#caeac7] text-[#006300]"}`}>
+      <div className="min-w-0">
+        <div className="flex min-w-0 flex-wrap items-center gap-2.5">
+          <h1 className="min-w-0 truncate text-[22px] leading-7 [font-weight:550]">{session.name}</h1>
+          <span className={`inline-flex h-5 shrink-0 items-center rounded-[5px] px-2 text-xs leading-[15px] [font-weight:550] ${session.status === "Idle" ? "bg-fill text-[#52514e]" : "bg-[#caeac7] text-[#006300]"}`}>
             {session.status}
           </span>
         </div>
-        <div className="mt-2 flex h-[25px] flex-wrap items-center gap-2 text-sm text-muted">
-          <Button variant="ghost" className="h-[25px] px-2 font-normal text-[#4e4a45]">
+        <div className="mt-2 flex min-h-[25px] min-w-0 flex-wrap items-center gap-2 text-sm text-[#52514e]">
+          <Button variant="ghost" className="h-[25px] max-w-full px-2 font-normal text-[#4e4a45]">
             <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
-            {session.agentName}
+            <span className="truncate">{session.agentName}</span>
           </Button>
-          <span>·</span>
-          <Button variant="ghost" className="h-[25px] px-2 font-normal text-[#4e4a45]">
+          <span className="text-muted">·</span>
+          <Button variant="ghost" className="h-[25px] max-w-full px-2 font-normal text-[#4e4a45]">
             <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
-            {session.environmentName}
+            <span className="truncate">{session.environmentName}</span>
           </Button>
-          <span>·</span>
+          <span className="text-muted">·</span>
           <span className="inline-flex items-center gap-1">
             <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
             {session.duration}
           </span>
-          <span>·</span>
+          <span className="text-muted">·</span>
           <span className="inline-flex items-center gap-1">
             <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
             {session.tokens}
           </span>
-          <span>·</span>
+          <span className="text-muted">·</span>
           <span className="inline-flex items-center gap-1">
             <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
             {session.createdLabel}
@@ -1495,22 +1497,23 @@ function SessionDetailPage() {
         </div>
       </div>
 
-      <CdsTabs.Root defaultValue="transcript" className="mt-5 flex min-h-[620px] flex-col">
-        <div className="flex h-7 items-center justify-between">
-          <div className="flex items-center gap-6">
-            <CdsTabs.List className="flex h-7 w-[152px] rounded-control bg-fill p-0.5" data-cds="SegmentedControl">
+      <CdsTabs.Root defaultValue="transcript" className="mt-5 flex min-h-[620px] min-w-0 flex-1 flex-col">
+        <div className="flex min-h-7 min-w-0 flex-wrap items-center justify-between gap-3">
+          <div className="flex min-w-0 flex-wrap items-center gap-3">
+            <CdsTabs.List className="flex h-7 w-[152px] shrink-0 rounded-[7px] bg-fill p-px" data-cds="SegmentedControl">
               {["Transcript", "Debug"].map((tab) => (
                 <CdsTabs.Trigger
                   key={tab}
                   value={tab.toLowerCase()}
-                  className="h-6 flex-1 rounded-[6px] px-2 text-sm font-medium text-muted data-[state=active]:bg-white data-[state=active]:text-ink data-[state=active]:shadow-sm"
+                  className="h-[26px] flex-1 rounded-[6px] px-2 text-sm text-[#52514e] data-[state=active]:bg-white data-[state=active]:text-ink data-[state=active]:shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_1px_2px_rgba(0,0,0,0.04)] [font-weight:500]"
                 >
                   {tab}
                 </CdsTabs.Trigger>
               ))}
             </CdsTabs.List>
+            <span aria-hidden="true" className="h-5 w-px bg-line" />
             <FieldSelect label="" value={eventFilter} options={["All events", "User", "Agent", "Tool", "System"]} onValueChange={setEventFilter} triggerClassName="!h-7 min-w-[97px] px-2" />
-            <Button variant="icon" aria-label="Open search filter" onClick={() => setEventSearchOpen((open) => !open)}>
+            <Button variant="icon" className="h-7 w-7 text-[#52514e]" aria-label="Open search filter" onClick={() => setEventSearchOpen((open) => !open)}>
               <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
             </Button>
             {eventSearchOpen ? (
@@ -1526,60 +1529,75 @@ function SessionDetailPage() {
               </div>
             ) : null}
           </div>
-          <div className="flex gap-2">
-            <Button variant="icon" aria-label="Keyboard shortcuts">
+          <div className="flex shrink-0 gap-2">
+            <Button variant="icon" className="h-7 w-7 text-[#52514e]" aria-label="Keyboard shortcuts">
               <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
             </Button>
-            <CopyIconButton value={transcriptText} ariaLabel="Copy all" className="h-7 w-7 !px-0" iconClassName="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
-            <Button variant="icon" aria-label="Download" onClick={() => downloadText(`${session.id}-transcript.txt`, transcriptText)}>
+            <CopyIconButton value={transcriptText} ariaLabel="Copy all" className="h-7 w-7 !px-0 text-[#52514e]" iconClassName="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
+            <Button variant="icon" className="h-7 w-7 text-[#52514e]" aria-label="Download" onClick={() => downloadText(`${session.id}-transcript.txt`, transcriptText)}>
               <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
             </Button>
           </div>
         </div>
-        <CdsTabs.Content value="transcript" className={`-ml-8 grid w-[1016px] flex-1 ${selectedEvent ? "grid-cols-[496px_520px]" : "grid-cols-1"}`}>
-          <div className="pt-[31px]">
-            <div className="flex flex-col">
+        <SessionTimeline events={session.events ?? []} selectedEventId={detailEvent} />
+        <CdsTabs.Content value="transcript" className={`-mx-8 mt-3 grid min-w-0 flex-1 border-t border-line ${selectedEvent ? "grid-cols-1 md:grid-cols-[minmax(0,1.38fr)_minmax(300px,1fr)]" : "grid-cols-1"}`}>
+          <div className="min-w-0 overflow-y-auto py-2">
+            <div className="flex min-w-0 flex-col">
               {filteredEvents.map((event) => (
                 <button
                   key={event.id}
-                  className={`grid h-9 grid-cols-[64px_minmax(0,1fr)_215px] items-center px-8 text-left text-sm leading-[21px] hover:bg-fill ${detailEvent === event.id ? "bg-fill" : ""}`}
+                  className={`flex h-9 min-w-0 items-center gap-2.5 px-8 text-left text-sm leading-[21px] hover:bg-fill ${detailEvent === event.id ? "bg-[rgba(11,11,11,0.1)]" : ""}`}
                   onClick={() => selectEvent(event.id)}
                 >
-                  <span className="font-semibold text-muted">{event.role}</span>
-                  <span className="truncate">
-                    <span className="font-medium">{event.kind}</span>
-                    <span className="ml-2 text-muted">{event.summary}</span>
+                  <SessionRolePill role={event.role} />
+                  <span className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden">
+                    <span className="shrink-0 text-ink [font-weight:500]">{event.kind}</span>
+                    <span className="min-w-0 truncate whitespace-nowrap text-muted">{event.summary}</span>
                   </span>
-                  <span className="flex items-center justify-end gap-4 text-xs text-muted">
-                    {event.status ? <Badge tone={event.status === "Error" ? "red" : sessionTone(event.status)}>{event.status}</Badge> : null}
+                  <span className="hidden shrink-0 items-center justify-end gap-3 font-mono text-xs text-muted lg:flex">
+                    {event.status ? <Badge className="!h-4 !rounded-[4px] !px-1 text-[10px] !leading-4" tone={event.status === "Error" ? "red" : sessionTone(event.status)}>{event.status}</Badge> : null}
                     {event.tokens ? <span>{event.tokens}</span> : null}
                     {event.cost ? <span>{event.cost}</span> : null}
-                    <span>{event.offset}</span>
                   </span>
+                  <span className="w-[60px] shrink-0 text-right font-mono text-xs text-muted">{event.offset}</span>
                 </button>
               ))}
               {filteredEvents.length === 0 ? <EmptyState compact title="No matching events" description="" /> : null}
             </div>
           </div>
           {selectedEvent ? (
-            <aside className="relative mt-[53px] border-l border-line bg-canvas px-6 pt-3">
+            <aside className="relative min-w-0 border-l border-line bg-canvas px-6 py-4">
               <Button variant="ghost" className="absolute right-3 top-3 h-7 w-7 px-0" aria-label="Close detail panel" onClick={closeEventDetail}>
                 <CdsIconGlyph glyph="" />
               </Button>
-              <div className="text-sm">
-                <div className="pr-10">
-                  <h2 className="text-sm leading-6 text-ink">{selectedEvent.role} {selectedEvent.kind}</h2>
-                  <div className="mt-1 flex h-5 items-center gap-2 text-xs text-muted">
-                    <span className="font-mono">{shortId(selectedEvent.id)}</span>
-                    <span className="hidden font-mono">{selectedEvent.id}</span>
-                    <CopyIconButton value={selectedEvent.id} className="h-[20px] w-[20px] px-0" iconClassName="h-3.5 w-3.5 text-current text-[14px] [font-weight:628.5]" />
-                    <span>·</span>
-                    <span>{selectedEvent.offset}</span>
-                  </div>
+              <div className="min-w-0 text-sm">
+                <div className="flex items-center gap-2 pr-10">
+                  <SessionRolePill role={selectedEvent.role} />
+                  <h2 className="text-[16px] leading-6 text-ink [font-weight:550]">{selectedEvent.kind}</h2>
                 </div>
-                <div className="mt-[29px]">
-                  <div className="mb-2 text-xs leading-4 text-muted">Content</div>
-                  <pre className="whitespace-pre-wrap font-sans text-sm leading-[22.75px] text-[#4e4a45]">{selectedEvent.summary}</pre>
+                <div className="mt-4 flex min-w-0 items-center gap-2 text-xs text-muted">
+                  <span className="font-mono">{shortId(selectedEvent.id)}</span>
+                  <span className="hidden font-mono">{selectedEvent.id}</span>
+                  <span>·</span>
+                  <span>{selectedEvent.offset}</span>
+                  <span className="ml-auto inline-flex h-6 shrink-0 items-center rounded-[6px] bg-fill p-px">
+                    {["Rendered", "Raw", "Deltas"].map((view, index) => (
+                      <span key={view} className={`inline-flex h-[22px] items-center rounded-[5px] px-2 text-xs ${index === 0 ? "bg-white text-ink shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_1px_2px_rgba(0,0,0,0.04)]" : "text-muted"}`}>
+                        {view}
+                      </span>
+                    ))}
+                  </span>
+                </div>
+                <div className="mt-6">
+                  <div className="mb-2 flex min-w-0 items-center gap-2">
+                    <span className="font-mono text-xs leading-4 text-muted">{`${selectedEvent.role.toLowerCase()}.${selectedEvent.kind.toLowerCase()}`}</span>
+                    <span className="ml-auto inline-flex min-w-0 items-center gap-1 font-mono text-xs leading-4 text-[#52514e]">
+                      <span className="truncate underline underline-offset-[3px]">{shortId(selectedEvent.id)}</span>
+                      <CdsIconGlyph glyph="" className="h-3.5 w-3.5 text-current text-[14px] [font-weight:533.25]" />
+                      <span>{selectedEvent.offset}</span>
+                    </span>
+                  </div>
+                  <RenderedSessionEventContent event={selectedEvent} />
                 </div>
               </div>
             </aside>
@@ -1602,6 +1620,89 @@ function SessionDetailPage() {
       />
       <SessionArchiveDialog open={archiveOpen} onOpenChange={setArchiveOpen} onConfirm={archiveCurrentSession} />
     </section>
+  );
+}
+
+function SessionTimeline({ events, selectedEventId }: { events: SessionEvent[]; selectedEventId: string | null }) {
+  if (events.length === 0) {
+    return <div className="mt-3 h-7 rounded-[8px] bg-[#f6f6f4]" />;
+  }
+
+  const selectedIndex = Math.max(0, events.findIndex((event) => event.id === selectedEventId));
+
+  return (
+    <div className="mt-3 flex h-7 min-w-0 items-center gap-[3px] overflow-hidden rounded-[8px] bg-[#f6f6f4] p-0.5">
+      {events.map((event, index) => {
+        const roleClass =
+          event.role === "User"
+            ? "bg-[rgba(196,102,134,0.8)]"
+            : event.role === "Agent"
+              ? "bg-[rgba(37,107,193,0.8)]"
+              : event.role === "Tool"
+                ? "bg-[rgba(139,138,133,0.7)]"
+                : "bg-[rgba(11,11,11,0.14)]";
+        const idleStretch = index < events.length - 1 ? (
+          <span
+            key={`${event.id}-idle`}
+            className="h-6 min-w-[24px] flex-1 rounded-[4px] bg-[repeating-linear-gradient(135deg,rgba(11,11,11,0.045)_0_5px,transparent_5px_10px)]"
+          />
+        ) : null;
+
+        return (
+          <span key={event.id} className="contents">
+            <span className={`h-6 shrink-0 rounded-[4px] ${event.id === selectedEventId ? "w-2.5 bg-white shadow-[inset_0_0_0_2px_#256bc1]" : `w-1.5 ${roleClass}`}`} />
+            {index === selectedIndex && event.id !== selectedEventId ? <span className="h-6 w-2.5 shrink-0 rounded-[4px] bg-white shadow-[inset_0_0_0_2px_#256bc1]" /> : null}
+            {idleStretch}
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
+function SessionRolePill({ role }: { role: string }) {
+  const className =
+    role === "User"
+      ? "bg-[#c46686] text-white"
+      : role === "Agent"
+        ? "bg-[rgba(37,107,193,0.8)] text-white"
+        : role === "Tool"
+          ? "bg-[#f6f6f4] text-[#52514e]"
+          : "bg-fill text-[#52514e]";
+
+  return (
+    <span className={`inline-flex h-5 min-w-[34px] shrink-0 items-center justify-center rounded-[6px] px-1.5 text-[10px] leading-5 [font-weight:430] ${className}`}>
+      {role}
+    </span>
+  );
+}
+
+function RenderedSessionEventContent({ event }: { event: SessionEvent }) {
+  const table = parseMarkdownTable(event.summary);
+
+  return (
+    <div className="rounded-[8px] bg-[#f6f6f4] p-4 shadow-[inset_0_0_0_1px_rgba(11,11,11,0.05)]">
+      {table ? (
+        <table className="w-full border-collapse overflow-hidden rounded-[8px] bg-white text-sm leading-5 text-[#4e4a45]">
+          <tbody>
+            {table.map((row, rowIndex) => (
+              <tr key={rowIndex}>
+                {row.map((cell, cellIndex) => {
+                  const Cell = rowIndex === 0 ? "th" : "td";
+                  return (
+                    <Cell key={cellIndex} className="border border-[rgba(11,11,11,0.18)] px-3 py-1 text-left align-top">
+                      <span className={rowIndex === 0 ? "text-ink [font-weight:550]" : ""}>{cell}</span>
+                    </Cell>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : (
+        <pre className="whitespace-pre-wrap font-sans text-sm leading-[22.75px] text-[#4e4a45]">{event.summary}</pre>
+      )}
+    </div>
   );
 }
 
@@ -9560,6 +9661,19 @@ function filterSessionEvents(events: SessionEvent[], roleFilter: string, search:
       .toLowerCase()
       .includes(normalizedSearch);
   });
+}
+
+function parseMarkdownTable(value: string) {
+  const rows = value
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.startsWith("|") && line.endsWith("|"))
+    .map((line) => line.slice(1, -1).split("|").map((cell) => cell.trim().replace(/^`|`$/g, "")));
+
+  if (rows.length < 2) return null;
+  const separatorIndex = rows.findIndex((row) => row.every((cell) => /^:?-{3,}:?$/.test(cell)));
+  if (separatorIndex < 1) return null;
+  return rows.filter((_, index) => index !== separatorIndex);
 }
 
 function defaultAgentYaml(agent?: Agent) {
