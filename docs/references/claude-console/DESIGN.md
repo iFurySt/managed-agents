@@ -491,6 +491,10 @@ single `--fw-emphasis: 500` token when the variable font is missing.
 - The dialog opens with empty Agent, Environment, and Credential vaults fields
   showing placeholders. The primary button remains enabled in that empty state;
   the local API applies default agent/environment values when omitted.
+- Agent and Environment picker options are API-backed, not static fixtures, so
+  local records created earlier in the same run appear when starting a session.
+  Nested create actions may add a new agent or environment and should select the
+  new record immediately after creation.
 - Environment picker options show name above metadata. Metadata is a
   concrete date label (`Jun 16` for same-year dates; include the year for older
   years, e.g. `Jun 16, 2025`), a muted dot separator, and a neutral tag pill
@@ -661,6 +665,10 @@ single `--fw-emphasis: 500` token when the variable font is missing.
   content sits in a card (`#FAFAF8`, radius `8px`, hairline ring, `16px`
   padding) — tables inside use 12px cells, hairline cell borders, mono values
   in faint code chips.
+- **Message composer**: a compact bottom composer belongs below the transcript
+  surface, separated by a top hairline. It uses a white textarea with 8px radius
+  and a black primary `Send` button with a send icon. This is a generic session
+  message control and must not be labeled "Ask Claude".
 
 ### Navigation
 

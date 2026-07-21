@@ -866,7 +866,8 @@ func createSessionMessage(db *gorm.DB) gin.HandlerFunc {
 			}),
 			now,
 		)
-		userEvent := sessionEvent(session.ID, fmt.Sprintf("sevt_user_%s%09d", now.Format("20060102150405"), now.Nanosecond()), "User", "Message", message, "", "", "", session.Duration, now, work.ID, work.Payload, "user.message")
+		userEvent := sessionEvent(session.ID, fmt.Sprintf("sevt_user_%s%09d", now.Format("20060102150405"), now.Nanosecond()), "User", "Message", message, "Queued", "", "", session.Duration, now, work.ID, work.Payload, "user.message")
+		session.Status = "Queued"
 		session.CurrentWorkID = work.ID
 		session.UpdatedAt = now
 		err := db.Transaction(func(tx *gorm.DB) error {

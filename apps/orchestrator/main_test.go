@@ -79,7 +79,8 @@ func TestSandboxCodexCommandDoesNotInlineRawAuthOrPrompt(t *testing.T) {
 	command := sandboxCodexCommand([]byte(`{"secret":"token"}`), "gpt-test", "https://example.invalid/codex.tgz", "say hi")
 	for _, want := range []string{
 		"CODEX_HOME=/root/.codex",
-		"curl -fsSL --max-time 120",
+		"curl -fL --connect-timeout 30 --max-time 300 -C -",
+		"attempt=$((attempt + 1))",
 		"/opt/codex/bin/codex exec --json",
 		"-m 'gpt-test'",
 	} {

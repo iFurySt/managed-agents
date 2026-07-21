@@ -85,14 +85,22 @@ services:
       - "--database-url"
       - "postgres://managed_agents:managed_agents@postgres:5432/managed_agents?sslmode=disable"
       - "--runtime"
-      - "sandbox-command"
+      - "${ORCHESTRATOR_RUNTIME:-sandbox-command}"
       - "--sandboxd-url"
       - "http://sandboxd:8787"
       - "--sandbox-image"
       - "managed-agents/docker-template:local"
+      - "--codex-home"
+      - "/host-codex-home"
+      - "--codex-model"
+      - "${CODEX_MODEL:-gpt-5.5}"
+      - "--codex-linux-tarball"
+      - "${CODEX_LINUX_TARBALL:-https://github.com/openai/codex/releases/latest/download/codex-x86_64-unknown-linux-musl.tar.gz}"
       - "--runtime-timeout"
-      - "2m"
+      - "${ORCHESTRATOR_RUNTIME_TIMEOUT:-2m}"
       - "serve"
+    volumes:
+      - ${CODEX_HOME:-$HOME/.codex}:/host-codex-home:ro
     depends_on:
       apiserver:
         condition: service_healthy

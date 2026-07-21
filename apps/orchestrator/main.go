@@ -211,7 +211,7 @@ func main() {
 	root.PersistentFlags().StringVar(&opt.codexBin, "codex-bin", env("CODEX_BIN", "codex"), "Codex CLI binary")
 	root.PersistentFlags().StringVar(&opt.codexHome, "codex-home", env("CODEX_HOME", filepath.Join(homeDir(), ".codex")), "host Codex home used for sandbox-codex auth")
 	root.PersistentFlags().StringVar(&opt.codexModel, "codex-model", env("CODEX_MODEL", "gpt-5.5"), "Codex model used by codex-local and sandbox-codex")
-	root.PersistentFlags().StringVar(&opt.codexTarball, "codex-linux-tarball", env("CODEX_LINUX_TARBALL", "https://github.com/openai/codex/releases/latest/download/codex-x86_64-unknown-linux-musl.tar.gz"), "Linux x86_64 Codex release tarball used by sandbox-codex")
+	root.PersistentFlags().StringVar(&opt.codexTarball, "codex-linux-tarball", env("CODEX_LINUX_TARBALL", "https://github.com/openai/codex/releases/latest/download/codex-x86_64-unknown-linux-musl.tar.gz"), "Linux Codex release tarball used by sandbox-codex; the default URL is adjusted for x86_64 or aarch64 guests")
 	root.PersistentFlags().StringVar(&opt.shellCommand, "shell-command", env("ORCHESTRATOR_SHELL_COMMAND", ""), "shell command used when --runtime shell")
 	root.PersistentFlags().StringVar(&opt.workspaceRoot, "workspace-root", env("ORCHESTRATOR_WORKSPACE_ROOT", "/tmp/managed-agents-workspaces"), "host workspace root for runtime processes")
 	root.PersistentFlags().DurationVar(&opt.runtimeTimeout, "runtime-timeout", durationEnv("ORCHESTRATOR_RUNTIME_TIMEOUT", 10*time.Minute), "runtime execution timeout")
@@ -649,9 +649,29 @@ printf '%%s' %s | base64 -d > "$CODEX_HOME/auth.json"
 printf '%%s' %s | base64 -d > "$CODEX_HOME/config.toml"
 printf '%%s' %s | base64 -d > /tmp/managed-agents-prompt.txt
 chmod 600 "$CODEX_HOME/auth.json" "$CODEX_HOME/config.toml"
-curl -fsSL --max-time 120 -o /tmp/codex.tgz %s
+codex_url=%s
+case "$(uname -m)" in
+  aarch64|arm64)
+    codex_url="$(printf '%%s' "$codex_url" | sed 's/codex-x86_64-unknown-linux-musl/codex-aarch64-unknown-linux-musl/g')"
+    ;;
+  x86_64|amd64)
+    codex_url="$(printf '%%s' "$codex_url" | sed 's/codex-aarch64-unknown-linux-musl/codex-x86_64-unknown-linux-musl/g')"
+    ;;
+esac
+attempt=1
+while [ "$attempt" -le 4 ]; do
+  if curl -fL --connect-timeout 30 --max-time 300 -C - -o /tmp/codex.tgz "$codex_url"; then
+    break
+  fi
+  if [ "$attempt" -eq 4 ]; then
+    exit 1
+  fi
+  attempt=$((attempt + 1))
+  sleep 2
+done
 tar -xzf /tmp/codex.tgz -C /opt/codex/bin
 if [ -f /opt/codex/bin/codex-x86_64-unknown-linux-musl ]; then mv /opt/codex/bin/codex-x86_64-unknown-linux-musl /opt/codex/bin/codex; fi
+if [ -f /opt/codex/bin/codex-aarch64-unknown-linux-musl ]; then mv /opt/codex/bin/codex-aarch64-unknown-linux-musl /opt/codex/bin/codex; fi
 chmod +x /opt/codex/bin/codex
 /opt/codex/bin/codex --version
 /opt/codex/bin/codex exec --json --ephemeral --skip-git-repo-check --dangerously-bypass-approvals-and-sandbox -C /workspace -m %s -o /tmp/codex-last.txt "$(cat /tmp/managed-agents-prompt.txt)" >/tmp/codex.jsonl 2>/tmp/codex.stderr

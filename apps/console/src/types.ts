@@ -237,6 +237,7 @@ export type Session = {
   duration: string;
   tokens: string;
   cost: string;
+  currentWorkId: string;
   createdLabel: string;
   createdAt: string;
   updatedAt: string;

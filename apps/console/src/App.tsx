@@ -14,6 +14,7 @@ import {
   Pause,
   Plus,
   Search,
+  SendHorizontal,
   Settings,
   Shield,
   Trash2,
@@ -21,7 +22,7 @@ import {
 } from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as Select from "@radix-ui/react-select";
-import { useEffect, useId, useMemo, useRef, useState, type ButtonHTMLAttributes, type ChangeEventHandler, type ComponentProps, type DragEvent, type ReactNode, type RefObject } from "react";
+import { useEffect, useId, useMemo, useRef, useState, type ButtonHTMLAttributes, type ChangeEventHandler, type ComponentProps, type DragEvent, type FormEvent, type ReactNode, type RefObject } from "react";
 import { createPortal } from "react-dom";
 import { Link, Navigate, Route, Routes, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
@@ -111,6 +112,30 @@ const sessionEnvironmentOptions = [
   { value: "env_01AzQWp3SXQEATgdCFUNwteR", name: "myenv", updated: formatConsoleDateLabel("2026-06-16"), type: "Self-hosted" },
   { value: "env_01UNo9NMB1ZQLKCZk21qryb8", name: "world-cup-digest-env", updated: formatConsoleDateLabel("2026-06-16"), type: "Cloud" }
 ];
+type SessionAgentOption = (typeof sessionAgentOptions)[number];
+type SessionEnvironmentOption = (typeof sessionEnvironmentOptions)[number];
+
+function sessionAgentOptionFromAgent(agent: Agent): SessionAgentOption {
+  return {
+    value: agent.id,
+    name: agent.name,
+    updated: agent.updatedLabel || agent.createdLabel || formatVersionCreatedLabel(agent.updatedAt)
+  };
+}
+
+function sessionEnvironmentOptionFromEnvironment(environment: Environment): SessionEnvironmentOption {
+  return {
+    value: environment.id,
+    name: environment.name,
+    updated: environment.updatedLabel || environment.createdLabel || formatVersionCreatedLabel(environment.updatedAt),
+    type: environment.type
+  };
+}
+
+function prependUniqueOption<T extends { value: string }>(options: T[], option: T) {
+  return [option, ...options.filter((item) => item.value !== option.value)];
+}
+
 const sessionDeploymentOptions = [
   { value: "depl_01ERmHnRJWQSLyxk7pVCMZXs", name: "CronWorldCupDailyDigest", updated: "Jun 16" }
 ];
@@ -1376,11 +1401,23 @@ function SessionDetailPage() {
   const [detailEvent, setDetailEvent] = useState<string | null>(null);
   const [detailClosed, setDetailClosed] = useState(false);
   const [archiveOpen, setArchiveOpen] = useState(false);
+  const [messageDraft, setMessageDraft] = useState("");
+  const [messageSending, setMessageSending] = useState(false);
   const eventParam = searchParams.get("event");
 
   useEffect(() => {
     if (id) getSession(id).then(setSession).catch(() => setSession(null));
   }, [id]);
+
+  useEffect(() => {
+    if (!id || !session) return;
+    const shouldPoll = Boolean(session.currentWorkId) || ["Queued", "Running", "Rescheduling"].includes(session.status);
+    if (!shouldPoll) return;
+    const interval = window.setInterval(() => {
+      getSession(id).then(setSession).catch(() => undefined);
+    }, 2000);
+    return () => window.clearInterval(interval);
+  }, [id, session?.currentWorkId, session?.status]);
 
   useEffect(() => {
     if (!session) {
@@ -1431,6 +1468,27 @@ function SessionDetailPage() {
     if (!session) return;
     const updated = await createSessionMessage(session.id, "Interrupt the current run.");
     setSession(updated);
+  }
+
+  async function sendSessionMessage(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!session || messageSending) return;
+    const message = messageDraft.trim();
+    if (!message) return;
+    setMessageSending(true);
+    try {
+      const updated = await createSessionMessage(session.id, message);
+      setSession(updated);
+      setMessageDraft("");
+      setDetailClosed(false);
+      const latestEvent = updated.events?.[updated.events.length - 1];
+      if (latestEvent) {
+        setDetailEvent(latestEvent.id);
+        setSearchParams({ event: latestEvent.id });
+      }
+    } finally {
+      setMessageSending(false);
+    }
   }
 
   return (
@@ -1599,6 +1657,25 @@ function SessionDetailPage() {
           </DetailSection>
         </CdsTabs.Content>
       </CdsTabs.Root>
+      <form className="mt-4 flex min-w-0 items-end gap-2 border-t border-line pt-3" onSubmit={sendSessionMessage}>
+        <label className="sr-only" htmlFor="session-message-composer">Session message</label>
+        <textarea
+          id="session-message-composer"
+          className="cds-focus min-h-[42px] flex-1 resize-y rounded-[8px] border border-line bg-white px-3 py-2 text-sm leading-5 text-ink outline-none placeholder:text-[#898781]"
+          placeholder="Message this session"
+          value={messageDraft}
+          onChange={(event) => setMessageDraft(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
+              event.currentTarget.form?.requestSubmit();
+            }
+          }}
+        />
+        <Button className="h-[42px] shrink-0 !rounded-[8px] px-3 [font-weight:550]" type="submit" disabled={messageSending || !messageDraft.trim()}>
+          <SendHorizontal className="h-4 w-4" />
+          Send
+        </Button>
+      </form>
       <SessionArchiveDialog open={archiveOpen} onOpenChange={setArchiveOpen} onConfirm={archiveCurrentSession} />
     </section>
   );
@@ -5374,6 +5451,9 @@ function CreateSessionDialog({
   const [resources, setResources] = useState<SessionResourceKind[]>([]);
   const [openPicker, setOpenPicker] = useState<"agent" | "environment" | "vault" | null>(null);
   const [createAgentOpen, setCreateAgentOpen] = useState(false);
+  const [createEnvironmentOpen, setCreateEnvironmentOpen] = useState(false);
+  const [agentOptions, setAgentOptions] = useState<SessionAgentOption[]>(sessionAgentOptions);
+  const [environmentOptions, setEnvironmentOptions] = useState<SessionEnvironmentOption[]>(sessionEnvironmentOptions);
   const dialogBodyRef = useRef<HTMLDivElement>(null);
   const nestedPickerClosedUntilRef = useRef(0);
   const canCreate = !vaults.length || vaultAcknowledged;
@@ -5388,6 +5468,28 @@ function CreateSessionDialog({
     setVaultAcknowledged(false);
     setResources([]);
     setOpenPicker(null);
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    Promise.all([
+      listAgents({ status: "Active" }),
+      listEnvironments({ status: "Active" })
+    ])
+      .then(([agents, environments]) => {
+        if (cancelled) return;
+        setAgentOptions(agents.length ? agents.map(sessionAgentOptionFromAgent) : sessionAgentOptions);
+        setEnvironmentOptions(environments.length ? environments.map(sessionEnvironmentOptionFromEnvironment) : sessionEnvironmentOptions);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setAgentOptions(sessionAgentOptions);
+        setEnvironmentOptions(sessionEnvironmentOptions);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [open]);
 
   useEffect(() => {
@@ -5483,6 +5585,7 @@ function CreateSessionDialog({
                 <DialogTextLink href="/agents">Manage agents</DialogTextLink>
               </div>
               <CreateSessionAgentPicker
+                options={agentOptions}
                 value={agentId}
                 open={openPicker === "agent"}
                 onOpenChange={(nextOpen) => setDialogPicker("agent", nextOpen)}
@@ -5496,10 +5599,12 @@ function CreateSessionDialog({
                 <DialogTextLink href="/environments">Manage environments</DialogTextLink>
               </div>
               <CreateSessionEnvironmentPicker
+                options={environmentOptions}
                 value={environmentId}
                 open={openPicker === "environment"}
                 onOpenChange={(nextOpen) => setDialogPicker("environment", nextOpen)}
                 onValueChange={setEnvironmentId}
+                onCreateNewEnvironment={() => setCreateEnvironmentOpen(true)}
               />
             </div>
             <div className="grid gap-2">
@@ -5566,8 +5671,18 @@ function CreateSessionDialog({
         onOpenChange={setCreateAgentOpen}
         navigateOnCreated={false}
         onCreated={(agent) => {
+          setAgentOptions((options) => prependUniqueOption(options, sessionAgentOptionFromAgent(agent)));
           setAgentId(agent.id);
           setCreateAgentOpen(false);
+        }}
+      />
+      <CreateEnvironmentDialog
+        open={createEnvironmentOpen}
+        onOpenChange={setCreateEnvironmentOpen}
+        onCreated={(environment) => {
+          setEnvironmentOptions((options) => prependUniqueOption(options, sessionEnvironmentOptionFromEnvironment(environment)));
+          setEnvironmentId(environment.id);
+          setCreateEnvironmentOpen(false);
         }}
       />
     </>
@@ -5593,22 +5708,24 @@ function DialogTextLink({ href, children }: { href: string; children: ReactNode 
 }
 
 function CreateSessionAgentPicker({
+  options,
   value,
   open,
   onOpenChange,
   onValueChange,
   onCreateNewAgent
 }: {
+  options: SessionAgentOption[];
   value: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onValueChange: (value: string) => void;
   onCreateNewAgent: () => void;
 }) {
-  const selected = sessionAgentOptions.find((option) => option.value === value);
+  const selected = options.find((option) => option.value === value);
   const [search, setSearch] = useState("");
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const filteredOptions = sessionAgentOptions.filter((option) => option.name.toLowerCase().includes(search.toLowerCase()));
+  const filteredOptions = options.filter((option) => option.name.toLowerCase().includes(search.toLowerCase()) || option.value.toLowerCase().includes(search.toLowerCase()));
 
   useEffect(() => {
     if (!open) {
@@ -5714,20 +5831,24 @@ function CreateSessionAgentPicker({
 }
 
 function CreateSessionEnvironmentPicker({
+  options,
   value,
   open,
   onOpenChange,
-  onValueChange
+  onValueChange,
+  onCreateNewEnvironment
 }: {
+  options: SessionEnvironmentOption[];
   value: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onValueChange: (value: string) => void;
+  onCreateNewEnvironment: () => void;
 }) {
-  const selected = sessionEnvironmentOptions.find((option) => option.value === value);
+  const selected = options.find((option) => option.value === value);
   const [search, setSearch] = useState("");
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const filteredOptions = sessionEnvironmentOptions.filter((option) => option.name.toLowerCase().includes(search.toLowerCase()));
+  const filteredOptions = options.filter((option) => option.name.toLowerCase().includes(search.toLowerCase()) || option.value.toLowerCase().includes(search.toLowerCase()));
 
   useEffect(() => {
     if (!open) {
@@ -5816,6 +5937,20 @@ function CreateSessionEnvironmentPicker({
               </Select.Item>
             ))}
           </Select.Viewport>
+          <div className="mt-[5px] shrink-0 p-1">
+            <button
+              type="button"
+              className="flex min-h-[32px] w-full items-center gap-2 rounded-[8px] px-3 text-left text-sm leading-5 text-ink outline-none hover:bg-fill focus-visible:bg-fill"
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => {
+                onOpenChange(false);
+                onCreateNewEnvironment();
+              }}
+            >
+              <CdsIconGlyph glyph="" className="h-5 w-5 text-current text-[20px] [font-weight:433.25]" />
+              <span>Create new environment</span>
+            </button>
+          </div>
         </Select.Content>
       </Select.Portal>
     </Select.Root>
