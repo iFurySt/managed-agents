@@ -497,6 +497,11 @@ single `--fw-emphasis: 500` token when the variable font is missing.
   concrete date label (`Jun 16` for same-year dates; include the year for older
   years, e.g. `Jun 16, 2025`), a muted dot separator, and a neutral tag pill
   for `Cloud` / `Self-hosted`.
+- Agent, Environment, and Credential vault picker popovers must render above
+  the modal scroll body and footer. Radix selects can use their built-in portal;
+  custom multi-select popovers such as Credential vaults must use a
+  fixed-position body portal with outside-click logic that treats both trigger
+  and popover as one interaction.
 - Authorization warning box (credential vaults): amber fill `#F9DCA4`,
   border `#D3942D`, radius `8px`, padding `12px`, leading checkbox, 14px
   warning text `#734500`.

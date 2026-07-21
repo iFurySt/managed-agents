@@ -6206,10 +6206,26 @@ function CreateSessionVaultPicker({
 }) {
   const [search, setSearch] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
+  const popoverRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const [popoverPosition, setPopoverPosition] = useState({ left: 0, top: 0, width: 0, maxHeight: 238 });
   const filteredOptions = credentialVaultPickerOptions.filter((option) => `${option.name} ${option.value}`.toLowerCase().includes(search.toLowerCase()));
   const selectedOptions = credentialVaultPickerOptions.filter((option) => value.includes(option.value));
   const selectedLabel = selectedOptions.length > 1 ? `${selectedOptions.length} vaults selected` : selectedOptions[0]?.name;
+
+  function updatePopoverPosition() {
+    const trigger = containerRef.current;
+    if (!trigger) return;
+    const rect = trigger.getBoundingClientRect();
+    const viewportGap = 8;
+    const preferredHeight = 238;
+    const sideOffset = 6;
+    const belowTop = rect.bottom + sideOffset;
+    const spaceBelow = window.innerHeight - belowTop - viewportGap;
+    const top = spaceBelow >= 137 ? belowTop : Math.max(viewportGap, rect.top - sideOffset - preferredHeight);
+    const maxHeight = Math.min(preferredHeight, Math.max(137, window.innerHeight - top - viewportGap));
+    setPopoverPosition({ left: rect.left, top, width: rect.width, maxHeight });
+  }
 
   useEffect(() => {
     if (!open) {
@@ -6220,13 +6236,19 @@ function CreateSessionVaultPicker({
     const frame = window.requestAnimationFrame(focusSearch);
     const timer = window.setTimeout(focusSearch, 40);
     const closeOnOutsidePointer = (event: PointerEvent) => {
-      if (!containerRef.current?.contains(event.target as Node)) onOpenChange(false);
+      const target = event.target as Node;
+      if (!containerRef.current?.contains(target) && !popoverRef.current?.contains(target)) onOpenChange(false);
     };
+    updatePopoverPosition();
     document.addEventListener("pointerdown", closeOnOutsidePointer);
+    window.addEventListener("resize", updatePopoverPosition);
+    window.addEventListener("scroll", updatePopoverPosition, true);
     return () => {
       window.cancelAnimationFrame(frame);
       window.clearTimeout(timer);
       document.removeEventListener("pointerdown", closeOnOutsidePointer);
+      window.removeEventListener("resize", updatePopoverPosition);
+      window.removeEventListener("scroll", updatePopoverPosition, true);
     };
   }, [onOpenChange, open]);
 
@@ -6247,7 +6269,10 @@ function CreateSessionVaultPicker({
           aria-expanded={open}
           aria-label="Select credential vaults"
           className="flex h-8 min-w-0 flex-1 items-center justify-between rounded-none border-0 bg-transparent pl-2 pr-0 text-left text-sm font-normal text-ink outline-none hover:bg-black/[0.03]"
-          onClick={() => onOpenChange(!open)}
+          onClick={() => {
+            if (!open) updatePopoverPosition();
+            onOpenChange(!open);
+          }}
         >
           <span className={`truncate ${selectedLabel ? "" : "text-muted [font-weight:430]"}`}>{selectedLabel ?? "Select one or more vaults"}</span>
           {selectedLabel ? null : <CdsIconGlyph glyph="" className="mr-0.5 h-4 w-4 shrink-0 text-[#898781] text-[16px] [font-weight:533.25]" />}
@@ -6265,11 +6290,13 @@ function CreateSessionVaultPicker({
           </span>
         ) : null}
       </div>
-      {open ? (
+      {open ? createPortal(
         <div
+          ref={popoverRef}
           data-cds="Combobox"
           role="dialog"
-          className="absolute left-0 top-[38px] z-50 max-h-[238px] w-full overflow-hidden rounded-[12px] bg-white p-1 shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
+          className="pointer-events-auto fixed z-[80] overflow-hidden rounded-[12px] bg-white p-1 shadow-[0_0_0_1px_rgba(11,11,11,0.1),0_8px_24px_rgba(0,0,0,0.12),0_2px_6px_rgba(0,0,0,0.08)]"
+          style={{ left: popoverPosition.left, top: popoverPosition.top, width: popoverPosition.width, maxHeight: popoverPosition.maxHeight }}
         >
           <div role="combobox" aria-expanded="true" className="-mx-1 -mt-1 mb-1 flex h-[37px] w-[calc(100%+8px)] shrink-0 items-center border-b border-line px-4 py-2">
             <input
@@ -6286,7 +6313,7 @@ function CreateSessionVaultPicker({
             />
             {search ? <SearchClearButton onClear={() => setSearch("")} /> : null}
           </div>
-          <div role="listbox" className="grid max-h-[92px] gap-0 overflow-y-auto overflow-x-hidden">
+          <div role="listbox" className="grid max-h-[192px] gap-0 overflow-y-auto overflow-x-hidden">
             {filteredOptions.map((option) => (
               <button
                 key={option.value}
@@ -6303,7 +6330,8 @@ function CreateSessionVaultPicker({
               </button>
             ))}
           </div>
-        </div>
+        </div>,
+        document.body
       ) : null}
     </div>
   );
