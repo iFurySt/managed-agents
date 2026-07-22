@@ -269,7 +269,12 @@ single `--fw-emphasis: 500` token when the variable font is missing.
 - **Reference chip** (Agent column, also env/agent chips on detail pages): a
   hoverable chip — `border: 0.5px solid rgba(11,11,11,0.1)`, radius `5.5px`,
   padding `2px 6px`, `gap: 6px`, 14px icon + 14px text both `#52514E`,
-  transparent fill. Hover: fill `rgba(11,11,11,0.05)` and text darkens to ink.
+  transparent fill, 14px/400 text. Hover: fill `rgba(11,11,11,0.05)` and text
+  darkens to ink. Use the shared `ReferenceChip` component for agent,
+  environment, vault, and memory references in table cells and detail meta
+  rows; non-link chips click-copy their referenced id/value with the same
+  Copy/Copied tooltip feedback as IDs. Do not hand-roll these as unbordered
+  `Button variant="ghost"` controls.
 - **Time/Created column**: text secondary `#52514E` (visibly lighter than the
   ink Name column).
 - **Row menu `⋮`**: the dots are **ink/near-black `#0B0B0B`** (not muted), in a
@@ -622,9 +627,9 @@ single `--fw-emphasis: 500` token when the variable font is missing.
 ### Session detail page (transcript viewer)
 
 - **Breadcrumb row**: "Sessions" (14px muted, hover ink) `/` mono ID
-  (13px, emphasis weight, ink). Right-aligned: "Actions ▾" is a transparent
-  ghost button, 32px tall, 96px wide, 8px radius, 500 weight; do not give it a
-  visible secondary-button border.
+  (13px, emphasis weight, ink). Right-aligned: "Actions ▾" is the shared boxed
+  detail action trigger: 32px tall, 96px wide, 8px radius, 500 weight,
+  white/50 fill with a subtle inset hairline ring and `0 1px 2px` shadow.
   This project intentionally omits the Claude Console reference's Ask Claude
   button and right-docked Ask Claude panel.
 - **Title block**: h1 22px/550 + status pill inline; below it a meta row (14px
@@ -850,11 +855,12 @@ Border-first system. Prefer inset rings over shadows.
   shell; only cap the *reading width* of prose-like content inside a tab
   (e.g. `max-w-3xl` for a config/system-prompt column), never the page itself.
 - Build one shared component for each repeated interaction pattern (copy
-  feedback, search-clear button, filter dropdown, toast, full-row link) and
-  reuse it everywhere that pattern appears, instead of re-implementing the
-  same hover/feedback logic per page — divergence here is exactly how the
-  same bug (missing copy feedback, filter overflow, wrong hover color) ends
-  up needing to be fixed on every page individually.
+  feedback, reference chip, search-clear button, filter dropdown, toast,
+  full-row link, detail Actions trigger) and reuse it everywhere that pattern
+  appears, instead of re-implementing the same hover/feedback logic per page —
+  divergence here is exactly how the same bug (missing copy feedback, filter
+  overflow, wrong hover color) ends up needing to be fixed on every page
+  individually.
 
 ### Don't
 

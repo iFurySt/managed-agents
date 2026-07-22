@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import * as Dialog from "@radix-ui/react-dialog";
 import * as Select from "@radix-ui/react-select";
-import { useEffect, useId, useMemo, useRef, useState, type ButtonHTMLAttributes, type ChangeEventHandler, type ComponentProps, type DragEvent, type FormEvent, type ReactNode, type RefObject } from "react";
+import { forwardRef, useEffect, useId, useMemo, useRef, useState, type ButtonHTMLAttributes, type ChangeEventHandler, type ComponentProps, type DragEvent, type FormEvent, type ReactNode, type RefObject } from "react";
 import { createPortal } from "react-dom";
 import { Link, Navigate, Route, Routes, useLocation, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
@@ -74,7 +74,7 @@ import {
   updateDeployment,
   updateEnvironment
 } from "./api";
-import { Badge, Button, CdsDropdownMenu, CdsTabs, ConsoleDialog, CopyableIdText, CopyIconButton, CopyIdButton, DataTable, FieldSelect, showToast, SidebarItem, TextInput, ToastViewport } from "./components/cds";
+import { Badge, Button, CdsDropdownMenu, CdsTabs, ConsoleDialog, CopyableIdText, CopyIconButton, CopyIdButton, DataTable, FieldSelect, ReferenceChip, showToast, SidebarItem, TextInput, ToastViewport } from "./components/cds";
 import type { Agent, AgentVersionEntry, CollectionName, Deployment, Environment, EnvironmentPackageRow, MemoryRecord, MemoryStore, Resource, Session, SessionEvent, SkillPackage, SkillVersion, UpdateDeploymentInput, Vault, VaultCredential, WorkspaceFile } from "./types";
 
 const managedRoutes: { path: CollectionName; title: string; description: string; action: string }[] = [];
@@ -192,6 +192,8 @@ const sessionDetailFilterShellClass =
   "inline-flex h-7 w-[97px] shrink-0 items-center rounded-[8px] bg-transparent pr-2 text-sm leading-5 text-[#52514e]";
 const sessionDetailFilterTriggerClass =
   "!h-7 !min-w-0 !gap-1.5 !px-0 !text-[#52514e] !shadow-none ![font-weight:500]";
+const detailActionsTriggerClass =
+  "h-8 w-[96px] !gap-1.5 !rounded-[8px] !bg-white/50 px-3 !text-ink shadow-[inset_0_0_0_1px_rgba(11,11,11,0.1),0_1px_2px_rgba(0,0,0,0.04)] hover:!bg-fill active:!bg-fill ![font-weight:500]";
 const editorToolbarTabClass = (selected: boolean) =>
   `transition-[background-color,color,transform] duration-100 rounded-full px-[10px] [font-weight:550] hover:bg-fill active:scale-[0.975] active:bg-fill ${
     selected ? "bg-fill text-ink" : "text-muted"
@@ -689,6 +691,19 @@ function SidebarPanelIcon() {
 function MoreActionsIcon() {
   return <CdsIconGlyph glyph="" />;
 }
+
+const ActionsMenuTrigger = forwardRef<HTMLButtonElement, ButtonHTMLAttributes<HTMLButtonElement>>(function ActionsMenuTrigger({
+  children = "Actions",
+  className = "",
+  ...props
+}, ref) {
+  return (
+    <Button ref={ref} variant="ghost" className={`${detailActionsTriggerClass} ${className}`} {...props}>
+      {children}
+      <ChevronDown className="h-4 w-4" />
+    </Button>
+  );
+});
 
 function MenuArchiveIcon() {
   return <CdsIconGlyph glyph="" className="h-5 w-5 text-current text-[20px] [font-weight:433.25]" />;
@@ -1334,14 +1349,9 @@ function SessionsPage() {
               header: "Agent",
               width: "170px",
               render: (session) => (
-                <button
-                  data-cds="Button"
-                  type="button"
-                  className="cds-focus inline-flex h-[25px] min-w-0 max-w-full items-center gap-1.5 rounded-md border-[0.5px] border-black/10 bg-transparent px-1.5 py-0.5 text-sm leading-5 text-[#52514e] [font-weight:400] hover:bg-fill"
-                >
-                  <CdsIconGlyph glyph="" className="h-4 w-4 text-[#898781] text-[16px] [font-weight:533.25]" />
-                  <span className="truncate">{session.agentName}</span>
-                </button>
+                <ReferenceChip icon="" copyValue={session.agentId} ariaLabel={`Copy agent ID ${session.agentId}`}>
+                  {session.agentName}
+                </ReferenceChip>
               )
             },
             { key: "tokens", header: "Tokens in / out", width: "140px", render: (session) => <span className="text-ink">{session.tokens}</span> },
@@ -1525,15 +1535,13 @@ function SessionDetailPage() {
           </span>
         </div>
         <div className="mt-2 flex min-h-[25px] min-w-0 flex-wrap items-center gap-2 text-sm text-[#52514e]">
-          <Button variant="ghost" className="h-[25px] max-w-full px-2 font-normal text-[#4e4a45]">
-            <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
-            <span className="truncate">{session.agentName}</span>
-          </Button>
+          <ReferenceChip icon="" copyValue={session.agentId} ariaLabel={`Copy agent ID ${session.agentId}`}>
+            {session.agentName}
+          </ReferenceChip>
           <span className="text-muted">·</span>
-          <Button variant="ghost" className="h-[25px] max-w-full px-2 font-normal text-[#4e4a45]">
-            <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
-            <span className="truncate">{session.environmentName}</span>
-          </Button>
+          <ReferenceChip icon="" copyValue={session.environmentId} ariaLabel={`Copy environment ID ${session.environmentId}`}>
+            {session.environmentName}
+          </ReferenceChip>
           <span className="text-muted">·</span>
           <span className="inline-flex items-center gap-1">
             <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
@@ -2147,14 +2155,9 @@ function DeploymentsPage() {
               width: "220px",
               render: (deployment) => (
                 <span className="relative z-10 inline-flex max-w-full items-center gap-1.5 align-middle">
-                  <button
-                    data-cds="Button"
-                    type="button"
-                    className="cds-focus inline-flex h-[25px] min-w-0 max-w-full items-center gap-1.5 rounded-md border-[0.5px] border-black/10 bg-transparent px-1.5 py-0.5 text-sm leading-5 text-[#52514e] [font-weight:400] hover:bg-fill"
-                  >
-                    <CdsIconGlyph glyph="" className="h-4 w-4 text-[#898781] text-[16px] [font-weight:533.25]" />
-                    <span className="truncate">{deployment.agentName}</span>
-                  </button>
+                  <ReferenceChip icon="" copyValue={deployment.agentId} ariaLabel={`Copy agent ID ${deployment.agentId}`}>
+                    {deployment.agentName}
+                  </ReferenceChip>
                   <span className="shrink-0 rounded bg-[#f6f6f4] px-1 font-mono text-[11px] leading-4 text-[#52514e]">{deployment.agentVersion}</span>
                 </span>
               )
@@ -2366,10 +2369,10 @@ function DeploymentDetailPage() {
             </DeploymentDetailSection>
           </div>
           <DeploymentDetailSection title="Credential vaults">
-            <DeploymentDetailToken icon="">{deployment.vaults || "No credential vault"}</DeploymentDetailToken>
+            <DeploymentDetailToken icon="" copyValue={deployment.vaults || undefined}>{deployment.vaults || "No credential vault"}</DeploymentDetailToken>
           </DeploymentDetailSection>
           <DeploymentDetailSection title="Memory stores">
-            <DeploymentDetailToken icon="">{deployment.memoryStores || "No memory store"}</DeploymentDetailToken>
+            <DeploymentDetailToken icon="" copyValue={deployment.memoryStores || undefined}>{deployment.memoryStores || "No memory store"}</DeploymentDetailToken>
           </DeploymentDetailSection>
           <DeploymentDetailSection title="Schedule">
             <div className="flex flex-col gap-3">
@@ -9113,10 +9116,7 @@ function SessionDetailActions({
   return (
     <CdsDropdownMenu.Root>
       <CdsDropdownMenu.Trigger asChild>
-        <Button variant="ghost" className="h-8 w-[96px] !rounded-[8px] !bg-transparent px-3 !text-ink hover:!bg-fill ![font-weight:500]">
-          Actions
-          <ChevronDown className="h-4 w-4" />
-        </Button>
+        <ActionsMenuTrigger />
       </CdsDropdownMenu.Trigger>
       <CdsDropdownMenu.Portal>
         <CdsDropdownMenu.Content
@@ -9443,27 +9443,11 @@ function AgentConfigSection({
   );
 }
 
-function DeploymentDetailToken({ icon, children, to }: { icon: string; children: React.ReactNode; to?: string }) {
-  const className = "relative z-10 inline-flex h-[25px] w-fit min-w-0 max-w-full self-start items-center gap-1.5 rounded-md border-[0.5px] border-line bg-transparent px-1.5 py-0.5 text-sm leading-5 text-[#52514e] no-underline outline-none transition-colors duration-100 hover:bg-fill hover:text-ink";
-  const content = (
-    <>
-      <CdsIconGlyph glyph={icon} className="h-4 w-4 shrink-0 text-[#52514e] text-[16px] [font-weight:533.25]" />
-      <span className="min-w-0 truncate">{children}</span>
-    </>
-  );
-
-  if (to) {
-    return (
-      <Link className={className} to={to}>
-        {content}
-      </Link>
-    );
-  }
-
+function DeploymentDetailToken({ icon, children, to, copyValue }: { icon: string; children: ReactNode; to?: string; copyValue?: string }) {
   return (
-    <button type="button" className={className}>
-      {content}
-    </button>
+    <ReferenceChip icon={icon} to={to} copyValue={copyValue} className="self-start">
+      {children}
+    </ReferenceChip>
   );
 }
 
