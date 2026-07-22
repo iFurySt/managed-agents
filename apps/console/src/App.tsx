@@ -114,6 +114,11 @@ const sessionEnvironmentOptions = [
 ];
 type SessionAgentOption = (typeof sessionAgentOptions)[number];
 type SessionEnvironmentOption = (typeof sessionEnvironmentOptions)[number];
+type ReferencePreviewTarget = {
+  kind: "agent" | "environment";
+  id: string;
+  name: string;
+};
 
 function sessionAgentOptionFromAgent(agent: Agent): SessionAgentOption {
   return {
@@ -1189,6 +1194,7 @@ function SessionsPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [archivingSession, setArchivingSession] = useState<Session | null>(null);
   const [archivingSelection, setArchivingSelection] = useState<{ sessions: Session[]; clear: () => void } | null>(null);
+  const [referencePreview, setReferencePreview] = useState<ReferencePreviewTarget | null>(null);
   const sessionStatusParam = useMemo(() => sessionStatusQuery(status), [status]);
 
   useEffect(() => {
@@ -1349,7 +1355,11 @@ function SessionsPage() {
               header: "Agent",
               width: "170px",
               render: (session) => (
-                <ReferenceChip icon="" copyValue={session.agentId} ariaLabel={`Copy agent ID ${session.agentId}`}>
+                <ReferenceChip
+                  icon=""
+                  ariaLabel={`Open agent ${session.agentName}`}
+                  onClick={() => setReferencePreview({ kind: "agent", id: session.agentId, name: session.agentName })}
+                >
                   {session.agentName}
                 </ReferenceChip>
               )
@@ -1404,6 +1414,9 @@ function SessionsPage() {
         }}
         onConfirm={archiveSelection}
       />
+      <ReferencePreviewDrawer target={referencePreview} onOpenChange={(open) => {
+        if (!open) setReferencePreview(null);
+      }} />
     </section>
   );
 }
@@ -1420,6 +1433,7 @@ function SessionDetailPage() {
   const [archiveOpen, setArchiveOpen] = useState(false);
   const [messageDraft, setMessageDraft] = useState("");
   const [messageSending, setMessageSending] = useState(false);
+  const [referencePreview, setReferencePreview] = useState<ReferencePreviewTarget | null>(null);
   const eventParam = searchParams.get("event");
 
   useEffect(() => {
@@ -1535,11 +1549,19 @@ function SessionDetailPage() {
           </span>
         </div>
         <div className="mt-2 flex min-h-[25px] min-w-0 flex-wrap items-center gap-2 text-sm text-[#52514e]">
-          <ReferenceChip icon="" copyValue={session.agentId} ariaLabel={`Copy agent ID ${session.agentId}`}>
+          <ReferenceChip
+            icon=""
+            ariaLabel={`Open agent ${session.agentName}`}
+            onClick={() => setReferencePreview({ kind: "agent", id: session.agentId, name: session.agentName })}
+          >
             {session.agentName}
           </ReferenceChip>
           <span className="text-muted">·</span>
-          <ReferenceChip icon="" copyValue={session.environmentId} ariaLabel={`Copy environment ID ${session.environmentId}`}>
+          <ReferenceChip
+            icon=""
+            ariaLabel={`Open environment ${session.environmentName}`}
+            onClick={() => setReferencePreview({ kind: "environment", id: session.environmentId, name: session.environmentName })}
+          >
             {session.environmentName}
           </ReferenceChip>
           <span className="text-muted">·</span>
@@ -1700,6 +1722,9 @@ function SessionDetailPage() {
         </Button>
       </form>
       <SessionArchiveDialog open={archiveOpen} onOpenChange={setArchiveOpen} onConfirm={archiveCurrentSession} />
+      <ReferencePreviewDrawer target={referencePreview} onOpenChange={(open) => {
+        if (!open) setReferencePreview(null);
+      }} />
     </section>
   );
 }
@@ -2021,6 +2046,7 @@ function DeploymentsPage() {
   const [editingDeployment, setEditingDeployment] = useState<Deployment | null>(null);
   const [archivingDeployment, setArchivingDeployment] = useState<Deployment | null>(null);
   const [archivingSelection, setArchivingSelection] = useState<{ items: Deployment[]; clear: () => void } | null>(null);
+  const [referencePreview, setReferencePreview] = useState<ReferencePreviewTarget | null>(null);
 
   useEffect(() => {
     setPage(0);
@@ -2155,7 +2181,11 @@ function DeploymentsPage() {
               width: "220px",
               render: (deployment) => (
                 <span className="relative z-10 inline-flex max-w-full items-center gap-1.5 align-middle">
-                  <ReferenceChip icon="" copyValue={deployment.agentId} ariaLabel={`Copy agent ID ${deployment.agentId}`}>
+                  <ReferenceChip
+                    icon=""
+                    ariaLabel={`Open agent ${deployment.agentName}`}
+                    onClick={() => setReferencePreview({ kind: "agent", id: deployment.agentId, name: deployment.agentName })}
+                  >
                     {deployment.agentName}
                   </ReferenceChip>
                   <span className="shrink-0 rounded bg-[#f6f6f4] px-1 font-mono text-[11px] leading-4 text-[#52514e]">{deployment.agentVersion}</span>
@@ -2233,6 +2263,9 @@ function DeploymentsPage() {
         }}
         onConfirm={archiveSelection}
       />
+      <ReferencePreviewDrawer target={referencePreview} onOpenChange={(open) => {
+        if (!open) setReferencePreview(null);
+      }} />
     </section>
   );
 }
@@ -2245,6 +2278,7 @@ function DeploymentDetailPage() {
   const [result, setResult] = useState("All");
   const [editOpen, setEditOpen] = useState(false);
   const [archiveOpen, setArchiveOpen] = useState(false);
+  const [referencePreview, setReferencePreview] = useState<ReferencePreviewTarget | null>(null);
 
   useEffect(() => {
     if (id) getDeployment(id).then(setDeployment).catch(() => setDeployment(null));
@@ -2360,19 +2394,31 @@ function DeploymentDetailPage() {
           <div className="grid grid-cols-2 gap-4">
             <DeploymentDetailSection title="Agent">
               <div className="flex items-center gap-1.5">
-                <DeploymentDetailToken icon="" to={`/agents/${deployment.agentId}`}>{deployment.agentName}</DeploymentDetailToken>
+                <DeploymentDetailToken
+                  icon=""
+                  ariaLabel={`Open agent ${deployment.agentName}`}
+                  onOpen={() => setReferencePreview({ kind: "agent", id: deployment.agentId, name: deployment.agentName })}
+                >
+                  {deployment.agentName}
+                </DeploymentDetailToken>
                 <span className="text-sm leading-5 text-muted [font-weight:550]">{deployment.agentVersion}</span>
               </div>
             </DeploymentDetailSection>
             <DeploymentDetailSection title="Environment">
-              <DeploymentDetailToken icon="" to={`/environments/${deployment.environmentId}`}>{deployment.environmentName}</DeploymentDetailToken>
+              <DeploymentDetailToken
+                icon=""
+                ariaLabel={`Open environment ${deployment.environmentName}`}
+                onOpen={() => setReferencePreview({ kind: "environment", id: deployment.environmentId, name: deployment.environmentName })}
+              >
+                {deployment.environmentName}
+              </DeploymentDetailToken>
             </DeploymentDetailSection>
           </div>
           <DeploymentDetailSection title="Credential vaults">
-            <DeploymentDetailToken icon="" copyValue={deployment.vaults || undefined}>{deployment.vaults || "No credential vault"}</DeploymentDetailToken>
+            <DeploymentDetailToken icon="">{deployment.vaults || "No credential vault"}</DeploymentDetailToken>
           </DeploymentDetailSection>
           <DeploymentDetailSection title="Memory stores">
-            <DeploymentDetailToken icon="" copyValue={deployment.memoryStores || undefined}>{deployment.memoryStores || "No memory store"}</DeploymentDetailToken>
+            <DeploymentDetailToken icon="">{deployment.memoryStores || "No memory store"}</DeploymentDetailToken>
           </DeploymentDetailSection>
           <DeploymentDetailSection title="Schedule">
             <div className="flex flex-col gap-3">
@@ -2476,6 +2522,9 @@ function DeploymentDetailPage() {
           </div>
         </CdsTabs.Content>
       </CdsTabs.Root>
+      <ReferencePreviewDrawer target={referencePreview} onOpenChange={(open) => {
+        if (!open) setReferencePreview(null);
+      }} />
     </section>
   );
 }
@@ -9443,9 +9492,181 @@ function AgentConfigSection({
   );
 }
 
-function DeploymentDetailToken({ icon, children, to, copyValue }: { icon: string; children: ReactNode; to?: string; copyValue?: string }) {
+function ReferencePreviewDrawer({
+  target,
+  onOpenChange
+}: {
+  target: ReferencePreviewTarget | null;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const [agent, setAgent] = useState<Agent | null>(null);
+  const [environment, setEnvironment] = useState<Environment | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    setAgent(null);
+    setEnvironment(null);
+    if (!target) return;
+    setLoading(true);
+    const request = target.kind === "agent"
+      ? getAgent(target.id).then((item) => {
+        if (!cancelled) setAgent(item);
+      })
+      : getEnvironment(target.id).then((item) => {
+        if (!cancelled) setEnvironment(item);
+      });
+    request.catch(() => undefined).finally(() => {
+      if (!cancelled) setLoading(false);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [target?.id, target?.kind]);
+
+  const title = target?.kind === "agent" ? agent?.name ?? target.name : environment?.name ?? target?.name ?? "";
+
   return (
-    <ReferenceChip icon={icon} to={to} copyValue={copyValue} className="self-start">
+    <Dialog.Root open={Boolean(target)} onOpenChange={onOpenChange}>
+      <Dialog.Portal>
+        <Dialog.Content
+          data-cds="ReferencePreviewDrawer"
+          className="fixed right-0 top-0 z-40 flex h-dvh w-[min(560px,calc(100dvw-48px))] flex-col overflow-hidden bg-canvas text-ink shadow-[-8px_0_24px_-12px_rgba(0,0,0,0.12)] outline-none"
+        >
+          <Dialog.Close asChild>
+            <Button variant="ghost" className="absolute left-4 top-4 z-10 h-7 w-7 !rounded-[8px] !px-0" aria-label="Close preview">
+              <CdsIconGlyph glyph="" className="h-4 w-4 text-current text-[16px] [font-weight:533.25]" />
+            </Button>
+          </Dialog.Close>
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <div className="px-6 pb-6 pt-12">
+              <Dialog.Title className="text-[22px] leading-7 [font-weight:550]">{title || "Loading..."}</Dialog.Title>
+              {target?.kind === "agent" ? <AgentReferenceDrawerBody target={target} agent={agent} loading={loading} /> : null}
+              {target?.kind === "environment" ? <EnvironmentReferenceDrawerBody target={target} environment={environment} loading={loading} /> : null}
+            </div>
+          </div>
+        </Dialog.Content>
+      </Dialog.Portal>
+    </Dialog.Root>
+  );
+}
+
+function AgentReferenceDrawerBody({ target, agent, loading }: { target: ReferencePreviewTarget; agent: Agent | null; loading: boolean }) {
+  const selectedVersion = agent?.versions?.[0] ?? (agent ? {
+    version: agent.version,
+    name: agent.name,
+    description: agent.description,
+    model: agent.model,
+    systemPrompt: agent.systemPrompt,
+    configYaml: agent.configYaml,
+    createdAt: agent.createdAt
+  } : null);
+  const toolPermissions = agent?.tools === "agent_toolset_20260401" ? builtInToolPermissions : [];
+
+  return (
+    <>
+      <div className="mt-2 flex flex-wrap items-center gap-2 text-xs leading-4 text-muted">
+        {agent ? <Badge tone="neutral" className="h-[22px] rounded-[5.5px]">{agent.version}</Badge> : null}
+        <span>{agent?.createdLabel ? `Created ${agent.createdLabel}` : loading ? "Loading..." : "Agent preview unavailable"}</span>
+        <span>·</span>
+        <CopyableIdText value={target.id} display={shortId(target.id)} />
+        <span>·</span>
+        <Link className="inline-flex items-center gap-1 text-[#52514e] underline underline-offset-[3px] hover:text-ink" to={`/agents/${target.id}`}>
+          Go to agent
+          <CdsIconGlyph glyph="" className="h-3.5 w-3.5 text-current text-[14px] [font-weight:533.25]" />
+        </Link>
+      </div>
+      {agent?.description ? <p className="mt-6 text-sm leading-5 text-[#4e4a45]">{agent.description}</p> : null}
+      <ReferenceDrawerSection title="Model" className="mt-7">
+        <div className="mt-3 font-mono text-sm leading-5 text-[#52514e]">{selectedVersion?.model ?? "Loading..."}</div>
+      </ReferenceDrawerSection>
+      <ReferenceDrawerSection title="System prompt">
+        <div className="mt-3 max-h-[272px] overflow-hidden rounded-[8px] bg-[#f9f9f7] p-4">
+          <pre className="whitespace-pre-wrap text-sm leading-5 text-[#4e4a45]">{selectedVersion?.systemPrompt ?? (loading ? "Loading..." : "No system prompt.")}</pre>
+        </div>
+      </ReferenceDrawerSection>
+      <ReferenceDrawerSection title="MCPs and tools">
+        <div className="mt-3 overflow-hidden rounded-[8px] border-[0.5px] border-[rgba(11,11,11,0.1)] text-sm">
+          <div className="flex items-center gap-3 px-4 py-3">
+            <CdsIconGlyph glyph="" className="h-5 w-5 text-[#898781] text-[20px] [font-weight:433.25]" />
+            <div className="min-w-0 flex-1">
+              <div className="truncate text-ink [font-weight:550]">Built-in tools</div>
+              <div className="truncate font-mono text-xs leading-4 text-muted">{agent?.tools ?? "agent_toolset_20260401"}</div>
+            </div>
+          </div>
+          <div className="flex h-[46px] items-center gap-2 border-t-[0.5px] border-[rgba(11,11,11,0.1)] px-4 text-[#52514e]">
+            <CdsIconGlyph glyph="" className="h-4 w-4 -rotate-90 text-[16px] [font-weight:533.25]" />
+            <span>Tool permissions</span>
+            <Badge tone="neutral" className="h-[22px] rounded-[5.5px]">{toolPermissions.length}</Badge>
+            <span className="ml-auto inline-flex items-center gap-1.5 text-xs leading-4 text-muted [font-weight:550]">
+              <CdsIconGlyph glyph="" className="h-3.5 w-3.5 text-[#006300] text-[14px] [font-weight:628.5]" />
+              Always allow
+            </span>
+          </div>
+        </div>
+      </ReferenceDrawerSection>
+    </>
+  );
+}
+
+function EnvironmentReferenceDrawerBody({ target, environment, loading }: { target: ReferencePreviewTarget; environment: Environment | null; loading: boolean }) {
+  const packages = (environment?.packages ?? "").split(/\s+/).filter(Boolean);
+
+  return (
+    <>
+      <div className="mt-2 flex flex-wrap items-center gap-2 text-xs leading-4 text-muted">
+        {environment ? <Badge tone={environment.status === "Archived" ? "neutral" : "green"} className="h-[22px] rounded-[5.5px] capitalize">{environment.status}</Badge> : null}
+        {environment ? <Badge tone="neutral" className="h-[22px] rounded-[5.5px]">{environment.type}</Badge> : null}
+        <span>{environment?.createdLabel ? `Created ${environment.createdLabel}` : loading ? "Loading..." : "Environment preview unavailable"}</span>
+        <span>·</span>
+        <CopyableIdText value={target.id} display={shortId(target.id)} />
+        <span>·</span>
+        <Link className="inline-flex items-center gap-1 text-[#52514e] underline underline-offset-[3px] hover:text-ink" to={`/environments/${target.id}`}>
+          Go to environment
+          <CdsIconGlyph glyph="" className="h-3.5 w-3.5 text-current text-[14px] [font-weight:533.25]" />
+        </Link>
+      </div>
+      {environment?.description ? <p className="mt-6 text-sm leading-5 text-[#4e4a45]">{environment.description}</p> : null}
+      <div className="mt-7 flex h-8 items-end gap-0.5 border-b border-line">
+        {["Overview", "Scope", "Organization", "Networking"].map((tab, index) => (
+          <span key={tab} className={`relative -mb-px inline-flex h-8 items-center px-3 text-sm ${index === 3 ? "border-b-2 border-ink text-ink [font-weight:500]" : "text-muted"}`}>
+            {tab}
+          </span>
+        ))}
+      </div>
+      <ReferenceDrawerSection title="Networking" className="mt-5">
+        <p className="mt-1 text-sm leading-5 text-[#52514e]">Network access policy for this environment.</p>
+        <div className="mt-4">
+          <div className="text-sm leading-5 [font-weight:550]">Type</div>
+          <Badge tone="neutral" className="mt-2 h-[22px] rounded-[5.5px]">{environment?.networkingType ?? "Unrestricted"}</Badge>
+        </div>
+      </ReferenceDrawerSection>
+      <ReferenceDrawerSection title="Packages">
+        <div className="mt-3 overflow-hidden rounded-[8px] border-[0.5px] border-[rgba(11,11,11,0.1)]">
+          {(packages.length ? packages : loading ? ["Loading..."] : ["No packages"]).map((pkg) => (
+            <div key={pkg} className="flex min-h-9 items-center gap-3 border-t-[0.5px] border-[rgba(11,11,11,0.1)] px-3 py-2 first:border-t-0">
+              <span className="w-14 shrink-0 font-mono text-xs text-muted">{environment?.packageManager || "apt"}</span>
+              <span className="min-w-0 truncate font-mono text-sm text-[#52514e]">{pkg}</span>
+            </div>
+          ))}
+        </div>
+      </ReferenceDrawerSection>
+    </>
+  );
+}
+
+function ReferenceDrawerSection({ title, children, className = "" }: { title: string; children: ReactNode; className?: string }) {
+  return (
+    <section className={`border-t border-line py-6 ${className}`}>
+      <h3 className="text-sm leading-5 text-[#52514e] [font-weight:550]">{title}</h3>
+      {children}
+    </section>
+  );
+}
+
+function DeploymentDetailToken({ icon, children, onOpen, ariaLabel }: { icon: string; children: ReactNode; onOpen?: () => void; ariaLabel?: string }) {
+  return (
+    <ReferenceChip icon={icon} onClick={onOpen} ariaLabel={ariaLabel} className="self-start">
       {children}
     </ReferenceChip>
   );

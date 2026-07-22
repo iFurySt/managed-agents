@@ -31,7 +31,8 @@ The reference page uses lightweight controls with subtle hover feedback rather t
 
 ### Follow-up: Reference chip reuse
 
-- Added a shared `ReferenceChip` component backed by the existing Copy/Copied tooltip behavior.
+- Added a shared `ReferenceChip` component for the bordered object reference style.
+- Corrected agent/environment chip behavior to open a right-side reference preview drawer instead of copying on click.
 - Replaced the hand-rolled session detail agent/environment controls with `ReferenceChip`.
 - Reused the same component for sessions table agent cells, deployments table agent cells, and deployment detail reference tokens.
 - Added a shared boxed `ActionsMenuTrigger` for the session detail text Actions dropdown trigger so its ring/fill style is no longer open-coded in the dropdown component.

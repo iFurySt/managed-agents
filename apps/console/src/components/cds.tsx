@@ -242,26 +242,20 @@ export function CopyableIdText({
 export function ReferenceChip({
   icon,
   children,
-  copyValue,
   to,
+  onClick,
   ariaLabel,
   className = ""
 }: {
   icon: string;
   children: ReactNode;
-  copyValue?: string;
   to?: string;
+  onClick?: () => void;
   ariaLabel?: string;
   className?: string;
 }) {
-  const { copied, copy } = useCopyFeedback(copyValue ?? "");
-  const [hovered, setHovered] = useState(false);
-  const chipClassName = `cds-focus relative z-10 inline-flex h-[25px] w-fit min-w-0 max-w-full items-center gap-1.5 rounded-[5.5px] border-[0.5px] border-[rgba(11,11,11,0.1)] bg-transparent px-1.5 py-0.5 text-sm leading-5 text-[#52514e] no-underline outline-none transition-colors duration-100 hover:bg-fill hover:text-ink [font-weight:400] ${className}`;
-  function copyChip(event: { stopPropagation?: () => void }) {
-    event.stopPropagation?.();
-    if (copyValue) copy();
-  }
-
+  const interactive = Boolean(to || onClick);
+  const chipClassName = `cds-focus relative z-10 inline-flex h-[25px] w-fit min-w-0 max-w-full items-center gap-1.5 rounded-[5.5px] border-[0.5px] border-[rgba(11,11,11,0.1)] bg-transparent px-1.5 py-0.5 text-sm leading-5 text-[#52514e] no-underline outline-none transition-colors duration-100 [font-weight:400] ${interactive ? "cursor-pointer hover:bg-fill hover:text-ink" : ""} ${className}`;
   const content = (
     <>
       <CdsIconGlyph glyph={icon} className="h-4 w-4 shrink-0 text-current text-[16px] [font-weight:533.25]" />
@@ -271,38 +265,41 @@ export function ReferenceChip({
 
   if (to) {
     return (
-      <Link className={chipClassName} to={to}>
+      <Link
+        className={chipClassName}
+        to={to}
+        onClick={(event) => {
+          event.stopPropagation();
+        }}
+      >
         {content}
       </Link>
     );
   }
 
-  const button = (
-    <button
-      type="button"
-      className={chipClassName}
-      aria-label={ariaLabel ?? (copyValue ? `Copy ${copyValue}` : undefined)}
-      onClick={(event) => {
-        event.stopPropagation();
-      }}
-      onPointerDown={copyChip}
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          copyChip(event);
-        }
-      }}
-    >
-      {content}
-    </button>
-  );
-
-  if (!copyValue) return button;
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        className={chipClassName}
+        aria-label={ariaLabel}
+        onClick={(event) => {
+          event.stopPropagation();
+          onClick();
+        }}
+      >
+        {content}
+      </button>
+    );
+  }
 
   return (
-    <CopyTooltip copied={copied} hovered={hovered} onHoveredChange={setHovered}>
-      {button}
-    </CopyTooltip>
+    <span
+      className={chipClassName}
+      aria-label={ariaLabel}
+    >
+      {content}
+    </span>
   );
 }
 

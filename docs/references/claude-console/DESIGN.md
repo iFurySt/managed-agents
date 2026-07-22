@@ -272,9 +272,17 @@ single `--fw-emphasis: 500` token when the variable font is missing.
   transparent fill, 14px/400 text. Hover: fill `rgba(11,11,11,0.05)` and text
   darkens to ink. Use the shared `ReferenceChip` component for agent,
   environment, vault, and memory references in table cells and detail meta
-  rows; non-link chips click-copy their referenced id/value with the same
-  Copy/Copied tooltip feedback as IDs. Do not hand-roll these as unbordered
+  rows. Agent and environment chips open a right-side reference preview drawer;
+  they do **not** copy on click. Do not hand-roll these as unbordered
   `Button variant="ghost"` controls.
+- **Reference preview drawer**: opened by agent/environment reference chips.
+  It is a right-docked `560px` drawer (`w=min(560px, calc(100dvw - 48px))`),
+  full viewport height, canvas fill, no page overlay, and a left-side shadow
+  `-8px 0 24px -12px rgba(0,0,0,0.12)`. The top has a small close icon, then
+  a 22px/550 object name, status/version metadata, the object ID using
+  `CopyableIdText`, and an underlined "Go to agent/environment ↗" link. Agent
+  drawers show model, system prompt, and MCP/tools sections; environment
+  drawers show description, overview tabs, networking type, and package rows.
 - **Time/Created column**: text secondary `#52514E` (visibly lighter than the
   ink Name column).
 - **Row menu `⋮`**: the dots are **ink/near-black `#0B0B0B`** (not muted), in a
